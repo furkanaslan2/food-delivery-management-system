@@ -1,4 +1,4 @@
-from flask import render_template, redirect, url_for, session, flash
+from flask import render_template, request, redirect, url_for, session, flash
 from db import get_db_connection
 from mysql.connector import Error
 
@@ -7,6 +7,19 @@ def index():
         return redirect(url_for('login'))
 
     role = session.get('role')
+
+    if role == 'customer':
+        connection = get_db_connection()
+        restaurants = []
+        if connection:
+            cursor = connection.cursor(dictionary=True)
+            # Şimdilik tüm restoranları çekiyoruz. İleride buraya "WHERE city = session['customer_city']" gibi konum filtreleri ekleyeceğiz.
+            cursor.execute("SELECT * FROM restaurants")
+            restaurants = cursor.fetchall()
+            cursor.close()
+            connection.close()
+            
+        return render_template('customer_index.html', restaurants=restaurants)
 
     if role == 'waiter':
         return redirect(url_for('waiter_dashboard'))

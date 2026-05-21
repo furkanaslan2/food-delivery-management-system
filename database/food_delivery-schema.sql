@@ -27,6 +27,8 @@ CREATE TABLE restaurants (
     average_cost INT NOT NULL CHECK(average_cost > 0),
     cuisine VARCHAR(100) NOT NULL,
     restaurant_address TEXT NOT NULL,
+    latitude DECIMAL(10, 8) NULL,   
+    longitude DECIMAL(11, 8) NULL,
     table_count INT NOT NULL DEFAULT 10,
     PRIMARY KEY (restaurant_id),
     FOREIGN KEY (user_id) REFERENCES users(user_id)
@@ -103,6 +105,20 @@ CREATE TABLE waiters (
     FOREIGN KEY (restaurant_id) REFERENCES restaurants(restaurant_id)
     ON DELETE CASCADE
     ON UPDATE CASCADE
+);
+
+CREATE TABLE customers (
+    customer_id INT AUTO_INCREMENT,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL, -- Şifreleri yine hash'leyerek tutacağız
+    phone VARCHAR(20) NULL,
+    city VARCHAR(50) NULL,      -- İlk aşamada hızlı şehir filtrelemesi için
+    address TEXT NULL,          -- Kuryenin paketi götüreceği açık adres
+    latitude DECIMAL(10, 8) NULL,   -- Gelişmiş mesafe hesabı için Enlem (Örn: 41.0082)
+    longitude DECIMAL(11, 8) NULL,  -- Gelişmiş mesafe hesabı için Boylam (Örn: 28.9784)
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Hesap açılış tarihi
+    PRIMARY KEY (customer_id)
 );
 
 CREATE TABLE order_items (

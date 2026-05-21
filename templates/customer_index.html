@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Food Online</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { margin: 0; font-family: 'Inter', sans-serif; background-color: #f8f9fa; color: #111827; }
+        
+        /* Modern Müşteri Navbar */
+        .customer-nav { background: #ffffff; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; }
+        .nav-brand { font-size: 22px; font-weight: 700; color: #4f46e5; text-decoration: none; display: flex; align-items: center; gap: 8px;}
+        .nav-links { display: flex; gap: 20px; align-items: center; }
+        .nav-links a { text-decoration: none; color: #4b5563; font-weight: 500; transition: color 0.2s; }
+        .nav-links a:hover { color: #4f46e5; }
+        .cart-btn { background: #4f46e5; color: white !important; padding: 8px 16px; border-radius: 20px; display: flex; align-items: center; gap: 5px; }
+        
+        /* Karşılama Alanı (Hero) */
+        .hero-section { background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%); padding: 60px 5%; color: white; text-align: center; }
+        .hero-section h1 { font-size: 36px; margin: 0 0 15px 0; }
+        .hero-section p { font-size: 18px; color: #e0e7ff; margin-bottom: 30px; }
+        
+        /* Restoran Izgarası (Grid) */
+        .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
+        .section-title { font-size: 24px; font-weight: 600; margin-bottom: 25px; color: #1f2937; }
+        
+        .restaurant-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
+        
+        /* Restoran Kartı */
+        .restaurant-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: transform 0.2s ease, box-shadow 0.2s ease; text-decoration: none; color: inherit; display: block; }
+        .restaurant-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        
+        /* Görsel Alanı (Şimdilik Placeholder Renk) */
+        .card-image { height: 160px; background-color: #e5e7eb; display: flex; justify-content: center; align-items: center; font-size: 40px; }
+        
+        .card-content { padding: 16px; }
+        .card-title { font-size: 18px; font-weight: 600; margin: 0 0 8px 0; display: flex; justify-content: space-between; align-items: center; }
+        
+        /* Puan Rozeti */
+        .rating-badge { background: #fef08a; color: #854d0e; padding: 4px 8px; border-radius: 6px; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 4px; }
+        
+        .card-info { color: #6b7280; font-size: 14px; margin-bottom: 12px; }
+        
+        .card-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f3f4f6; padding-top: 12px; font-size: 13px; color: #4b5563; }
+        
+        .cuisine-tag { background: #f3f4f6; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; color: #374151; }
+    </style>
+</head>
+<body>
+
+    <nav class="customer-nav">
+        <a href="/" class="nav-brand">🍔 DeliveryApp</a>
+        <div class="nav-links">
+            <span>📍 {{ session.get('customer_city', 'Select Location') }}</span>
+            <a href="#">My Orders</a>
+            <a href="{{ url_for('view_cart') }}" class="cart-btn">🛒 Cart</a>
+            <a href="/logout">Logout</a>
+        </div>
+    </nav>
+
+    <div class="hero-section">
+        <h1>What are you craving today?</h1>
+        <p>Discover the best food & drinks in your area.</p>
+    </div>
+
+    <div class="container">
+        <h2 class="section-title">Popular Restaurants Near You</h2>
+        
+        <div class="restaurant-grid">
+            {% for restaurant in restaurants %}
+            <a href="{{ url_for('view_restaurant', restaurant_id=restaurant['restaurant_id']) }}" class="restaurant-card">
+                
+                <div class="card-image">
+                    {% if restaurant['cuisine'] == 'Pizza' %} 🍕 
+                    {% elif restaurant['cuisine'] == 'Burger' %} 🍔
+                    {% elif restaurant['cuisine'] == 'Sushi' %} 🍣
+                    {% else %} 🍽️ {% endif %}
+                </div>
+                
+                <div class="card-content">
+                    <div class="card-title">
+                        {{ restaurant['restaurant_name'] }}
+                        <span class="rating-badge">⭐ {{ restaurant['rating'] }}</span>
+                    </div>
+                    <div class="card-info">
+                        {{ restaurant['city'] }} • {{ restaurant['restaurant_address'] }}
+                    </div>
+                    <div class="card-footer">
+                        <span class="cuisine-tag">{{ restaurant['cuisine'] }}</span>
+                        <span>💸 Avg: ${{ restaurant['average_cost'] }}</span>
+                    </div>
+                </div>
+            </a>
+            {% else %}
+                <p style="grid-column: 1 / -1; text-align: center; color: #6b7280; font-size: 16px;">
+                    We couldn't find any restaurants in your area yet. 😢
+                </p>
+            {% endfor %}
+        </div>
+    </div>
+
+</body>
+</html>

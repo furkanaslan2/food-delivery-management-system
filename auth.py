@@ -139,3 +139,69 @@ def register():
                 connection.close()
 
     return render_template('register.html')
+
+def customer_register():
+    if request.method == 'POST':
+        name = request.form['name']
+        email = request.form['email']
+        password = request.form['password']
+        
+        hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
+
+        connection = get_db_connection()
+        if connection is None:
+            flash("Database connection failed!", "danger")
+            return render_template('customer_register.html')
+
+        try:
+            cursor = connection.cursor()
+            # Sadece isim, e-posta ve şifre kaydediyoruz. Diğer alanlar (NULL) olarak kalacak.
+            cursor.execute(
+                'INSERT INTO customers (name, email, password) VALUES (%s, %s, %s)', 
+                (name, email, hashed_password)
+            )
+            connection.commit()
+            flash("Account created! Please login to order.", "success")
+            return redirect(url_for('customer_login'))
+            
+        except Error as e:
+            connection.rollback()
+            flash("Registration failed: Email might be already in use.", "danger")
+        finally:
+            if connection.is_connected():
+                cursor.close()
+                connection.close()
+
+    return render_template('customer_register.html')
+
+
+def customer_login():
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+
+        connection = get_db_connection()
+        if connection:
+            try:
+                cursor = connection.cursor(dictionary=True)
+                cursor.execute('SELECT * FROM customers WHERE email = %s', (email,))
+                customer = cursor.fetchone()
+                
+                if customer and check_password_hash(customer['password'], password):
+                    session['logged_in'] = True
+                    session['role'] = 'customer' # Müşteriyi B2B panelden ayırmak için
+                    session['customer_id'] = customer['customer_id']
+                    session['customer_city'] = customer['city'] # İleride sadece kendi şehrindeki restoranları görsün diye
+                    
+                    flash("Login successful! Welcome to the marketplace.", "success")
+                    return redirect(url_for('index')) # Vitrin sayfası yapılınca oraya yönlendireceğiz
+                else:
+                    flash("Invalid email or password.", "danger")
+            except Error as e:
+                flash(f"Login failed: {e}", "danger")
+            finally:
+                if connection.is_connected():
+                    cursor.close()
+                    connection.close()
+
+    return render_template('customer_login.html')
