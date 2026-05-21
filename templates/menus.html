@@ -37,7 +37,10 @@
             <input type="hidden" id="selected-menu-items" name="selected_menu_items">
             <input type="hidden" id="update-menu-id" name="update_menu_id">
             <input type="hidden" id="form-action" name="action" value="">
-            <input type="number" id="menu-id" name="menu_id" placeholder="Menu ID">
+            
+            <input type="hidden" id="menu-id" name="menu_id">
+            <input type="hidden" id="menu-restaurant-id" name="restaurant_id">
+            
             <input type="text" id="food-name" name="name" placeholder="Food Name">
             <select id="food-type" name="food_type" aria-label="Select food type">
                 <option value="">Select Type</option>
@@ -47,7 +50,6 @@
             <input type="text" id="menu-cuisine" name="cuisine" placeholder="Cuisine">
             <input type="number" id="menu-price" name="price" placeholder="Price">
             <input type="number" id="menu-stock" name="stock_quantity" placeholder="Stock Quantity">
-            <input type="number" id="menu-restaurant-id" name="restaurant_id" placeholder="Restaurant ID">
         </form>
         <button class="search-button" onclick="searchMenu()"><img class="button-img" src="{{ url_for('static', filename='images/search.png') }}" alt="search icon">Search</button>
         <button class="clear-button" type="submit" form="menu-form" name="action" value="clear" onclick="clearSearch()"><img class="button-img" src="{{ url_for('static', filename='images/clear.png') }}" alt="clear icon">Clear</button>
@@ -66,12 +68,10 @@
                 <h3>Sort By</h3>
                 <form id="sort-form" action="{{ url_for('menus_action') }}" method="post">
                     <select name="sort_by" id="sort-by">
-                        <option value="menu_id">ID</option>
                         <option value="item_name">Name</option>
                         <option value="veg_or_non_veg">Type</option>
                         <option value="cuisine">Cuisine</option>
                         <option value="price">Price</option>
-                        <option value="restaurant_id">Restaurant ID</option>
                     </select>
                     <h3 id="second-h3">Order</h3>
                     <select name="sort_order" id="sort-order">
@@ -98,13 +98,14 @@
 
             <input type="checkbox" id="menu-{{ loop.index }}" name="selected_menu_items" value="{{ item['menu_id'] }}">
             <label for="menu-{{ loop.index }}">
-                <p><strong>ID:</strong> <span class="menu-id">{{ item['menu_id'] }}</span></p>
+                <span class="menu-id" style="display: none;">{{ item['menu_id'] }}</span>
+                <span class="menu-restaurant-id" style="display: none;">{{ item['restaurant_id'] }}</span>
+                
                 <p><strong>Name:</strong> <span class="menu-name">{{ item['food_name'] if item['food_name'] else 'No food name' }}</span></p>
                 <p><strong>Type:</strong> <span class="menu-type">{{ item['veg_or_non_veg'] if item['veg_or_non_veg'] else 'Not specified' }}</span></p>
                 <p><strong>Cuisine:</strong> <span class="menu-cuisine">{{ item['cuisine'] if item['cuisine'] else 'Not specified' }}</span></p>
                 <p><strong>Price:</strong> <span class="menu-price">{{ item['price'] }}</span></p>
                 <p><strong>Stock:</strong> <span class="menu-stock">{{ item['stock_quantity'] }}</span></p>
-                <p><strong>Restaurant ID:</strong> <span class="menu-restaurant-id">{{ item['restaurant_id'] }}</span></p>
             </label>
         </div>
         {% endfor %}

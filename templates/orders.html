@@ -71,23 +71,13 @@
     <button id="scrollTopBtn"><img class="up-arrow" src="{{ url_for('static', filename='images/up-arrow.png') }}"></button>
     
     <div class="search-bar" style="display: flex; flex-direction: column; align-items: stretch; height: auto; margin-top: 80px; padding: 20px;">
-        
         <div style="display: flex; gap: 10px; align-items: flex-start; width: 100%;">
-            
             <form id="order-form" class="order-form" action="{{ url_for('order_action') }}" method="post">
-            
             <div class="compact-row" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center; width: 100%; margin-bottom: 15px;">
                 
-                <input type="number" id="order-id" name="order_id" placeholder="ID" 
-                       style="width: 70px; min-width: 60px; height: 40px; margin: 0; padding: 0 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; vertical-align: middle;">
-
-            {% if session['role'] == 'admin' %}
-                <input type="number" id="add-order-restaurant-id" name="restaurant_id" placeholder="Rest. ID" 
-                       style="width: 90px; height: 40px; margin: 0; padding: 0 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; vertical-align: middle;">
-            {% else %}
-                <input type="number" id="order-restaurant-id" name="restaurant_id" placeholder="Rest. ID" 
-                       style="width: 90px; height: 40px; margin: 0; padding: 0 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; vertical-align: middle;">
-            {% endif %}   
+                <input type="hidden" id="order-id" name="order_id">
+                <input type="hidden" id="order-restaurant-id" name="restaurant_id">
+                <input type="hidden" id="add-order-restaurant-id" name="restaurant_id">
 
                 <select id="order-status" name="order_status" 
                         style="width: auto; min-width: 110px; height: 40px; margin: 0; padding: 0 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; vertical-align: middle; background-color: white;">
@@ -120,13 +110,10 @@
             </div>
 
             <div id="delivery-fields" style="display: none; width:100%; box-sizing: border-box; background: #f9f9f9; padding: 15px; border-radius: 5px; border: 1px solid #eee; margin-bottom: 10px;">
-                
                 <input type="text" id="customer-name" name="customer_name" placeholder="Customer Name" 
                        style="width: 100%; display: block; margin-bottom: 10px; height: 38px; padding: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
-                
                 <input type="text" id="customer-phone" name="customer_phone" placeholder="Phone Number" 
                        style="width: 100%; display: block; margin-bottom: 10px; height: 38px; padding: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
-
                 <input type="text" id="customer-address" name="customer_address" placeholder="Address" 
                        style="width: 100%; display: block; margin-bottom: 10px; height: 38px; padding: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
                 
@@ -140,9 +127,7 @@
 
                 <div id="food-section">
                     <hr style="margin: 15px 0 10px 0; border-top: 1px solid #ddd; width: 300px;">
-                    
                     <label style="display:block; margin-bottom:5px;"><strong>Order Items:</strong></label>
-
                     <div id="food-items-container">
                         <div class="food-row" style="display: flex; gap: 5px; margin-bottom: 5px; width: 100%;">
                             <select name="food_id" class="dynamic-food-list" style="flex: 2; height: 35px; padding: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
@@ -155,7 +140,6 @@
                                 style="flex: 0.8; height: 35px; padding: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
                         </div>
                     </div>
-
                     <button type="button" onclick="addFoodRow()" style="background: #17a2b8; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.9em; margin-top: 5px; width: 300px;">
                         + Add Another Item
                     </button>
@@ -181,8 +165,6 @@
                 <h3>Sort By</h3>
                 <form id="sort-form" action="{{ url_for('order_action') }}" method="post">
                     <select name="sort_by" id="sort-by">
-                        <option value="order_id">ID</option>
-                        <option value="restaurant_id">Restaurant ID</option>
                         <option value="order_status">Status</option>
                         <option value="order_date">Order Date</option>
                         <option value="sales_qty">Sales Quantity</option>
@@ -210,8 +192,9 @@
         <div class="table-card" id="order-card-{{ order['order_id'] }}">
             <input type="checkbox" id="order-{{ loop.index }}" name="selected_orders" value="{{ order['order_id'] }}">
             <label for="order-{{ loop.index }}">
-                <p><strong>ID:</strong> <span class="order-id">{{ order['order_id'] }}</span></p>
-                <p><strong>Restaurant ID:</strong> <span class="order-restaurant-id">{{ order['restaurant_id'] }}</span></p>
+                <span class="order-id" style="display: none;">{{ order['order_id'] }}</span>
+                <span class="order-restaurant-id" style="display: none;">{{ order['restaurant_id'] }}</span>
+                
                 <p><strong>Order Date:</strong> <span class="order-date">{{ order['order_date'].strftime('%Y-%m-%d %H:%M') }}</span></p>
                 <p><strong>Status:</strong> <span class="order-status">{{ order['order_status'] }}</span></p>
                 <p><strong>Sales Quantity:</strong> <span class="order-sales-quantity">{{ order['sales_qty'] }}</span></p>
@@ -235,7 +218,6 @@
                         {% if not ns.found %} - {% endif %}
                     </p>
                     <span class="order-table-no hidden"></span>
-
                 {% else %}
                     <p style="color: #0984e3;"><strong>🍽️ Dine-in</strong></p>
                     <p><strong>Table No:</strong> <span class="order-table-no">{{ order['table_no'] }}</span></p>

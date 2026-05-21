@@ -37,7 +37,9 @@
             <input type="hidden" id="selected-food-items" name="selected_food_items">
             <input type="hidden" id="update-food-id" name="update_food_id">
             <input type="hidden" id="form-action" name="action" value="">
-            <input type="number" id="food-id" name="food_id" placeholder="Food ID">
+            
+            <input type="hidden" id="food-id" name="food_id">
+            
             <input type="text" id="food-name" name="name" placeholder="Food Name">
             <select id="food-type" name="food_type" aria-label="Select food type">
                 <option value="">Select Type</option>
@@ -65,7 +67,6 @@
                 <form id="sort-form" action="{{ url_for('food_action') }}" method="post">
                     <input type="hidden" name="action" value="sort">
                     <select name="sort_by" id="sort-by">
-                        <option value="food_id">ID</option>
                         <option value="item_name">Name</option>
                         <option value="veg_or_non_veg">Type</option>
                     </select>
@@ -87,7 +88,8 @@
         <div class="table-card" id="food-card-{{ item['food_id'] }}">
             <input type="checkbox" id="food-{{ loop.index }}" name="selected_food_items" value="{{ item['food_id'] }}">
             <label for="food-{{ loop.index }}">
-                <p><strong>ID:</strong> <span class="food-id">{{ item['food_id'] }}</span></p>
+                <span class="food-id" style="display: none;">{{ item['food_id'] }}</span>
+                
                 <p><strong>Name:</strong> <span class="food-name">{{ item['item_name'] }}</span></p>
                 <p><strong>Type:</strong> <span class="food-type">{{ item['veg_or_non_veg'] }}</span></p>
                 <p><strong>Used in Menus:</strong> <span class="menu-count">{{ item['menu_count'] }}</span></p>
@@ -98,4 +100,4 @@
     <script src="{{ url_for('static', filename='js/common.js') }}"></script>
     <script src="{{ url_for('static', filename='js/foods.js') }}"></script>
 </body>
-</html> 
+</html>

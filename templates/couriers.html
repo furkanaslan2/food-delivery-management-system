@@ -34,7 +34,9 @@
     <button id="scrollTopBtn"><img class="up-arrow" src="{{ url_for('static', filename='images/up-arrow.png') }}"></button>
     <div class="search-bar">
         <form id="courier-form" class="courier-form" action="{{ url_for('courier_action') }}" method="post">
-            <input type="number" id="courier-id" name="courier_id" placeholder="Courier ID">
+            <input type="hidden" id="courier-id" name="courier_id">
+            <input type="hidden" id="courier-restaurant-id" name="restaurant_id">
+            
             <input type="text" id="courier-name" name="name" placeholder="Name">
             <select id="courier-gender" name="gender">
                 <option value="" hidden>Gender</option>
@@ -42,7 +44,6 @@
                 <option value="Female">Female</option>
             </select>
             <input type="date" id="courier-birthdate" name="birth_date" placeholder="Birth Date">
-            <input type="number" id="courier-restaurant-id" name="restaurant_id" placeholder="Restaurant ID">
             <input type="hidden" id="selected-couriers" name="selected_couriers">
             <input type="hidden" id="update-courier-id" name="update_courier_id">
             <input type="hidden" id="clear-filter" name="clear_filter" value="false">
@@ -62,11 +63,9 @@
                 <h3>Sort By</h3>
                 <form id="sort-form" action="{{ url_for('courier_action') }}" method="post">
                     <select name="sort_by" id="sort-by">
-                        <option value="courier_id">ID</option>
                         <option value="name">Name</option>
                         <option value="gender">Gender</option>
                         <option value="birth_date">Birth Date</option>
-                        <option value="restaurant_id">Restaurant ID</option>
                     </select>
                     <h3 id="second-h3">Order</h3>
                     <select name="sort_order" id="sort-order">
@@ -86,11 +85,12 @@
         <div class="table-card" id="courier-card-{{ courier['courier_id'] }}">
             <input type="checkbox" id="courier-{{ loop.index }}" name="selected_couriers" value="{{ courier['courier_id'] }}">
             <label for="courier-{{ loop.index }}">
-                <p><strong>ID:</strong> <span class="courier-id">{{ courier['courier_id'] }}</span></p>
+                <span class="courier-id" style="display: none;">{{ courier['courier_id'] }}</span>
+                <span class="courier-restaurant-id" style="display: none;">{{ courier['restaurant_id'] }}</span>
+                
                 <p><strong>Name:</strong> <span class="courier-name">{{ courier['name'] }}</span></p>
                 <p><strong>Gender:</strong> <span class="courier-gender">{{ courier['gender'] }}</span></p>
                 <p><strong>Birth Date:</strong> <span class="courier-birthdate">{{ courier['birth_date'] }}</span></p>
-                <p><strong>Restaurant ID:</strong> <span class="courier-restaurant-id">{{ courier['restaurant_id'] }}</span></p>
             </label>
         </div>
         {% endfor %}

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Restaurant Management</title>
+    <title>Register - Restaurant Management</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     
     <style>
@@ -19,7 +19,7 @@
             min-height: 100vh;
         }
 
-        /* Beyaz Giriş Kartı */
+        /* Beyaz Kayıt Kartı */
         .modern-auth-container {
             background: #ffffff;
             width: 100%;
@@ -60,7 +60,7 @@
             font-weight: 500;
         }
 
-        .form-group input, .form-group select {
+        .form-group input {
             width: 100%;
             padding: 12px 14px;
             font-size: 14px;
@@ -69,17 +69,16 @@
             box-sizing: border-box;
             transition: all 0.2s ease;
             font-family: inherit;
-            background-color: #fff;
         }
 
-        /* Input ve Select Tıklanınca (Focus) */
-        .form-group input:focus, .form-group select:focus {
+        /* Input'a Tıklanınca (Focus) */
+        .form-group input:focus {
             outline: none;
             border-color: #4f46e5;
             box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
         }
 
-        /* Giriş Butonu */
+        /* Kayıt Butonu */
         .submit-btn {
             width: 100%;
             padding: 12px;
@@ -135,8 +134,8 @@
 <body>
 
     <div class="modern-auth-container">
-        <h2>System Login</h2>
-        <p class="subtitle">Welcome back! Please enter your details.</p>
+        <h2>Create an Account</h2>
+        <p class="subtitle">Start managing your restaurant today.</p>
         
         {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}
@@ -146,14 +145,10 @@
           {% endif %}
         {% endwith %}
 
-        <form action="{{ url_for('login') }}" method="POST">
+        <form action="{{ url_for('register') }}" method="POST">
             <div class="form-group">
-                <label for="role">Select Role</label>
-                <select name="role" id="role" required>
-                    <option value="user">Restaurant Owner (User)</option>
-                    <option value="waiter">Waiter</option>
-                    <option value="admin">Admin</option>
-                </select>
+                <label for="name">Full Name</label>
+                <input type="text" name="name" id="name" placeholder="John Doe" required>
             </div>
 
             <div class="form-group">
@@ -162,15 +157,20 @@
             </div>
 
             <div class="form-group">
+                <label for="restaurant_name">Restaurant Name</label>
+                <input type="text" name="restaurant_name" id="restaurant_name" placeholder="E.g. The Golden Fork" required>
+            </div>
+
+            <div class="form-group">
                 <label for="password">Password</label>
                 <input type="password" name="password" id="password" placeholder="••••••••" required>
             </div>
 
-            <button type="submit" class="submit-btn">Login</button>
+            <button type="submit" class="submit-btn">Register & Create</button>
         </form>
         
         <div class="bottom-text">
-            Don't have an account? <a href="{{ url_for('register') }}">Register here</a>
+            Already have an account? <a href="{{ url_for('login') }}">Login here</a>
         </div>
     </div>
 

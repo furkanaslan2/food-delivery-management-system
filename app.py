@@ -3,7 +3,7 @@ from flask import Flask
 from flask_session import Session
 from dotenv import load_dotenv
 from index import index
-from auth import login, logout
+from auth import login, logout, register
 from users import users, user_action
 from restaurants import restaurants, restaurant_action
 from restaurants import restaurant_analytics
@@ -26,6 +26,7 @@ Session(app)
 app.add_url_rule('/', 'index', index)
 app.add_url_rule('/login', 'login', login, methods=['GET', 'POST'])
 app.add_url_rule('/logout', 'logout', logout)
+app.add_url_rule('/register', 'register', register, methods=['GET', 'POST'])
 app.add_url_rule('/users', 'users', users)
 app.add_url_rule('/users', 'user_action', user_action, methods=['POST'])
 app.add_url_rule('/restaurants', 'restaurants', restaurants)

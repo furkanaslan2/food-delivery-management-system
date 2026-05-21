@@ -8,16 +8,10 @@ document.addEventListener("DOMContentLoaded", function () {
         const id = card.querySelector('.user-id').textContent.trim();
         const name = card.querySelector('.name').textContent.trim();
         const email = card.querySelector('.email').textContent.trim();
-        const password = card.querySelector('.password').textContent.trim();
-        const age = card.querySelector('.age').textContent.trim();
-        const gender = card.querySelector('.gender').textContent.trim();
 
         document.getElementById('user-id').value = id;
         document.getElementById('name').value = name;
         document.getElementById('email').value = email;
-        document.getElementById('password').value = password;
-        document.getElementById('age').value = age;
-        document.getElementById('gender').value = gender;
         document.getElementById('update-user-id').value = id;
 
         const currentUserRole = document.getElementById('current-user-role').value;
@@ -38,9 +32,6 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById('user-id').value = '';
         document.getElementById('name').value = '';
         document.getElementById('email').value = '';
-        document.getElementById('password').value = '';
-        document.getElementById('age').value = '';
-        document.getElementById('gender').value = '';
         document.getElementById('update-user-id').value = '';
 
         const idInput = document.getElementById('user-id');
@@ -80,15 +71,11 @@ function searchUser() {
     const idInput = document.getElementById('user-id').value.trim().toLowerCase();
     const nameInput = document.getElementById('name').value.trim().toLowerCase();
     const emailInput = document.getElementById('email').value.trim().toLowerCase();
-    const passwordInput = document.getElementById('password').value.trim().toLowerCase();
-    const ageInput = document.getElementById('age').value.trim().toLowerCase();
-    const genderInput = document.getElementById('gender').value.trim().toLowerCase();
     const cards = document.querySelectorAll('.table-card');
     matchedCards = [];
     currentMatchIndex = -1;
 
-    if (!idInput && !nameInput && !emailInput &&
-        !passwordInput && !ageInput && !genderInput) {
+    if (!idInput && !nameInput && !emailInput) {
         alert("Please enter at least one search criterion.");
         return;
     }
@@ -99,17 +86,11 @@ function searchUser() {
         const id = card.querySelector('.user-id').textContent.toLowerCase();
         const name = card.querySelector('.name').textContent.toLowerCase();
         const email = card.querySelector('.email').textContent.toLowerCase();
-        const password = card.querySelector('.password').textContent.toLowerCase();
-        const age = card.querySelector('.age').textContent.toLowerCase();
-        const gender = card.querySelector('.gender').textContent.toLowerCase();
 
         if (
             (!idInput || id === idInput) &&
             (!nameInput || name.includes(nameInput)) &&
-            (!emailInput || email === emailInput) &&
-            (!passwordInput || password === passwordInput) &&
-            (!ageInput || age === ageInput) &&
-            (!genderInput || gender === genderInput)
+            (!emailInput || email === emailInput)
         ) {
             matchedCards.push(card);
         }
@@ -144,9 +125,6 @@ function clearSearch() {
     document.getElementById('user-id').value = "";
     document.getElementById('name').value = "";
     document.getElementById('email').value = "";
-    document.getElementById('password').value = "";
-    document.getElementById('age').value = "";
-    document.getElementById('gender').value = "";
 
     document.getElementById('clear-filter').value = "true";
     document.getElementById('user-form').submit();
