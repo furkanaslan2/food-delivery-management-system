@@ -128,12 +128,12 @@ def checkout():
                 insert_order_query = """
                     INSERT INTO orders (
                         restaurant_id, order_status, order_date, sales_qty, 
-                        sales_amount, order_type, customer_name, customer_phone, customer_address
+                        sales_amount, order_type, customer_id, customer_name, customer_phone, customer_address
                     )
-                    VALUES (%s, 'pending', NOW(), %s, %s, 'Delivery', %s, %s, %s)
+                    VALUES (%s, 'pending', NOW(), %s, %s, 'Delivery', %s, %s, %s, %s)
                 """
                 cursor.execute(insert_order_query, (
-                    restaurant_id, total_qty, total_amount, customer_name, phone, address
+                    restaurant_id, total_qty, total_amount, customer_id, customer_name, phone, address
                 ))
                 
                 new_order_id = cursor.lastrowid # Yeni oluşan Siparişin ID'si
@@ -171,3 +171,54 @@ def checkout():
                     connection.close()
 
     return redirect(url_for('view_cart'))
+
+def customer_orders():
+    if 'logged_in' not in session or session.get('role') != 'customer':
+        flash("Please login to view your orders.", "danger")
+        return redirect(url_for('customer_login'))
+
+    customer_id = session.get('customer_id')
+    connection = get_db_connection()
+    orders_data = []
+
+    if connection:
+        try:
+            cursor = connection.cursor(dictionary=True)
+            
+            # 1. Aşama: Müşterinin tüm siparişlerini restoran isimleriyle beraber çek (En yeniler en üstte)
+            cursor.execute("""
+                SELECT o.*, r.restaurant_name 
+                FROM orders o
+                JOIN restaurants r ON o.restaurant_id = r.restaurant_id
+                WHERE o.customer_id = %s
+                ORDER BY o.order_date DESC
+            """, (customer_id,))
+            orders_list = cursor.fetchall()
+
+            # 2. Aşama: Her bir siparişin içindeki yemek detaylarını (order_items) çek ve siparişe ekle
+            for order in orders_list:
+                cursor.execute("""
+                    SELECT oi.*, f.item_name 
+                    FROM order_items oi
+                    JOIN foods f ON oi.food_id = f.food_id
+                    WHERE oi.order_id = %s
+                """, (order['order_id'],))
+                
+                order['items'] = cursor.fetchall()
+                orders_data.append(order)
+
+        except Exception as e:
+            flash(f"Error loading your orders: {e}", "danger")
+        finally:
+            if connection.is_connected():
+                cursor.close()
+                connection.close()
+
+    return render_template('customer_orders.html', orders=orders_data)
+
+def set_location():
+    if request.method == 'POST':
+        data = request.get_json()
+        session['latitude'] = data.get('latitude')
+        session['longitude'] = data.get('longitude')
+        return {"status": "success"}

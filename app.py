@@ -11,7 +11,7 @@ from menus import menus, menus_action
 from orders import orders, order_action, get_order_details, get_restaurant_details
 from foods import foods, food_action
 from waiters import waiter_dashboard, waiter_create_order, waiters, waiter_action
-from customer import view_restaurant, add_to_cart, view_cart, checkout
+from customer import view_restaurant, add_to_cart, view_cart, checkout, customer_orders, set_location
 
 load_dotenv()
 
@@ -49,6 +49,8 @@ app.add_url_rule('/customer_register', 'customer_register', customer_register, m
 app.add_url_rule('/cart', 'view_cart', view_cart) 
 app.add_url_rule('/add_to_cart', 'add_to_cart', add_to_cart, methods=['POST'])
 app.add_url_rule('/checkout', 'checkout', checkout, methods=['POST'])
+app.add_url_rule('/my_orders', 'customer_orders', customer_orders)
+app.add_url_rule('/set_location', 'set_location', set_location, methods=['POST'])
 
 if __name__ == '__main__':
     app.run(debug=True)

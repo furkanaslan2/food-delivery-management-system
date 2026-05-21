@@ -53,7 +53,7 @@
         <a href="/" class="nav-brand">🍔 DeliveryApp</a>
         <div class="nav-links">
             <span>📍 {{ session.get('customer_city', 'Select Location') }}</span>
-            <a href="#">My Orders</a>
+            <a href="{{ url_for('customer_orders') }}">My Orders</a>
             <a href="{{ url_for('view_cart') }}" class="cart-btn">🛒 Cart</a>
             <a href="/logout">Logout</a>
         </div>
@@ -88,7 +88,11 @@
                     </div>
                     <div class="card-footer">
                         <span class="cuisine-tag">{{ restaurant['cuisine'] }}</span>
-                        <span>💸 Avg: ${{ restaurant['average_cost'] }}</span>
+                        {% if restaurant.get('distance') and restaurant.get('distance') != 999 %}
+                            <span style="color: #4f46e5; font-weight: 600;">📍 {{ restaurant['distance'] }} km</span>
+                        {% else %}
+                            <span>💸 Avg: ${{ restaurant['average_cost'] }}</span>
+                        {% endif %}
                     </div>
                 </div>
             </a>
@@ -99,6 +103,26 @@
             {% endfor %}
         </div>
     </div>
+<div id="location-data" data-has-location="{{ 'true' if session.get('latitude') else 'false' }}" style="display:none;"></div>
 
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const locationDiv = document.getElementById('location-data');
+        const hasLocation = locationDiv.getAttribute('data-has-location') === 'true';
+
+        if (!hasLocation && navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                fetch("{{ url_for('set_location') }}", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude
+                    })
+                }).then(() => window.location.reload());
+            });
+        }
+    });
+</script>
 </body>
 </html>

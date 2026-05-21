@@ -78,6 +78,7 @@ CREATE TABLE orders (
     sales_amount FLOAT NOT NULL DEFAULT 0,
     restaurant_id INT,
     courier_id INT, 
+    customer_id INT,
     order_status ENUM('canceled','pending','preparing','completed','delivered') NOT NULL DEFAULT 'pending',
     
     order_type ENUM('Dine-in', 'Delivery') NOT NULL DEFAULT 'Dine-in',
@@ -92,7 +93,10 @@ CREATE TABLE orders (
     ON UPDATE CASCADE,
     FOREIGN KEY (courier_id) REFERENCES couriers(courier_id)
     ON DELETE SET NULL
-    ON UPDATE CASCADE
+    ON UPDATE CASCADE,
+    FOREIGN KEY (customer_id) REFERENCES customers(customer_id)
+	ON DELETE SET NULL
+	ON UPDATE CASCADE
 );
 
 CREATE TABLE waiters (

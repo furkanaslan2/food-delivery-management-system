@@ -1,6 +1,16 @@
 from flask import render_template, request, redirect, url_for, session, flash
+import math
 from db import get_db_connection
 from mysql.connector import Error
+
+def calculate_distance(lat1, lon1, lat2, lon2):
+    # Haversine Formülü (İki koordinat arası km hesabı)
+    R = 6371.0 
+    dlat = math.radians(lat2 - lat1)
+    dlon = math.radians(lon2 - lon1)
+    a = math.sin(dlat / 2)**2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon / 2)**2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    return R * c
 
 def index():
     if 'logged_in' not in session:
@@ -13,11 +23,30 @@ def index():
         restaurants = []
         if connection:
             cursor = connection.cursor(dictionary=True)
-            # Şimdilik tüm restoranları çekiyoruz. İleride buraya "WHERE city = session['customer_city']" gibi konum filtreleri ekleyeceğiz.
             cursor.execute("SELECT * FROM restaurants")
-            restaurants = cursor.fetchall()
+            all_restaurants = cursor.fetchall()
             cursor.close()
             connection.close()
+
+            # Müşterinin konumu varsa mesafe hesapla
+            customer_lat = session.get('latitude')
+            customer_lon = session.get('longitude')
+
+            if customer_lat and customer_lon:
+                for r in all_restaurants:
+                    if r['latitude'] and r['longitude']:
+                        dist = calculate_distance(float(customer_lat), float(customer_lon), float(r['latitude']), float(r['longitude']))
+                        r['distance'] = round(dist, 1) # Virgülden sonra 1 basamak (Örn: 2.4 km)
+                    else:
+                        r['distance'] = 999 # Restoranın konumu girilmediyse en sona at
+
+                # Restoranları mesafeye göre yakından uzağa sırala
+                all_restaurants.sort(key=lambda x: x.get('distance', 999))
+                
+                # İstersen burada "Sadece 10 km içindekileri göster" diyebiliriz:
+                # all_restaurants = [r for r in all_restaurants if r.get('distance', 999) <= 10]
+
+            restaurants = all_restaurants
             
         return render_template('customer_index.html', restaurants=restaurants)
 
