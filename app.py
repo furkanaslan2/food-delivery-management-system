@@ -1,5 +1,7 @@
+import os
 from flask import Flask
 from flask_session import Session
+from dotenv import load_dotenv
 from index import index
 from auth import login, logout
 from users import users, user_action
@@ -13,10 +15,12 @@ from foods import foods, food_action
 from waiters import waiter_dashboard, waiter_create_order
 from waiters import waiter_dashboard, waiter_create_order, waiters, waiter_action
 
+load_dotenv()
+
 app = Flask(__name__)
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config['SESSION_PERMANENT'] = False
-app.secret_key = 'a_secret_key'
+app.secret_key = os.getenv('FLASK_SECRET_KEY')
 Session(app)
 
 app.add_url_rule('/', 'index', index)
