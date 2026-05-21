@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Couriers</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <nav>
+        <input type="hidden" id="current-user-role" value="{{ session['role'] }}">
+        <div class="logo navbar">
+            <a href="/"><img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo"></a>
+            <h1><a href="/">Food Delivery Management System</a> / <span style="margin-left: 10px; color: white">Couriers</span></h1>
+        </div>
+        <ul class="navbar">
+            <li><a href="/logout">Logout</a></li>
+        </ul>
+    </nav>
+    <div class="flash-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                    <div class="flash-message {{ category }}">
+                        {{ message }}
+                        <button class="close-flash" onclick="this.parentElement.style.display='none';">&times;</button>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+    </div>
+    <button id="scrollTopBtn"><img class="up-arrow" src="{{ url_for('static', filename='images/up-arrow.png') }}"></button>
+    <div class="search-bar">
+        <form id="courier-form" class="courier-form" action="{{ url_for('courier_action') }}" method="post">
+            <input type="number" id="courier-id" name="courier_id" placeholder="Courier ID">
+            <input type="text" id="courier-name" name="name" placeholder="Name">
+            <select id="courier-gender" name="gender">
+                <option value="" hidden>Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+            </select>
+            <input type="date" id="courier-birthdate" name="birth_date" placeholder="Birth Date">
+            <input type="number" id="courier-restaurant-id" name="restaurant_id" placeholder="Restaurant ID">
+            <input type="hidden" id="selected-couriers" name="selected_couriers">
+            <input type="hidden" id="update-courier-id" name="update_courier_id">
+            <input type="hidden" id="clear-filter" name="clear_filter" value="false">
+        </form>
+        <button class="search-button" onclick="searchCourier()"><img class="button-img" src="{{ url_for('static', filename='images/search.png') }}" alt="search icon"></img>Search</button>
+        <button class="clear-button" type="submit" form="courier-form" name="action" value="clear" onclick="clearSearch()"><img class="button-img" src="{{ url_for('static', filename='images/clear.png') }}" alt="clear icon"></img>Clear</button>
+    </div>
+    <div class="action-buttons">
+        <button class="add-button" type="submit" name="action" value="add" form="courier-form"><img class="button-img" src="{{ url_for('static', filename='images/add.png') }}" alt="add icon"></img>Add</button>
+        <button class="delete-button" type="submit" name="action" value="delete" form="courier-form" onclick="collectSelected()"><img class="button-img" src="{{ url_for('static', filename='images/delete.png') }}" alt="delete icon"></img>Delete</button>
+        <button class="update-button" type="submit" name="action" value="update" form="courier-form"><img class="button-img" src="{{ url_for('static', filename='images/update.png') }}" alt="update icon"></img>Update</button>
+        <button class="filter-button" type="submit" name="action" value="filter" form="courier-form"><img class="button-img" src="{{ url_for('static', filename='images/filter.png') }}" alt="filter icon"></img>Filter</button>
+        <div class="sort-container">
+            <button class="sort-button" onclick="toggleSortMenu()"><img class="button-img" src="{{ url_for('static', filename='images/sort.png') }}" alt="sort icon"></img>Sort</button>
+            <div id="overlay" class="hidden"></div>
+            <div class="sort-menu hidden" id="sort-menu">
+                <h3>Sort By</h3>
+                <form id="sort-form" action="{{ url_for('courier_action') }}" method="post">
+                    <select name="sort_by" id="sort-by">
+                        <option value="courier_id">ID</option>
+                        <option value="name">Name</option>
+                        <option value="gender">Gender</option>
+                        <option value="birth_date">Birth Date</option>
+                        <option value="restaurant_id">Restaurant ID</option>
+                    </select>
+                    <h3 id="second-h3">Order</h3>
+                    <select name="sort_order" id="sort-order">
+                        <option value="ASC">Ascending</option>
+                        <option value="DESC">Descending</option>
+                    </select>
+                    <button type="submit" name="action" value="sort">Apply</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div id="navigation" class="hidden">
+        <button id="next-match-button" onclick="goToNextMatch()">Next Match</button>
+    </div>
+    <div class="list" id="courier-list">
+        {% for courier in couriers %}
+        <div class="table-card" id="courier-card-{{ courier['courier_id'] }}">
+            <input type="checkbox" id="courier-{{ loop.index }}" name="selected_couriers" value="{{ courier['courier_id'] }}">
+            <label for="courier-{{ loop.index }}">
+                <p><strong>ID:</strong> <span class="courier-id">{{ courier['courier_id'] }}</span></p>
+                <p><strong>Name:</strong> <span class="courier-name">{{ courier['name'] }}</span></p>
+                <p><strong>Gender:</strong> <span class="courier-gender">{{ courier['gender'] }}</span></p>
+                <p><strong>Birth Date:</strong> <span class="courier-birthdate">{{ courier['birth_date'] }}</span></p>
+                <p><strong>Restaurant ID:</strong> <span class="courier-restaurant-id">{{ courier['restaurant_id'] }}</span></p>
+            </label>
+        </div>
+        {% endfor %}
+    </div>
+    <script src="{{ url_for('static', filename='js/common.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/couriers.js') }}"></script>
+</body>
+</html>

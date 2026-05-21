@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <style>
+        .desktop-spacer {
+            visibility: hidden; 
+            background: transparent !important; 
+            box-shadow: none !important; 
+            border: none !important; 
+            pointer-events: none; 
+        }
+
+        @media screen and (max-width: 1024px) {
+            .desktop-spacer {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="loading-overlay" class="d-none">
+        <div class="spinner-ring"></div>
+    </div>
+    <nav>
+        <div class="logo navbar">
+            <a href="/"><img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo"></a>
+            <h1><a href="/">Food Delivery Management System</a></h1>
+        </div>
+        <ul class="navbar">
+            <li class="dropdown">
+                <a href="" class="dropbtn">Statistics</a>
+                <div class="dropdown-content">
+                    {% if role == 'admin' %}
+                        <a href="">Total Users: <span style="font-size: 20px">{{ statistics['users'] }}</span></a>
+                        <a href="">Total Restaurants: <span style="font-size: 20px">{{ statistics['restaurants'] }}</span></a>
+                        <a href="">Total Menus: <span style="font-size: 20px">{{ statistics['menus'] }}</span></a>
+                        <a href="">Total Foods: <span style="font-size: 20px">{{ statistics['foods'] }}</span></a>
+                        <a href="">Total Orders: <span style="font-size: 20px">{{ statistics['orders'] }}</span></a>
+                        <a href="">Total Couriers: <span style="font-size: 20px">{{ statistics['couriers'] }}</span></a>
+                        <a href="">Total Waiters: <span style="font-size: 20px">{{ statistics['waiters'] }}</span></a>
+                    {% elif role == 'user' %}
+                        <a href="">Your Menus: <span style="font-size: 20px">{{ statistics['menus'] }}</span></a>
+                        <a href="">Your Foods: <span style="font-size: 20px">{{ statistics['foods'] }}</span></a>
+                        <a href="">Your Orders: <span style="font-size: 20px">{{ statistics['orders'] }}</span></a>
+                        <a href="">Your Couriers: <span style="font-size: 20px">{{ statistics['couriers'] }}</span></a>
+                        <a href="">Your Waiters: <span style="font-size: 20px">{{ statistics['waiters'] }}</span></a>
+                    {% endif %}
+                </div>
+            </li>
+            <li><a href="/logout">Logout</a></li>
+        </ul>
+    </nav>
+    <div class="flash-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                    <div class="flash-message {{ category }}">
+                        {{ message }}
+                        <button class="close-flash" onclick="this.parentElement.style.display='none';">&times;</button>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+    </div>
+    <div class="card-container" style="margin-top: 108px;">
+        <div class="card">
+            <a href="{{ url_for('users') }}">
+                <div class="container">
+                    <img src="{{ url_for('static', filename='images/user.png') }}" alt="user icon">
+                    <h4>{{ 'Profile' if session['role'] == 'user' else 'Users' }}</h4>
+                </div>
+            </a>
+        </div>
+        <div class="card">
+            <a href="{{ url_for('restaurants') }}">
+                <div class="container">
+                    <img src="{{ url_for('static', filename='images/restaurant.png') }}" alt="restaurant icon">
+                    <h4>{{ 'Restaurant' if session['role'] == 'user' else 'Restaurants' }}</h4>
+                </div>
+            </a>
+        </div>
+        <div class="card">
+            <a href="{{ url_for('menus') }}">
+                <div class="container">
+                    <img src="{{ url_for('static', filename='images/menus.png') }}" alt="menu icon">
+                    <h4>{{ 'Menu' if session['role'] == 'user' else 'Menus' }}</h4>
+                </div>
+            </a>
+        </div>
+        <div class="card">
+            <a href="{{ url_for('foods') }}">
+                <div class="container">
+                    <img src="{{ url_for('static', filename='images/food.png') }}" alt="food icon">
+                    <h4>Foods</h4>
+                </div>
+            </a>
+        </div>
+        <div class="card">
+            <a href="{{ url_for('orders') }}">
+                <div class="container">
+                    <img src="{{ url_for('static', filename='images/order.png') }}" alt="order icon">
+                    <h4>Orders</h4>
+                </div>
+            </a>
+        </div>
+        <div class="card">
+            <a href="{{ url_for('couriers') }}">
+                <div class="container">
+                    <img src="{{ url_for('static', filename='images/courier.png') }}" alt="courier icon">
+                    <h4>Couriers</h4>
+                </div>
+            </a>
+        </div>
+        <div class="card">
+            <a href="{{ url_for('waiters') }}">
+                <div class="container">
+                    <img src="{{ url_for('static', filename='images/waiter.png') }}" alt="waiter icon">
+                    <h4>Waiters</h4>
+                </div>
+            </a>
+        </div>
+        {% if session['role'] == 'user' %}
+        <div class="card">
+            <a href="{{ url_for('restaurant_analytics') }}">
+                <div class="container">
+                    <img src="{{ url_for('static', filename='images/best-sellers.png') }}" alt="analytics icon">
+                    <h4>Best Sellers</h4>
+                </div>
+            </a>
+        </div>
+        {% endif %}
+    </div>
+    <script src="{{ url_for('static', filename='js/common.js') }}"></script>
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const loader = document.getElementById("loading-overlay");
+
+        const links = document.querySelectorAll("a");
+
+        links.forEach(link => {
+            link.addEventListener("click", function(event) {
+                const targetUrl = this.getAttribute("href");
+
+                if (!targetUrl || targetUrl === "#" || this.target === "_blank" || targetUrl.startsWith("javascript")) {
+                    return;
+                }
+
+                loader.classList.remove("d-none");
+            });
+        });
+
+        window.addEventListener("pageshow", function(event) {
+            if (event.persisted) {
+                loader.classList.add("d-none");
+            }
+        });
+    });
+</script>
+</body>
+</html>

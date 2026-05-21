@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Waiter Panel</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <style>
+        .table-no-container {
+            display: flex !important;
+            align-items: center !important; 
+            gap: 10px;
+            background: white;
+            padding: 0 15px; 
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            height: 45px; 
+        }
+
+        .table-no-container label {
+            margin: 0 !important;   
+            padding: 0 !important;  
+            line-height: 45px;      
+            white-space: nowrap;    
+        }
+
+        .table-no-container input {
+            margin: 0 !important;  
+            height: 32px;           
+            display: flex;
+            align-items: center;
+        }
+
+        .table-status-container {
+            margin-top: 100px !important; 
+            padding: 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+
+        .table-box {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .table-box:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .table-box.free {
+            background-color: #2ecc71; 
+        }
+
+        .table-box.occupied {
+            background-color: #e74c3c; 
+            border: 2px solid #c0392b;
+        }
+
+        .order-action-bar {
+            margin-top: 20px; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .qty-container {
+            margin-top: 10px;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+        }
+
+        .qty-input {
+            width: 70px !important;
+            padding: 5px !important;
+            margin-bottom: 0 !important;
+            display: inline-block !important;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .table-card:hover .qty-input {
+            color: black;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading-overlay" class="d-none">
+        <div class="spinner-ring"></div>
+    </div>
+
+    <nav>
+        <div class="logo navbar">
+            <a href="/"><img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo"></a>
+            <h1><a href="/">Food Delivery Management System</a> / <span style="margin-left: 10px; color: white">Waiter Panel</span></h1>
+        </div>
+        <ul class="navbar">
+            <li><a href="/logout">Logout</a></li>
+        </ul>
+    </nav>
+
+    <div class="flash-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                    <div class="flash-message {{ category }}">
+                        {{ message }}
+                        <button class="close-flash" onclick="this.parentElement.style.display='none';">&times;</button>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <div class="table-status-container">
+        <h3 style="margin-top: 0; color: #333;">Table Status</h3>
+        
+        <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+            {% for i in range(1, total_tables + 1) %}
+                {% if i in occupied_tables %}
+                    <div class="table-box occupied" onclick="setTable('{{ i }}')">
+                        {{ i }}
+                    </div>
+                {% else %}
+                    <div class="table-box free" onclick="setTable('{{ i }}')">
+                        {{ i }}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+        
+        <div style="margin-top: 10px; font-size: 0.9em; color: #666; display: flex; gap: 15px;">
+            <span style="display: flex; align-items: center; gap: 5px;">
+                <div style="width:12px; height:12px; background:#e74c3c; border-radius:3px;"></div> Occupied
+            </span>
+            <span style="display: flex; align-items: center; gap: 5px;">
+                <div style="width:12px; height:12px; background:#2ecc71; border-radius:3px;"></div> Free
+            </span>
+        </div>
+    </div>
+
+    <form action="{{ url_for('waiter_create_order') }}" method="POST">
+        
+    <div class="order-action-bar">
+        <div class="table-no-container">
+            <label for="table_no">Table No:</label>
+            <input type="number" id="table_no" name="table_no" required min="1" max="{{ total_tables }}"
+                style="width: 80px; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+        </div>
+
+        <button type="submit" class="add-button">
+            <img class="button-img" src="{{ url_for('static', filename='images/order.png') }}" alt="order icon" style="filter: brightness(0) invert(1);"> 
+            Complete Order
+        </button>
+    </div>
+
+        <div class="list">
+            {% for menu in menus %}
+            {% set is_sold_out = menu.stock_quantity <= 0 %}
+            <div class="table-card {{ 'sold-out' if is_sold_out else '' }}">
+                
+                {% if is_sold_out %}
+                    <div class="sold-out-badge">Sold Out</div>
+                {% endif %}
+
+                <input type="checkbox" name="selected_items" value="{{ menu.menu_id }}" id="menu-{{ loop.index }}" 
+                       {{ 'disabled' if is_sold_out else '' }}>
+                
+                <label for="menu-{{ loop.index }}" style="cursor: pointer; display: block; height: 100%;">
+                    <p><strong>Item:</strong> <span>{{ menu.item_name }}</span></p>
+                    <p><strong>Type:</strong> <span>{{ menu.veg_or_non_veg }}</span></p>
+                    <p><strong>Cuisine:</strong> <span>{{ menu.cuisine }}</span></p>
+                    <p><strong>Price:</strong> <span>${{ menu.price }}</span></p>
+                    
+                    <div class="qty-container">
+                        <label><strong>Quantity:</strong></label>
+                        <input type="number" name="qty_{{ menu.menu_id }}" class="qty-input" min="1" value="1" 
+                               onclick="document.getElementById('menu-{{ loop.index }}').checked = true;">
+                    </div>
+                </label>
+            </div>
+            {% else %}
+            <p style="text-align: center; font-size: 18px; color: #666;">No menu items found for this restaurant.</p>
+            {% endfor %}
+        </div>
+    </form>
+
+    <script src="{{ url_for('static', filename='js/common.js') }}"></script>
+    <script>
+        document.querySelectorAll('.qty-input').forEach(input => {
+            input.addEventListener('change', function() {
+                const checkbox = this.closest('.table-card').querySelector('input[type="checkbox"]');
+                checkbox.checked = true;
+            });
+            
+            input.addEventListener('click', function(e) {
+                const checkbox = this.closest('.table-card').querySelector('input[type="checkbox"]');
+                checkbox.checked = true;
+                e.stopPropagation(); 
+            });
+
+            function setTable(num) {
+            const input = document.getElementById('table_no');
+            if(input) {
+                input.value = num;
+                input.focus(); 
+            }
+        }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Best Sellers Analytics</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background-color: #f4f7f6; 
+        }
+        
+        .dashboard-container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 120px auto 40px auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); 
+            gap: 30px;
+        }
+
+        .chart-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05); 
+            transition: transform 0.3s ease;
+        }
+
+        .chart-card:hover {
+            transform: translateY(-5px); 
+        }
+
+        h2 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .full-width {
+            grid-column: 1 / -1; 
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="logo navbar">
+            <a href="/"><img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo"></a>
+            <h1>
+                <a href="/">Food Delivery Management System</a> / 
+                <span style="margin-left: 10px; color: white">Best Sellers</span>
+            </h1>
+        </div>
+        <ul class="navbar">
+            <li><a href="/logout">Logout</a></li>
+        </ul>
+    </nav>
+
+    <div class="dashboard-container">
+        
+        <div class="chart-card full-width">
+            <h2>Top 10 Products (Quantity Sold)</h2>
+            <canvas id="barChart"></canvas>
+        </div>
+
+        <div class="chart-card">
+            <h2>Sales Distribution (Doughnut)</h2>
+            <canvas id="doughnutChart"></canvas>
+        </div>
+
+        <div class="chart-card">
+            <h2>Polar Area Analysis</h2>
+            <canvas id="polarChart"></canvas>
+        </div>
+
+        <div class="chart-card full-width">
+            <h2>Performance Ranking (Horizontal)</h2>
+            <canvas id="horizontalBarChart"></canvas>
+        </div>
+
+    </div>
+
+    <script id="analytics-data" type="application/json">
+        {
+            "labels": {{ labels | tojson }},
+            "data": {{ data | tojson }}
+        }
+    </script>
+
+    <script>
+        // Veriyi gizli kutudan çekip okuyoruz
+        const rawData = document.getElementById('analytics-data').textContent;
+        const analyticsData = JSON.parse(rawData);
+
+        const labels = analyticsData.labels;
+        const data = analyticsData.data;
+
+        const backgroundColors = [
+            'rgba(255, 99, 132, 0.7)',    
+            'rgba(54, 162, 235, 0.7)',    
+            'rgba(255, 206, 86, 0.7)',    
+            'rgba(75, 192, 192, 0.7)',    
+            'rgba(153, 102, 255, 0.7)',   
+            'rgba(255, 159, 64, 0.7)',    
+            'rgba(199, 199, 199, 0.7)',   
+            'rgba(83, 102, 255, 0.7)',    
+            'rgba(40, 159, 64, 0.7)',      
+            'rgba(210, 99, 132, 0.7)'      
+        ];
+
+        const borderColors = backgroundColors.map(color => color.replace('0.7', '1'));
+
+        new Chart(document.getElementById('barChart'), {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Units Sold',
+                    data: data,
+                    backgroundColor: backgroundColors,
+                    borderColor: borderColors,
+                    borderWidth: 1,
+                    borderRadius: 5 
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: { y: { beginAtZero: true } },
+                plugins: { legend: { display: false } } 
+            }
+        });
+
+        new Chart(document.getElementById('doughnutChart'), {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: backgroundColors,
+                    borderColor: 'white',
+                    borderWidth: 2,
+                    hoverOffset: 15
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'right' } 
+                }
+            }
+        });
+
+        new Chart(document.getElementById('polarChart'), {
+            type: 'polarArea',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: backgroundColors,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    r: { ticks: { display: false } } 
+                },
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+
+        new Chart(document.getElementById('horizontalBarChart'), {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Units Sold',
+                    data: data,
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)', 
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1,
+                    borderRadius: 10
+                }]
+            },
+            options: {
+                indexAxis: 'y', 
+                responsive: true,
+                scales: { x: { beginAtZero: true } },
+                plugins: { legend: { display: false } }
+            }
+        });
+
+    </script>
+    
+    <script src="{{ url_for('static', filename='js/common.js') }}"></script>
+</body>
+</html>

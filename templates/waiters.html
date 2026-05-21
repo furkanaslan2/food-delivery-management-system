@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Waiters</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <nav>
+        <input type="hidden" id="current-user-role" value="{{ session['role'] }}">
+        
+        <div class="logo navbar">
+            <a href="/"><img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo"></a>
+            <h1><a href="/">Food Delivery Management System</a> / <span style="margin-left: 10px; color: white">Waiters</span></h1>
+        </div>
+        <ul class="navbar">
+            <li><a href="/logout">Logout</a></li>
+        </ul>
+    </nav>
+
+    <div class="flash-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                    <div class="flash-message {{ category }}">
+                        {{ message }}
+                        <button class="close-flash" onclick="this.parentElement.style.display='none';">&times;</button>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <div class="search-bar">
+        <form id="waiter-form" class="courier-form" action="{{ url_for('waiter_action') }}" method="post">
+            <input type="hidden" id="selected-waiters" name="selected_waiters">
+            <input type="hidden" id="update-waiter-id" name="update_waiter_id">
+            
+            <input type="number" id="waiter-id" name="waiter_id" placeholder="Waiter ID">
+            <input type="text" id="waiter-name" name="name" placeholder="Name">
+            <input type="text" id="waiter-email" name="email" placeholder="Email">
+            <input type="number" id="waiter-restaurant-id" name="restaurant_id" placeholder="Restaurant ID">
+        </form>
+
+        <button class="search-button" type="submit" name="action" value="filter" form="waiter-form">
+            <img class="button-img" src="{{ url_for('static', filename='images/search.png') }}">Search
+        </button>
+        <button class="clear-button" type="submit" name="action" value="clear" form="waiter-form">
+            <img class="button-img" src="{{ url_for('static', filename='images/clear.png') }}">Clear
+        </button>
+    </div>
+
+    <div class="action-buttons">
+        <button class="add-button" type="submit" name="action" value="add" form="waiter-form">
+            <img class="button-img" src="{{ url_for('static', filename='images/add.png') }}">Add
+        </button>
+        <button class="delete-button" type="submit" name="action" value="delete" form="waiter-form">
+            <img class="button-img" src="{{ url_for('static', filename='images/delete.png') }}">Delete
+        </button>
+        <button class="update-button" type="submit" name="action" value="update" form="waiter-form">
+            <img class="button-img" src="{{ url_for('static', filename='images/update.png') }}">Update
+        </button>
+        
+        <button class="filter-button" type="submit" name="action" value="filter" form="waiter-form">
+            <img class="button-img" src="{{ url_for('static', filename='images/filter.png') }}">Filter
+        </button>
+        
+        <div class="sort-container">
+            <button class="sort-button" onclick="document.getElementById('sort-menu').classList.toggle('hidden')">
+                <img class="button-img" src="{{ url_for('static', filename='images/sort.png') }}">Sort
+            </button>
+            <div class="sort-menu hidden" id="sort-menu">
+                <form action="{{ url_for('waiter_action') }}" method="post">
+                    <select name="sort_by">
+                        <option value="waiter_id">ID</option>
+                        <option value="name">Name</option>
+                        <option value="restaurant_id">Restaurant ID</option>
+                    </select>
+                    <select name="sort_order">
+                        <option value="ASC">Ascending</option>
+                        <option value="DESC">Descending</option>
+                    </select>
+                    <button type="submit" name="action" value="sort">Apply</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="list" id="waiter-list">
+    {% for waiter in waiters %}
+    <div class="table-card">
+        <input type="checkbox" id="waiter-{{ loop.index }}" name="selected_waiters" value="{{ waiter['waiter_id'] }}">
+        
+        <label for="waiter-{{ loop.index }}">
+            <p><strong>ID:</strong> <span class="waiter-id">{{ waiter['waiter_id'] }}</span></p>
+            <p><strong>Name:</strong> <span class="waiter-name">{{ waiter['name'] }}</span></p>
+            <p><strong>Email:</strong> <span class="waiter-email">{{ waiter['email'] }}</span></p>
+            <p><strong>Restaurant ID:</strong> <span class="waiter-restaurant-id">{{ waiter['restaurant_id'] }}</span></p>
+            <input type="hidden" class="waiter-password" value="{{ waiter['password'] }}">
+        </label>
+    </div>
+    {% endfor %}
+    </div>
+
+    <script src="{{ url_for('static', filename='js/common.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/waiters.js') }}"></script>
+</body>
+</html>

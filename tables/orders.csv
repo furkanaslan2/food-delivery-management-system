@@ -1,0 +1,786 @@
+order_id,order_date,sales_qty,sales_amount,restaurant_id,order_status,table_no,order_type,customer_name,customer_address,customer_phone,courier_id
+1,"2025-12-02 00:00:00",7,1255,567335,completed,8,Dine-in,NULL,NULL,NULL,NULL
+2,"2025-12-21 19:36:34",9,895,531342,pending,11,Dine-in,NULL,NULL,NULL,NULL
+3,"2025-11-27 17:44:02",9,1097,158203,canceled,13,Dine-in,NULL,NULL,NULL,NULL
+4,"2025-11-30 19:50:30",8,1860,187912,canceled,5,Dine-in,NULL,NULL,NULL,NULL
+5,"2025-11-24 12:00:23",6,1480,543530,completed,16,Dine-in,NULL,NULL,NULL,NULL
+6,"2025-12-28 00:00:00",10,1539,158204,pending,5,Dine-in,,,,NULL
+7,"2025-11-26 14:30:57",6,667,156588,canceled,12,Dine-in,NULL,NULL,NULL,NULL
+8,"2025-12-18 19:03:32",3,252,244866,pending,8,Dine-in,NULL,NULL,NULL,NULL
+9,"2025-12-20 17:44:50",10,880,156602,pending,8,Dine-in,NULL,NULL,NULL,NULL
+10,"2025-12-09 21:33:36",6,295,158193,pending,16,Dine-in,NULL,NULL,NULL,NULL
+11,"2025-12-10 20:33:27",5,533,407249,completed,15,Dine-in,NULL,NULL,NULL,NULL
+12,"2025-12-12 16:06:29",3,210,156590,pending,14,Dine-in,NULL,NULL,NULL,NULL
+13,"2025-12-17 20:52:04",7,1433,338749,completed,10,Dine-in,NULL,NULL,NULL,NULL
+14,"2025-12-03 10:00:55",1,50,156601,completed,12,Dine-in,NULL,NULL,NULL,NULL
+15,"2025-12-08 13:28:22",7,1020,156587,completed,3,Dine-in,NULL,NULL,NULL,NULL
+16,"2025-11-22 15:19:05",10,1020,158192,pending,9,Dine-in,NULL,NULL,NULL,NULL
+17,"2025-12-08 14:10:20",5,475,394554,pending,8,Dine-in,NULL,NULL,NULL,NULL
+18,"2025-12-08 14:54:25",2,478,158195,completed,2,Dine-in,NULL,NULL,NULL,NULL
+19,"2025-12-07 10:01:06",6,369,257181,pending,5,Dine-in,NULL,NULL,NULL,NULL
+20,"2025-12-03 19:22:16",11,1066,530909,pending,8,Dine-in,NULL,NULL,NULL,NULL
+21,"2025-12-18 20:48:04",14,4170,573649,completed,2,Dine-in,NULL,NULL,NULL,NULL
+22,"2025-11-27 11:53:31",9,2006,573656,pending,10,Dine-in,NULL,NULL,NULL,NULL
+23,"2025-12-08 11:03:22",6,780,420675,canceled,4,Dine-in,NULL,NULL,NULL,NULL
+24,"2025-11-30 21:36:21",8,514,427610,canceled,11,Dine-in,NULL,NULL,NULL,NULL
+25,"2025-11-26 16:51:37",3,165,435582,completed,8,Dine-in,NULL,NULL,NULL,NULL
+26,"2025-11-28 21:29:02",5,440,382204,completed,6,Dine-in,NULL,NULL,NULL,NULL
+27,"2025-11-27 10:50:22",9,1540,460692,completed,10,Dine-in,NULL,NULL,NULL,NULL
+28,"2025-12-13 15:44:45",3,240,368328,canceled,10,Dine-in,NULL,NULL,NULL,NULL
+29,"2025-11-30 12:12:37",11,1930,530878,pending,4,Dine-in,NULL,NULL,NULL,NULL
+30,"2025-12-18 15:48:52",5,477,171675,completed,9,Dine-in,NULL,NULL,NULL,NULL
+31,"2025-12-03 20:26:28",5,1050,475283,completed,6,Dine-in,NULL,NULL,NULL,NULL
+32,"2025-11-30 20:45:44",7,1003,421155,canceled,4,Dine-in,NULL,NULL,NULL,NULL
+33,"2025-12-11 20:29:18",4,190,545273,completed,3,Dine-in,NULL,NULL,NULL,NULL
+34,"2025-12-10 18:09:20",2,120,440811,pending,13,Dine-in,NULL,NULL,NULL,NULL
+35,"2025-12-07 19:18:45",9,815,420586,canceled,7,Dine-in,NULL,NULL,NULL,NULL
+36,"2025-12-10 20:05:46",1,100,448046,pending,5,Dine-in,NULL,NULL,NULL,NULL
+37,"2025-12-16 20:32:35",1,70,187921,pending,6,Dine-in,NULL,NULL,NULL,NULL
+38,"2025-12-04 20:25:36",7,231,551512,completed,16,Dine-in,NULL,NULL,NULL,NULL
+39,"2025-12-13 18:30:18",7,828,351387,canceled,19,Dine-in,NULL,NULL,NULL,NULL
+40,"2025-12-06 21:14:42",3,150,432675,pending,7,Dine-in,NULL,NULL,NULL,NULL
+41,"2025-11-26 16:42:38",4,200,302868,canceled,12,Dine-in,NULL,NULL,NULL,NULL
+42,"2025-12-10 21:49:01",3,210,567664,completed,18,Dine-in,NULL,NULL,NULL,NULL
+43,"2025-12-09 12:57:15",6,285,440878,canceled,4,Dine-in,NULL,NULL,NULL,NULL
+44,"2025-11-26 13:19:12",7,327,161396,completed,7,Dine-in,NULL,NULL,NULL,NULL
+45,"2025-12-21 17:44:15",2,120,382249,canceled,11,Dine-in,NULL,NULL,NULL,NULL
+46,"2025-12-07 14:43:40",7,869,161408,completed,3,Dine-in,NULL,NULL,NULL,NULL
+47,"2025-11-23 10:25:36",5,390,432684,canceled,11,Dine-in,NULL,NULL,NULL,NULL
+48,"2025-12-18 21:57:01",3,567,459776,completed,12,Dine-in,NULL,NULL,NULL,NULL
+49,"2025-12-10 20:28:17",3,697,459775,canceled,2,Dine-in,NULL,NULL,NULL,NULL
+50,"2025-12-03 14:30:23",8,885,420637,pending,12,Dine-in,NULL,NULL,NULL,NULL
+51,"2025-12-03 13:07:05",5,390,420479,completed,17,Dine-in,NULL,NULL,NULL,NULL
+52,"2025-11-27 12:04:18",7,620,427606,pending,9,Dine-in,NULL,NULL,NULL,NULL
+53,"2025-12-11 11:00:14",7,1040,531363,pending,15,Dine-in,NULL,NULL,NULL,NULL
+54,"2025-12-16 20:48:15",8,380,156592,canceled,8,Dine-in,NULL,NULL,NULL,NULL
+55,"2025-12-19 13:00:35",10,595,373319,pending,13,Dine-in,NULL,NULL,NULL,NULL
+56,"2025-11-23 16:38:12",7,190,508318,canceled,17,Dine-in,NULL,NULL,NULL,NULL
+57,"2025-12-06 10:09:12",9,460,407243,completed,1,Dine-in,NULL,NULL,NULL,NULL
+58,"2025-12-19 14:51:27",5,215,187915,canceled,3,Dine-in,NULL,NULL,NULL,NULL
+59,"2025-12-04 21:49:40",11,2242,461724,canceled,1,Dine-in,NULL,NULL,NULL,NULL
+60,"2025-12-11 18:33:59",2,70,156542,completed,8,Dine-in,NULL,NULL,NULL,NULL
+61,"2025-12-04 17:20:57",8,588,161405,pending,6,Dine-in,NULL,NULL,NULL,NULL
+62,"2025-12-10 21:02:47",9,1700,462070,completed,4,Dine-in,NULL,NULL,NULL,NULL
+63,"2025-12-02 19:11:03",8,608,224008,completed,5,Dine-in,NULL,NULL,NULL,NULL
+64,"2025-12-10 10:46:55",1,189,165533,completed,10,Dine-in,NULL,NULL,NULL,NULL
+65,"2025-12-07 10:21:25",5,500,225827,completed,8,Dine-in,NULL,NULL,NULL,NULL
+66,"2025-12-12 21:26:24",1,199,242943,completed,12,Dine-in,NULL,NULL,NULL,NULL
+67,"2025-12-09 18:07:43",12,1000,186286,pending,12,Dine-in,NULL,NULL,NULL,NULL
+68,"2025-12-16 16:19:24",1,250,166613,completed,6,Dine-in,NULL,NULL,NULL,NULL
+69,"2025-11-23 17:13:53",7,390,500628,canceled,14,Dine-in,NULL,NULL,NULL,NULL
+70,"2025-12-19 15:11:11",4,830,186289,canceled,12,Dine-in,NULL,NULL,NULL,NULL
+71,"2025-12-21 14:14:17",4,1110,165532,pending,18,Dine-in,NULL,NULL,NULL,NULL
+72,"2025-11-28 15:37:53",2,280,169281,canceled,11,Dine-in,NULL,NULL,NULL,NULL
+73,"2025-11-29 13:26:36",5,539,408059,completed,2,Dine-in,NULL,NULL,NULL,NULL
+74,"2025-12-05 10:19:21",5,345,529171,pending,15,Dine-in,NULL,NULL,NULL,NULL
+75,"2025-12-19 13:16:56",9,435,517814,completed,8,Dine-in,NULL,NULL,NULL,NULL
+76,"2025-12-12 13:26:40",2,210,167432,pending,15,Dine-in,NULL,NULL,NULL,NULL
+77,"2025-11-29 17:22:33",10,780,166971,completed,9,Dine-in,NULL,NULL,NULL,NULL
+78,"2025-12-11 12:32:44",1,100,516171,pending,3,Dine-in,NULL,NULL,NULL,NULL
+79,"2025-12-14 12:36:03",9,1560,226299,pending,4,Dine-in,NULL,NULL,NULL,NULL
+80,"2025-12-18 15:22:03",3,60,374706,canceled,11,Dine-in,NULL,NULL,NULL,NULL
+81,"2025-12-02 17:02:07",5,200,473193,pending,5,Dine-in,NULL,NULL,NULL,NULL
+82,"2025-11-30 17:04:26",6,1290,167412,completed,10,Dine-in,NULL,NULL,NULL,NULL
+83,"2025-12-19 12:15:48",5,240,503717,canceled,4,Dine-in,NULL,NULL,NULL,NULL
+84,"2025-12-20 12:05:42",9,1830,165530,canceled,6,Dine-in,NULL,NULL,NULL,NULL
+85,"2025-12-13 13:41:08",7,910,255925,canceled,4,Dine-in,NULL,NULL,NULL,NULL
+86,"2025-12-07 10:08:34",1,150,225921,canceled,15,Dine-in,NULL,NULL,NULL,NULL
+87,"2025-11-24 11:39:28",7,695,549242,completed,8,Dine-in,NULL,NULL,NULL,NULL
+88,"2025-12-12 17:51:37",7,2124,321587,completed,1,Dine-in,NULL,NULL,NULL,NULL
+89,"2025-11-26 20:19:42",9,1749,439487,canceled,1,Dine-in,NULL,NULL,NULL,NULL
+90,"2025-12-12 14:03:40",2,290,397980,canceled,1,Dine-in,NULL,NULL,NULL,NULL
+91,"2025-12-13 11:19:13",7,2093,304302,canceled,9,Dine-in,NULL,NULL,NULL,NULL
+92,"2025-12-04 16:25:06",7,920,533186,completed,15,Dine-in,NULL,NULL,NULL,NULL
+93,"2025-12-09 14:07:51",9,1340,478348,canceled,7,Dine-in,NULL,NULL,NULL,NULL
+94,"2025-12-01 11:23:56",1,80,138890,completed,2,Dine-in,NULL,NULL,NULL,NULL
+95,"2025-12-09 16:36:08",7,760,553999,completed,13,Dine-in,NULL,NULL,NULL,NULL
+96,"2025-11-22 14:48:54",3,720,410839,completed,16,Dine-in,NULL,NULL,NULL,NULL
+97,"2025-12-23 14:16:06",11,2555,137701,pending,6,Dine-in,NULL,NULL,NULL,NULL
+98,"2025-12-09 16:53:50",6,200,575990,canceled,11,Dine-in,NULL,NULL,NULL,NULL
+99,"2025-11-29 19:40:50",6,1590,410838,pending,16,Dine-in,NULL,NULL,NULL,NULL
+100,"2025-12-04 13:42:42",4,540,397258,pending,8,Dine-in,NULL,NULL,NULL,NULL
+101,"2025-12-21 11:31:00",5,600,133352,canceled,12,Dine-in,NULL,NULL,NULL,NULL
+102,"2025-12-11 18:26:53",10,4059,150497,pending,14,Dine-in,NULL,NULL,NULL,NULL
+103,"2025-12-16 11:41:27",1,250,383716,pending,7,Dine-in,NULL,NULL,NULL,NULL
+104,"2025-12-14 17:06:37",6,1714.28,113948,canceled,2,Dine-in,NULL,NULL,NULL,NULL
+105,"2025-11-25 16:28:43",8,2115,431552,completed,10,Dine-in,NULL,NULL,NULL,NULL
+106,"2025-12-20 21:03:45",5,924.48,412357,completed,1,Dine-in,NULL,NULL,NULL,NULL
+107,"2025-11-24 21:52:37",4,460,102037,canceled,17,Dine-in,NULL,NULL,NULL,NULL
+108,"2025-11-24 12:11:48",8,420,578207,canceled,18,Dine-in,NULL,NULL,NULL,NULL
+109,"2025-11-30 21:21:12",4,460,565260,pending,2,Dine-in,NULL,NULL,NULL,NULL
+110,"2025-12-09 12:10:36",3,1047,101351,pending,3,Dine-in,NULL,NULL,NULL,NULL
+111,"2025-11-29 10:49:24",9,1650,480203,canceled,8,Dine-in,NULL,NULL,NULL,NULL
+112,"2025-12-09 19:35:11",3,677,102842,completed,15,Dine-in,NULL,NULL,NULL,NULL
+113,"2025-12-20 19:27:44",10,1290,138891,canceled,12,Dine-in,NULL,NULL,NULL,NULL
+114,"2025-11-29 16:33:10",10,1720,143143,canceled,14,Dine-in,NULL,NULL,NULL,NULL
+115,"2025-12-10 14:22:36",5,800,558957,pending,14,Dine-in,NULL,NULL,NULL,NULL
+116,"2025-12-17 12:13:30",2,378,489011,completed,7,Dine-in,NULL,NULL,NULL,NULL
+117,"2025-12-14 19:59:43",7,1720,428013,completed,14,Dine-in,NULL,NULL,NULL,NULL
+118,"2025-12-04 17:18:04",4,450,116273,completed,9,Dine-in,NULL,NULL,NULL,NULL
+119,"2025-12-12 16:31:14",10,1830,478936,completed,1,Dine-in,NULL,NULL,NULL,NULL
+120,"2025-11-25 20:41:56",4,750,477627,canceled,6,Dine-in,NULL,NULL,NULL,NULL
+121,"2025-11-28 19:56:01",2,380.96,437616,canceled,5,Dine-in,NULL,NULL,NULL,NULL
+122,"2025-12-18 15:34:16",9,884,550910,pending,12,Dine-in,NULL,NULL,NULL,NULL
+123,"2025-12-18 20:03:17",4,1166,342366,canceled,6,Dine-in,NULL,NULL,NULL,NULL
+124,"2025-12-06 19:33:38",9,1495,557008,canceled,12,Dine-in,NULL,NULL,NULL,NULL
+125,"2025-11-23 15:38:21",1,57.14,97199,completed,2,Dine-in,NULL,NULL,NULL,NULL
+126,"2025-12-21 21:30:51",11,3455,134569,canceled,14,Dine-in,NULL,NULL,NULL,NULL
+127,"2025-12-19 14:39:14",1,90,183009,canceled,3,Dine-in,NULL,NULL,NULL,NULL
+128,"2025-12-04 10:43:35",2,430,174586,canceled,7,Dine-in,NULL,NULL,NULL,NULL
+129,"2025-12-16 11:40:14",1,45,494588,pending,5,Dine-in,NULL,NULL,NULL,NULL
+130,"2025-11-29 16:10:24",7,1750,102042,pending,8,Dine-in,NULL,NULL,NULL,NULL
+131,"2025-12-19 11:51:21",9,1412,431339,completed,10,Dine-in,NULL,NULL,NULL,NULL
+132,"2025-12-07 12:45:32",8,1145,109550,pending,3,Dine-in,NULL,NULL,NULL,NULL
+133,"2025-11-23 18:13:38",12,1288.14,477628,pending,8,Dine-in,NULL,NULL,NULL,NULL
+134,"2025-12-20 18:51:36",10,1713,129550,canceled,13,Dine-in,NULL,NULL,NULL,NULL
+135,"2025-12-07 17:37:05",5,905,387674,canceled,20,Dine-in,NULL,NULL,NULL,NULL
+136,"2025-12-12 21:30:38",11,2140,183165,pending,2,Dine-in,NULL,NULL,NULL,NULL
+137,"2025-12-05 20:41:53",9,2250,310273,pending,10,Dine-in,NULL,NULL,NULL,NULL
+138,"2025-12-21 16:57:34",11,2519.04,293915,canceled,1,Dine-in,NULL,NULL,NULL,NULL
+139,"2025-12-13 12:42:12",2,250,131676,completed,14,Dine-in,NULL,NULL,NULL,NULL
+140,"2025-11-28 14:38:17",11,1220,109258,pending,9,Dine-in,NULL,NULL,NULL,NULL
+141,"2025-12-11 13:04:48",3,1102.45,483552,canceled,1,Dine-in,NULL,NULL,NULL,NULL
+142,"2025-12-07 11:29:11",3,600,517939,pending,5,Dine-in,NULL,NULL,NULL,NULL
+143,"2025-12-14 20:11:32",5,1070,154840,completed,10,Dine-in,NULL,NULL,NULL,NULL
+144,"2025-12-05 20:30:07",11,790,494001,pending,12,Dine-in,NULL,NULL,NULL,NULL
+145,"2025-12-03 19:56:01",8,400,489362,completed,2,Dine-in,NULL,NULL,NULL,NULL
+146,"2025-12-07 16:09:45",13,2080,510109,completed,11,Dine-in,NULL,NULL,NULL,NULL
+147,"2025-12-14 11:00:42",13,1320,249335,pending,12,Dine-in,NULL,NULL,NULL,NULL
+148,"2025-12-04 20:34:15",3,346,174458,completed,3,Dine-in,NULL,NULL,NULL,NULL
+149,"2025-12-04 11:49:10",2,300,129691,completed,2,Dine-in,NULL,NULL,NULL,NULL
+150,"2025-12-13 11:23:06",9,1300,139864,canceled,8,Dine-in,NULL,NULL,NULL,NULL
+151,"2025-12-01 11:27:59",5,895,486482,pending,4,Dine-in,NULL,NULL,NULL,NULL
+152,"2025-12-07 13:10:40",4,175,109839,canceled,5,Dine-in,NULL,NULL,NULL,NULL
+153,"2025-12-11 21:29:22",8,2475,102219,completed,7,Dine-in,NULL,NULL,NULL,NULL
+154,"2025-12-05 21:54:49",8,2325,364571,canceled,13,Dine-in,NULL,NULL,NULL,NULL
+155,"2025-12-06 11:06:02",1,100,413342,canceled,17,Dine-in,NULL,NULL,NULL,NULL
+156,"2025-12-10 15:45:43",5,780,387177,canceled,14,Dine-in,NULL,NULL,NULL,NULL
+157,"2025-12-11 11:30:28",8,2230,141706,pending,2,Dine-in,NULL,NULL,NULL,NULL
+158,"2025-11-29 12:15:12",11,850,501701,pending,5,Dine-in,NULL,NULL,NULL,NULL
+159,"2025-12-12 16:44:36",9,1245,456922,canceled,9,Dine-in,NULL,NULL,NULL,NULL
+160,"2025-12-07 12:57:24",8,565,102582,canceled,11,Dine-in,NULL,NULL,NULL,NULL
+161,"2025-12-18 16:33:15",9,2160,405031,canceled,5,Dine-in,NULL,NULL,NULL,NULL
+162,"2025-12-10 21:54:01",3,627,263185,pending,10,Dine-in,NULL,NULL,NULL,NULL
+163,"2025-12-06 13:50:20",5,1200,109549,pending,10,Dine-in,NULL,NULL,NULL,NULL
+164,"2025-12-16 17:29:39",1,200,487422,completed,15,Dine-in,NULL,NULL,NULL,NULL
+165,"2025-11-30 11:57:14",2,250,163436,pending,17,Dine-in,NULL,NULL,NULL,NULL
+166,"2025-11-30 21:17:13",7,1890,282630,completed,13,Dine-in,NULL,NULL,NULL,NULL
+167,"2025-11-28 12:34:24",6,1474,255651,pending,5,Dine-in,NULL,NULL,NULL,NULL
+168,"2025-12-12 13:00:21",2,498,549624,canceled,7,Dine-in,NULL,NULL,NULL,NULL
+169,"2025-11-24 17:18:35",4,108,413451,canceled,16,Dine-in,NULL,NULL,NULL,NULL
+170,"2025-11-26 13:31:52",7,1261,523044,canceled,11,Dine-in,NULL,NULL,NULL,NULL
+171,"2025-12-19 17:43:36",8,1670,102038,completed,7,Dine-in,NULL,NULL,NULL,NULL
+172,"2025-12-14 14:02:24",4,750,403754,pending,1,Dine-in,NULL,NULL,NULL,NULL
+173,"2025-12-06 19:01:11",5,1085,545808,completed,5,Dine-in,NULL,NULL,NULL,NULL
+174,"2025-11-26 18:58:45",1,85,439417,canceled,14,Dine-in,NULL,NULL,NULL,NULL
+175,"2025-12-10 15:50:14",9,1290,390478,completed,1,Dine-in,NULL,NULL,NULL,NULL
+176,"2025-12-18 12:14:55",11,2795,103649,pending,6,Dine-in,NULL,NULL,NULL,NULL
+177,"2025-12-16 15:43:54",2,90,430451,canceled,10,Dine-in,NULL,NULL,NULL,NULL
+178,"2025-11-23 19:54:45",11,1690,518548,completed,8,Dine-in,NULL,NULL,NULL,NULL
+179,"2025-12-05 18:22:02",9,1435,518819,canceled,11,Dine-in,NULL,NULL,NULL,NULL
+180,"2025-12-03 10:05:57",8,1262,447526,pending,11,Dine-in,NULL,NULL,NULL,NULL
+181,"2025-12-10 21:23:40",4,990,102579,canceled,3,Dine-in,NULL,NULL,NULL,NULL
+182,"2025-11-30 18:40:30",2,390,126128,canceled,1,Dine-in,NULL,NULL,NULL,NULL
+183,"2025-12-12 19:11:28",3,450,518803,canceled,13,Dine-in,NULL,NULL,NULL,NULL
+184,"2025-12-03 17:55:52",11,1465,377434,pending,2,Dine-in,NULL,NULL,NULL,NULL
+185,"2025-12-06 10:04:55",2,450,442180,completed,11,Dine-in,NULL,NULL,NULL,NULL
+186,"2025-12-02 10:37:02",3,1250,129551,completed,9,Dine-in,NULL,NULL,NULL,NULL
+187,"2025-12-19 12:50:24",5,870,577891,pending,11,Dine-in,NULL,NULL,NULL,NULL
+188,"2025-11-29 10:20:56",5,2160,462172,completed,8,Dine-in,NULL,NULL,NULL,NULL
+189,"2025-12-21 15:13:26",10,3012,104481,pending,6,Dine-in,NULL,NULL,NULL,NULL
+190,"2025-12-11 11:04:25",3,270,536499,completed,7,Dine-in,NULL,NULL,NULL,NULL
+191,"2025-12-21 11:41:44",7,1300,532670,canceled,10,Dine-in,NULL,NULL,NULL,NULL
+192,"2025-12-20 15:15:29",12,2640,113036,canceled,8,Dine-in,NULL,NULL,NULL,NULL
+193,"2025-12-17 19:12:13",10,2255,536328,canceled,3,Dine-in,NULL,NULL,NULL,NULL
+194,"2025-12-17 16:14:38",4,630,109548,pending,14,Dine-in,NULL,NULL,NULL,NULL
+195,"2025-12-04 13:36:33",5,926,364627,pending,9,Dine-in,NULL,NULL,NULL,NULL
+196,"2025-12-15 21:18:52",4,1055,104147,completed,6,Dine-in,NULL,NULL,NULL,NULL
+197,"2025-12-09 19:44:42",6,910,553404,pending,3,Dine-in,NULL,NULL,NULL,NULL
+198,"2025-12-01 12:46:53",4,1170.42,271964,canceled,15,Dine-in,NULL,NULL,NULL,NULL
+199,"2025-12-03 18:40:20",9,2376,102041,pending,4,Dine-in,NULL,NULL,NULL,NULL
+200,"2025-12-14 21:01:01",4,700,497063,completed,17,Dine-in,NULL,NULL,NULL,NULL
+201,"2025-12-08 15:04:05",3,667,378028,completed,11,Dine-in,NULL,NULL,NULL,NULL
+202,"2025-12-14 14:17:23",6,570,549633,canceled,4,Dine-in,NULL,NULL,NULL,NULL
+203,"2025-12-15 16:14:43",1,35,143194,canceled,5,Dine-in,NULL,NULL,NULL,NULL
+204,"2025-12-10 16:21:23",9,1415,327008,completed,13,Dine-in,NULL,NULL,NULL,NULL
+205,"2025-11-28 11:02:47",9,1113,497638,pending,12,Dine-in,NULL,NULL,NULL,NULL
+206,"2025-11-24 20:09:49",5,375,580202,pending,12,Dine-in,NULL,NULL,NULL,NULL
+207,"2025-12-02 21:40:41",6,66,377292,pending,5,Dine-in,NULL,NULL,NULL,NULL
+208,"2025-12-12 13:54:01",10,2885,102571,pending,13,Dine-in,NULL,NULL,NULL,NULL
+209,"2025-12-12 18:28:00",2,375,476303,pending,12,Dine-in,NULL,NULL,NULL,NULL
+210,"2025-11-23 16:37:58",3,750,451742,pending,1,Dine-in,NULL,NULL,NULL,NULL
+211,"2025-11-28 17:45:49",1,275,451743,completed,17,Dine-in,NULL,NULL,NULL,NULL
+212,"2025-12-19 16:55:14",5,790,116272,completed,3,Dine-in,NULL,NULL,NULL,NULL
+213,"2025-12-04 21:18:43",4,935,102581,canceled,5,Dine-in,NULL,NULL,NULL,NULL
+214,"2025-12-16 21:47:52",3,420,508701,completed,11,Dine-in,NULL,NULL,NULL,NULL
+215,"2025-12-02 11:03:14",1,110,549383,completed,19,Dine-in,NULL,NULL,NULL,NULL
+216,"2025-12-14 15:52:33",9,1390,440950,completed,12,Dine-in,NULL,NULL,NULL,NULL
+217,"2025-12-21 12:13:05",1,645,355561,canceled,2,Dine-in,NULL,NULL,NULL,NULL
+218,"2025-12-17 15:27:44",6,551,462505,pending,1,Dine-in,NULL,NULL,NULL,NULL
+219,"2025-12-21 18:39:25",4,500,186264,pending,12,Dine-in,NULL,NULL,NULL,NULL
+220,"2025-12-18 12:53:56",7,1900,211142,completed,4,Dine-in,NULL,NULL,NULL,NULL
+221,"2025-12-06 10:31:24",5,710,489422,completed,4,Dine-in,NULL,NULL,NULL,NULL
+222,"2025-12-11 15:55:11",3,297,401391,pending,5,Dine-in,NULL,NULL,NULL,NULL
+223,"2025-12-09 14:01:47",2,174,354669,canceled,6,Dine-in,NULL,NULL,NULL,NULL
+224,"2025-12-10 12:23:19",3,720,519622,pending,2,Dine-in,NULL,NULL,NULL,NULL
+225,"2025-12-04 21:51:18",5,1555,153339,completed,8,Dine-in,NULL,NULL,NULL,NULL
+226,"2025-12-04 14:06:32",5,950,443028,completed,3,Dine-in,NULL,NULL,NULL,NULL
+227,"2025-12-18 18:58:46",3,420,226773,completed,11,Dine-in,NULL,NULL,NULL,NULL
+228,"2025-12-12 18:34:13",1,150,385197,completed,5,Dine-in,NULL,NULL,NULL,NULL
+229,"2025-12-07 13:54:50",1,120,431115,canceled,11,Dine-in,NULL,NULL,NULL,NULL
+230,"2025-12-10 15:51:29",10,494,508583,pending,7,Dine-in,NULL,NULL,NULL,NULL
+231,"2025-12-09 15:32:55",4,436,132538,canceled,1,Dine-in,NULL,NULL,NULL,NULL
+232,"2025-12-01 20:10:11",4,315,394140,completed,8,Dine-in,NULL,NULL,NULL,NULL
+233,"2025-11-28 20:12:11",6,280,124500,canceled,18,Dine-in,NULL,NULL,NULL,NULL
+234,"2025-12-05 18:30:20",7,560,370259,completed,4,Dine-in,NULL,NULL,NULL,NULL
+235,"2025-11-27 21:55:08",8,700,533855,completed,8,Dine-in,NULL,NULL,NULL,NULL
+236,"2025-12-17 20:04:40",7,1260,125180,pending,5,Dine-in,NULL,NULL,NULL,NULL
+237,"2025-11-26 12:37:58",10,2720,263297,completed,2,Dine-in,NULL,NULL,NULL,NULL
+238,"2025-11-28 16:55:49",9,3200,410629,pending,14,Dine-in,NULL,NULL,NULL,NULL
+239,"2025-12-05 12:45:13",3,210,461084,pending,2,Dine-in,NULL,NULL,NULL,NULL
+240,"2025-12-06 14:58:39",12,2190,499377,canceled,10,Dine-in,NULL,NULL,NULL,NULL
+241,"2025-11-30 14:37:36",12,1725,390901,canceled,4,Dine-in,NULL,NULL,NULL,NULL
+242,"2025-12-06 18:12:01",12,1615,127306,completed,10,Dine-in,NULL,NULL,NULL,NULL
+243,"2025-12-06 13:07:21",10,2180,111386,pending,15,Dine-in,NULL,NULL,NULL,NULL
+244,"2025-12-16 13:00:42",10,1186,308169,pending,4,Dine-in,NULL,NULL,NULL,NULL
+245,"2025-12-19 15:41:26",6,1350,537808,pending,11,Dine-in,NULL,NULL,NULL,NULL
+246,"2025-12-14 17:25:05",3,234,433648,canceled,7,Dine-in,NULL,NULL,NULL,NULL
+247,"2025-12-14 18:01:09",3,385,115931,completed,2,Dine-in,NULL,NULL,NULL,NULL
+248,"2025-11-22 15:50:30",8,490,579047,pending,1,Dine-in,NULL,NULL,NULL,NULL
+249,"2025-12-03 15:09:02",10,3450,174464,completed,8,Dine-in,NULL,NULL,NULL,NULL
+250,"2025-12-13 18:13:40",1,75,163435,pending,15,Dine-in,NULL,NULL,NULL,NULL
+251,"2025-12-21 11:41:17",11,1935,417015,canceled,9,Dine-in,NULL,NULL,NULL,NULL
+252,"2025-11-28 17:45:25",6,514.26,376602,canceled,5,Dine-in,NULL,NULL,NULL,NULL
+253,"2025-11-22 19:43:16",2,598,546139,pending,2,Dine-in,NULL,NULL,NULL,NULL
+254,"2025-12-10 11:20:03",12,2097,102578,completed,11,Dine-in,NULL,NULL,NULL,NULL
+255,"2025-12-08 11:30:29",2,224,503432,canceled,16,Dine-in,NULL,NULL,NULL,NULL
+256,"2025-11-22 13:32:14",3,420,514288,canceled,11,Dine-in,NULL,NULL,NULL,NULL
+257,"2025-12-19 11:09:46",10,740,552372,pending,6,Dine-in,NULL,NULL,NULL,NULL
+258,"2025-12-10 17:12:07",9,5835,385938,canceled,12,Dine-in,NULL,NULL,NULL,NULL
+259,"2025-12-16 18:31:18",11,1280,164297,completed,3,Dine-in,NULL,NULL,NULL,NULL
+260,"2025-12-17 19:00:09",4,130,579040,completed,7,Dine-in,NULL,NULL,NULL,NULL
+261,"2025-12-09 17:26:54",9,3296,539663,completed,6,Dine-in,NULL,NULL,NULL,NULL
+262,"2025-12-02 20:14:01",6,1075,120193,pending,7,Dine-in,NULL,NULL,NULL,NULL
+263,"2025-12-14 14:49:22",9,2317,102631,pending,15,Dine-in,NULL,NULL,NULL,NULL
+264,"2025-12-08 15:24:50",5,680.95,189441,pending,13,Dine-in,NULL,NULL,NULL,NULL
+265,"2025-11-28 10:36:04",5,1140,102039,canceled,16,Dine-in,NULL,NULL,NULL,NULL
+266,"2025-11-26 20:45:52",3,715,127463,canceled,11,Dine-in,NULL,NULL,NULL,NULL
+267,"2025-12-06 14:01:05",10,1525,109387,completed,6,Dine-in,NULL,NULL,NULL,NULL
+268,"2025-12-11 21:47:52",1,170,306094,pending,8,Dine-in,NULL,NULL,NULL,NULL
+269,"2025-11-22 20:56:06",2,600,102577,pending,10,Dine-in,NULL,NULL,NULL,NULL
+270,"2025-11-27 17:16:52",4,290,242722,pending,16,Dine-in,NULL,NULL,NULL,NULL
+271,"2025-11-30 13:36:03",4,1140,528374,canceled,8,Dine-in,NULL,NULL,NULL,NULL
+272,"2025-12-14 18:09:38",2,260,355563,completed,14,Dine-in,NULL,NULL,NULL,NULL
+273,"2025-11-25 16:00:04",11,1283,417020,completed,5,Dine-in,NULL,NULL,NULL,NULL
+274,"2025-12-18 15:31:24",7,1650,385636,pending,6,Dine-in,NULL,NULL,NULL,NULL
+275,"2025-12-20 19:36:50",7,2193,546127,pending,8,Dine-in,NULL,NULL,NULL,NULL
+276,"2025-12-14 17:29:56",6,240,195788,canceled,4,Dine-in,NULL,NULL,NULL,NULL
+277,"2025-12-04 18:39:13",5,1187,102040,completed,18,Dine-in,NULL,NULL,NULL,NULL
+278,"2025-11-30 18:46:17",7,510,414252,pending,10,Dine-in,NULL,NULL,NULL,NULL
+279,"2025-12-09 15:53:46",9,1251,484449,pending,6,Dine-in,NULL,NULL,NULL,NULL
+280,"2025-12-14 13:10:01",6,685,530955,canceled,11,Dine-in,NULL,NULL,NULL,NULL
+281,"2025-12-11 20:08:45",1,40,554195,pending,15,Dine-in,NULL,NULL,NULL,NULL
+282,"2025-12-21 15:13:43",3,360,373319,pending,2,Dine-in,NULL,NULL,NULL,NULL
+283,"2025-12-21 17:42:23",1,100,552372,pending,3,Dine-in,NULL,NULL,NULL,NULL
+284,"2025-01-01 01:31:16",2,114.28,97199,completed,NULL,Delivery,"Sydelle Probbin","9401 Prairie Rose Circle, Duluth, Georgia, 30096",404-565-5024,364
+285,"2025-07-28 21:15:06",6,1874,101351,pending,NULL,Delivery,"Ase Smethurst","68263 Lawn Drive, Virginia Beach, Virginia, 23471",757-154-1285,319
+286,"2025-10-12 15:44:33",8,1045,102037,canceled,NULL,Delivery,"Hermy Gilbody","91 Sunnyside Hill, Charleston, South Carolina, 29403",843-680-6818,309
+287,"2025-07-17 06:06:59",6,1725,102038,completed,NULL,Delivery,"Heath Ambrogio","028 Heath Parkway, San Antonio, Texas, 78245",830-205-2025,511
+288,"2025-10-16 17:09:00",11,2495,102039,pending,NULL,Delivery,"Adams Hansford","09 Brentwood Lane, Aiken, South Carolina, 29805",803-860-3609,796
+289,"2025-01-15 14:52:10",6,1185,102040,canceled,NULL,Delivery,"Grant Lawrinson","398 Hanover Avenue, Washington, District of Columbia, 20016",202-677-6014,837
+290,"2025-05-27 12:31:19",6,1836,102041,completed,NULL,Delivery,"Shandra Libri","51609 Autumn Leaf Pass, Cincinnati, Ohio, 45203",513-870-4450,590
+291,"2025-10-13 22:37:17",3,105,102042,pending,NULL,Delivery,"Farrel Sopper","60948 Waxwing Court, Harrisburg, Pennsylvania, 17121",717-933-5450,382
+292,"2025-07-20 11:11:22",5,1450,102219,canceled,NULL,Delivery,"Beau Clamp","453 Redwing Drive, Lincoln, Nebraska, 68510",402-601-7544,447
+293,"2025-10-04 18:45:38",7,1250,102571,completed,NULL,Delivery,"Gerty St. Hill","20 Lakewood Drive, Fort Lauderdale, Florida, 33330",954-377-7567,613
+294,"2025-01-07 20:28:49",9,1840,102577,pending,NULL,Delivery,"Craggy Eakly","7 Loeprich Lane, Wilkes Barre, Pennsylvania, 18706",570-665-5656,807
+295,"2025-08-20 12:44:14",8,1620,102578,canceled,NULL,Delivery,"Wiley Scrinage","4 Mendota Plaza, Waterbury, Connecticut, 06705",203-546-9495,763
+296,"2025-11-09 09:19:31",4,925,102579,completed,NULL,Delivery,"Diahann Covendon","0730 Warner Avenue, Fort Lauderdale, Florida, 33305",954-737-8629,543
+297,"2025-10-26 16:23:13",10,1288,102581,pending,NULL,Delivery,"Margo Buckthorp","867 Merry Avenue, Oklahoma City, Oklahoma, 73142",405-680-3407,632
+298,"2025-07-18 16:10:31",3,210,102582,canceled,NULL,Delivery,"Gonzales Edmons","47 Butterfield Street, Shreveport, Louisiana, 71161",318-540-9347,473
+299,"2025-07-03 04:24:09",3,447,102631,completed,NULL,Delivery,"Hadria De Vaan","17600 Scoville Way, Odessa, Texas, 79769",432-110-7152,793
+300,"2025-06-19 20:31:59",6,634,102842,pending,NULL,Delivery,"Mitchel Jantot","845 Forest Center, Brockton, Massachusetts, 02305",508-711-3293,326
+301,"2025-10-01 02:16:40",3,640,103649,canceled,NULL,Delivery,"Jermaine Rene","09 Westridge Parkway, Boston, Massachusetts, 02163",857-583-1765,529
+302,"2025-08-26 15:21:04",10,3220,104147,completed,NULL,Delivery,"Zacherie Pudge","39 Dunning Court, San Diego, California, 92160",619-430-9163,586
+303,"2025-05-02 11:02:53",5,1872,104481,pending,NULL,Delivery,"Glenn Jirzik","6 Novick Avenue, Punta Gorda, Florida, 33982",941-316-0019,565
+304,"2025-02-04 19:29:13",3,360,109258,canceled,NULL,Delivery,"Ahmed Tomaszek","1 Linden Pass, Montgomery, Alabama, 36177",334-860-1805,408
+305,"2025-12-16 21:11:32",1,230,109387,completed,NULL,Delivery,"Annabela Labden","4016 Loeprich Point, Albany, New York, 12247",518-496-3618,799
+306,"2025-10-26 10:20:55",7,1460,109548,pending,NULL,Delivery,"Tiphanie Biffin","734 Mitchell Way, Redwood City, California, 94064",650-932-1908,580
+307,"2025-01-06 03:58:07",1,145,109549,canceled,NULL,Delivery,"Devlin Lilly","4 Sycamore Street, New York City, New York, 10125",212-117-6655,480
+308,"2025-04-01 01:33:47",7,1060,109550,completed,NULL,Delivery,"Urbanus Twaite","14 Ronald Regan Terrace, Flushing, New York, 11355",917-871-8426,388
+309,"2025-04-29 16:42:10",4,240,109839,pending,NULL,Delivery,"Alyssa Buller","4387 Westerfield Road, Austin, Texas, 78749",512-471-1170,445
+310,"2025-04-29 01:50:04",3,507,111386,canceled,NULL,Delivery,"Aldin Hartburn","563 Little Fleur Crossing, Baton Rouge, Louisiana, 70810",225-847-6795,735
+311,"2025-11-25 13:32:23",1,250,113036,completed,NULL,Delivery,"Beatrice Sprigg","3 Weeping Birch Alley, El Paso, Texas, 88525",915-932-6853,570
+312,"2025-11-01 06:55:21",6,2180.95,113948,pending,NULL,Delivery,"Gayleen Tessyman","463 Old Gate Plaza, Dayton, Ohio, 45470",937-269-5420,299
+313,"2025-02-25 18:01:29",3,270,115931,canceled,NULL,Delivery,"Saunders Cornelleau","54039 Katie Pass, Pittsburgh, Pennsylvania, 15250",412-728-5800,742
+314,"2025-06-15 04:13:54",5,1260,116272,completed,NULL,Delivery,"Daune Sketcher","89528 Manley Drive, Norfolk, Virginia, 23504",757-700-8066,627
+315,"2025-05-16 01:26:02",6,1050,116273,pending,NULL,Delivery,"Prinz Mowat","311 Artisan Way, Phoenix, Arizona, 85010",602-115-0885,340
+316,"2025-04-13 04:43:43",4,560,120193,canceled,NULL,Delivery,"Kristofer Nicholas","20 Sommers Point, Richmond, Virginia, 23220",804-742-9841,790
+317,"2025-08-22 17:04:55",6,465,124500,completed,NULL,Delivery,"Minnnie Terrell","27 Merchant Crossing, Nashville, Tennessee, 37215",615-479-7316,708
+318,"2025-07-21 08:57:42",9,1920,125180,pending,NULL,Delivery,"Anya Craig","857 Steensland Alley, Tucson, Arizona, 85737",520-895-6285,717
+319,"2025-01-14 12:41:50",3,315,126128,canceled,NULL,Delivery,"Reidar Neat","338 Prairieview Junction, Winston Salem, North Carolina, 27157",336-802-1152,550
+320,"2025-02-28 00:37:24",9,351,127306,completed,NULL,Delivery,"Rebbecca Ebrall","4 Moose Parkway, Washington, District of Columbia, 20397",202-788-7093,732
+321,"2025-10-18 15:28:09",1,645,127463,pending,NULL,Delivery,"Carroll Harce","04705 Cottonwood Terrace, Dayton, Ohio, 45490",937-579-4563,798
+322,"2025-09-28 05:02:12",2,358,129550,canceled,NULL,Delivery,"Hieronymus Chesters","36685 Florence Alley, Stockton, California, 95298",209-454-8831,392
+323,"2025-09-03 19:36:42",3,525,129551,completed,NULL,Delivery,"Duane Lorryman","8 Buena Vista Alley, Newark, Delaware, 19725",302-365-4610,560
+324,"2025-06-22 09:13:07",10,1380,129691,pending,NULL,Delivery,"Minnnie Semeradova","9342 Independence Hill, Philadelphia, Pennsylvania, 19120",215-129-1786,432
+325,"2025-03-04 22:12:29",4,500,131676,canceled,NULL,Delivery,"Darryl Gorst","8334 Rieder Point, Crawfordsville, Indiana, 47937",765-704-6590,407
+326,"2025-08-07 07:32:46",2,316,132538,completed,NULL,Delivery,"Melosa Landeaux","10210 Veith Junction, Tucson, Arizona, 85725",520-305-6051,698
+327,"2025-04-17 07:16:21",6,691,133352,pending,NULL,Delivery,"Stacey Hourigan","3 Moland Junction, Kansas City, Missouri, 64130",816-845-7849,291
+328,"2025-12-24 06:26:03",1,160,134569,canceled,NULL,Delivery,"Falito Hursthouse","38 Toban Road, Mobile, Alabama, 36628",251-491-3366,365
+329,"2025-11-22 00:05:19",6,885,137701,completed,NULL,Delivery,"Jase Leckie","05455 Village Trail, Philadelphia, Pennsylvania, 19141",215-461-4362,282
+330,"2025-11-16 06:36:05",3,600,138890,pending,NULL,Delivery,"Balduin Musico","594 Kinsman Circle, Augusta, Georgia, 30919",706-406-3004,272
+331,"2025-12-15 05:13:19",2,180,138891,canceled,NULL,Delivery,"Anatol Vause","2 Hermina Junction, Arlington, Virginia, 22212",571-640-1855,330
+332,"2025-10-18 20:33:08",2,200,139864,completed,NULL,Delivery,"Tasia Booi","10203 Farwell Crossing, Shreveport, Louisiana, 71105",318-885-3850,435
+333,"2025-07-07 23:28:15",2,360,141706,pending,NULL,Delivery,"Jaquelyn Voase","2434 Karstens Center, Garland, Texas, 75044",214-200-9044,464
+334,"2025-11-28 00:05:50",9,1580,143143,canceled,NULL,Delivery,"Isabelle Sansum","5 Stang Terrace, Montgomery, Alabama, 36109",334-245-4959,333
+335,"2025-09-05 07:29:13",6,600,143194,completed,NULL,Delivery,"Archibold Killner","02 Gina Hill, Stamford, Connecticut, 06905",203-270-8203,599
+336,"2025-11-14 01:06:18",6,3945,150497,pending,NULL,Delivery,"Corella Taillard","4 Mcbride Court, Fort Smith, Arkansas, 72916",479-516-1516,296
+337,"2025-10-04 06:29:34",1,299,153339,canceled,NULL,Delivery,"Inna Tristram","164 Montana Junction, New Haven, Connecticut, 06505",203-600-6582,680
+338,"2025-10-07 11:20:34",5,385,154840,completed,NULL,Delivery,"Claire Pockey","2 Stone Corner Street, New York City, New York, 10160",212-506-4327,420
+339,"2025-12-22 05:19:18",10,350,156542,pending,NULL,Delivery,"Sheba Kinleyside","81 Arrowood Parkway, Dallas, Texas, 75353",214-379-2672,188
+340,"2025-05-07 17:21:04",5,729,156587,canceled,NULL,Delivery,"Torey Mouland","49 Grover Center, Boston, Massachusetts, 02298",617-323-8505,50
+341,"2025-04-14 08:22:42",4,779,156588,completed,NULL,Delivery,"Petra Stendell","25 Oak Valley Avenue, New Orleans, Louisiana, 70165",504-136-4245,17
+342,"2025-02-21 01:59:41",7,280,156590,pending,NULL,Delivery,"Tiffani Brolly","785 Onsgard Point, Miami, Florida, 33169",305-261-1614,43
+343,"2025-02-18 05:59:19",6,285,156592,canceled,NULL,Delivery,"Caroljean Ferro","7762 Hansons Alley, Sacramento, California, 95813",916-313-3618,171
+344,"2025-04-21 13:19:44",7,210,156601,completed,NULL,Delivery,"Lark Kropach","6 Calypso Trail, Sioux City, Iowa, 51105",712-427-2653,47
+345,"2025-02-08 02:46:49",8,430,156602,pending,NULL,Delivery,"Cynthea Fowley","27 Merchant Place, Inglewood, California, 90398",310-652-4779,26
+346,"2025-05-09 16:12:26",6,720,158192,canceled,NULL,Delivery,"Holt Chapelle","2 Bellgrove Pass, Hollywood, Florida, 33023",954-574-8476,51
+347,"2025-07-24 12:07:24",4,140,158193,completed,NULL,Delivery,"Gerhardine Wadhams","96413 Warner Pass, Arlington, Virginia, 22225",571-157-2474,32
+348,"2025-07-30 18:10:20",7,1256,158195,pending,NULL,Delivery,"Adrien Sunner","3294 Daystar Drive, Seattle, Washington, 98166",206-164-8576,56
+349,"2025-05-25 20:58:15",5,731,158203,canceled,NULL,Delivery,"Selby Rikel","84658 Vahlen Alley, Washington, District of Columbia, 20508",202-698-9712,6
+350,"2025-11-01 22:20:00",2,168,158204,completed,NULL,Delivery,"Dorie Emnoney","16 Havey Alley, Charlotte, North Carolina, 28263",704-740-3940,12
+351,"2025-11-17 13:53:53",1,25,161396,pending,NULL,Delivery,"Halley Sconce","18278 Pearson Parkway, Lansing, Michigan, 48956",517-395-4145,134
+352,"2025-04-23 17:06:06",3,270,161405,canceled,NULL,Delivery,"Mordy Marcham","73185 Waxwing Avenue, Salem, Oregon, 97312",971-309-3106,190
+353,"2025-10-19 20:59:10",4,386,161408,completed,NULL,Delivery,"Novelia Dykes","53 Grayhawk Park, Dayton, Ohio, 45408",937-343-2158,143
+354,"2025-01-26 22:24:14",2,160,163435,pending,NULL,Delivery,"Lara Gilcriest","06482 Sherman Way, Seattle, Washington, 98115",206-111-3770,748
+355,"2025-02-03 19:03:04",1,105,163436,canceled,NULL,Delivery,"Dulcea Thackray","1 Towne Way, Chandler, Arizona, 85246",480-944-9856,484
+356,"2025-08-25 13:28:37",8,1125,164297,completed,NULL,Delivery,"Zak Pinnion","49 Forest Run Way, Fresno, California, 93709",559-671-8304,775
+357,"2025-05-02 18:21:36",2,260,165530,pending,NULL,Delivery,"Jeff Plunkett","22095 Anthes Road, Aurora, Colorado, 80045",303-737-1550,248
+358,"2025-11-03 18:37:24",6,1545,165532,canceled,NULL,Delivery,"Roger Symms","8 Waxwing Terrace, Zephyrhills, Florida, 33543",813-934-6726,214
+359,"2025-02-02 19:45:44",7,1047,165533,completed,NULL,Delivery,"Donavon Cullin","30179 Anniversary Place, Melbourne, Florida, 32941",321-256-8550,199
+360,"2025-02-25 22:41:56",5,940,166613,pending,NULL,Delivery,"Myrah Finnes","1476 Hayes Pass, San Francisco, California, 94177",415-933-1268,206
+361,"2025-09-12 08:40:07",8,423,166971,canceled,NULL,Delivery,"Sonnie Bearcock","23 Anzinger Plaza, Decatur, Georgia, 30089",678-975-0074,233
+362,"2025-10-06 22:05:21",5,870,167412,completed,NULL,Delivery,"Estrella Eveque","0 Fisk Place, Cincinnati, Ohio, 45208",513-147-5645,243
+363,"2025-06-02 13:02:06",4,183.3,167432,pending,NULL,Delivery,"Shae Pexton","3023 Fuller Center, Cincinnati, Ohio, 45254",513-650-5007,229
+364,"2025-02-28 01:35:25",10,1590,169281,canceled,NULL,Delivery,"Reggie Brooksbank","76 Susan Road, Cedar Rapids, Iowa, 52405",319-920-2213,215
+365,"2025-08-09 03:50:06",9,2976,171675,completed,NULL,Delivery,"Nydia Potebury","7622 Blackbird Avenue, Anniston, Alabama, 36205",256-857-2665,93
+366,"2025-07-17 23:01:51",12,3210,174458,pending,NULL,Delivery,"Celisse Reason","72858 Walton Street, San Jose, California, 95194",408-704-1461,430
+367,"2025-11-02 02:42:37",1,699,174464,canceled,NULL,Delivery,"Kahlil Rowsell","49390 Swallow Street, Miami, Florida, 33169",954-890-4654,747
+368,"2025-07-18 15:20:46",6,1270,174586,completed,NULL,Delivery,"Marlie Stranio","0 Laurel Way, Savannah, Georgia, 31422",912-246-3601,371
+369,"2025-12-16 23:45:12",6,840,183009,pending,NULL,Delivery,"Archy Amber","139 Mifflin Street, Raleigh, North Carolina, 27626",919-535-2162,370
+370,"2025-04-22 20:25:32",8,2870,183165,canceled,NULL,Delivery,"Aggie Keepin","5856 Oneill Way, Dayton, Ohio, 45454",937-248-7517,400
+371,"2025-08-17 21:55:57",9,1191,186264,completed,NULL,Delivery,"Kellby Senten","33 Mitchell Trail, Waco, Texas, 76711",254-183-2095,660
+372,"2025-07-13 16:30:24",3,240,186286,pending,NULL,Delivery,"Fidelity Othick","04763 Nelson Street, Spring, Texas, 77388",409-702-6349,205
+373,"2025-09-02 08:59:00",3,450,186289,canceled,NULL,Delivery,"Omar Marquiss","9 Calypso Parkway, Fort Myers, Florida, 33994",239-381-2450,211
+374,"2025-11-04 02:52:30",1,120,187912,completed,NULL,Delivery,"Viviene Neilands","85352 Fieldstone Court, Detroit, Michigan, 48295",313-214-9993,9
+375,"2025-01-13 22:28:20",6,225,187915,pending,NULL,Delivery,"Faber Roseaman","958 Washington Center, Murfreesboro, Tennessee, 37131",615-498-4939,182
+376,"2025-09-29 08:04:50",7,628,187921,canceled,NULL,Delivery,"Candra Merwood","439 Arkansas Hill, Topeka, Kansas, 66642",785-647-9176,114
+377,"2025-07-16 21:46:15",4,1388.66,189441,completed,NULL,Delivery,"Spence Axup","70 Petterle Parkway, Austin, Texas, 78789",512-766-9032,795
+378,"2025-02-06 19:58:49",1,75,195788,pending,NULL,Delivery,"Way Auchinleck","5 Hanson Place, Indianapolis, Indiana, 46226",317-713-7209,834
+379,"2025-08-22 18:20:50",6,1850,211142,canceled,NULL,Delivery,"Bambie Luxton","25989 Swallow Terrace, Gulfport, Mississippi, 39505",228-697-9335,663
+380,"2025-06-07 20:15:31",5,365,224008,completed,NULL,Delivery,"Edlin McCoole","3 Barby Junction, Washington, District of Columbia, 20436",202-521-3425,197
+381,"2025-11-27 20:32:19",6,494,225827,pending,NULL,Delivery,"Carolee Pretor","577 Hanson Hill, Houston, Texas, 77075",832-439-1021,201
+382,"2025-05-19 22:23:08",3,600,225921,canceled,NULL,Delivery,"Craig Steels","16990 Chive Way, Denver, Colorado, 80204",720-376-6075,251
+383,"2025-07-19 17:23:26",4,700,226299,completed,NULL,Delivery,"Louise Davage","12354 Blackbird Parkway, Virginia Beach, Virginia, 23454",757-703-3162,235
+384,"2025-03-04 18:02:42",4,575,226773,pending,NULL,Delivery,"Valaree O'Harney","4 Lakewood Point, New Hyde Park, New York, 11044",516-305-8544,687
+385,"2025-12-11 21:48:14",3,237,242722,canceled,NULL,Delivery,"Shayna Truse","89 Marquette Street, Raleigh, North Carolina, 27626",919-641-2776,808
+386,"2025-02-02 12:27:14",2,439,242943,completed,NULL,Delivery,"Dael Puttnam","74538 Buhler Circle, Mountain View, California, 94042",650-998-8551,204
+387,"2025-05-17 10:02:48",4,74,244866,pending,NULL,Delivery,"Bengt Lutz","15 Redwing Plaza, Lynn, Massachusetts, 01905",339-643-4278,22
+388,"2025-04-17 17:30:41",6,710,249335,canceled,NULL,Delivery,"Alvie Stowte","140 Clove Junction, New Brunswick, New Jersey, 08922",732-375-2698,428
+389,"2025-06-08 00:11:44",7,2533,255651,completed,NULL,Delivery,"Kare Cotsford","32747 Summer Ridge Pass, Baton Rouge, Louisiana, 70894",225-127-7472,492
+390,"2025-01-11 05:36:21",6,1680,255925,pending,NULL,Delivery,"Jonah Stit","794 Lien Avenue, San Diego, California, 92196",619-209-3393,250
+391,"2025-08-08 14:24:23",3,90,257181,canceled,NULL,Delivery,"Osbert Kristoffersson","9 Fulton Drive, El Paso, Texas, 79994",915-641-1926,59
+392,"2025-01-15 01:46:07",4,4706,263185,completed,NULL,Delivery,"Allianora Stallworthy","5348 Knutson Trail, Houston, Texas, 77010",281-646-6678,479
+393,"2025-10-11 18:48:08",3,747,263297,pending,NULL,Delivery,"Gustav Girdler","664 Bunting Pass, Northridge, California, 91328",818-316-5959,719
+394,"2025-06-11 01:13:08",6,579,271964,canceled,NULL,Delivery,"Jennilee Le Cornu","255 Clove Street, El Paso, Texas, 79945",915-894-3965,589
+395,"2025-07-31 23:30:40",10,1860,282630,completed,NULL,Delivery,"Igor Willgoss","107 Ohio Parkway, Lincoln, Nebraska, 68510",402-616-3647,491
+396,"2025-08-02 01:06:22",7,1271.4,293915,pending,NULL,Delivery,"Dominik Leijs","21 Cardinal Street, Toledo, Ohio, 43635",419-180-1792,404
+397,"2025-05-17 17:31:26",4,185,302868,canceled,NULL,Delivery,"Cam Bazelle","6840 Westridge Junction, Montgomery, Alabama, 36114",334-310-0059,122
+398,"2025-04-11 20:23:55",3,955,304302,completed,NULL,Delivery,"Urbano Grew","853 Prairieview Hill, Virginia Beach, Virginia, 23454",757-143-3366,266
+399,"2025-10-30 02:23:48",8,825,306094,pending,NULL,Delivery,"Adolf Blackler","704 Everett Circle, Washington, District of Columbia, 20244",202-441-0413,804
+400,"2025-03-17 10:32:43",3,327,308169,canceled,NULL,Delivery,"Judi Rhymes","6944 Red Cloud Junction, Austin, Texas, 78732",512-211-6313,736
+401,"2025-02-02 15:59:32",7,1750,310273,completed,NULL,Delivery,"Eolanda Hirjak","27834 Karstens Terrace, Myrtle Beach, South Carolina, 29579",843-659-0815,402
+402,"2025-11-03 19:18:43",7,1135,321587,pending,NULL,Delivery,"Coralie Gillebert","1 Chive Pass, Houston, Texas, 77080",281-876-0244,255
+403,"2025-06-11 21:16:37",11,2625,327008,canceled,NULL,Delivery,"Lacy Oylett","88924 Northland Pass, Fullerton, California, 92835",714-497-1948,600
+404,"2025-03-05 11:14:39",6,1196,338749,completed,NULL,Delivery,"Risa Remnant","29 Hansons Drive, Dayton, Ohio, 45490",937-486-3670,44
+405,"2025-01-02 22:00:17",10,3020,342366,pending,NULL,Delivery,"Maddy Dickerson","193 Bultman Point, North Little Rock, Arkansas, 72199",501-571-5781,357
+406,"2025-01-31 13:12:30",8,1137,351387,canceled,NULL,Delivery,"Lu MacGow","1 High Crossing Circle, North Little Rock, Arkansas, 72199",501-500-1606,118
+407,"2025-03-04 09:01:13",1,350,354669,completed,NULL,Delivery,"Gretchen Featherston","326 Meadow Vale Parkway, South Lake Tahoe, California, 96154",530-334-6965,675
+408,"2025-09-30 21:58:53",5,3065,355561,pending,NULL,Delivery,"Kary Jarred","93 Pankratz Place, Tulsa, Oklahoma, 74141",918-270-9311,651
+409,"2025-09-19 08:59:17",12,3150,355563,canceled,NULL,Delivery,"Artemis Finney","205 Superior Road, Lansing, Michigan, 48919",517-250-9165,819
+410,"2025-11-13 15:34:37",4,1300,364571,completed,NULL,Delivery,"Bridie Easeman","9898 Susan Terrace, Waltham, Massachusetts, 02453",781-912-7110,451
+411,"2025-10-16 16:12:11",4,1027,364627,pending,NULL,Delivery,"Bobby Sprigg","5867 Valley Edge Junction, Chicago, Illinois, 60669",312-358-9583,584
+412,"2025-11-08 09:15:14",4,490,368328,canceled,NULL,Delivery,"Esmeralda Dunlop","4 Linden Alley, Shreveport, Louisiana, 71137",318-524-1086,87
+413,"2025-02-28 06:09:41",1,70,370259,completed,NULL,Delivery,"Hillier Tineman","8 Armistice Point, Des Moines, Iowa, 50936",515-808-7784,713
+414,"2025-10-16 14:00:20",4,240,373319,pending,NULL,Delivery,"Eugenia Gumery","9962 Bowman Parkway, San Antonio, Texas, 78255",830-490-0872,175
+415,"2025-01-19 21:32:37",3,75,374706,canceled,NULL,Delivery,"Adelaide McMurthy","12768 Morrow Hill, Atlanta, Georgia, 31106",404-724-5704,241
+416,"2025-06-07 00:15:37",3,236.01,376602,completed,NULL,Delivery,"Aldwin Tommeo","84360 Columbus Terrace, Clearwater, Florida, 33758",813-388-8488,755
+417,"2025-05-24 17:36:44",4,98,377292,pending,NULL,Delivery,"Karie Bilbrey","3 Heffernan Park, Fort Lauderdale, Florida, 33325",954-720-3430,611
+418,"2025-01-13 01:56:15",5,1330,377434,canceled,NULL,Delivery,"Jim Richemont","57032 Mallory Parkway, Richmond, California, 94807",510-305-6042,554
+419,"2025-06-27 23:35:00",3,587,378028,completed,NULL,Delivery,"Leia McGunley","38 Nova Hill, Winston Salem, North Carolina, 27116",336-563-6141,595
+420,"2025-07-11 21:11:52",7,705,382204,pending,NULL,Delivery,"Gordie McGahy","3319 Butterfield Avenue, Arvada, Colorado, 80005",720-843-6642,81
+421,"2025-01-27 23:55:37",8,445,382249,canceled,NULL,Delivery,"Paulie Chatterton","9 Pennsylvania Junction, El Paso, Texas, 88525",915-109-9069,139
+422,"2025-01-10 20:44:17",7,1270,383716,completed,NULL,Delivery,"Haven Hinz","3697 Ruskin Plaza, Young America, Minnesota, 55564",952-849-8126,297
+423,"2025-01-29 03:01:33",3,150,385197,pending,NULL,Delivery,"Michaela O'Hartigan","64 High Crossing Center, Reston, Virginia, 20195",703-333-5977,691
+424,"2025-10-03 07:18:00",4,85,385636,canceled,NULL,Delivery,"Mercy Getsham","38 Laurel Trail, Milwaukee, Wisconsin, 53285",414-144-8101,825
+425,"2025-06-05 05:49:37",5,1933,385938,completed,NULL,Delivery,"Alaric McAllan","3156 Blaine Crossing, Fort Lauderdale, Florida, 33305",954-989-8380,774
+426,"2025-04-14 04:23:03",1,175,387177,pending,NULL,Delivery,"Isaac Ades","247 Larry Drive, Washington, District of Columbia, 20392",202-376-3195,460
+427,"2025-07-07 12:25:08",4,716,387674,canceled,NULL,Delivery,"Tabbi Bridges","265 Golf Course Pass, Jamaica, New York, 11499",212-481-1508,394
+428,"2025-03-05 19:11:46",3,540,390478,completed,NULL,Delivery,"Juli Maundrell","09 Northview Place, San Diego, California, 92115",619-678-8506,521
+429,"2025-05-24 20:18:54",8,1365,390901,pending,NULL,Delivery,"Xever Matiewe","2 Kenwood Court, Omaha, Nebraska, 68117",402-799-8260,730
+430,"2025-11-03 16:34:34",8,695,394140,canceled,NULL,Delivery,"Estrellita Hodgen","7 Bobwhite Parkway, Portsmouth, New Hampshire, 03804",603-385-5171,702
+431,"2025-03-25 06:37:35",3,327,394554,completed,NULL,Delivery,"Matti Nozzolinii","61564 Northridge Hill, Houston, Texas, 77080",832-708-9302,55
+432,"2025-06-22 03:09:51",2,320,397258,pending,NULL,Delivery,"Barrett Matschke","83091 Kipling Parkway, Charlotte, North Carolina, 28263",704-393-8033,289
+433,"2025-05-03 12:28:10",3,360,397980,canceled,NULL,Delivery,"Abe Wrightson","493 Marcy Lane, Pittsburgh, Pennsylvania, 15279",412-624-4388,262
+434,"2025-01-23 07:17:10",7,1413,401391,completed,NULL,Delivery,"Lebbie Petticrow","9969 Stang Park, Newark, New Jersey, 07104",973-198-6409,671
+435,"2025-02-07 02:22:10",2,150,403754,pending,NULL,Delivery,"Gauthier Dirr","392 Sommers Parkway, Oklahoma City, Oklahoma, 73167",405-752-1641,513
+436,"2025-12-08 17:49:43",7,2030,405031,canceled,NULL,Delivery,"Kaitlin Bafford","02680 Judy Parkway, San Francisco, California, 94116",415-687-5302,475
+437,"2025-02-12 19:19:36",1,60,407243,completed,NULL,Delivery,"Ross Ceccoli","4438 Ronald Regan Court, San Jose, California, 95155",408-462-7279,180
+438,"2025-02-14 11:59:21",1,104,407249,pending,NULL,Delivery,"Alverta Jedrzejewicz","9424 Tony Trail, Dallas, Texas, 75216",469-982-2267,36
+439,"2025-03-21 18:58:32",1,167,408059,canceled,NULL,Delivery,"Andi Albion","323 South Road, Prescott, Arizona, 86305",928-464-9378,217
+440,"2025-04-30 23:39:57",5,2050,410629,completed,NULL,Delivery,"Carley Fossord","19 Forest Alley, Birmingham, Alabama, 35254",205-233-9759,721
+441,"2025-03-06 04:13:07",5,1430,410838,pending,NULL,Delivery,"Francisco Romei","4 Sachs Court, Anderson, South Carolina, 29625",864-111-5195,285
+442,"2025-11-02 02:40:04",8,2060,410839,canceled,NULL,Delivery,"Tuck Goucher","177 Montana Crossing, Shreveport, Louisiana, 71105",318-170-0600,277
+443,"2025-02-10 08:35:53",8,1543.68,412357,completed,NULL,Delivery,"Giff How to preserve","2670 Mayer Parkway, Sacramento, California, 94207",916-812-9408,306
+444,"2025-02-01 12:49:25",8,1060,413342,pending,NULL,Delivery,"Jeanette Milson","2450 Elka Lane, Lubbock, Texas, 79491",806-445-1833,457
+445,"2025-10-18 11:53:12",4,373,413451,canceled,NULL,Delivery,"Arne Laird","7 Commercial Road, Woburn, Massachusetts, 01813",339-426-5852,500
+446,"2025-01-06 18:50:39",8,985,414252,completed,NULL,Delivery,"Maribel Dominichelli","9 Judy Point, Phoenix, Arizona, 85005",602-864-2998,838
+447,"2025-07-09 14:30:35",4,772,417015,pending,NULL,Delivery,"Graig Lowthorpe","1 Summit Parkway, Fargo, North Dakota, 58106",701-757-0270,753
+448,"2025-10-08 05:27:00",4,254,417020,canceled,NULL,Delivery,"Hayes Kitcat","88170 Ryan Crossing, Portland, Oregon, 97232",971-157-0114,822
+449,"2025-08-06 20:31:08",8,770,420479,completed,NULL,Delivery,"Dov Golton","8210 Schurz Lane, El Paso, Texas, 88541",915-469-8786,161
+450,"2025-05-06 01:32:51",10,1060,420586,pending,NULL,Delivery,"Barbe Lount","19525 Delaware Avenue, Allentown, Pennsylvania, 18105",610-233-6700,111
+451,"2025-06-15 02:09:02",2,378,420637,canceled,NULL,Delivery,"Vanna Kitto","13977 Myrtle Street, Topeka, Kansas, 66642",785-891-6987,159
+452,"2025-04-04 18:16:28",6,1167,420675,completed,NULL,Delivery,"Luella McShirrie","58 Banding Plaza, Merrifield, Virginia, 22119",571-132-5518,70
+453,"2025-05-03 17:14:09",5,644,421155,pending,NULL,Delivery,"Hermie Fulks","24803 Independence Terrace, Louisville, Kentucky, 40298",502-620-0383,103
+454,"2025-01-28 09:41:58",5,730,427606,canceled,NULL,Delivery,"Mattheus Rymour","6 Fremont Lane, Albuquerque, New Mexico, 87201",505-490-8977,167
+455,"2025-02-24 14:49:42",4,228,427610,completed,NULL,Delivery,"Emmalee Castello","013 Eagan Crossing, Tulsa, Oklahoma, 74170",918-143-7175,75
+456,"2025-09-03 10:47:47",8,2560,428013,pending,NULL,Delivery,"Fitz Antonelli","822 Pankratz Trail, Washington, District of Columbia, 20062",202-521-9431,338
+457,"2025-07-17 18:40:16",5,1595,430451,canceled,NULL,Delivery,"Myriam Barck","4391 Little Fleur Crossing, Hartford, Connecticut, 06160",860-436-7877,531
+458,"2025-11-16 14:31:26",3,360,431115,completed,NULL,Delivery,"Karoly Bridgewood","2 Charing Cross Hill, Birmingham, Alabama, 35236",205-605-0774,695
+459,"2025-05-10 04:47:40",3,384,431339,pending,NULL,Delivery,"Lilllie Rohan","4 Truax Crossing, Columbus, Mississippi, 39705",662-985-4783,383
+460,"2025-02-21 03:23:12",4,75,431552,canceled,NULL,Delivery,"Wiley Theobold","2868 Hauk Park, Austin, Texas, 78764",512-304-1213,303
+461,"2025-05-12 12:04:08",5,250,432675,completed,NULL,Delivery,"Odele Ralton","8 Graceland Trail, Fort Worth, Texas, 76105",682-499-7626,120
+462,"2025-11-17 12:36:00",2,140,432684,pending,NULL,Delivery,"Ernestus Kirgan","1721 Hovde Trail, Houston, Texas, 77266",832-698-1427,150
+463,"2025-09-08 05:18:46",3,270,433648,canceled,NULL,Delivery,"Merrilee Sibbson","62 Lukken Circle, Topeka, Kansas, 66617",785-238-7881,740
+464,"2025-03-19 07:10:15",4,525,435582,completed,NULL,Delivery,"Rod Horsted","5 Sloan Hill, Baltimore, Maryland, 21216",410-401-0580,80
+465,"2025-12-25 15:41:37",2,380.96,437616,pending,NULL,Delivery,"Rosella Boddy","75 Barnett Alley, Garden Grove, California, 92645",714-643-6328,353
+466,"2025-12-15 09:05:04",6,825,439417,canceled,NULL,Delivery,"Marlee Snary","8335 Dunning Pass, Fresno, California, 93773",559-424-6515,520
+467,"2025-08-24 14:52:10",8,1810,439487,completed,NULL,Delivery,"Nata Turone","8 Alpine Drive, Spring, Texas, 77386",281-360-7771,257
+468,"2025-06-26 11:27:37",1,120,440811,pending,NULL,Delivery,"Zandra Morrilly","1479 Main Junction, Tallahassee, Florida, 32314",850-848-7796,105
+469,"2025-01-07 16:30:47",3,165,440878,canceled,NULL,Delivery,"Tiff Hassin","18 Mayer Circle, El Paso, Texas, 88569",915-990-4051,132
+470,"2025-02-11 00:46:13",8,1222,440950,completed,NULL,Delivery,"Syd Pepper","5500 Rutledge Plaza, Albuquerque, New Mexico, 87140",505-900-5735,645
+471,"2025-07-16 18:17:43",1,80,442180,pending,NULL,Delivery,"Dave Strethill","5410 8th Place, Torrance, California, 90505",310-923-5310,558
+472,"2025-08-12 03:09:36",2,160,443028,canceled,NULL,Delivery,"Sayer Stanner","9 Dottie Avenue, Montgomery, Alabama, 36195",334-778-2406,683
+473,"2025-06-15 14:24:39",3,297,447526,completed,NULL,Delivery,"Blaire Kroch","71641 Jackson Hill, El Paso, Texas, 88530",915-907-5328,541
+474,"2025-08-16 13:47:55",2,14,448046,pending,NULL,Delivery,"Kermy Ivanishin","15569 Southridge Way, Louisville, Kentucky, 40266",502-531-4228,113
+475,"2025-08-13 16:06:59",5,690,451742,canceled,NULL,Delivery,"Dre Duester","23 Mccormick Pass, Seattle, Washington, 98148",206-317-0844,623
+476,"2025-08-25 11:42:17",4,925,451743,completed,NULL,Delivery,"Donnell Hartles","303 Oxford Lane, Boston, Massachusetts, 02203",617-475-9339,625
+477,"2025-10-11 01:55:59",3,240,456922,pending,NULL,Delivery,"Hew Goulter","341 Merrick Way, Houston, Texas, 77040",979-581-5887,471
+478,"2025-04-13 00:59:45",3,677,459775,canceled,NULL,Delivery,"Demetrius McCumskay","54679 Dorton Hill, Raleigh, North Carolina, 27626",919-876-5846,155
+479,"2025-03-28 07:35:17",6,1054,459776,completed,NULL,Delivery,"Duff Caddy","8118 Bluestem Drive, Milwaukee, Wisconsin, 53220",414-161-6717,153
+480,"2025-09-15 17:33:56",2,400,460692,pending,NULL,Delivery,"Godfry Gasticke","4 Sauthoff Way, Clearwater, Florida, 34615",727-822-4785,85
+481,"2025-02-11 03:54:15",5,246,461084,canceled,NULL,Delivery,"Anne-marie Stiling","75213 Kinsman Circle, Jeffersonville, Indiana, 47134",812-168-4054,722
+482,"2025-05-18 11:02:00",11,1501,461724,completed,NULL,Delivery,"Mace Ecob","8501 Holmberg Trail, Cincinnati, Ohio, 45223",513-994-7590,186
+483,"2025-01-08 14:43:28",7,1350,462070,pending,NULL,Delivery,"Willyt Matyushenko","87550 Center Plaza, Tulsa, Oklahoma, 74108",918-821-6801,194
+484,"2025-09-21 15:20:24",1,420,462172,canceled,NULL,Delivery,"Davis Attlee","21120 Derek Drive, Shawnee Mission, Kansas, 66215",913-691-2284,562
+485,"2025-05-19 06:58:04",3,319,462505,completed,NULL,Delivery,"Husein McDowall","1947 Straubel Circle, Fort Worth, Texas, 76198",682-762-8628,653
+486,"2025-01-10 09:44:23",8,1775,473193,pending,NULL,Delivery,"Malanie Cobbald","6 Starling Hill, Santa Barbara, California, 93111",805-159-2256,242
+487,"2025-01-19 15:19:33",10,2660,475283,canceled,NULL,Delivery,"Karil Tolmie","1344 Ilene Circle, Petaluma, California, 94975",707-889-4241,99
+488,"2025-09-27 06:50:19",10,2430,476303,completed,NULL,Delivery,"Emily Pauler","2395 Onsgard Parkway, Baltimore, Maryland, 21229",410-156-6828,620
+489,"2025-12-11 09:55:54",3,559.33,477627,pending,NULL,Delivery,"Aldric Aime","65211 Nova Plaza, Eugene, Oregon, 97405",541-996-7214,345
+490,"2025-07-29 11:27:21",4,203.4,477628,canceled,NULL,Delivery,"Dorry O'Moylan","778 Sunnyside Junction, South Bend, Indiana, 46620",574-281-5010,390
+491,"2025-07-05 03:24:25",10,1335,478348,completed,NULL,Delivery,"Jakie Sturges","6723 Hauk Pass, Dallas, Texas, 75342",469-589-2076,270
+492,"2025-01-21 03:00:34",6,829,478936,pending,NULL,Delivery,"Norrie Coode","9681 Mifflin Crossing, Birmingham, Alabama, 35220",205-665-6164,343
+493,"2025-01-02 17:50:27",6,1170,480203,canceled,NULL,Delivery,"Leora Palmby","13 Florence Park, Colorado Springs, Colorado, 80940",719-331-0885,325
+494,"2025-06-06 16:11:52",5,1598,483552,completed,NULL,Delivery,"Sisely Shinfield","78380 Burrows Plaza, Richmond, Virginia, 23237",804-378-3639,414
+495,"2025-11-22 06:40:00",6,754,484449,pending,NULL,Delivery,"Lissy Shambrooke","2 Melody Point, Sacramento, California, 95865",916-658-0403,842
+496,"2025-03-20 05:38:40",8,1482,486482,canceled,NULL,Delivery,"Delainey Gasperi","6 Fallview Terrace, Beaufort, South Carolina, 29905",843-964-4061,440
+497,"2025-10-28 10:22:47",3,600,487422,completed,NULL,Delivery,"Alex Tunesi","70581 Melby Alley, El Paso, Texas, 88558",915-870-8477,482
+498,"2025-09-29 22:42:17",9,2481,489011,pending,NULL,Delivery,"Peterus Ostridge","9 Onsgard Alley, Los Angeles, California, 90087",213-487-0500,337
+499,"2025-11-08 11:36:37",3,150,489362,canceled,NULL,Delivery,"Zacharia Sneyd","74884 Cambridge Center, El Paso, Texas, 79955",915-960-7111,423
+500,"2025-10-06 17:18:04",6,810,489422,completed,NULL,Delivery,"Micaela Pund","73 Monterey Drive, Monroe, Louisiana, 71208",318-113-2835,667
+501,"2025-11-20 07:35:43",6,640,494001,pending,NULL,Delivery,"Jose Lauridsen","387 Spohn Pass, Charleston, West Virginia, 25305",304-232-6159,422
+502,"2025-02-25 18:57:03",6,860,494588,canceled,NULL,Delivery,"Hugibert Vasiliu","44 Westend Junction, Decatur, Georgia, 30089",678-773-4669,377
+503,"2025-08-15 22:37:57",8,1249,497063,completed,NULL,Delivery,"Dareen Totterdill","2 Chinook Point, Kingsport, Tennessee, 37665",423-624-4369,593
+504,"2025-03-29 18:45:13",1,105,497638,pending,NULL,Delivery,"Lucie Crab","78417 Sommers Drive, Tucson, Arizona, 85754",520-785-4904,603
+505,"2025-03-31 03:59:51",5,770,499377,canceled,NULL,Delivery,"Crawford Pibworth","99 Hauk Road, Redwood City, California, 94064",650-747-3675,729
+506,"2025-03-12 13:32:48",1,70,500628,completed,NULL,Delivery,"Gabi Tibb","9 Fieldstone Parkway, Metairie, Louisiana, 70005",504-805-6495,209
+507,"2025-02-23 08:28:29",3,210,501701,pending,NULL,Delivery,"Rasla Care","41 Daystar Center, Monticello, Minnesota, 55585",763-412-7618,469
+508,"2025-06-15 08:46:58",7,520,503432,canceled,NULL,Delivery,"Dun Osgarby","05309 Almo Drive, Augusta, Georgia, 30911",706-467-0388,764
+509,"2025-11-16 19:31:45",2,100,503717,completed,NULL,Delivery,"Andee Hatchard","2618 Lukken Drive, Huntington, West Virginia, 25705",304-887-4464,244
+510,"2025-02-19 17:27:30",7,160,508318,pending,NULL,Delivery,"Bevan Minto","98 Meadow Vale Junction, Riverside, California, 92519",951-872-6035,176
+511,"2025-01-09 03:45:12",6,299,508583,canceled,NULL,Delivery,"Keriann Pinock","797 Fulton Pass, Durham, North Carolina, 27705",434-753-0426,696
+512,"2025-04-16 18:02:59",10,975,508701,completed,NULL,Delivery,"Charlot Puttergill","90 Artisan Pass, San Francisco, California, 94121",858-895-2318,637
+513,"2025-06-11 23:06:41",7,1349,510109,pending,NULL,Delivery,"Theobald Kewley","15 Schlimgen Circle, Huntsville, Alabama, 35815",256-329-6982,425
+514,"2025-03-20 02:32:51",6,480,514288,canceled,NULL,Delivery,"Blisse Beers","795 Twin Pines Park, Hayward, California, 94544",925-563-4529,768
+515,"2025-02-22 18:26:27",2,380,516171,completed,NULL,Delivery,"Courtenay Vaen","41379 Schlimgen Park, Columbus, Ohio, 43226",614-627-1282,234
+516,"2025-08-26 02:17:04",7,300,517814,pending,NULL,Delivery,"Darline Reavey","2765 Hagan Terrace, San Bernardino, California, 92415",760-605-4632,227
+517,"2025-08-04 22:18:49",8,1700,517939,canceled,NULL,Delivery,"Lucille Dudley","2063 Loftsgordon Center, Memphis, Tennessee, 38131",901-341-3689,417
+518,"2025-03-04 22:08:03",6,1418,518548,completed,NULL,Delivery,"Desdemona Trazzi","7642 Grayhawk Road, Richmond, Virginia, 23260",804-542-6493,535
+519,"2025-03-23 22:34:08",8,1470,518803,pending,NULL,Delivery,"Aline Robelow","475 Chive Trail, Beaumont, Texas, 77705",409-964-2421,551
+520,"2025-06-21 06:49:29",8,860,518819,canceled,NULL,Delivery,"Brunhilda Le Ball","76978 International Avenue, Las Vegas, Nevada, 89160",702-395-4291,538
+521,"2025-07-19 00:59:07",6,1780,519622,completed,NULL,Delivery,"Leonid Bridgeman","822 Milwaukee Place, Honolulu, Hawaii, 96845",808-221-3929,679
+522,"2025-03-11 07:45:51",5,1268,523044,pending,NULL,Delivery,"Malvin Sahnow","03399 Reindahl Alley, Indianapolis, Indiana, 46216",317-444-1873,507
+523,"2024-12-31 00:19:27",5,370,528374,canceled,NULL,Delivery,"Abeu Dysert","82 Warbler Trail, Chicago, Illinois, 60669",312-874-8436,815
+524,"2025-08-21 23:51:35",6,550,529171,completed,NULL,Delivery,"Vitoria Rising","8417 Hallows Street, Boca Raton, Florida, 33499",561-874-1065,223
+525,"2025-11-22 12:29:06",8,1340,530878,pending,NULL,Delivery,"Thadeus Sallis","450 Schlimgen Drive, Decatur, Georgia, 30033",770-444-7669,92
+526,"2025-02-21 13:16:03",1,69,530909,canceled,NULL,Delivery,"Karl Massow","1 Red Cloud Center, New York City, New York, 10079",212-538-5813,63
+527,"2025-01-26 13:27:41",7,1000,530955,completed,NULL,Delivery,"Butch Killingsworth","8730 Anniversary Drive, Atlanta, Georgia, 30336",404-683-0796,845
+528,"2025-04-22 16:39:14",3,396,531342,pending,NULL,Delivery,"Corabel Merrgan","50 Glendale Avenue, Lubbock, Texas, 79452",806-957-2452,4
+529,"2025-10-05 08:31:38",2,340,531363,canceled,NULL,Delivery,"Sande Pietruschka","41314 Oriole Drive, Norfolk, Virginia, 23509",757-486-5622,170
+530,"2025-05-19 12:48:02",6,1190,532670,completed,NULL,Delivery,"Mildrid Ridding","1272 Eagan Pass, Ogden, Utah, 84409",801-386-4340,567
+531,"2025-07-08 10:57:49",4,625,533186,pending,NULL,Delivery,"Phylys Parkman","22 Eagle Crest Alley, Louisville, Kentucky, 40215",502-445-4795,267
+532,"2025-12-17 20:50:36",7,510,533855,canceled,NULL,Delivery,"Andonis Mateja","694 Elmside Place, Washington, District of Columbia, 20268",202-722-3357,716
+533,"2025-11-25 21:19:01",4,640,536328,completed,NULL,Delivery,"Skylar Cherrett","77333 Pankratz Alley, Wilmington, Delaware, 19886",302-628-3701,573
+534,"2025-07-03 02:32:51",8,825,536499,pending,NULL,Delivery,"Berthe Phinnessy","40925 Columbus Avenue, Houston, Texas, 77020",281-581-9746,566
+535,"2025-10-24 12:48:10",2,540,537808,canceled,NULL,Delivery,"Galina Conrad","2687 Farragut Crossing, Jacksonville, Florida, 32259",904-692-7694,737
+536,"2025-07-30 22:55:03",9,2400,539663,completed,NULL,Delivery,"Marilin Elflain","399 Manley Alley, New York City, New York, 10270",718-215-9608,786
+537,"2025-08-21 09:27:10",1,80,543530,pending,NULL,Delivery,"Sibyl Hickford","0184 School Lane, Jersey City, New Jersey, 07305",201-567-2737,11
+538,"2025-02-02 10:56:10",3,150,545273,canceled,NULL,Delivery,"Lilias Perrington","90474 Colorado Plaza, Topeka, Kansas, 66617",785-511-2151,104
+539,"2025-07-04 15:09:28",8,967,545808,completed,NULL,Delivery,"Eunice Truin","907 Basil Junction, Hyattsville, Maryland, 20784",301-640-0164,515
+540,"2025-06-04 01:22:38",6,1764,546127,pending,NULL,Delivery,"Kurt Hanigan","4888 Vera Terrace, Fort Worth, Texas, 76121",817-555-8039,830
+541,"2025-01-18 05:10:38",6,1634,546139,canceled,NULL,Delivery,"Karissa Brodway","63 East Trail, Indianapolis, Indiana, 46231",317-641-4076,759
+542,"2025-03-08 19:15:20",9,1025,549242,completed,NULL,Delivery,"Franciska Hacaud","6661 Michigan Point, Hamilton, Ohio, 45020",937-102-9171,254
+543,"2025-05-26 03:29:31",5,500,549383,pending,NULL,Delivery,"Fitz Pirt","23964 Kensington Street, Denver, Colorado, 80243",303-771-7595,639
+544,"2025-02-26 17:31:37",8,982,549624,canceled,NULL,Delivery,"Alphonso Ead","5 Melby Point, Colorado Springs, Colorado, 80910",719-929-1768,497
+545,"2025-03-30 18:11:48",9,1160,549633,completed,NULL,Delivery,"Dewie Jellman","43093 Holmberg Plaza, Lexington, Kentucky, 40505",859-656-6621,597
+546,"2025-07-09 01:47:19",1,133,550910,pending,NULL,Delivery,"Isa Celez","94 Bartelt Terrace, Birmingham, Alabama, 35215",205-374-9631,354
+547,"2025-05-05 12:54:44",8,785,551512,canceled,NULL,Delivery,"Kerry Sugden","55656 Lerdahl Road, New Orleans, Louisiana, 70116",504-798-3662,117
+548,"2025-09-05 07:55:51",2,220,552372,completed,NULL,Delivery,"Bartolemo O'Mailey","98 Duke Avenue, Toledo, Ohio, 43699",419-604-1353,770
+549,"2025-08-03 03:48:11",10,1510,553404,pending,NULL,Delivery,"Aldwin Gelderd","1 Raven Center, Durham, North Carolina, 27705",919-251-3201,587
+550,"2025-04-20 05:53:00",8,1590,553999,canceled,NULL,Delivery,"Dotti Spottswood","0 Oak Terrace, New Orleans, Louisiana, 70154",504-329-3242,273
+551,"2025-07-14 05:04:00",9,900,554195,completed,NULL,Delivery,"Sherm Raccio","2687 Kennedy Alley, Knoxville, Tennessee, 37931",865-872-9275,849
+552,"2025-03-08 16:34:46",6,1155,557008,pending,NULL,Delivery,"Becky Trumper","6 Green Ridge Drive, Columbus, Ohio, 43226",614-951-5656,360
+553,"2025-10-03 03:37:13",8,1565,558957,canceled,NULL,Delivery,"Meagan Jeannon","6 Vera Park, Charlotte, North Carolina, 28263",704-554-1533,334
+554,"2025-05-01 00:46:38",9,1470,565260,completed,NULL,Delivery,"Peadar Garnul","04 Chive Lane, Huntington, West Virginia, 25711",304-872-4722,318
+555,"2025-01-03 13:53:52",8,790,567335,pending,NULL,Delivery,"Kele Flobert","13 Lake View Court, Louisville, Kentucky, 40220",502-914-5412,1
+556,"2025-05-29 22:18:53",1,70,567664,canceled,NULL,Delivery,"Carolyn Klement","9 Stoughton Alley, Rochester, New York, 14604",585-231-2505,129
+557,"2025-11-06 12:06:55",7,1950,573649,completed,NULL,Delivery,"Dame Jain","03781 Bobwhite Drive, Trenton, New Jersey, 08650",609-648-0882,66
+558,"2025-07-25 14:43:05",3,900,573656,pending,NULL,Delivery,"Mar Humphrys","176 Katie Avenue, Bakersfield, California, 93399",661-781-6643,69
+559,"2025-01-11 20:32:44",4,240,575990,canceled,NULL,Delivery,"Sharl McCurlye","0 Springview Park, Las Vegas, Nevada, 89125",702-117-9904,284
+560,"2025-05-13 06:58:12",4,320,577891,completed,NULL,Delivery,"Candie Althorpe","35 Melby Terrace, San Jose, California, 95138",408-436-7874,561
+561,"2025-03-06 09:26:51",1,100,578207,pending,NULL,Delivery,"Brittani Meegin","0182 Killdeer Hill, Fort Lauderdale, Florida, 33320",754-664-0774,317
+562,"2025-02-22 01:08:29",3,105,579040,canceled,NULL,Delivery,"Corny Pottberry","9596 Rockefeller Terrace, Anaheim, California, 92825",714-579-3193,780
+563,"2025-12-04 21:23:27",5,290,579047,completed,NULL,Delivery,"Caresa Locard","8 New Castle Terrace, Modesto, California, 95397",209-784-4784,744
+564,"2025-11-08 18:27:09",6,580,580202,pending,NULL,Delivery,"Jeth Manifold","4385 Bluestem Pass, Oklahoma City, Oklahoma, 73109",405-207-8709,605
+565,"2025-02-26 04:48:50",3,575.14,97199,canceled,NULL,Delivery,"Kirbie Scarr","8 Pepper Wood Park, Plano, Texas, 75074",214-843-0794,363
+566,"2025-11-06 09:15:05",7,3053,101351,completed,NULL,Delivery,"Shaylyn Cottell","02829 Maywood Lane, Gatesville, Texas, 76598",254-158-1445,323
+567,"2025-10-04 03:47:30",6,845,102037,pending,NULL,Delivery,"Lorin Axston","034 Grim Way, Mesa, Arizona, 85210",480-987-9443,309
+568,"2025-07-25 05:07:43",7,2605,102038,canceled,NULL,Delivery,"Charles Pawlett","384 Rigney Way, North Las Vegas, Nevada, 89036",702-211-6790,510
+569,"2025-09-13 19:41:54",8,1660,102039,completed,NULL,Delivery,"Nicolea Koppens","04 Kinsman Point, Memphis, Tennessee, 38181",901-566-5794,797
+570,"2025-07-17 04:29:20",5,948,102040,pending,NULL,Delivery,"Huberto Carress","0 Butterfield Court, Topeka, Kansas, 66667",785-920-4833,837
+571,"2025-05-23 13:42:20",4,1380,102041,canceled,NULL,Delivery,"Renato O'Fallon","71659 Harbort Circle, Phoenix, Arizona, 85072",602-391-3613,590
+572,"2025-10-21 00:19:56",1,230,102042,completed,NULL,Delivery,"Sterne Abrehart","6958 Graedel Parkway, New York City, New York, 10260",212-685-7749,379
+573,"2025-04-30 18:18:54",6,1460,102219,pending,NULL,Delivery,"Marlo Lardnar","3954 Lotheville Plaza, Duluth, Georgia, 30096",678-316-4038,449
+574,"2025-01-21 22:15:00",1,395,102571,canceled,NULL,Delivery,"Shadow Hallatt","7493 Carioca Drive, El Paso, Texas, 79977",915-812-7263,616
+575,"2025-04-15 01:59:25",7,1970,102577,completed,NULL,Delivery,"Coraline Morford","800 Dapin Plaza, Charlotte, North Carolina, 28247",704-288-8585,807
+576,"2025-10-31 06:34:19",2,589,102578,pending,NULL,Delivery,"Jerrine Leate","93469 Oak Valley Circle, Pensacola, Florida, 32575",850-963-5908,763
+577,"2025-03-06 21:48:52",2,260,102579,canceled,NULL,Delivery,"Leah Timpany","5781 Rusk Terrace, Minneapolis, Minnesota, 55470",612-918-6866,545
+578,"2025-07-21 17:42:42",3,855,102581,completed,NULL,Delivery,"Leisha Danzig","84 Kenwood Drive, Phoenix, Arizona, 85025",623-833-1303,632
+579,"2025-03-03 18:27:39",3,210,102582,pending,NULL,Delivery,"Bryce Goburn","08250 Messerschmidt Alley, Washington, District of Columbia, 20220",202-711-6145,473
+580,"2025-02-28 09:56:06",7,2163,102631,canceled,NULL,Delivery,"Paulie Janak","15669 Southridge Road, New York City, New York, 10165",646-601-9299,794
+581,"2025-12-16 17:26:07",4,712,102842,completed,NULL,Delivery,"Roda Caesar","00 Mcbride Lane, New York City, New York, 10155",646-744-4064,327
+582,"2025-06-12 11:39:40",1,270,103649,pending,NULL,Delivery,"Barnaby Lettuce","7 Michigan Lane, Cincinnati, Ohio, 45271",513-412-1205,525
+583,"2025-08-06 04:05:17",4,1110,104147,canceled,NULL,Delivery,"Grange Schlagtmans","97002 Mockingbird Terrace, Albuquerque, New Mexico, 87121",505-466-2034,586
+584,"2025-11-30 00:16:09",9,3129,104481,completed,NULL,Delivery,"Marcellus Kuschek","980 Autumn Leaf Trail, White Plains, New York, 10606",845-270-1502,565
+585,"2025-09-01 11:02:21",4,560,109258,pending,NULL,Delivery,"Nicolis Graves","33776 Blaine Point, Houston, Texas, 77218",713-117-0418,411
+586,"2025-08-07 09:14:09",3,195,109387,canceled,NULL,Delivery,"Konstantine Roylance","9 Dayton Trail, Sacramento, California, 95813",916-976-0033,800
+587,"2025-04-11 09:38:35",10,2115,109548,completed,NULL,Delivery,"Myles Barnewille","048 Pond Crossing, Rochester, New York, 14652",585-707-1659,577
+588,"2025-02-02 12:10:10",4,740,109549,pending,NULL,Delivery,"Idell Brychan","147 Steensland Parkway, Eugene, Oregon, 97405",541-799-7519,480
+589,"2025-08-03 02:57:14",5,580,109550,canceled,NULL,Delivery,"Linet Counter","14 Mayer Pass, Albany, New York, 12227",518-644-2278,385
+590,"2025-05-21 20:05:13",8,580,109839,completed,NULL,Delivery,"Lisa Colnett","5670 Gulseth Way, Oklahoma City, Oklahoma, 73197",405-566-5638,445
+591,"2025-09-15 06:26:57",11,2329,111386,pending,NULL,Delivery,"Kandace Wildman","75619 Meadow Ridge Lane, Memphis, Tennessee, 38188",901-600-7489,733
+592,"2024-12-31 21:26:28",3,690,113036,canceled,NULL,Delivery,"Margalit McPaik","79 Everett Circle, Lincoln, Nebraska, 68505",402-818-4262,572
+593,"2025-10-20 05:58:27",7,1981.9,113948,completed,NULL,Delivery,"Vernice McCafferky","471 West Lane, Portland, Oregon, 97201",503-996-1520,298
+594,"2025-08-21 21:16:26",1,90,115931,pending,NULL,Delivery,"Pearle Fruish","56 Shoshone Avenue, Naples, Florida, 33963",239-361-0190,741
+595,"2025-12-21 15:18:27",3,510,116272,canceled,NULL,Delivery,"Millard Lesurf","4 Lillian Trail, Pittsburgh, Pennsylvania, 15240",412-402-2512,629
+596,"2025-01-09 08:11:22",5,1690,116273,completed,NULL,Delivery,"Lanie Cockle","2 Dapin Court, Temple, Texas, 76505",254-962-3516,339
+597,"2025-12-05 05:16:43",1,145,120193,pending,NULL,Delivery,"Tobiah Dunlea","0 Crownhardt Way, Orlando, Florida, 32835",407-324-8762,788
+598,"2025-07-21 22:31:23",6,555,124500,canceled,NULL,Delivery,"Charin Leftly","78 American Street, Louisville, Kentucky, 40287",502-673-7248,707
+599,"2025-07-24 04:01:02",7,1000,125180,completed,NULL,Delivery,"Chance McWard","6 Petterle Road, Fort Wayne, Indiana, 46857",260-586-7055,717
+600,"2025-11-20 17:48:55",6,1140,126128,pending,NULL,Delivery,"Aksel Cawthron","63379 Brown Crossing, Delray Beach, Florida, 33448",561-263-4133,548
+601,"2025-06-08 11:58:53",3,180,127306,canceled,NULL,Delivery,"Willyt Wayt","1 Lindbergh Alley, Spokane, Washington, 99205",509-716-4777,732
+602,"2025-11-16 17:36:20",4,1000,127463,completed,NULL,Delivery,"Rollie Porter","884 Nancy Terrace, Austin, Texas, 78749",512-842-4573,798
+603,"2025-11-26 09:39:16",9,1937,129550,pending,NULL,Delivery,"Ellene Flaonier","20 Shopko Terrace, Roanoke, Virginia, 24020",540-117-8872,392
+604,"2025-07-07 13:31:10",2,750,129551,canceled,NULL,Delivery,"Mathilda Rowthorn","31 Raven Way, Topeka, Kansas, 66629",785-822-2885,560
+605,"2025-07-02 15:35:42",3,380,129691,completed,NULL,Delivery,"Carley Evangelinos","4 Rieder Court, Las Vegas, Nevada, 89120",702-675-0474,432
+606,"2025-03-31 22:52:51",2,280,131676,pending,NULL,Delivery,"Susanetta Antcliffe","9 Debs Circle, Baton Rouge, Louisiana, 70826",225-554-2700,406
+607,"2025-10-20 13:46:54",6,763,132538,canceled,NULL,Delivery,"Parnell Gormally","415 Montana Lane, Denver, Colorado, 80262",303-979-7122,699
+608,"2025-10-09 15:47:36",6,630,133352,completed,NULL,Delivery,"Idell Kerfoot","6884 Thackeray Trail, Atlanta, Georgia, 30392",404-973-9069,294
+609,"2025-07-05 10:26:08",9,1740,134569,pending,NULL,Delivery,"Meghann Trulocke","941 Upham Lane, Winston Salem, North Carolina, 27150",336-420-4283,368
+610,"2025-04-01 12:07:34",4,975,137701,canceled,NULL,Delivery,"Delbert Kiddie","5 Everett Junction, Dayton, Ohio, 45408",937-710-1969,280
+611,"2025-03-03 04:12:31",11,2075,138890,completed,NULL,Delivery,"Lia Esmonde","39 Hintze Plaza, Van Nuys, California, 91499",213-753-8033,272
+612,"2025-02-04 10:16:03",3,210,138891,pending,NULL,Delivery,"Miner Aikman","33055 Union Trail, Austin, Texas, 78764",512-740-0417,329
+613,"2025-10-09 10:30:11",7,1910,139864,canceled,NULL,Delivery,"Janot Coulston","82242 Marcy Pass, Fredericksburg, Virginia, 22405",540-312-4278,435
+614,"2025-06-01 12:06:12",8,2120,141706,completed,NULL,Delivery,"Shirlene Tarney","31664 Parkside Point, New Orleans, Louisiana, 70187",504-610-1477,465
+615,"2025-05-06 21:46:44",2,400,143143,pending,NULL,Delivery,"Engelbert Maes","38 Debs Pass, Tyler, Texas, 75710",903-805-9144,333
+616,"2025-08-11 18:16:27",8,1175,143194,canceled,NULL,Delivery,"Alonzo Vicker","770 Village Green Court, Beaumont, Texas, 77713",409-841-7596,599
+617,"2025-02-09 07:51:15",4,1826,150497,completed,NULL,Delivery,"Alicia Cuschieri","83 International Hill, Oakland, California, 94660",510-321-8162,296
+618,"2025-09-24 18:31:44",7,2273,153339,pending,NULL,Delivery,"Freddie Fishpool","116 Corscot Way, San Diego, California, 92132",858-647-0710,680
+619,"2025-05-11 17:35:28",3,695,154840,canceled,NULL,Delivery,"Bunny Brogini","2457 Randy Terrace, Port Saint Lucie, Florida, 34985",772-407-7300,420
+620,"2025-06-08 21:14:54",1,35,156542,completed,NULL,Delivery,"Carson Sanja","159 Dovetail Hill, Phoenix, Arizona, 85067",602-113-4955,189
+621,"2025-03-20 22:04:21",6,588,156587,pending,NULL,Delivery,"Shea Stoodale","3836 Scoville Place, Arlington, Virginia, 22225",571-275-5639,50
+622,"2025-11-27 12:19:39",2,238,156588,canceled,NULL,Delivery,"Dick Franzel","495 Hauk Center, Saginaw, Michigan, 48609",989-328-6199,19
+623,"2025-06-10 06:23:01",1,70,156590,completed,NULL,Delivery,"Babb Drewitt","97 Montana Parkway, El Paso, Texas, 88525",915-558-8722,42
+624,"2025-12-04 21:53:28",5,200,156592,pending,NULL,Delivery,"Corinne Danielian","55 Eastlawn Trail, Migrate, Kentucky, 41905",502-217-0920,171
+625,"2025-08-15 15:04:58",1,50,156601,canceled,NULL,Delivery,"Suzanna Speares","3061 Thompson Crossing, Detroit, Michigan, 48267",313-247-7860,46
+626,"2025-12-23 05:52:02",10,560,156602,completed,NULL,Delivery,"Michale Duggen","0030 Anthes Hill, Atlanta, Georgia, 30368",404-889-7219,27
+627,"2025-11-05 01:09:07",3,850,158192,pending,NULL,Delivery,"Rhianna Wiskar","19 Myrtle Hill, Fort Worth, Texas, 76178",682-531-0487,51
+628,"2025-04-27 01:16:41",4,420,158193,canceled,NULL,Delivery,"Hamel Dixie","1476 Shasta Circle, Raleigh, North Carolina, 27610",919-350-6083,33
+629,"2025-09-16 22:08:31",6,799,158195,completed,NULL,Delivery,"Gaelan Betty","66928 Ridgeview Avenue, Herndon, Virginia, 22070",757-236-4830,56
+630,"2025-06-29 04:28:28",6,681,158203,pending,NULL,Delivery,"Vinny Adshede","79409 Sycamore Park, Lexington, Kentucky, 40596",859-350-6089,6
+631,"2025-08-08 03:06:31",3,787,158204,canceled,NULL,Delivery,"Jori Peregrine","684 Hintze Lane, Orlando, Florida, 32868",407-705-2247,16
+632,"2025-03-11 08:52:07",8,281,161396,completed,NULL,Delivery,"Georgianne Raun","5 Hagan Point, Katy, Texas, 77493",281-899-6350,134
+633,"2025-11-27 18:57:24",1,6,161405,pending,NULL,Delivery,"Melonie Champerlen","463 Briar Crest Way, Pueblo, Colorado, 81005",719-478-5382,191
+634,"2025-06-08 19:25:14",2,138,161408,canceled,NULL,Delivery,"Meridith Kingscott","104 Service Road, Newport News, Virginia, 23612",757-852-4228,146
+635,"2025-10-13 23:17:52",5,635,163435,completed,NULL,Delivery,"Babbie Alvey","6 Amoth Center, Lexington, Kentucky, 40524",859-364-2000,750
+636,"2025-03-05 22:00:44",1,125,163436,pending,NULL,Delivery,"Upton Robertacci","4901 Judy Way, Sacramento, California, 95813",916-806-8484,484
+637,"2025-04-30 14:11:55",4,540,164297,canceled,NULL,Delivery,"Sayres Petrasch","6478 Dunning Road, Greenville, South Carolina, 29610",864-244-5712,775
+638,"2025-01-08 18:33:11",2,240,165530,completed,NULL,Delivery,"Arnaldo McGhee","3 Vidon Drive, Phoenix, Arizona, 85077",602-130-4696,249
+639,"2025-05-03 05:18:36",3,980,165532,pending,NULL,Delivery,"Antonin Bodsworth","4 Norway Maple Road, Boston, Massachusetts, 02163",978-602-3302,213
+640,"2025-08-15 21:08:54",8,1415,165533,canceled,NULL,Delivery,"Larissa MacTrustram","7 Shoshone Hill, Omaha, Nebraska, 68197",402-529-1899,200
+641,"2025-05-29 08:24:46",4,980,166613,completed,NULL,Delivery,"Nana Marder","6958 Briar Crest Trail, Minneapolis, Minnesota, 55458",612-560-7104,206
+642,"2025-10-14 22:52:50",8,489,166971,pending,NULL,Delivery,"Dorisa Ephson","40 Arrowood Trail, Boston, Massachusetts, 02203",617-674-0159,233
+643,"2025-05-05 04:02:58",3,840,167412,canceled,NULL,Delivery,"Auberta Lockery","87 Havey Way, Knoxville, Tennessee, 37995",865-551-0186,243
+644,"2025-09-27 00:44:44",2,248,167432,completed,NULL,Delivery,"Geoffrey Fotitt","1 Pond Circle, San Antonio, Texas, 78225",210-472-0648,230
+645,"2025-06-09 04:59:19",5,1180,169281,pending,NULL,Delivery,"Rodi Plitz","762 Namekagon Point, Pittsburgh, Pennsylvania, 15240",412-343-0368,215
+646,"2025-09-21 16:21:03",7,1225,171675,canceled,NULL,Delivery,"Binny Hatterslay","65308 Mockingbird Way, Dallas, Texas, 75379",214-686-0138,97
+647,"2025-11-18 06:14:07",6,1880,174458,completed,NULL,Delivery,"Maxine Sayward","73 Hoard Point, Midland, Michigan, 48670",989-794-5666,430
+648,"2025-12-03 10:36:32",4,1596,174464,pending,NULL,Delivery,"Estella Thompson","34207 Anderson Junction, Hartford, Connecticut, 06183",860-320-6247,747
+649,"2025-08-16 11:42:42",2,590,174586,canceled,NULL,Delivery,"Eolanda Arpino","2974 Bay Lane, Beaverton, Oregon, 97075",503-698-0545,371
+650,"2025-06-09 15:38:21",8,785,183009,completed,NULL,Delivery,"Darline Briddock","09664 Red Cloud Center, Boston, Massachusetts, 02208",617-257-4113,370
+651,"2025-12-16 11:38:18",7,1320,183165,pending,NULL,Delivery,"Chryste Ovanesian","32 Division Alley, Los Angeles, California, 90087",213-773-6611,398
+652,"2025-01-19 09:35:13",6,897,186264,canceled,NULL,Delivery,"Susy Straker","1 Crescent Oaks Way, El Paso, Texas, 79916",915-643-7888,661
+653,"2025-03-27 22:59:38",6,420,186286,completed,NULL,Delivery,"Alexandra Simmonett","09 Fairfield Plaza, Springfield, Virginia, 22156",571-979-3142,205
+654,"2025-03-25 08:05:56",3,840,186289,pending,NULL,Delivery,"Kirsti Larcombe","8 Golf Junction, Vancouver, Washington, 98664",360-859-7287,212
+655,"2025-07-02 19:34:01",8,1900,187912,canceled,NULL,Delivery,"Reggis Harries","9671 Redwing Parkway, Bloomington, Illinois, 61709",309-589-7357,8
+656,"2025-03-18 23:13:25",5,235,187915,completed,NULL,Delivery,"Innis Galway","85 Brickson Park Circle, Tampa, Florida, 33661",813-829-8524,182
+657,"2025-06-10 19:04:30",7,609,187921,pending,NULL,Delivery,"Amelie Lawland","5 Bonner Way, Duluth, Georgia, 30195",404-638-3460,114
+658,"2025-11-18 06:38:56",2,232.38,189441,canceled,NULL,Delivery,"Norby Seppey","0 School Plaza, Beaumont, Texas, 77705",936-216-9601,795
+659,"2025-10-09 06:12:53",2,498,195788,completed,NULL,Delivery,"Cecil Ashley","61 Caliangt Parkway, Washington, District of Columbia, 20337",202-221-9706,834
+660,"2025-09-01 04:20:46",2,400,211142,pending,NULL,Delivery,"Cristine Wheatland","1888 Londonderry Court, Salt Lake City, Utah, 84140",801-301-9174,665
+661,"2025-05-24 14:50:51",6,376,224008,canceled,NULL,Delivery,"Sholom Cathee","24303 Hauk Avenue, Richmond, Virginia, 23208",804-847-7136,198
+662,"2025-02-04 13:41:48",4,336,225827,completed,NULL,Delivery,"Briana Isaaksohn","81 Fordem Trail, New York City, New York, 10099",646-274-8017,201
+663,"2025-08-03 09:59:45",1,85,225921,pending,NULL,Delivery,"Rhiamon Cobon","34 Saint Paul Parkway, Birmingham, Alabama, 35215",205-590-6804,253
+664,"2025-09-22 21:56:18",8,2280,226299,canceled,NULL,Delivery,"Lucina Ogger","688 Waxwing Center, Detroit, Michigan, 48211",810-304-4743,235
+665,"2025-01-26 20:45:30",2,120,226773,completed,NULL,Delivery,"Jessa Aiskrigg","13735 Stoughton Hill, Santa Barbara, California, 93111",702-727-3854,689
+666,"2025-03-17 10:40:20",7,676,242722,pending,NULL,Delivery,"Barri Coning","0 Upham Junction, Indianapolis, Indiana, 46239",317-532-3068,812
+667,"2025-07-16 19:11:06",4,710,242943,canceled,NULL,Delivery,"Christina Rey","47553 Veith Hill, Miami, Florida, 33245",786-129-3935,204
+668,"2025-10-26 23:48:50",7,550,244866,completed,NULL,Delivery,"Rhodia Carlet","58 Duke Plaza, Seattle, Washington, 98166",253-950-8644,25
+669,"2025-09-03 04:30:57",3,420,249335,pending,NULL,Delivery,"Magdalene Eouzan","4 Moland Park, Dearborn, Michigan, 48126",313-318-3841,427
+670,"2025-10-05 08:08:56",5,1500,255651,canceled,NULL,Delivery,"Bernette Natwick","6 Red Cloud Parkway, Indianapolis, Indiana, 46295",317-207-1550,492
+671,"2025-03-23 12:47:57",4,1020,255925,completed,NULL,Delivery,"Janette Rive","4307 Birchwood Plaza, Brockton, Massachusetts, 02305",508-754-9948,250
+672,"2025-03-20 18:09:37",8,1060,257181,pending,NULL,Delivery,"Flora Benardeau","1442 Amoth Circle, Laurel, Maryland, 20709",301-865-1732,57
+673,"2025-05-27 23:40:54",1,299,263185,canceled,NULL,Delivery,"Vina Robertis","4258 Granby Road, Tucson, Arizona, 85748",520-274-8975,478
+674,"2025-02-16 19:41:21",2,538,263297,completed,NULL,Delivery,"Pearle Cozby","01105 Carioca Lane, Nashville, Tennessee, 37245",615-534-3801,718
+675,"2025-09-27 13:34:30",3,497.32,271964,pending,NULL,Delivery,"Lorinda Camis","1361 Pennsylvania Lane, London, Kentucky, 40745",606-218-6133,589
+676,"2025-08-19 11:43:32",7,1705,282630,canceled,NULL,Delivery,"Herold Corneljes","331 7th Alley, Charlotte, North Carolina, 28247",704-197-2457,490
+677,"2025-06-16 02:19:47",3,866.66,293915,completed,NULL,Delivery,"Delilah Rickwood","47 Jana Lane, Albany, New York, 12262",518-834-7476,403
+678,"2025-02-17 23:07:21",4,160,302868,pending,NULL,Delivery,"Olag Worman","7661 Ilene Crossing, Aurora, Illinois, 60505",312-104-5762,123
+679,"2025-04-18 14:35:50",2,627,304302,canceled,NULL,Delivery,"Brigit Crannach","2563 Union Avenue, Salt Lake City, Utah, 84125",801-314-2546,264
+680,"2025-11-21 00:24:25",4,1025,306094,completed,NULL,Delivery,"Sidnee Judson","467 Jay Alley, Dayton, Ohio, 45490",937-985-5879,806
+681,"2025-12-26 10:25:32",6,798,308169,pending,NULL,Delivery,"Roanna Teliga","467 Express Park, Sacramento, California, 94280",916-332-4336,736
+682,"2025-08-17 12:01:22",3,750,310273,canceled,NULL,Delivery,"Herculie Vinnick","7243 Ronald Regan Hill, Terre Haute, Indiana, 47812",812-617-3036,402
+683,"2025-04-04 08:37:39",5,1486,321587,completed,NULL,Delivery,"Marvin Emmins","43859 Delaware Circle, Des Moines, Iowa, 50335",515-479-7562,255
+684,"2025-09-24 21:43:09",2,880,327008,pending,NULL,Delivery,"Mair Lane","5 Moulton Lane, Louisville, Kentucky, 40210",502-374-2440,600
+685,"2025-08-11 10:26:11",3,598,338749,canceled,NULL,Delivery,"Rosene Ugolotti","1762 Prairie Rose Street, San Diego, California, 92105",619-801-0723,44
+686,"2025-01-31 21:39:53",6,2314,342366,completed,NULL,Delivery,"Crissie Michallat","667 Roxbury Terrace, Indianapolis, Indiana, 46278",317-160-6499,357
+687,"2025-04-19 05:02:57",3,498,351387,pending,NULL,Delivery,"Fenelia Valerio","40 Florence Alley, Orange, California, 92862",714-963-7327,118
+688,"2025-03-12 11:57:16",5,1043,354669,canceled,NULL,Delivery,"Orazio Antonopoulos","35206 Kedzie Street, Springfield, Missouri, 65805",417-268-8656,674
+689,"2025-02-05 15:20:00",5,4195,355561,completed,NULL,Delivery,"Dur Giddins","75744 Ridgeway Pass, Harrisburg, Pennsylvania, 17140",717-443-7077,648
+690,"2025-01-14 21:14:27",6,740,355563,pending,NULL,Delivery,"Adelina McCutcheon","12 Dapin Parkway, San Antonio, Texas, 78215",210-174-7620,821
+691,"2025-07-16 13:18:34",3,825,364571,canceled,NULL,Delivery,"Bronnie Pelling","4 Blue Bill Park Drive, Newton, Massachusetts, 02162",508-139-1122,454
+692,"2025-10-26 05:17:57",4,616,364627,completed,NULL,Delivery,"Marv Bordone","8470 Cordelia Center, Sacramento, California, 94230",916-817-2734,583
+693,"2025-02-20 00:16:17",3,240,368328,pending,NULL,Delivery,"Bette-ann Hollingsby","19 Lukken Crossing, Charleston, West Virginia, 25321",304-623-5403,88
+694,"2025-07-11 14:08:42",1,90,370259,canceled,NULL,Delivery,"Joyan Bogey","4 Del Mar Junction, Johnstown, Pennsylvania, 15906",814-969-7529,712
+695,"2025-02-08 20:11:21",7,570,373319,completed,NULL,Delivery,"Janessa Breawood","86 Mesta Parkway, Atlanta, Georgia, 31106",404-906-5644,172
+696,"2025-12-19 16:10:19",3,55,374706,pending,NULL,Delivery,"Mackenzie Frostdick","378 Prairieview Circle, San Antonio, Texas, 78260",210-370-1144,241
+697,"2025-03-25 05:25:18",2,297.6,376602,canceled,NULL,Delivery,"Erl Rosenkranc","513 Granby Parkway, Charlotte, North Carolina, 28220",704-266-5208,756
+698,"2025-08-06 01:27:56",9,1113,377292,completed,NULL,Delivery,"Teodorico Boat","676 Debra Road, Lynchburg, Virginia, 24515",434-219-7006,612
+699,"2025-02-03 12:35:28",2,510,377434,pending,NULL,Delivery,"Mar Denyagin","0002 Texas Center, Washington, District of Columbia, 20520",202-208-8908,554
+700,"2025-04-17 03:14:12",5,835,378028,canceled,NULL,Delivery,"Morris Livingstone","7386 Bonner Crossing, Austin, Texas, 78732",512-787-1009,595
+701,"2025-01-27 05:22:05",1,50,382204,completed,NULL,Delivery,"Harrietta Bissill","3989 Dapin Plaza, Cincinnati, Ohio, 45264",513-545-4613,81
+702,"2025-11-16 02:50:54",3,135,382249,pending,NULL,Delivery,"Robinett Silvers","4267 Monument Court, Jersey City, New Jersey, 07310",201-772-3579,141
+703,"2025-10-18 16:01:41",2,700,383716,canceled,NULL,Delivery,"Pierce Scarth","545 Lyons Street, Elmira, New York, 14905",607-382-0674,297
+704,"2025-05-02 10:49:58",3,350,385197,completed,NULL,Delivery,"Giacinta Kubatsch","6005 Sauthoff Place, Birmingham, Alabama, 35295",205-943-2436,691
+705,"2025-02-15 14:23:47",2,100,385636,pending,NULL,Delivery,"Thedrick Castangia","0 Redwing Plaza, Los Angeles, California, 90030",213-372-4143,825
+706,"2025-10-11 09:57:33",6,1900,385938,canceled,NULL,Delivery,"Abra Lawtey","1 Cherokee Junction, Denver, Colorado, 80299",720-130-9691,774
+707,"2025-04-04 02:17:20",1,85,387177,completed,NULL,Delivery,"Corty Blenkhorn","555 Anderson Lane, Richmond, Virginia, 23272",804-235-8266,462
+708,"2025-06-30 01:24:59",1,209,387674,pending,NULL,Delivery,"Stepha Girdwood","9122 Sauthoff Point, Rockville, Maryland, 20851",301-885-0811,396
+709,"2025-01-20 20:38:55",9,970,390478,canceled,NULL,Delivery,"Isidore De Maria","828 Express Center, Charlotte, North Carolina, 28235",704-340-1498,524
+710,"2025-07-09 06:42:04",2,330,390901,completed,NULL,Delivery,"Feliks Hedworth","79009 Carioca Pass, Baltimore, Maryland, 21239",410-843-8756,730
+711,"2025-12-05 07:47:10",8,630,394140,pending,NULL,Delivery,"Ellary Cordingly","14 Summit Drive, Arlington, Virginia, 22205",703-760-5084,702
+712,"2025-01-17 17:10:50",4,426,394554,canceled,NULL,Delivery,"Trevor Serrier","2758 Shelley Road, Miami, Florida, 33129",786-103-5329,52
+713,"2025-04-21 03:07:17",7,870,397258,completed,NULL,Delivery,"Carl Beautyman","16 Lukken Alley, New York City, New York, 10165",917-247-3004,288
+714,"2025-02-06 05:56:20",9,761,397980,pending,NULL,Delivery,"Clayton Ruane","510 Schiller Road, Beaufort, South Carolina, 29905",843-405-4925,260
+715,"2025-05-31 03:32:16",3,537,401391,canceled,NULL,Delivery,"Vasili Hacquoil","232 Northridge Court, Birmingham, Alabama, 35205",205-766-8841,671
+716,"2025-06-23 17:19:01",3,210,403754,completed,NULL,Delivery,"Brynne Karpmann","712 Montana Lane, Greensboro, North Carolina, 27415",336-759-1476,513
+717,"2025-09-10 10:17:15",6,1800,405031,pending,NULL,Delivery,"Morie Ebbers","5 Valley Edge Alley, Kansas City, Missouri, 64160",816-933-2430,475
+718,"2025-01-28 04:29:06",2,105,407243,canceled,NULL,Delivery,"Osmond Robottom","243 Mcguire Alley, Santa Barbara, California, 93111",702-551-2723,181
+719,"2025-01-20 10:23:30",8,393,407249,completed,NULL,Delivery,"Lexy Issit","4 Moose Trail, San Diego, California, 92160",619-721-8172,39
+720,"2025-02-17 10:21:29",5,559,408059,pending,NULL,Delivery,"Mallory Toppes","578 Vahlen Avenue, Salt Lake City, Utah, 84125",801-651-6032,219
+721,"2025-01-10 20:03:04",2,730,410629,canceled,NULL,Delivery,"Vivienne Lapworth","380 Dovetail Drive, Seattle, Washington, 98140",425-455-0959,720
+722,"2025-02-09 04:15:20",10,2070,410838,completed,NULL,Delivery,"Germana Downgate","841 Esker Court, Saint Cloud, Minnesota, 56372",320-281-6901,285
+723,"2025-03-01 10:51:59",2,460,410839,pending,NULL,Delivery,"Jordan Le Merchant","2 Carpenter Avenue, Fresno, California, 93794",559-126-8026,278
+724,"2025-09-26 01:10:31",3,604.8,412357,canceled,NULL,Delivery,"Camey Gait","51 Fairfield Point, Lansing, Michigan, 48930",517-348-6102,306
+725,"2025-05-29 13:17:36",4,276,413342,completed,NULL,Delivery,"Sayers Bexon","5 Eagan Way, Louisville, Kentucky, 40280",502-393-5069,457
+726,"2025-09-20 11:26:04",2,236,413451,pending,NULL,Delivery,"Scottie Margerison","26 Bobwhite Parkway, Charlotte, North Carolina, 28220",704-871-5313,500
+727,"2025-01-01 15:54:47",3,425,414252,canceled,NULL,Delivery,"Courtney Zaczek","1001 Bobwhite Point, Green Bay, Wisconsin, 54313",920-833-7457,839
+728,"2025-05-13 03:45:12",2,658,417015,completed,NULL,Delivery,"Filippa Stenners","2139 Sycamore Terrace, Honolulu, Hawaii, 96810",808-863-7244,753
+729,"2025-06-22 06:11:17",6,537,417020,pending,NULL,Delivery,"Jackson Swalteridge","89 Prentice Park, Escondido, California, 92030",760-620-5741,822
+730,"2025-12-01 05:33:30",7,410,420479,canceled,NULL,Delivery,"Menard Finlaison","9711 8th Place, Peoria, Illinois, 61614",309-274-5597,162
+731,"2025-11-03 23:29:14",6,450,420586,completed,NULL,Delivery,"Shurlocke Erie","9 Charing Cross Park, Duluth, Georgia, 30195",404-361-7661,112
+732,"2025-12-26 12:30:30",9,1251,420637,pending,NULL,Delivery,"Johna Kliesl","5 Canary Crossing, Metairie, Louisiana, 70033",504-622-0613,158
+733,"2025-08-28 13:28:03",2,30,420675,canceled,NULL,Delivery,"Goldy Stocky","80 Leroy Drive, Evansville, Indiana, 47712",812-483-3522,73
+734,"2025-03-25 02:36:42",7,621,421155,completed,NULL,Delivery,"Matty Farrant","99373 Summer Ridge Way, Atlanta, Georgia, 30306",404-788-1677,103
+735,"2025-08-30 15:12:45",9,1495,427606,pending,NULL,Delivery,"Hyacintha Laughnan","165 Carberry Alley, Austin, Texas, 78764",512-975-9228,165
+736,"2025-03-15 04:58:00",4,2032,427610,canceled,NULL,Delivery,"Batsheva Peterson","442 Little Fleur Trail, Atlanta, Georgia, 31165",404-420-3822,76
+737,"2025-02-19 13:54:38",9,1600,428013,completed,NULL,Delivery,"Allina Jeannin","4384 Bartillon Hill, Trenton, New Jersey, 08650",609-616-9520,338
+738,"2025-01-29 06:43:04",3,810,430451,pending,NULL,Delivery,"Benito Razzell","7339 Summer Ridge Pass, Buffalo, New York, 14263",716-221-7221,530
+739,"2025-01-29 02:42:32",6,2190,431115,canceled,NULL,Delivery,"Elsinore Porcas","98709 Manitowish Pass, Charlottesville, Virginia, 22908",434-506-0989,694
+740,"2025-01-28 13:19:43",4,532,431339,completed,NULL,Delivery,"Tabina Fosten","49024 Mayer Circle, Hot Springs National Park, Arkansas, 71914",501-646-3989,383
+741,"2025-05-16 19:04:18",1,40,431552,pending,NULL,Delivery,"Darice Steven","6 Hovde Hill, El Paso, Texas, 79999",915-408-9984,301
+742,"2025-06-07 16:50:09",3,150,432675,canceled,NULL,Delivery,"Millie Akred","16 Porter Center, Loretto, Minnesota, 55598",763-563-7364,121
+743,"2025-06-30 14:13:04",8,570,432684,completed,NULL,Delivery,"Violette Tippin","944 Bartillon Court, New York City, New York, 10009",718-895-1136,148
+744,"2025-06-30 20:00:21",1,15.6,433648,pending,NULL,Delivery,"Woodie McWhan","18939 Darwin Lane, Shreveport, Louisiana, 71137",318-680-4134,739
+745,"2025-02-27 21:54:15",8,1103,435582,canceled,NULL,Delivery,"Zeke Bice","8727 Forster Avenue, Tacoma, Washington, 98464",253-487-6342,78
+746,"2025-11-25 20:31:11",2,400,437616,completed,NULL,Delivery,"Kathe Coffey","34 Sugar Center, Austin, Texas, 78759",512-112-2952,353
+747,"2025-01-15 10:35:29",6,830,439417,pending,NULL,Delivery,"Guendolen Govenlock","81060 Talisman Lane, Midland, Texas, 79705",432-501-7426,520
+748,"2025-02-11 03:10:08",6,1354,439487,canceled,NULL,Delivery,"Donnie Cramp","4 Carpenter Alley, Worcester, Massachusetts, 01605",508-623-0998,256
+749,"2025-09-29 20:42:19",7,890,440811,completed,NULL,Delivery,"Felicia Skacel","9 Helena Pass, Grand Forks, North Dakota, 58207",701-929-6789,109
+750,"2025-04-05 14:26:38",4,163,440878,pending,NULL,Delivery,"Eugene Tippett","5 Stone Corner Crossing, Houston, Texas, 77010",281-946-1400,132
+751,"2025-01-01 04:36:04",9,1534,440950,canceled,NULL,Delivery,"Clay Fearby","1 Mosinee Pass, Dallas, Texas, 75323",214-368-1218,643
+752,"2025-08-20 01:46:51",6,1890,442180,completed,NULL,Delivery,"Michele Echelle","9 Jackson Way, Lakeland, Florida, 33811",863-113-2585,557
+753,"2025-02-03 03:16:18",7,1805,443028,pending,NULL,Delivery,"Danell Winchurst","3 Quincy Drive, Albany, New York, 12232",518-189-8705,681
+754,"2025-11-07 15:14:32",3,1017,447526,canceled,NULL,Delivery,"Liz Guterson","1 Heath Drive, Akron, Ohio, 44329",330-601-7695,541
+755,"2025-09-04 00:37:26",5,375,448046,completed,NULL,Delivery,"Leonora Maddick","207 Linden Street, Lake Charles, Louisiana, 70616",337-862-4906,113
+756,"2025-07-25 04:14:38",5,765,451742,pending,NULL,Delivery,"Katy Costi","26 Onsgard Road, Paterson, New Jersey, 07505",862-599-2327,623
+757,"2025-08-03 23:21:02",4,1035,451743,canceled,NULL,Delivery,"Pietra Callaby","73611 Arrowood Pass, Kansas City, Kansas, 66112",913-729-2609,625
+758,"2025-10-05 10:10:53",8,500,456922,completed,NULL,Delivery,"Merwin Lockless","345 Schiller Way, Hagerstown, Maryland, 21747",240-385-3899,471
+759,"2024-12-27 11:15:00",8,1094,459775,pending,NULL,Delivery,"Lelia Tumasian","4 Summerview Plaza, Pittsburgh, Pennsylvania, 15266",-857-6779,157
+760,"2024-12-30 17:53:05",7,1273,459776,canceled,NULL,Delivery,"Trescha Biddiss","89 Grayhawk Junction, Fargo, North Dakota, 58122",701-875-3476,152
+761,"2025-09-11 07:36:39",5,300,460692,completed,NULL,Delivery,"Laney Mylechreest","3637 Pankratz Alley, Minneapolis, Minnesota, 55446",612-228-0699,84
+762,"2025-06-10 17:18:13",6,630,461084,pending,NULL,Delivery,"Noreen Dutnall","8387 Rutledge Place, El Paso, Texas, 79977",915-454-4969,723
+763,"2025-09-27 20:28:29",8,2334,461724,canceled,NULL,Delivery,"Dido Seavers","2 Forster Terrace, Albany, New York, 12232",518-215-9527,184
+764,"2025-11-19 18:31:58",9,910,462070,completed,NULL,Delivery,"Cordula Hallums","7 Bunker Hill Circle, Los Angeles, California, 90040",626-359-1520,193
+765,"2025-02-21 03:25:12",3,1260,462172,pending,NULL,Delivery,"Tannie Shelton","7273 Lukken Park, Springfield, Illinois, 62711",217-110-9073,562
+766,"2025-03-07 19:55:47",2,436,462505,canceled,NULL,Delivery,"Myrtle Fearnyough","1380 Golf View Trail, Memphis, Tennessee, 38114",901-132-2144,657
+767,"2025-07-07 02:35:51",9,360,473193,completed,NULL,Delivery,"Deeanne Teague","37 Dryden Pass, Baltimore, Maryland, 21216",410-334-0834,242
+768,"2025-08-08 12:01:05",10,2400,475283,pending,NULL,Delivery,"Ronald Dimelow","8 Washington Drive, Clearwater, Florida, 34615",727-420-9078,101
+769,"2025-01-12 10:49:26",4,560,476303,canceled,NULL,Delivery,"Hendrik Sahnow","3405 Rutledge Avenue, Dayton, Ohio, 45490",937-703-6914,621
+770,"2025-10-11 19:42:04",10,2080.49,477627,completed,NULL,Delivery,"Joyan Cloney","644 Fairview Drive, Panama City, Florida, 32412",850-347-2181,346
+771,"2025-02-19 20:17:53",7,661.02,477628,pending,NULL,Delivery,"Ella Sandeson","257 Northland Plaza, Jamaica, New York, 11480",718-570-3183,389
+772,"2025-04-08 05:49:28",8,1325,478348,canceled,NULL,Delivery,"Ariana Burdekin","090 Eastwood Place, Galveston, Texas, 77554",281-517-1117,268
+773,"2025-08-15 15:34:05",6,1120,478936,completed,NULL,Delivery,"Kelcey Nesbitt","2199 Hansons Terrace, Cincinnati, Ohio, 45254",513-762-9385,344
+774,"2025-10-04 06:03:02",6,1110,480203,pending,NULL,Delivery,"Tina Winterburn","81563 Jackson Street, Odessa, Texas, 79764",432-912-5045,325
+775,"2025-05-20 07:16:28",3,826.2,483552,canceled,NULL,Delivery,"Kenny Klassmann","75 Warbler Court, Pittsburgh, Pennsylvania, 15240",412-741-8548,414
+776,"2025-07-22 08:47:16",5,565,484449,completed,NULL,Delivery,"Gena Stait","43326 Prentice Drive, Amarillo, Texas, 79118",806-593-3596,842
+777,"2025-06-02 08:19:43",6,1295,486482,pending,NULL,Delivery,"Nicolle Ballach","6 Arapahoe Center, Charleston, West Virginia, 25326",304-204-8458,438
+778,"2025-09-01 21:06:51",4,680,487422,canceled,NULL,Delivery,"Emyle Waby","83 Lien Crossing, Nashville, Tennessee, 37235",615-640-0517,482
+779,"2025-12-20 00:39:09",2,648,489011,completed,NULL,Delivery,"Burk MacArthur","2694 Pearson Lane, Augusta, Georgia, 30911",706-244-0601,336
+780,"2025-10-09 11:45:45",4,220,489362,pending,NULL,Delivery,"Grady Gullefant","02351 Londonderry Plaza, Carol Stream, Illinois, 60351",309-992-0706,423
+781,"2025-03-05 11:04:45",5,650,489422,canceled,NULL,Delivery,"Ralina Verlinden","8042 Dryden Junction, Stamford, Connecticut, 06912",203-170-3033,669
+782,"2025-11-15 10:38:43",4,510,494001,completed,NULL,Delivery,"Gerri Brewin","3 Prairieview Parkway, San Francisco, California, 94164",415-151-5803,422
+783,"2025-10-23 15:28:31",2,358,494588,pending,NULL,Delivery,"Laney Beau","323 Kingsford Circle, Fort Worth, Texas, 76162",682-429-5398,377
+786,"2025-12-28 00:00:00",6,4980,150497,pending,5,Dine-in,NULL,NULL,NULL,NULL
+787,"2025-12-28 00:00:00",3,252,158204,pending,9,Dine-in,NULL,NULL,NULL,NULL

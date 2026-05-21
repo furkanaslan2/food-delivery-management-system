@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body class = "menus-page">
+    <nav>
+        <input type="hidden" id="current-user-role" value="{{ session['role'] }}">
+        <div class="logo navbar">
+            <a href="/"><img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo"></a>
+            <h1><a href="/">Food Delivery Management System</a> / <span style="margin-left: 10px; color: white">Menu</span></h1>
+        </div>
+        <ul class="navbar">
+            <li><a href="/logout">Logout</a></li>
+        </ul>
+    </nav>
+    <div class="flash-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                    <div class="flash-message {{ category }}">
+                        {{ message }}
+                        <button class="close-flash" onclick="this.parentElement.style.display='none';">&times;</button>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+    </div>
+    <button id="scrollTopBtn"><img class="up-arrow" src="{{ url_for('static', filename='images/up-arrow.png') }}"></button>
+    <div class="search-bar">
+        <form id="menu-form" class="menu-form" action="{{ url_for('menus_action') }}" method="post">
+            <input type="hidden" id="selected-menu-items" name="selected_menu_items">
+            <input type="hidden" id="update-menu-id" name="update_menu_id">
+            <input type="hidden" id="form-action" name="action" value="">
+            <input type="number" id="menu-id" name="menu_id" placeholder="Menu ID">
+            <input type="text" id="food-name" name="name" placeholder="Food Name">
+            <select id="food-type" name="food_type" aria-label="Select food type">
+                <option value="">Select Type</option>
+                <option value="Veg">Veg</option>
+                <option value="Non-veg">Non-veg</option>
+            </select>
+            <input type="text" id="menu-cuisine" name="cuisine" placeholder="Cuisine">
+            <input type="number" id="menu-price" name="price" placeholder="Price">
+            <input type="number" id="menu-stock" name="stock_quantity" placeholder="Stock Quantity">
+            <input type="number" id="menu-restaurant-id" name="restaurant_id" placeholder="Restaurant ID">
+        </form>
+        <button class="search-button" onclick="searchMenu()"><img class="button-img" src="{{ url_for('static', filename='images/search.png') }}" alt="search icon">Search</button>
+        <button class="clear-button" type="submit" form="menu-form" name="action" value="clear" onclick="clearSearch()"><img class="button-img" src="{{ url_for('static', filename='images/clear.png') }}" alt="clear icon">Clear</button>
+    </div>
+    <div class="action-buttons">
+        <button class="add-button" type="submit" name="action" value="add" form="menu-form"><img class="button-img" src="{{ url_for('static', filename='images/add.png') }}" alt="add icon">Add</button>
+        <button class="delete-button" type="submit" name="action" value="delete" form="menu-form"><img class="button-img" src="{{ url_for('static', filename='images/delete.png') }}" alt="delete icon">Delete</button>
+        <button class="update-button" type="submit" name="action" value="update" form="menu-form"><img class="button-img" src="{{ url_for('static', filename='images/update.png') }}" alt="update icon">Update</button>
+        <button type="submit" class="filter-button" name="action" value="filter" form="menu-form">
+            <img class="button-img" src="{{ url_for('static', filename='images/filter.png') }}" alt="filter icon">Filter
+        </button>
+        <div class="sort-container">
+            <button class="sort-button" onclick="toggleSortMenu()"><img class="button-img" src="{{ url_for('static', filename='images/sort.png') }}" alt="sort icon"></img>Sort</button>
+            <div id="overlay" class="hidden"></div>
+            <div class="sort-menu hidden" id="sort-menu">
+                <h3>Sort By</h3>
+                <form id="sort-form" action="{{ url_for('menus_action') }}" method="post">
+                    <select name="sort_by" id="sort-by">
+                        <option value="menu_id">ID</option>
+                        <option value="item_name">Name</option>
+                        <option value="veg_or_non_veg">Type</option>
+                        <option value="cuisine">Cuisine</option>
+                        <option value="price">Price</option>
+                        <option value="restaurant_id">Restaurant ID</option>
+                    </select>
+                    <h3 id="second-h3">Order</h3>
+                    <select name="sort_order" id="sort-order">
+                        <option value="ASC">Ascending</option>
+                        <option value="DESC">Descending</option>
+                    </select>
+                    <button type="submit" name="action" value="sort">Apply</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div id="navigation" class="hidden">
+        <button id="next-match-button" onclick="goToNextMatch()">Next Match</button>
+    </div>
+    <div class="list" id="menu-list">
+        {% for item in menus %}
+        {% set is_sold_out = item['stock_quantity'] <= 0 %}
+        
+        <div class="table-card {{ 'sold-out' if is_sold_out else '' }}" id="menu-card-{{ item['menu_id'] }}">
+            
+            {% if is_sold_out %}
+                <div class="sold-out-badge">Sold Out</div>
+            {% endif %}
+
+            <input type="checkbox" id="menu-{{ loop.index }}" name="selected_menu_items" value="{{ item['menu_id'] }}">
+            <label for="menu-{{ loop.index }}">
+                <p><strong>ID:</strong> <span class="menu-id">{{ item['menu_id'] }}</span></p>
+                <p><strong>Name:</strong> <span class="menu-name">{{ item['food_name'] if item['food_name'] else 'No food name' }}</span></p>
+                <p><strong>Type:</strong> <span class="menu-type">{{ item['veg_or_non_veg'] if item['veg_or_non_veg'] else 'Not specified' }}</span></p>
+                <p><strong>Cuisine:</strong> <span class="menu-cuisine">{{ item['cuisine'] if item['cuisine'] else 'Not specified' }}</span></p>
+                <p><strong>Price:</strong> <span class="menu-price">{{ item['price'] }}</span></p>
+                <p><strong>Stock:</strong> <span class="menu-stock">{{ item['stock_quantity'] }}</span></p>
+                <p><strong>Restaurant ID:</strong> <span class="menu-restaurant-id">{{ item['restaurant_id'] }}</span></p>
+            </label>
+        </div>
+        {% endfor %}
+    </div>
+    <script src="{{ url_for('static', filename='js/common.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/menus.js') }}"></script>
+</body>
+</html>
