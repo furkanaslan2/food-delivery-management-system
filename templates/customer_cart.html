@@ -75,7 +75,7 @@
         <div class="checkout-box">
             <h2 class="section-title">Delivery Details</h2>
             
-            <form action="{{ url_for('checkout') }}" method="POST">
+            <form action="{{ url_for('checkout_payment') }}" method="POST">
                 <div class="form-group">
                     <label for="phone">Contact Phone Number</label>
                     <input type="text" id="phone" name="phone" placeholder="e.g. 555-010-2030" required>

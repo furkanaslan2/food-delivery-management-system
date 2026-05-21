@@ -12,6 +12,8 @@ from orders import orders, order_action, get_order_details, get_restaurant_detai
 from foods import foods, food_action
 from waiters import waiter_dashboard, waiter_create_order, waiters, waiter_action
 from customer import view_restaurant, add_to_cart, view_cart, checkout, customer_orders, set_location
+from courier_panel import courier_dashboard, update_delivery_status
+from payment_handler import checkout_payment, payment_callback
 
 load_dotenv()
 
@@ -51,6 +53,10 @@ app.add_url_rule('/add_to_cart', 'add_to_cart', add_to_cart, methods=['POST'])
 app.add_url_rule('/checkout', 'checkout', checkout, methods=['POST'])
 app.add_url_rule('/my_orders', 'customer_orders', customer_orders)
 app.add_url_rule('/set_location', 'set_location', set_location, methods=['POST'])
+app.add_url_rule('/courier/<int:courier_id>', 'courier_dashboard', courier_dashboard)
+app.add_url_rule('/update_delivery_status', 'update_delivery_status', update_delivery_status, methods=['POST'])
+app.add_url_rule('/checkout_payment', 'checkout_payment', checkout_payment, methods=['POST', 'GET'])
+app.add_url_rule('/payment_callback', 'payment_callback', payment_callback, methods=['POST'])
 
 if __name__ == '__main__':
     app.run(debug=True)

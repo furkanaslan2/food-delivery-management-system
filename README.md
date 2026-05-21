@@ -8,6 +8,7 @@
 | `pip install mysql-connector-python` | Provides MySQL database connectivity.                                           |
 | `pip install flask-session`          | Enables server-side session management.                                         |
 | `pip install python-dotenv`          | Reads key-value pairs from a .env file and sets them as environment variables.  |
+| `pip install iyzipay`                |                                                                                 |
 
 ### Environment Variables (.env) Setup
 

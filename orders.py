@@ -77,13 +77,11 @@ def order_action():
                 return redirect(url_for('orders'))
 
             order_id = request.form.get('order_id')
-            restaurant_id = request.form.get('restaurant_id')
-            if role == 'user': 
-                restaurant_id = str(restaurant_id_session)
 
-            if role == 'user' and str(restaurant_id) != str(restaurant_id_session):
-                flash("Unauthorized action! You can only add orders for your restaurant.", "danger")
-                return redirect(url_for('orders'))
+            if role == 'user':
+                restaurant_id = restaurant_id_session 
+            else:
+                restaurant_id = request.form.get('restaurant_id')
 
             customer_name = request.form.get('customer_name')
             customer_phone = request.form.get('customer_phone')
@@ -224,7 +222,10 @@ def order_action():
         elif action == 'update':
             update_order_id = request.form.get('update_order_id')
             new_order_id = request.form.get('order_id')         
-            restaurant_id = request.form.get('restaurant_id')
+            if role == 'user':
+                restaurant_id = restaurant_id_session
+            else:
+                restaurant_id = request.form.get('restaurant_id')
             order_status = request.form.get('order_status')     
             order_type = request.form.get('order_type')
             table_no = request.form.get('table_no')
@@ -286,8 +287,8 @@ def order_action():
                 flash("No order selected for update.", "warning")
                 return redirect(url_for('orders'))
 
-            if role == 'user' and (str(restaurant_id) != str(restaurant_id_session) or new_order_id != update_order_id):
-                flash("Unauthorized action! You cannot change your Order's ID or Restaurant ID.", "danger")
+            if role == 'user' and str(new_order_id) != str(update_order_id):
+                flash("Unauthorized action! You cannot change your Order's ID.", "danger")
                 return redirect(url_for('orders'))
             
             if new_order_id != update_order_id:
