@@ -42,6 +42,49 @@
         </a>
     </div>
     
+    <div id="courier-alert" style="display: none; background-color: #3b82f6; color: white; padding: 15px; text-align: center; font-weight: 700; font-size: 16px; margin-bottom: -15px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); animation: flashPulse 1.5s infinite;" onclick="window.location.reload();">
+        <span id="courier-alert-text">📦 YENİ PAKET GELDİ! Yenilemek için dokun.</span>
+    </div>
+
+    <style>
+        /* Kuryenin dikkatini çekmek için yanıp sönen animasyon */
+        @keyframes flashPulse {
+            0% { background-color: #3b82f6; }
+            50% { background-color: #1d4ed8; transform: scale(1.02); }
+            100% { background-color: #3b82f6; }
+        }
+    </style>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // 1. Kuryenin ekranındaki mevcut sipariş kartlarını say
+            let currentOrderCount = document.querySelectorAll('.order-card').length;
+
+            function checkCourierOrders() {
+                // Arka plandan gizlice durumu sor
+                fetch(`/api/check_courier_orders?order_count=${currentOrderCount}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.has_changes) {
+                            // Değişiklik varsa mavi uyarı çubuğunu göster
+                            const alertBox = document.getElementById('courier-alert');
+                            document.getElementById('courier-alert-text').innerText = data.message + ' (Yenilemek için dokun)';
+                            alertBox.style.display = 'block';
+                            
+                            // İsteğe bağlı kurye otomatizasyonu: Motordaysa 5 saniye sonra kendi yenilesin!
+                            setTimeout(() => { window.location.reload(); }, 5000);
+                            
+                            clearInterval(courierPolling); 
+                        }
+                    })
+                    .catch(err => console.error('Kurye API Hatası:', err));
+            }
+
+            // 2. Kurye için bu soruyu her 7 saniyede bir sessizce tekrarla
+            const courierPolling = setInterval(checkCourierOrders, 7000);
+        });
+    </script>
+
     <div class="container">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}

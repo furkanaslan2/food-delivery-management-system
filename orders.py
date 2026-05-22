@@ -514,3 +514,45 @@ def get_restaurant_details(restaurant_id):
         if conn.is_connected():
             cursor.close()
             conn.close()
+
+def api_check_new_orders():
+    # Sadece giriş yapmış yetkili kişiler (admin veya restoran sahibi) burayı sorgulayabilir
+    if 'logged_in' not in session:
+        return jsonify({'new_orders': False})
+        
+    role = session.get('role')
+    if role not in ['admin', 'user']:
+        return jsonify({'new_orders': False})
+        
+    # HTML'den gelen, ekrandaki en son (en büyük) sipariş ID'sini al
+    client_max_id = request.args.get('last_id', 0, type=int)
+    
+    connection = get_db_connection()
+    if connection:
+        try:
+            cursor = connection.cursor(dictionary=True)
+            
+            # Rolüne göre veritabanındaki en son siparişin ID'sini bul
+            if role == 'user':
+                restaurant_id = session.get('restaurant_id')
+                if not restaurant_id:
+                    return jsonify({'new_orders': False})
+                cursor.execute("SELECT MAX(order_id) as max_id FROM orders WHERE restaurant_id = %s", (restaurant_id,))
+            else: # admin
+                cursor.execute("SELECT MAX(order_id) as max_id FROM orders")
+                
+            result = cursor.fetchone()
+            db_max_id = result['max_id'] if result and result['max_id'] else 0
+            
+            # Eğer veritabanındaki son ID, ekrandaki son ID'den büyükse YENİ SİPARİŞ VARDIR!
+            if db_max_id > client_max_id:
+                return jsonify({'new_orders': True})
+                
+        except Exception as e:
+            print(f"Sipariş API kontrol hatası: {e}")
+        finally:
+            if connection.is_connected():
+                cursor.close()
+                connection.close()
+                
+    return jsonify({'new_orders': False})

@@ -54,6 +54,43 @@
             <li><a href="/logout">Logout</a></li>
         </ul>
     </nav>
+
+    <div id="new-order-alert" style="display: none; position: fixed; top: 90px; left: 50%; transform: translateX(-50%); background-color: #ef4444; color: white; padding: 12px 25px; border-radius: 30px; font-weight: 600; font-size: 15px; box-shadow: 0 10px 25px rgba(239, 68, 68, 0.4); cursor: pointer; z-index: 10000; transition: transform 0.2s;" onmouseover="this.style.transform='translateX(-50%) scale(1.05)'" onmouseout="this.style.transform='translateX(-50%) scale(1)'" onclick="window.location.reload();">
+        🔔 Yeni bir sipariş geldi! Görmek için tıklayın.
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // 1. Ekrandaki en büyük Sipariş ID'sini bul
+            let maxOrderId = 0;
+            document.querySelectorAll('.order-id').forEach(el => {
+                let id = parseInt(el.textContent.trim());
+                if (!isNaN(id) && id > maxOrderId) {
+                    maxOrderId = id;
+                }
+            });
+
+            // 2. Arka plandan gizlice yeni sipariş var mı diye sor
+            function checkForNewOrders() {
+                fetch(`/api/check_new_orders?last_id=${maxOrderId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.new_orders) {
+                            // Yeni sipariş varsa Kırmızı Hapı süzülerek ekrana getir!
+                            document.getElementById('new-order-alert').style.display = 'block';
+                            
+                            // İsteğe bağlı: Zaten butonu gösterdik, bir daha sormasına gerek yok
+                            clearInterval(orderPolling); 
+                        }
+                    })
+                    .catch(err => console.error('API Hatası:', err));
+            }
+
+            // 3. Bu soruyu her 10 saniyede bir sessizce tekrarla
+            const orderPolling = setInterval(checkForNewOrders, 10000);
+        });
+    </script>
+
     <div class="flash-container">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}

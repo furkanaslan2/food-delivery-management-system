@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for, session, flash
+from flask import render_template, request, redirect, url_for, session, flash, jsonify
 from db import get_db_connection
 from mysql.connector import Error
 from werkzeug.security import generate_password_hash
@@ -273,3 +273,44 @@ def courier_action():
             connection.close()
 
     return redirect(url_for('couriers'))
+
+from flask import jsonify # (Varsa tekrar eklemene gerek yok)
+
+def api_check_courier_orders():
+    # Sadece giriş yapmış kuryeler burayı sorgulayabilir
+    if 'logged_in' not in session or session.get('role') != 'courier':
+        return jsonify({'has_changes': False})
+
+    courier_id = session.get('courier_id')
+    # Kuryenin ekranında şu an kaç tane aktif sipariş göründüğünü alıyoruz
+    client_order_count = request.args.get('order_count', 0, type=int)
+
+    connection = get_db_connection()
+    if connection:
+        try:
+            cursor = connection.cursor(dictionary=True)
+            
+            # Veritabanında bu kuryeye atanmış aktif (bekleyen/yolda) sipariş sayısını bul
+            cursor.execute("""
+                SELECT COUNT(*) as active_count 
+                FROM orders 
+                WHERE courier_id = %s AND order_status IN ('preparing', 'on_the_way')
+            """, (courier_id,))
+            
+            result = cursor.fetchone()
+            db_active_count = result['active_count'] if result else 0
+            
+            # Eğer ekrandaki sayı ile veritabanındaki sayı farklıysa (yeni paket gelmiş veya iptal olmuş)
+            if db_active_count > client_order_count:
+                return jsonify({'has_changes': True, 'message': '📦 YENİ PAKET GELDİ!'})
+            elif db_active_count < client_order_count:
+                return jsonify({'has_changes': True, 'message': '🔄 Paket durumu değişti.'})
+                
+        except Exception as e:
+            print(f"Kurye API hatası: {e}")
+        finally:
+            if connection.is_connected():
+                cursor.close()
+                connection.close()
+
+    return jsonify({'has_changes': False})

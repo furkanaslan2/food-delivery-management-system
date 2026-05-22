@@ -1,5 +1,5 @@
 from datetime import datetime
-from flask import render_template, request, redirect, url_for, session, flash
+from flask import render_template, request, redirect, url_for, session, flash, jsonify
 from db import get_db_connection
 from mysql.connector import Error
 
@@ -353,3 +353,42 @@ def submit_review():
                 connection.close()
                 
     return redirect(url_for('customer_orders'))
+
+def get_active_order_status():
+    if 'logged_in' not in session or session.get('role') != 'customer':
+        return jsonify({'has_active_order': False})
+
+    customer_id = session.get('customer_id')
+    connection = get_db_connection()
+    
+    if connection:
+        try:
+            cursor = connection.cursor(dictionary=True)
+            # YENİ SQL: Aktif siparişleri her zaman getir. 
+            # Teslim/İptal durumlarını ise SADECE sipariş son 2 saat içinde verildiyse getir.
+            cursor.execute("""
+                SELECT order_id, order_status 
+                FROM orders 
+                WHERE customer_id = %s 
+                  AND (
+                      order_status IN ('pending', 'preparing', 'on_the_way') 
+                      OR order_date >= NOW() - INTERVAL 2 HOUR
+                  )
+                ORDER BY order_date DESC LIMIT 1
+            """, (customer_id,))
+            order = cursor.fetchone()
+            
+            if order:
+                return jsonify({
+                    'has_active_order': True, 
+                    'order_status': order['order_status'], 
+                    'order_id': order['order_id']
+                })
+        except Exception as e:
+            print(f"Sipariş durumu çekilirken hata: {e}")
+        finally:
+            if connection.is_connected():
+                cursor.close()
+                connection.close()
+                
+    return jsonify({'has_active_order': False})

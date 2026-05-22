@@ -127,6 +127,73 @@
         </div>
     </nav>
 
+    <div id="live-order-banner" style="display: none; background-color: #10b981; color: white; padding: 12px 20px; text-align: center; font-weight: 500; font-size: 15px; justify-content: center; align-items: center; gap: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); position: relative; z-index: 99;">
+        <span id="live-order-text">Sipariş durumu kontrol ediliyor...</span>
+        <a href="{{ url_for('customer_orders') }}" style="background: white; color: #10b981; padding: 6px 14px; border-radius: 20px; text-decoration: none; font-weight: 700; font-size: 13px; transition: transform 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+            Siparişe Git ➔
+        </a>
+    </div>
+
+    <script>
+        function checkOrderStatus() {
+            fetch('/api/active_order_status')
+                .then(response => response.json())
+                .then(data => {
+                    const banner = document.getElementById('live-order-banner');
+                    const textSpan = document.getElementById('live-order-text');
+                    
+                    if (data.has_active_order) {
+                        // Sipariş varsa banner'ı görünür yap (display: flex)
+                        banner.style.display = 'flex';
+                        
+                        // Duruma göre yazıyı anında değiştir
+                        if (data.order_status === 'pending') {
+                            textSpan.innerText = '🕒 Siparişiniz restorana iletildi, onay bekleniyor...';
+                            banner.style.backgroundColor = '#f59e0b'; // Turuncu
+                            textSpan.nextElementSibling.style.color = '#f59e0b';
+                            textSpan.nextElementSibling.innerText = 'Siparişe Git ➔';
+                        } 
+                        else if (data.order_status === 'preparing') {
+                            textSpan.innerText = '👨‍🍳 Harika! Siparişiniz şu an mutfakta hazırlanıyor...';
+                            banner.style.backgroundColor = '#3b82f6'; // Mavi
+                            textSpan.nextElementSibling.style.color = '#3b82f6';
+                            textSpan.nextElementSibling.innerText = 'Siparişe Git ➔';
+                        } 
+                        else if (data.order_status === 'on_the_way') {
+                            textSpan.innerText = '🛵 Siparişiniz yola çıktı, gelmek üzere!';
+                            banner.style.backgroundColor = '#10b981'; // Yeşil
+                            textSpan.nextElementSibling.style.color = '#10b981';
+                            textSpan.nextElementSibling.innerText = 'Siparişe Git ➔';
+                        } 
+                        // --- YENİ EKLENEN DURUMLAR ---
+                        else if (data.order_status === 'delivered') {
+                            textSpan.innerText = '✅ Siparişiniz teslim edildi. Afiyet olsun!';
+                            banner.style.backgroundColor = '#059669'; // Koyu Yeşil
+                            textSpan.nextElementSibling.style.color = '#059669';
+                            textSpan.nextElementSibling.innerText = 'Değerlendir ⭐'; // Buton yazısı değişti
+                        } 
+                        else if (data.order_status === 'canceled') {
+                            textSpan.innerText = '❌ Siparişiniz iptal edildi.';
+                            banner.style.backgroundColor = '#ef4444'; // Kırmızı
+                            textSpan.nextElementSibling.style.color = '#ef4444';
+                            textSpan.nextElementSibling.innerText = 'Detay Gör ➔';
+                        }
+                    } else {
+                        // Aktif sipariş bittiyse (veya yoksa) banner'ı gizle
+                        banner.style.display = 'none';
+                    }
+                })
+                .catch(err => console.error('Sipariş API hatası:', err));
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Sayfa açılır açılmaz durumu 1 kez kontrol et
+            checkOrderStatus();
+            // Ardından HER 5 SANİYEDE BİR arka plandan sessizce kontrol etmeye devam et!
+            setInterval(checkOrderStatus, 5000);
+        });
+    </script>
+
     <div class="hero-section">
         <h1>What are you craving today?</h1>
         <p>Discover the best food & drinks in your area.</p>
