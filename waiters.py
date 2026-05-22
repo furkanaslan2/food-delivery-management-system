@@ -410,7 +410,6 @@ def waiter_create_order():
     return redirect(url_for('waiter_dashboard'))
 
 def waiter_close_bill():
-    # Giriş ve Rol Kontrolü
     if not session.get('logged_in') or session.get('role') != 'waiter':
         return redirect(url_for('login'))
 
@@ -428,7 +427,7 @@ def waiter_close_bill():
     try:
         cursor = connection.cursor(dictionary=True)
 
-        # 1. Aşama: Bu masaya ait aktif (pending) bir sipariş var mı kontrol et
+        # Aktif adisyonu bul
         cursor.execute("""
             SELECT order_id FROM orders 
             WHERE restaurant_id = %s AND table_no = %s AND order_status = 'pending'
@@ -438,7 +437,7 @@ def waiter_close_bill():
         if order:
             order_id = order['order_id']
             
-            # 2. Aşama: Sipariş durumunu 'completed' (tamamlandı) olarak güncelle
+            # Durumu tamamlandı yap
             cursor.execute("""
                 UPDATE orders 
                 SET order_status = 'completed' 
@@ -446,17 +445,68 @@ def waiter_close_bill():
             """, (order_id,))
             
             connection.commit()
-            flash(f"💳 Masa {table_no} için hesap başarıyla kapatıldı! Sipariş #{order_id} tamamlandı. 🎉", "success")
+            
+            # DEĞİŞİKLİK: Dashboard'a dönmek yerine doğrudan adisyon sayfasına yönlendiriyoruz!
+            flash(f"💳 Masa {table_no} hesabı kapatıldı. Adisyon hazırlanıyor...", "success")
+            return redirect(url_for('waiter_receipt', order_id=order_id))
         else:
             flash(f"Masa {table_no} zaten boş veya aktif bir adisyonu bulunmuyor.", "warning")
+            return redirect(url_for('waiter_dashboard'))
 
     except Error as e:
         flash(f"Hesap kapatılırken bir hata oluştu: {e}", "danger")
         connection.rollback()
+        return redirect(url_for('waiter_dashboard'))
     finally:
         if connection.is_connected():
             cursor.close()
             connection.close()
 
-    # İşlem bitince garson panelini yenile (Masa otomatik yeşile dönecek!)
-    return redirect(url_for('waiter_dashboard'))
+
+# YENİ FONKSİYON: Adisyon Fişi Verilerini Getirir
+def waiter_receipt(order_id):
+    if not session.get('logged_in') or session.get('role') != 'waiter':
+        return redirect(url_for('login'))
+
+    restaurant_id = session.get('restaurant_id')
+    connection = get_db_connection()
+    if connection is None:
+        return redirect(url_for('waiter_dashboard'))
+
+    try:
+        cursor = connection.cursor(dictionary=True)
+        
+        # 1. Restoran Bilgisi
+        cursor.execute("SELECT restaurant_name, restaurant_address FROM restaurants WHERE restaurant_id = %s", (restaurant_id,))
+        restaurant = cursor.fetchone()
+
+        # 2. Sipariş Ana Bilgileri
+        cursor.execute("""
+            SELECT order_id, order_date, sales_amount, table_no 
+            FROM orders 
+            WHERE order_id = %s AND restaurant_id = %s
+        """, (order_id, restaurant_id))
+        order = cursor.fetchone()
+
+        if not order:
+            flash("Adisyon bulunamadı!", "danger")
+            return redirect(url_for('waiter_dashboard'))
+
+        # 3. Sipariş Edilen Yemekler (Kalemler)
+        cursor.execute("""
+            SELECT f.item_name, oi.quantity, oi.unit_price 
+            FROM order_items oi
+            JOIN foods f ON oi.food_id = f.food_id
+            WHERE oi.order_id = %s
+        """, (order_id,))
+        items = cursor.fetchall()
+
+        return render_template('receipt.html', order=order, items=items, restaurant=restaurant)
+
+    except Error as e:
+        flash(f"Adisyon yüklenirken hata: {e}", "danger")
+        return redirect(url_for('waiter_dashboard'))
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()

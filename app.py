@@ -10,7 +10,7 @@ from couriers import couriers, courier_action
 from menus import menus, menus_action
 from orders import orders, order_action, get_order_details, get_restaurant_details
 from foods import foods, food_action
-from waiters import waiter_dashboard, waiter_create_order, waiters, waiter_action, waiter_close_bill
+from waiters import waiter_dashboard, waiter_create_order, waiters, waiter_action, waiter_close_bill, waiter_receipt
 from customer import view_restaurant, add_to_cart, view_cart, checkout, customer_orders, set_location, remove_from_cart, increase_cart_item, decrease_cart_item, submit_review
 from courier_panel import courier_dashboard, update_delivery_status, courier_login, courier_logout
 from payment_handler import checkout_payment, payment_callback
@@ -47,6 +47,7 @@ app.add_url_rule('/waiters', 'waiter_action', waiter_action, methods=['POST'])
 app.add_url_rule('/waiter_dashboard', 'waiter_dashboard', waiter_dashboard)
 app.add_url_rule('/waiter_create_order', 'waiter_create_order', waiter_create_order, methods=['POST'])
 app.add_url_rule('/waiter_close_bill', 'waiter_close_bill', waiter_close_bill, methods=['POST'])
+app.add_url_rule('/waiter/receipt/<int:order_id>', endpoint='waiter_receipt', view_func=waiter_receipt, methods=['GET'])
 app.add_url_rule('/analytics', view_func=restaurant_analytics, methods=['GET'])
 app.add_url_rule('/customer_login', 'customer_login', customer_login, methods=['GET', 'POST'])
 app.add_url_rule('/customer_register', 'customer_register', customer_register, methods=['GET', 'POST'])

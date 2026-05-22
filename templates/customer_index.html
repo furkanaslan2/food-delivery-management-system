@@ -64,6 +64,33 @@
             height: 18px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
+
+        /* Modern Açılır Menü (Dropdown) Stilleri */
+        .dropdown { position: relative; display: inline-block; }
+        
+        .dropdown-btn { 
+            background-color: #f3f4f6; color: #374151; padding: 8px 16px; 
+            font-size: 15px; font-weight: 600; border: none; border-radius: 20px; 
+            cursor: pointer; display: flex; align-items: center; gap: 8px; 
+            transition: background-color 0.2s; font-family: inherit;
+        }
+        .dropdown-btn:hover { background-color: #e5e7eb; }
+        
+        .dropdown-content { 
+            display: none; position: absolute; right: 0; top: 100%;
+            background-color: #ffffff; min-width: 180px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+            border-radius: 12px; overflow: hidden; z-index: 1000; border: 1px solid #f3f4f6; 
+        }
+        
+        .dropdown-content a { 
+            color: #4b5563; padding: 12px 16px; text-decoration: none; display: flex; 
+            align-items: center; gap: 10px; font-size: 14px; font-weight: 500; 
+            transition: background-color 0.2s; 
+        }
+        .dropdown-content a:hover { background-color: #f9fafb; color: #4f46e5; }
+        
+        /* Üzerine gelince menüyü göster */
+        .dropdown:hover .dropdown-content { display: block; }
     </style>
 </head>
 <body>
@@ -71,21 +98,32 @@
     <nav class="customer-nav">
         <a href="/" class="nav-brand">🍔 DeliveryApp</a>
         <div class="nav-links">
+            {% if request.endpoint == 'index' %}
             <span>📍 {{ session.get('customer_city', 'Select Location') }}</span>
-            <a href="{{ url_for('view_profile') }}" style="text-decoration: none; color: #4b5563; font-weight: 500;">⚙️ Ayarlarım</a>
-            <a href="{{ url_for('customer_orders') }}">My Orders</a>
-            <a href="{{ url_for('view_cart') }}" class="cart-btn cart-wrapper">
+            {% endif %}
+
+            <a href="{{ url_for('view_cart') }}" class="cart-btn cart-wrapper" style="text-decoration: none;">
                 🛒 Cart
                 {% set cart_qty = namespace(total=0) %}
                 {% for item in session.get('cart', []) %}
                     {% set cart_qty.total = cart_qty.total + item.quantity|int %}
                 {% endfor %}
-                
                 {% if cart_qty.total > 0 %}
                     <span class="cart-badge">{{ cart_qty.total }}</span>
                 {% endif %}
             </a>
-            <a href="/logout">Logout</a>
+
+            <div class="dropdown">
+                <button class="dropdown-btn">
+                    👤 Hesabım ▾
+                </button>
+                <div class="dropdown-content">
+                    <a href="{{ url_for('view_profile') }}">⚙️ Ayarlarım</a>
+                    <a href="{{ url_for('customer_orders') }}">📦 Siparişlerim</a>
+                    <div style="height: 1px; background: #e5e7eb; margin: 4px 0;"></div>
+                    <a href="/logout" style="color: #ef4444;">🚪 Çıkış Yap</a>
+                </div>
+            </div>
         </div>
     </nav>
 

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adisyon Fişi #{{ order.order_id }}</title>
+    <style>
+        /* Ekran Tasarımı (Web'de nasıl görünecek) */
+        body { background-color: #f3f4f6; font-family: 'Courier New', Courier, monospace; display: flex; flex-direction: column; align-items: center; padding: 40px 20px; margin: 0; }
+        
+        .receipt-box { background: #ffffff; width: 340px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.06); border: 1px solid #e5e7eb; border-radius: 4px; box-sizing: border-box; }
+        
+        .restaurant-title { font-size: 18px; font-weight: bold; text-align: center; text-transform: uppercase; margin: 0 0 5px 0; }
+        .restaurant-address { font-size: 12px; text-align: center; color: #4b5563; margin: 0 0 15px 0; line-height: 1.4; }
+        
+        .info-line { font-size: 13px; display: flex; justify-content: space-between; margin-bottom: 5px; }
+        .divider { border-top: 1px dashed #000000; margin: 15px 0; }
+        
+        .items-table { width: 100%; font-size: 13px; border-collapse: collapse; }
+        .items-table th { text-align: left; border-bottom: 1px solid #000; padding-bottom: 5px; }
+        .items-table td { padding: 6px 0; vertical-align: top; }
+        
+        .total-line { font-size: 16px; font-weight: bold; display: flex; justify-content: space-between; margin-top: 10px; }
+        
+        /* Buton Alanı */
+        .actions-container { display: flex; gap: 10px; width: 340px; margin-top: 25px; }
+        .btn { flex: 1; padding: 12px; font-family: 'Segoe UI', sans-serif; font-size: 14px; font-weight: 600; text-align: center; border-radius: 8px; cursor: pointer; border: none; text-decoration: none; transition: opacity 0.2s; }
+        .btn-print { background-color: #4f46e5; color: white; }
+        .btn-back { background-color: #e5e7eb; color: #374151; }
+        .btn:hover { opacity: 0.9; }
+
+        /* 🔥 SİHİRLİ DOKUNUŞ: Yazıcı Çıktı Tasarımı (Yazdırılırken butonlar gizlenir) */
+        @media print {
+            body { background-color: #ffffff; padding: 0; margin: 0; }
+            .receipt-box { box-shadow: none; border: none; width: 100%; padding: 0; }
+            .actions-container { display: none !important; } /* Butonları gizle */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="receipt-box">
+        <div class="restaurant-title">{{ restaurant.restaurant_name }}</div>
+        <div class="restaurant-address">{{ restaurant.restaurant_address }}</div>
+        
+        <div class="info-line">
+            <span>Tarih: {{ order.order_date.strftime('%d.%m.%Y') }}</span>
+            <span>Masa: No {{ order.table_no }}</span>
+        </div>
+        <div class="info-line">
+            <span>Adisyon No: #{{ order.order_id }}</span>
+            <span>Durum: ÖDENDİ 💳</span>
+        </div>
+        
+        <div class="divider"></div>
+        
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th style="width: 55%;">Ürün Adı</th>
+                    <th style="width: 15%; text-align: center;">Adet</th>
+                    <th style="width: 30%; text-align: right;">Tutar</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td>{{ item.item_name }}</td>
+                    <td style="text-align: center;">{{ item.quantity }}</td>
+                    <td style="text-align: right;">${{ "%.2f"|format(item.unit_price * item.quantity) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <div class="divider"></div>
+        
+        <div class="total-line">
+            <span>TOPLAM TUTAR:</span>
+            <span>${{ "%.2f"|format(order.sales_amount) }}</span>
+        </div>
+        
+        <div class="divider" style="border-top-style: dotted;"></div>
+        <p style="text-align: center; font-size: 11px; margin: 0; font-style: italic;">Afiyet Olsun! Yine Bekleriz.</p>
+    </div>
+
+    <div class="actions-container">
+        <button onclick="window.print();" class="btn btn-print">🖨️ Fişi Yazdır</button>
+        <a href="{{ url_for('waiter_dashboard') }}" class="btn btn-back">↩️ Panele Dön</a>
+    </div>
+
+</body>
+</html>
