@@ -134,6 +134,29 @@
 
     <div class="container">
         <h2 class="section-title">Popular Restaurants Near You</h2>
+
+        <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 30px; display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+        <form action="{{ url_for('index') }}" method="GET" style="display: flex; gap: 15px; width: 100%; align-items: center;">
+            
+            <div style="flex: 2; min-width: 200px;">
+                <input type="text" name="search" placeholder="🔍 Restoran adı veya mutfak (Örn: Pizza, Burger)..." value="{{ request.args.get('search', '') }}" 
+                       style="width: 100%; padding: 12px 15px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 15px; outline: none; box-sizing: border-box;">
+            </div>
+
+            <div style="flex: 1; min-width: 150px;">
+                <select name="min_rating" style="width: 100%; padding: 12px 15px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 15px; outline: none; background: white; box-sizing: border-box;">
+                    <option value="0" {% if request.args.get('min_rating') == '0' %}selected{% endif %}>⭐ Tüm Puanlar</option>
+                    <option value="4" {% if request.args.get('min_rating') == '4' %}selected{% endif %}>🌟 4+ Yıldız ve Üzeri</option>
+                    <option value="4.5" {% if request.args.get('min_rating') == '4.5' %}selected{% endif %}>🔥 4.5+ Yıldız (Süper)</option>
+                </select>
+            </div>
+
+            <div>
+                <button type="submit" style="background: #3b82f6; color: white; border: none; padding: 12px 25px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 15px;">Ara</button>
+                <a href="{{ url_for('index') }}" style="text-decoration: none; color: #6b7280; padding: 12px 15px; font-weight: 500; font-size: 14px;">Temizle</a>
+            </div>
+        </form>
+        </div>
         
         <div class="restaurant-grid">
             {% for restaurant in restaurants %}

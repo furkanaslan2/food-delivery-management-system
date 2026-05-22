@@ -19,35 +19,63 @@ def index():
     role = session.get('role')
 
     if role == 'customer':
+        # 1. Formdan gelen arama parametrelerini yakala
+        search_query = request.args.get('search', '').strip()
+        min_rating = request.args.get('min_rating', '0')
+        
         connection = get_db_connection()
         restaurants = []
+        
         if connection:
-            cursor = connection.cursor(dictionary=True)
-            cursor.execute("SELECT * FROM restaurants")
-            all_restaurants = cursor.fetchall()
-            cursor.close()
-            connection.close()
-
-            # Müşterinin konumu varsa mesafe hesapla
-            customer_lat = session.get('latitude')
-            customer_lon = session.get('longitude')
-
-            if customer_lat and customer_lon:
-                for r in all_restaurants:
-                    if r['latitude'] and r['longitude']:
-                        dist = calculate_distance(float(customer_lat), float(customer_lon), float(r['latitude']), float(r['longitude']))
-                        r['distance'] = round(dist, 1) # Virgülden sonra 1 basamak (Örn: 2.4 km)
-                    else:
-                        r['distance'] = 999 # Restoranın konumu girilmediyse en sona at
-
-                # Restoranları mesafeye göre yakından uzağa sırala
-                all_restaurants.sort(key=lambda x: x.get('distance', 999))
+            try:
+                cursor = connection.cursor(dictionary=True)
                 
-                # İstersen burada "Sadece 10 km içindekileri göster" diyebiliriz:
-                # all_restaurants = [r for r in all_restaurants if r.get('distance', 999) <= 10]
+                # 2. Akıllı SQL Sorgusu Hazırlığı
+                sql_query = "SELECT * FROM restaurants WHERE 1=1"
+                query_params = []
 
-            restaurants = all_restaurants
-            
+                # Kelime araması (İsim veya Mutfak türü)
+                if search_query:
+                    sql_query += " AND (restaurant_name LIKE %s OR cuisine LIKE %s)"
+                    like_pattern = f"%{search_query}%"
+                    query_params.extend([like_pattern, like_pattern])
+
+                # Puan filtresi
+                if min_rating and float(min_rating) > 0:
+                    sql_query += " AND rating >= %s"
+                    query_params.append(float(min_rating))
+
+                # 3. Sorguyu çalıştır ve filtrelenmiş verileri al
+                cursor.execute(sql_query, tuple(query_params))
+                all_restaurants = cursor.fetchall()
+                
+                # 4. MEVCUT SİSTEMİN: Mesafe Hesaplama ve Sıralama
+                customer_lat = session.get('latitude')
+                customer_lon = session.get('longitude')
+
+                if customer_lat and customer_lon:
+                    for r in all_restaurants:
+                        if r['latitude'] and r['longitude']:
+                            dist = calculate_distance(float(customer_lat), float(customer_lon), float(r['latitude']), float(r['longitude']))
+                            r['distance'] = round(dist, 1) # Virgülden sonra 1 basamak (Örn: 2.4 km)
+                        else:
+                            r['distance'] = 999 # Restoranın konumu girilmediyse en sona at
+
+                    # Restoranları mesafeye göre yakından uzağa sırala
+                    all_restaurants.sort(key=lambda x: x.get('distance', 999))
+                else:
+                    # Müşteri konum izni vermediyse veya lokasyon yoksa, varsayılan olarak puana göre sırala
+                    all_restaurants.sort(key=lambda x: float(x.get('rating', 0) or 0), reverse=True)
+
+                restaurants = all_restaurants
+
+            except Exception as e:
+                print(f"Restoranlar yüklenirken bir hata oluştu: {e}")
+            finally:
+                if connection.is_connected():
+                    cursor.close()
+                    connection.close()
+                    
         return render_template('customer_index.html', restaurants=restaurants)
 
     if role == 'waiter':
