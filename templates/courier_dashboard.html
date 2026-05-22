@@ -57,21 +57,28 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            // 1. Kuryenin ekranındaki mevcut sipariş kartlarını say
-            let currentOrderCount = document.querySelectorAll('.order-card').length;
+            // 1. DİKKAT: Kurye ekranındaki sipariş kartlarının doğru class'ını buluyoruz. 
+            // Eğer senin tasarımında class '.order-card' değilse burayı ona göre değiştir. (Örn: '.card')
+            const orderElements = document.querySelectorAll('.order-card');
+            let currentOrderCount = orderElements ? orderElements.length : 0;
 
             function checkCourierOrders() {
-                // Arka plandan gizlice durumu sor
-                fetch(`/api/check_courier_orders?order_count=${currentOrderCount}`)
+                // 2. Tarayıcının Cache (önbellek) yapmasını engellemek için zaman damgası üretiyoruz
+                const timestamp = new Date().getTime();
+                
+                // Arka plandan gizlice durumu sor (Zaman damgası ile!)
+                fetch(`/api/check_courier_orders?order_count=${currentOrderCount}&t=${timestamp}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.has_changes) {
                             // Değişiklik varsa mavi uyarı çubuğunu göster
                             const alertBox = document.getElementById('courier-alert');
-                            document.getElementById('courier-alert-text').innerText = data.message + ' (Yenilemek için dokun)';
-                            alertBox.style.display = 'block';
+                            if(alertBox) {
+                                document.getElementById('courier-alert-text').innerText = data.message + ' (Yenilemek için dokun)';
+                                alertBox.style.display = 'block';
+                            }
                             
-                            // İsteğe bağlı kurye otomatizasyonu: Motordaysa 5 saniye sonra kendi yenilesin!
+                            // 5 saniye sonra ekranı kendi kendine yenile (Kurye motordaysa diye)
                             setTimeout(() => { window.location.reload(); }, 5000);
                             
                             clearInterval(courierPolling); 
@@ -80,7 +87,7 @@
                     .catch(err => console.error('Kurye API Hatası:', err));
             }
 
-            // 2. Kurye için bu soruyu her 7 saniyede bir sessizce tekrarla
+            // 3. Her 7 saniyede bir sessizce tekrarla
             const courierPolling = setInterval(checkCourierOrders, 7000);
         });
     </script>

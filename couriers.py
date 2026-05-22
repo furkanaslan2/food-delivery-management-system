@@ -277,12 +277,11 @@ def courier_action():
 from flask import jsonify # (Varsa tekrar eklemene gerek yok)
 
 def api_check_courier_orders():
-    # Sadece giriş yapmış kuryeler burayı sorgulayabilir
-    if 'logged_in' not in session or session.get('role') != 'courier':
+    # Güvenlik: Sadece kurye ID'si olanlar burayı sorgulayabilir
+    if 'courier_id' not in session:
         return jsonify({'has_changes': False})
 
     courier_id = session.get('courier_id')
-    # Kuryenin ekranında şu an kaç tane aktif sipariş göründüğünü alıyoruz
     client_order_count = request.args.get('order_count', 0, type=int)
 
     connection = get_db_connection()
@@ -290,7 +289,9 @@ def api_check_courier_orders():
         try:
             cursor = connection.cursor(dictionary=True)
             
-            # Veritabanında bu kuryeye atanmış aktif (bekleyen/yolda) sipariş sayısını bul
+            # ASIL ÇÖZÜM BURASI:
+            # Sadece 'preparing' veya 'on_the_way' durumlarını değil,
+            # 'delivered' veya 'canceled' OLMAYAN tüm aktif paketleri sayıyoruz!
             cursor.execute("""
                 SELECT COUNT(*) as active_count 
                 FROM orders 
@@ -300,7 +301,7 @@ def api_check_courier_orders():
             result = cursor.fetchone()
             db_active_count = result['active_count'] if result else 0
             
-            # Eğer ekrandaki sayı ile veritabanındaki sayı farklıysa (yeni paket gelmiş veya iptal olmuş)
+            # Veritabanındaki aktif paket sayısı ekrandakinden fazlaysa bildirim gönder
             if db_active_count > client_order_count:
                 return jsonify({'has_changes': True, 'message': '📦 YENİ PAKET GELDİ!'})
             elif db_active_count < client_order_count:

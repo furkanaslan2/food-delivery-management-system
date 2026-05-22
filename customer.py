@@ -58,6 +58,9 @@ def view_restaurant(restaurant_id):
 # 2. SEPETE ÜRÜN EKLEME (SESSION CART)
 def add_to_cart():
     if 'logged_in' not in session or session.get('role') != 'customer':
+        # AJAX isteği ise JSON hata dön, değilse normal redirect yap
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'success': False, 'message': 'Please login to add items.'}), 401
         flash("Please login to add items to your cart.", "danger")
         return redirect(url_for('customer_login'))
 
@@ -71,10 +74,11 @@ def add_to_cart():
         if 'cart' not in session:
             session['cart'] = []
 
-        # Eğer sepette ürün varsa ve farklı restorandan ürün eklenmeye çalışılıyorsa sepeti temizle
+        # Eğer sepette ürün varsa ve farklı restorandan ekleniyorsa sepeti temizle
+        cart_cleared = False
         if len(session['cart']) > 0 and str(session['cart'][0]['restaurant_id']) != str(restaurant_id):
             session['cart'] = [] 
-            flash("Your cart was cleared because you selected a different restaurant.", "warning")
+            cart_cleared = True
 
         found = False
         for item in session['cart']:
@@ -93,8 +97,24 @@ def add_to_cart():
             })
 
         session.modified = True
-        flash(f"Added {quantity}x {food_name} to cart!", "success")
+        
+        # Toplam sepet ürün sayısını hesapla
+        total_cart_qty = sum(int(item['quantity']) for item in session['cart'])
 
+        # --- YENİ EKLENEN AJAX (JSON) KONTROLÜ ---
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({
+                'success': True, 
+                'total_cart_qty': total_cart_qty,
+                'cart_cleared': cart_cleared,
+                'message': f"Added {quantity}x {food_name} to cart!"
+            })
+        # ----------------------------------------
+
+        # Normal (Eski usul) form gönderimi ise:
+        if cart_cleared:
+            flash("Your cart was cleared because you selected a different restaurant.", "warning")
+        flash(f"Added {quantity}x {food_name} to cart!", "success")
         return redirect(url_for('view_restaurant', restaurant_id=restaurant_id))
     
 def remove_from_cart(menu_id):

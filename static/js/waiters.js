@@ -84,19 +84,17 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function handleCheckboxChange(event) {
-        const checkbox = event.target;
-        if (checkbox.checked) {
-            lastCheckedBox = checkbox;
-            updateInputs(checkbox);
-        } else if (lastCheckedBox === checkbox) {
-            lastCheckedBox = null;
-            const selectedCheckboxes = Array.from(document.querySelectorAll('#waiter-list input[type="checkbox"]:checked'));
-            if (selectedCheckboxes.length > 0) {
-                lastCheckedBox = selectedCheckboxes[selectedCheckboxes.length - 1];
-                updateInputs(lastCheckedBox);
-            } else {
-                clearInputs();
-            }
+       
+        const selectedCheckboxes = document.querySelectorAll('#waiter-list input[type="checkbox"]:checked');
+
+        if (selectedCheckboxes.length === 0) {
+            clearInputs();
+        } 
+        else if (selectedCheckboxes.length === 1) {
+            updateInputs(selectedCheckboxes[0]);
+        } 
+        else {
+            clearInputs();
         }
     }
 

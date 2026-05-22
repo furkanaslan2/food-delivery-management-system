@@ -230,22 +230,21 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function handleCheckboxChange(event) {
-        const currentCheckbox = event.target;
+        const selectedCheckboxes = document.querySelectorAll('.table-card input[type="checkbox"]:checked');
 
-        // 1. DURUM: Kullanıcı tiki kaldırdıysa
-        if (!currentCheckbox.checked) {
-            clearInputs(); // Sadece formu temizle, işlemi bitir
-            return; 
+        // 1. DURUM: Hiçbir şey seçili değilse -> Sistemi sıfırla
+        if (selectedCheckboxes.length === 0) {
+            clearInputs();
+        } 
+        // 2. DURUM: Sadece TEK BİR sipariş seçiliyse -> Düzenleme moduna geç, formu doldur
+        else if (selectedCheckboxes.length === 1) {
+            updateInputs(selectedCheckboxes[0]);
+        } 
+        // 3. DURUM: BİRDEN FAZLA sipariş seçiliyse -> Toplu işlem modu. 
+        // Kafa karışıklığını önlemek için detay formunu temizle!
+        else {
+            clearInputs();
         }
-
-        // 2. DURUM: Kullanıcı bir siparişe tik attıysa (Tekli Seçim Mantığı)
-        // A) Ekranda başka seçili siparişler varsa onların tikini zorla kaldır
-        document.querySelectorAll('#order-list input[type="checkbox"]').forEach(cb => {
-            if (cb !== currentCheckbox) cb.checked = false;
-        });
-
-        // B) Temiz bir sayfayla, sadece tıkladığı bu siparişin bilgilerini yukarı doldur
-        updateInputs(currentCheckbox);
     }
 
     orderCards.forEach(card => {
