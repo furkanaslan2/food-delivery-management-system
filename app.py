@@ -11,7 +11,7 @@ from menus import menus, menus_action
 from orders import orders, order_action, get_order_details, get_restaurant_details
 from foods import foods, food_action
 from waiters import waiter_dashboard, waiter_create_order, waiters, waiter_action
-from customer import view_restaurant, add_to_cart, view_cart, checkout, customer_orders, set_location, remove_from_cart, increase_cart_item, decrease_cart_item
+from customer import view_restaurant, add_to_cart, view_cart, checkout, customer_orders, set_location, remove_from_cart, increase_cart_item, decrease_cart_item, submit_review
 from courier_panel import courier_dashboard, update_delivery_status, courier_login, courier_logout
 from payment_handler import checkout_payment, payment_callback
 
@@ -62,6 +62,7 @@ app.add_url_rule('/increase_item/<int:menu_id>', view_func=increase_cart_item, m
 app.add_url_rule('/decrease_item/<int:menu_id>', view_func=decrease_cart_item, methods=['POST'])
 app.add_url_rule('/courier_login', view_func=courier_login, methods=['GET', 'POST'])
 app.add_url_rule('/courier_logout', view_func=courier_logout)
+app.add_url_rule('/submit_review', view_func=submit_review, methods=['POST'])
 
 if __name__ == '__main__':
     app.run(debug=True)

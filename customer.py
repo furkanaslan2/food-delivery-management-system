@@ -1,6 +1,7 @@
 from datetime import datetime
 from flask import render_template, request, redirect, url_for, session, flash
 from db import get_db_connection
+from mysql.connector import Error
 
 # 1. RESTORAN MENÜSÜNÜ GÖRÜNTÜLEME
 def view_restaurant(restaurant_id):
@@ -11,6 +12,7 @@ def view_restaurant(restaurant_id):
     connection = get_db_connection()
     restaurant = None
     menu_items = []
+    reviews = [] # Yorumları tutacağımız yeni listemiz
 
     if connection:
         try:
@@ -28,6 +30,16 @@ def view_restaurant(restaurant_id):
             """, (restaurant_id,))
             menu_items = cursor.fetchall()
             
+            # 3. YENİ AŞAMA: Bu restorana ait yorumları ve müşteri isimlerini çek!
+            cursor.execute("""
+                SELECT r.rating, r.comment, r.created_at, c.name AS customer_name 
+                FROM reviews r
+                JOIN customers c ON r.customer_id = c.customer_id
+                WHERE r.restaurant_id = %s
+                ORDER BY r.created_at DESC
+            """, (restaurant_id,))
+            reviews = cursor.fetchall()
+            
         except Exception as e:
             flash(f"Error loading menu: {e}", "danger")
         finally:
@@ -39,7 +51,8 @@ def view_restaurant(restaurant_id):
         flash("Restaurant not found.", "danger")
         return redirect(url_for('index'))
 
-    return render_template('customer_restaurant.html', restaurant=restaurant, menu_items=menu_items)
+    # 'reviews=reviews' kısmını HTML'e göndermek için ekledik
+    return render_template('customer_restaurant.html', restaurant=restaurant, menu_items=menu_items, reviews=reviews)
 
 
 # 2. SEPETE ÜRÜN EKLEME (SESSION CART)
@@ -217,7 +230,7 @@ def customer_orders():
         try:
             cursor = connection.cursor(dictionary=True)
             
-            # 1. Aşama: Müşterinin tüm siparişlerini restoran isimleriyle beraber çek (En yeniler en üstte)
+            # 1. Aşama: Müşterinin tüm siparişlerini restoran isimleriyle çek
             cursor.execute("""
                 SELECT o.*, r.restaurant_name 
                 FROM orders o
@@ -227,16 +240,29 @@ def customer_orders():
             """, (customer_id,))
             orders_list = cursor.fetchall()
 
-            # 2. Aşama: Her bir siparişin içindeki yemek detaylarını (order_items) çek ve siparişe ekle
+            # 2. Aşama: Her bir siparişin iç detaylarını (yemekler) ve YORUMUNU çek!
             for order in orders_list:
+                # Siparişe ait yemekleri (items) çekiyoruz
                 cursor.execute("""
                     SELECT oi.*, f.item_name 
                     FROM order_items oi
                     JOIN foods f ON oi.food_id = f.food_id
                     WHERE oi.order_id = %s
                 """, (order['order_id'],))
-                
                 order['items'] = cursor.fetchall()
+                
+                # --- YENİ EKLENEN KISIM: Bu sipariş için daha önce yorum yapılmış mı? ---
+                cursor.execute("""
+                    SELECT rating, comment FROM reviews WHERE order_id = %s
+                """, (order['order_id'],))
+                review_data = cursor.fetchone()
+                
+                if review_data:
+                    order['review'] = review_data # Yorum varsa siparişin içine 'review' anahtarıyla ekle
+                else:
+                    order['review'] = None # Yorum yoksa None olarak işaretle
+                # -----------------------------------------------------------------------
+                
                 orders_data.append(order)
 
         except Exception as e:
@@ -254,3 +280,68 @@ def set_location():
         session['latitude'] = data.get('latitude')
         session['longitude'] = data.get('longitude')
         return {"status": "success"}
+    
+def submit_review():
+    if 'customer_id' not in session:
+        return redirect(url_for('customer_login'))
+        
+    if request.method == 'POST':
+        order_id = request.form.get('order_id')
+        restaurant_id = request.form.get('restaurant_id')
+        rating = request.form.get('rating')
+        comment = request.form.get('comment')
+        customer_id = session.get('customer_id') 
+        
+        connection = get_db_connection()
+        if connection:
+            try:
+                cursor = connection.cursor(dictionary=True)
+                
+                # 1. Yorumu 'reviews' tablosuna ekle
+                insert_query = """
+                    INSERT INTO reviews (order_id, restaurant_id, customer_id, rating, comment)
+                    VALUES (%s, %s, %s, %s, %s)
+                """
+                cursor.execute(insert_query, (order_id, restaurant_id, customer_id, rating, comment))
+                
+                # 2. Restoranın tüm yorumlarını topla ve ortalamasını hesapla
+                calc_query = "SELECT AVG(rating) as avg_rating, COUNT(*) as total_reviews FROM reviews WHERE restaurant_id = %s"
+                cursor.execute(calc_query, (restaurant_id,))
+                stats = cursor.fetchone()
+                
+                new_rating = round(stats['avg_rating'], 1) if stats['avg_rating'] else 0
+                exact_count = stats['total_reviews']
+                
+                # --- YENİ KISIM: Senin ENUM yapına göre sayıyı metne dönüştürüyoruz ---
+                if exact_count >= 1000:
+                    new_rating_count = '1K+ ratings'
+                elif exact_count >= 500:
+                    new_rating_count = '500+ ratings'
+                elif exact_count >= 100:
+                    new_rating_count = '100+ ratings'
+                elif exact_count >= 50:
+                    new_rating_count = '50+ ratings'
+                elif exact_count >= 20:
+                    new_rating_count = '20+ ratings'
+                else:
+                    new_rating_count = 'Too Few Ratings'
+                # ------------------------------------------------------------------------
+                
+                # 3. Restoranlar tablosunu GÜNCELLE (review_count yerine senin rating_count sütunun kullanılıyor)
+                update_query = "UPDATE restaurants SET rating = %s, rating_count = %s WHERE restaurant_id = %s"
+                cursor.execute(update_query, (new_rating, new_rating_count, restaurant_id))
+                
+                connection.commit()
+                flash("Değerlendirmeniz başarıyla kaydedildi! 🌟", "success")
+                
+            except Error as e:
+                connection.rollback()
+                if "Duplicate entry" in str(e):
+                    flash("Bu siparişi zaten değerlendirdiniz.", "warning")
+                else:
+                    flash(f"Bir hata oluştu: {e}", "danger")
+            finally:
+                cursor.close()
+                connection.close()
+                
+    return redirect(url_for('customer_orders'))

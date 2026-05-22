@@ -109,7 +109,50 @@
                     <span>Total Amount</span>
                     <span class="total-price">${{ "%.2f"|format(order['sales_amount']) }}</span>
                 </div>
-            </div>
+                {% if order['order_status'] == 'delivered' %}
+                    {% if order['review'] %}
+                        <div style="padding: 15px 20px; background-color: #f0fdf4; border-top: 1px solid #e5e7eb;">
+                            <h4 style="margin-top: 0; margin-bottom: 5px; font-size: 14px; color: #166534;">Değerlendirmeniz:</h4>
+                            <p style="margin: 0; font-size: 14px; color: #374151;">
+                                <strong>Puan:</strong> 
+                                {% for i in range(order['review']['rating']) %}⭐{% endfor %} 
+                                ({{ order['review']['rating'] }}/5)
+                            </p>
+                            {% if order['review']['comment'] %}
+                                <p style="margin: 5px 0 0 0; font-size: 13px; color: #6b7280; font-style: italic;">
+                                    "{{ order['review']['comment'] }}"
+                                </p>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <div style="padding: 15px 20px; background-color: #f9fafb; border-top: 1px solid #e5e7eb;">
+                            <h4 style="margin-top: 0; margin-bottom: 10px; font-size: 14px; color: #374151;">Siparişi Değerlendir ⭐</h4>
+                            
+                            <form action="{{ url_for('submit_review') }}" method="POST" style="display: flex; flex-direction: column; gap: 10px;">
+                                <input type="hidden" name="order_id" value="{{ order['order_id'] }}">
+                                <input type="hidden" name="restaurant_id" value="{{ order['restaurant_id'] }}">
+                                
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <select name="rating" required style="padding: 8px; border-radius: 6px; border: 1px solid #d1d5db; outline: none;">
+                                        <option value="" hidden>Puan Ver</option>
+                                        <option value="5">⭐⭐⭐⭐⭐ (5 - Mükemmel)</option>
+                                        <option value="4">⭐⭐⭐⭐ (4 - Çok İyi)</option>
+                                        <option value="3">⭐⭐⭐ (3 - Ortalama)</option>
+                                        <option value="2">⭐⭐ (2 - Kötü)</option>
+                                        <option value="1">⭐ (1 - Berbat)</option>
+                                    </select>
+                                </div>
+                                
+                                <textarea name="comment" placeholder="Yemek ve teslimat hakkında ne düşünüyorsunuz? (Opsiyonel)" style="padding: 8px; border-radius: 6px; border: 1px solid #d1d5db; resize: vertical; min-height: 50px; font-family: inherit; outline: none;"></textarea>
+                                
+                                <button type="submit" style="background-color: #fbbf24; color: #92400e; font-weight: 600; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; align-self: flex-start; transition: background-color 0.2s;">
+                                    Gönder
+                                </button>
+                            </form>
+                        </div>
+                    {% endif %}
+                {% endif %}
+                </div>
             {% endfor %}
         {% else %}
             <div class="empty-state">

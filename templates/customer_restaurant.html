@@ -58,6 +58,24 @@
             height: 18px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
+
+        /* Yorumlar Modal Arka Planı */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
+        
+        /* Yorumlar Modal İçeriği */
+        .modal-content { background: white; width: 90%; max-width: 600px; max-height: 80vh; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: slideUp 0.3s ease-out; }
+        
+        /* Modal Başlık ve Kapatma Butonu */
+        .modal-header { padding: 20px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; background-color: #fff; }
+        .modal-header h3 { margin: 0; font-size: 18px; color: #111827; font-weight: 700; }
+        .close-btn { background: none; border: none; font-size: 28px; cursor: pointer; color: #9ca3af; transition: color 0.2s; line-height: 1; }
+        .close-btn:hover { color: #111827; }
+        
+        /* Modal Gövdesi (Kaydırılabilir alan) */
+        .modal-body { padding: 20px; overflow-y: auto; background-color: #f8f9fa; }
+        
+        /* Küçük bir açılış animasyonu */
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     </style>
 </head>
 <body>
@@ -83,7 +101,9 @@
     <div class="restaurant-header">
         <h1>{{ restaurant['restaurant_name'] }}</h1>
         <p>{{ restaurant['cuisine'] }} • {{ restaurant['restaurant_address'] }}</p>
-        <div class="rating">⭐ {{ restaurant['rating'] }} ({{ restaurant['rating_count'] }})</div>
+        <div class="rating" onclick="document.getElementById('reviewsModal').style.display='flex'" style="cursor: pointer; transition: transform 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+            ⭐ {{ restaurant['rating'] }} ({{ restaurant['rating_count'] }}) - Yorumları Gör
+        </div>
     </div>
 
     <div class="container">
@@ -122,7 +142,48 @@
                 <p style="text-align: center; color: #6b7280; margin-top: 20px;">This restaurant hasn't added any menu items yet.</p>
             {% endfor %}
         </div>
+    <div id="reviewsModal" class="modal-overlay" onclick="if(event.target == this) this.style.display='none'">
+        <div class="modal-content">
+            
+            <div class="modal-header">
+                <h3>Müşteri Değerlendirmeleri ({{ reviews|length }})</h3>
+                <button class="close-btn" onclick="document.getElementById('reviewsModal').style.display='none'">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                {% if reviews %}
+                    <div style="display: grid; grid-template-columns: 1fr; gap: 15px;">
+                    {% for review in reviews %}
+                        <div style="background-color: #ffffff; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid #f3f4f6;">
+                            
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                <span style="font-weight: 600; color: #374151; font-size: 16px;">👤 {{ review.customer_name }}</span>
+                                <span style="color: #9ca3af; font-size: 13px;">{{ review.created_at.strftime('%d %b %Y') }}</span>
+                            </div>
+                            
+                            <div style="margin-bottom: 12px; font-size: 14px;">
+                                {% for i in range(review.rating) %}⭐{% endfor %}
+                                <span style="color: #6b7280; font-size: 13px; margin-left: 5px;">({{ review.rating }})</span>
+                            </div>
+                            
+                            {% if review.comment %}
+                                <p style="margin: 0; color: #4b5563; font-size: 15px; line-height: 1.6; font-style: italic; background-color: #f9fafb; padding: 12px; border-radius: 8px; border-left: 3px solid #fbbf24;">
+                                    "{{ review.comment }}"
+                                </p>
+                            {% endif %}
+                            
+                        </div>
+                    {% endfor %}
+                    </div>
+                {% else %}
+                    <div style="background-color: #ffffff; padding: 30px; border-radius: 12px; text-align: center; border: 1px dashed #d1d5db;">
+                        <p style="color: #6b7280; font-size: 16px; margin: 0;">
+                            🍽️ Bu restoran için henüz bir değerlendirme yapılmamış.
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
     </div>
-
 </body>
 </html>

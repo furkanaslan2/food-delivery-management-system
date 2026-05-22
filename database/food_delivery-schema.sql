@@ -136,3 +136,17 @@ CREATE TABLE order_items (
     FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE,
     FOREIGN KEY (food_id) REFERENCES foods(food_id)
 );
+
+CREATE TABLE reviews (
+    review_id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL UNIQUE,          
+    restaurant_id INT NOT NULL,           
+    customer_id INT NOT NULL,           
+    rating INT NOT NULL CHECK (rating >= 1 AND rating <= 5), 
+    comment TEXT,                   
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE,
+    FOREIGN KEY (restaurant_id) REFERENCES restaurants(restaurant_id) ON DELETE CASCADE,
+    FOREIGN KEY (customer_id) REFERENCES customers(customer_id) ON DELETE CASCADE 
+);
