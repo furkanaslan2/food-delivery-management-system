@@ -84,6 +84,38 @@ def add_to_cart():
 
         return redirect(url_for('view_restaurant', restaurant_id=restaurant_id))
     
+def remove_from_cart(menu_id):
+    if 'cart' in session:
+        # Sepetteki ürünleri tarıyoruz ve sadece SİLİNMEK İSTENMEYEN ürünleri yeni sepette tutuyoruz
+        session['cart'] = [item for item in session['cart'] if int(item['menu_id']) != menu_id]
+        
+        # Session'ı güncellediğimizi Flask'e bildiriyoruz
+        session.modified = True 
+        flash("Ürün sepetten çıkarıldı.", "success")
+        
+    # İşlem bitince müşteriyi tekrar sepet ekranına geri gönderiyoruz
+    return redirect(url_for('view_cart'))
+
+def increase_cart_item(menu_id):
+    if 'cart' in session:
+        for item in session['cart']:
+            if int(item['menu_id']) == menu_id:
+                item['quantity'] = int(item['quantity']) + 1
+                break
+        session.modified = True
+    return redirect(url_for('view_cart'))
+
+def decrease_cart_item(menu_id):
+    if 'cart' in session:
+        for item in session['cart']:
+            if int(item['menu_id']) == menu_id:
+                # Ürün miktarının 1'in altına düşmesini engelliyoruz (Silmek için çöp kutusu var)
+                if int(item['quantity']) > 1:
+                    item['quantity'] = int(item['quantity']) - 1
+                break
+        session.modified = True
+    return redirect(url_for('view_cart'))
+    
 def view_cart():
     if 'logged_in' not in session or session.get('role') != 'customer':
         flash("Please login to view your cart.", "danger")

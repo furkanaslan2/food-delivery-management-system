@@ -45,6 +45,25 @@
         .card-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f3f4f6; padding-top: 12px; font-size: 13px; color: #4b5563; }
         
         .cuisine-tag { background: #f3f4f6; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; color: #374151; }
+
+        /* Sepet Bildirim Balonu CSS'i */
+        .cart-wrapper { position: relative; }
+        .cart-badge {
+            position: absolute;
+            top: -8px;
+            right: -10px;
+            background-color: #ef4444;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 18px;
+            height: 18px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
     </style>
 </head>
 <body>
@@ -54,7 +73,17 @@
         <div class="nav-links">
             <span>📍 {{ session.get('customer_city', 'Select Location') }}</span>
             <a href="{{ url_for('customer_orders') }}">My Orders</a>
-            <a href="{{ url_for('view_cart') }}" class="cart-btn">🛒 Cart</a>
+            <a href="{{ url_for('view_cart') }}" class="cart-btn cart-wrapper">
+                🛒 Cart
+                {% set cart_qty = namespace(total=0) %}
+                {% for item in session.get('cart', []) %}
+                    {% set cart_qty.total = cart_qty.total + item.quantity|int %}
+                {% endfor %}
+                
+                {% if cart_qty.total > 0 %}
+                    <span class="cart-badge">{{ cart_qty.total }}</span>
+                {% endif %}
+            </a>
             <a href="/logout">Logout</a>
         </div>
     </nav>
