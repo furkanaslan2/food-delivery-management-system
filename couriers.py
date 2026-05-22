@@ -1,6 +1,7 @@
 from flask import render_template, request, redirect, url_for, session, flash
 from db import get_db_connection
 from mysql.connector import Error
+from werkzeug.security import generate_password_hash
 
 def couriers():
     if not session.get('logged_in'):
@@ -57,14 +58,22 @@ def courier_action():
             gender = request.form.get('gender')
             birth_date = request.form.get('birth_date')
             restaurant_id = request.form.get('restaurant_id')
+            email = request.form.get('email')
+            password = request.form.get('password') 
 
-            if role == 'user' and restaurant_id != str(restaurant_id_session):
-                flash("Unauthorized action! You can only add courier(s) for your restaurant.", "danger")
-                return redirect(url_for('couriers'))
+            if role == 'user':
+                restaurant_id = restaurant_id_session
+            else:
+                restaurant_id = request.form.get('restaurant_id')
+                if not restaurant_id:
+                    flash("Admin yetkisiyle kurye eklerken Restaurant ID girmelisiniz.", "warning")
+                    return redirect(url_for('couriers'))
 
-            if not name or not gender or not birth_date or not restaurant_id:
+            if not name or not gender or not birth_date or not restaurant_id or not email or not password:
                 flash("All fields are required (except Courier ID).", "warning")
                 return redirect(url_for('couriers'))
+            
+            hashed_password = generate_password_hash(password)
 
             cursor.execute("SELECT COUNT(*) FROM restaurants WHERE restaurant_id = %s", (restaurant_id,))
             result = cursor.fetchone() #################################################
@@ -86,11 +95,11 @@ def courier_action():
                     flash(f"The new Courier ID is already in use. Please provide a unique ID. Suggestions: {suggestions}","warning")
                     return redirect(url_for('couriers'))
 
-                query = 'INSERT INTO couriers (courier_id, name, gender, birth_date, restaurant_id) VALUES (%s, %s, %s, %s, %s)'
-                cursor.execute(query, (courier_id, name, gender, birth_date, restaurant_id))
+                query = 'INSERT INTO couriers (courier_id, name, gender, birth_date, restaurant_id, email, password) VALUES (%s, %s, %s, %s, %s, %s, %s)'
+                cursor.execute(query, (courier_id, name, gender, birth_date, restaurant_id, email, hashed_password))
             else:
-                query = 'INSERT INTO couriers (name, gender, birth_date, restaurant_id) VALUES (%s, %s, %s, %s)'
-                cursor.execute(query, (name, gender, birth_date, restaurant_id))
+                query = 'INSERT INTO couriers (name, gender, birth_date, restaurant_id, email, password) VALUES (%s, %s, %s, %s, %s, %s)'
+                cursor.execute(query, (name, gender, birth_date, restaurant_id, email, hashed_password))
             connection.commit()
             flash("Courier added successfully!", "success")
 
@@ -119,17 +128,24 @@ def courier_action():
             gender = request.form.get('gender')
             birth_date = request.form.get('birth_date')
             restaurant_id = request.form.get('restaurant_id')
+            email = request.form.get('email')
+            password = request.form.get('password')
 
             if not update_courier_id:
                 flash("No courier selected for update.", "warning")
                 return redirect(url_for('couriers'))
 
-            if role == 'user' and (restaurant_id != str(restaurant_id_session) or new_courier_id != update_courier_id):
-                flash("Unauthorized action! You cannot change your Courier's ID or Restaurant ID.", "danger")
-                return redirect(url_for('couriers'))
+            if role == 'user':
+                restaurant_id = restaurant_id_session
+                # Sadece Kurye ID'sini değiştirmeye çalışıyor mu diye bakıyoruz
+                if new_courier_id != update_courier_id:
+                    flash("Unauthorized action! You cannot change your Courier's ID.", "danger")
+                    return redirect(url_for('couriers'))
+            else:
+                restaurant_id = request.form.get('restaurant_id')
             
-            if not all([name, gender, birth_date]):
-                flash("All fields (except Courier ID and Restaurant ID) are required for update.", "warning")
+            if not all([name, gender, birth_date, email]):
+                flash("All fields are required for update.", "warning")
                 return redirect(url_for('couriers'))
 
             cursor.execute("SELECT COUNT(*) FROM restaurants WHERE restaurant_id = %s", (restaurant_id,))
@@ -152,8 +168,13 @@ def courier_action():
                     flash(f"The new Courier ID is already in use. Please provide a unique ID. Suggestions: {suggestions}","warning")
                     return redirect(url_for('couriers'))
 
-            query = "UPDATE couriers SET courier_id = %s, name = %s, gender = %s, birth_date = %s, restaurant_id = %s WHERE courier_id = %s"
-            cursor.execute(query, (new_courier_id, name, gender, birth_date, restaurant_id, update_courier_id))
+            if password:
+                hashed_password = generate_password_hash(password)
+                query = "UPDATE couriers SET courier_id = %s, name = %s, gender = %s, birth_date = %s, restaurant_id = %s, email = %s, password = %s WHERE courier_id = %s"
+                cursor.execute(query, (new_courier_id, name, gender, birth_date, restaurant_id, email, hashed_password, update_courier_id))
+            else:
+                query = "UPDATE couriers SET courier_id = %s, name = %s, gender = %s, birth_date = %s, restaurant_id = %s, email = %s WHERE courier_id = %s"
+                cursor.execute(query, (new_courier_id, name, gender, birth_date, restaurant_id, email, update_courier_id))
             connection.commit()
             flash("Courier updated successfully!", "success")
 
@@ -163,6 +184,7 @@ def courier_action():
             gender = request.form.get('gender')
             birth_date = request.form.get('birth_date')
             restaurant_id = request.form.get('restaurant_id')
+            email = request.form.get('email') 
 
             if not any([courier_id, name, gender, birth_date, restaurant_id]):
                 flash("Please provide at least one filter criteria.", "warning")
@@ -189,6 +211,9 @@ def courier_action():
             if restaurant_id:
                 query += " AND restaurant_id = %s"
                 params.append(restaurant_id)
+            if email:
+                query += " AND email LIKE %s"
+                params.append(f"%{email}%")
 
             cursor.execute(query, params)
             couriers = cursor.fetchall()

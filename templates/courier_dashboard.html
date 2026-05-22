@@ -35,8 +35,11 @@
 </head>
 <body>
 
-    <div class="header">
-        <h1>🛵 {{ courier_name }}'s Deliveries</h1>
+    <div class="header" style="display: flex; justify-content: space-between; align-items: center;">
+        <h1 style="text-align: left;">🛵 {{ courier_name }}</h1>
+        <a href="{{ url_for('courier_logout') }}" style="background-color: #ef4444; color: white; text-decoration: none; padding: 8px 14px; border-radius: 6px; font-size: 14px; font-weight: 600; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+            Logout 🚪
+        </a>
     </div>
     
     <div class="container">
@@ -72,7 +75,7 @@
 
                 <div class="contact-links">
                     <a href="tel:{{ order.customer_phone }}" class="contact-btn">📞 Call</a>
-                    <a href="https://maps.google.com/?q={{ order.customer_address }}" target="_blank" class="contact-btn">📍 Navigate</a>
+                    <a href="https://www.google.com/maps/search/?api=1&query={{ order.customer_address }}" target="_blank" class="contact-btn">📍 Navigate</a>
                 </div>
 
                 <form action="{{ url_for('update_delivery_status') }}" method="POST">

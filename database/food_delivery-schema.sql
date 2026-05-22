@@ -48,6 +48,8 @@ CREATE TABLE couriers (
     name VARCHAR(100) NOT NULL,
     gender ENUM('Male', 'Female') NOT NULL,
     birth_date DATE NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL, 
+    password VARCHAR(255) NOT NULL,
     restaurant_id INT,
     PRIMARY KEY (courier_id),
     FOREIGN KEY (restaurant_id) REFERENCES restaurants(restaurant_id)

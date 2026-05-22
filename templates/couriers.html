@@ -38,6 +38,10 @@
             <input type="hidden" id="courier-restaurant-id" name="restaurant_id">
             
             <input type="text" id="courier-name" name="name" placeholder="Name">
+
+            <input type="email" id="courier-email" name="email" placeholder="Email Address">
+            <input type="password" id="courier-password" name="password" placeholder="Password">
+
             <select id="courier-gender" name="gender">
                 <option value="" hidden>Gender</option>
                 <option value="Male">Male</option>
@@ -89,6 +93,7 @@
                 <span class="courier-restaurant-id" style="display: none;">{{ courier['restaurant_id'] }}</span>
                 
                 <p><strong>Name:</strong> <span class="courier-name">{{ courier['name'] }}</span></p>
+                <p><strong>Email:</strong> <span class="courier-email">{{ courier['email'] }}</span></p>
                 <p><strong>Gender:</strong> <span class="courier-gender">{{ courier['gender'] }}</span></p>
                 <p><strong>Birth Date:</strong> <span class="courier-birthdate">{{ courier['birth_date'] }}</span></p>
             </label>

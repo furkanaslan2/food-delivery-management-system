@@ -1,8 +1,19 @@
+from werkzeug.security import check_password_hash
 from flask import render_template, request, redirect, url_for, session, flash
 from db import get_db_connection
 
 def courier_dashboard(courier_id):
-    # İleride buraya kurye login kontrolü (session) eklenebilir.
+    logged_in_courier_id = session.get('courier_id')
+    
+    # 1. Kontrol: Session'da courier_id yoksa login'e at
+    if not logged_in_courier_id:
+        flash("Lütfen paneli görüntülemek için giriş yapın.", "warning")
+        return redirect(url_for('courier_login'))
+        
+    # 2. Kontrol: Session'daki ID ile URL'deki ID eşleşmiyorsa kendi paneline geri fırlat
+    if int(logged_in_courier_id) != int(courier_id):
+        flash("Yetkisiz erişim! Sadece kendi panelinizi görüntüleyebilirsiniz.", "danger")
+        return redirect(url_for('courier_dashboard', courier_id=logged_in_courier_id))
     
     connection = get_db_connection()
     active_orders = []
@@ -59,3 +70,44 @@ def update_delivery_status():
                     connection.close()
                     
         return redirect(url_for('courier_dashboard', courier_id=courier_id))
+    
+def courier_login():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
+        
+        connection = get_db_connection()
+        if connection:
+            try:
+                cursor = connection.cursor(dictionary=True)
+                
+                # 1. Adım: Sadece e-posta ile kuryeyi veritabanından çekiyoruz
+                cursor.execute("SELECT * FROM couriers WHERE email = %s", (email,))
+                courier = cursor.fetchone()
+                
+                # 2. Adım: Kurye bulunduysa, girilen şifreyi veritabanındaki HASH ile karşılaştırıyoruz
+                if courier and check_password_hash(courier['password'], password):
+                    # Giriş başarılı!
+                    session['courier_id'] = courier['courier_id']
+                    session['courier_name'] = courier['name']
+                    return redirect(url_for('courier_dashboard', courier_id=courier['courier_id']))
+                else:
+                    flash("Invalid email or password! Please try again.", "danger")
+                    
+            except Exception as e:
+                print(f"Login error: {e}")
+                flash("An error occurred during login.", "danger")
+            finally:
+                cursor.close()
+                connection.close()
+                
+    # GET isteği gelirse sadece HTML formunu göster
+    return render_template('courier_login.html')
+
+def courier_logout():
+    # Kuryeye ait session verilerini hafızadan temizliyoruz
+    session.pop('courier_id', None)
+    session.pop('courier_name', None)
+    
+    flash("Başarıyla çıkış yaptınız. İyi dinlenmeler! 🛵", "success")
+    return redirect(url_for('courier_login'))
