@@ -23,19 +23,14 @@ document.addEventListener("DOMContentLoaded", function () {
         const adminRestInput = document.getElementById('add-order-restaurant-id'); 
         const userRestInput = document.getElementById('order-restaurant-id');     
 
-        if (adminRestInput) {
-            adminRestInput.value = restaurantID;
-            
-            adminRestInput.dispatchEvent(new Event('change'));
+        // Arkadaki gizli ID'leri güvenle doldur
+        if (adminRestInput) adminRestInput.value = restaurantID;
+        if (userRestInput) userRestInput.value = restaurantID;
 
-            setTimeout(() => {
-                const courierSelect = document.getElementById('dynamic-courier-list');
-                if (courierSelect) courierSelect.value = courierId;
-            }, 200);
-
-        } else if (userRestInput) {
-            userRestInput.value = restaurantID;
-             if(document.getElementById('courier-id')) document.getElementById('courier-id').value = courierId;
+        // Sayfa yüklendiğinde kuryeler zaten var olduğu için beklemeden ANINDA seç!
+        const courierSelect = document.getElementById('dynamic-courier-list');
+        if (courierSelect) {
+            courierSelect.value = courierId;
         }
 
         document.getElementById('order-id').value = id;
@@ -93,18 +88,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
                         foodContainer.innerHTML = allRowsHTML;
 
-                        setTimeout(() => {
-                             const selectBoxes = foodContainer.querySelectorAll('.food-select');
-                             data.forEach((item, index) => {
-                                 if (selectBoxes[index]) {
-                                     selectBoxes[index].value = item.food_id;
-                                 }
-                             });
-                        }, 500); 
-
+                        // Zaman kaybetmeden yemekleri anında seç
                         const selectBoxes = foodContainer.querySelectorAll('.food-select');
                         selectBoxes.forEach((box, index) => {
-                            if (data[index]) box.value = data[index].food_id;
+                            if (data[index] && box) {
+                                box.value = data[index].food_id;
+                            }
                         });
 
                     } else {
@@ -170,60 +159,61 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById('order-sales-quantity').value = '';
         document.getElementById('order-sales-amount').value = '';
         document.getElementById('update-order-id').value = '';
-        document.getElementById('order-table-no').value = '';
+        
+        const tableInput = document.getElementById('order-table-no');
+        if (tableInput) tableInput.value = '';
 
         const adminRestInput = document.getElementById('add-order-restaurant-id');
         const userRestInput = document.getElementById('order-restaurant-id');
 
-        if (adminRestInput) {
-            adminRestInput.value = ''; 
-            
-            const courierSelect = document.getElementById('dynamic-courier-list');
-            if (courierSelect) {
-                courierSelect.innerHTML = '<option value="">Select Courier...</option>';
-            }
-        }
-        
-        if (userRestInput) {
-        }
+        if (adminRestInput) adminRestInput.value = ''; 
+        if (userRestInput) userRestInput.value = '';
 
         if(document.getElementById('customer-name')) document.getElementById('customer-name').value = '';
         if(document.getElementById('customer-phone')) document.getElementById('customer-phone').value = '';
         if(document.getElementById('customer-address')) document.getElementById('customer-address').value = '';
-        if(document.getElementById('courier-id')) document.getElementById('courier-id').value = '';
 
+        // 🚀 ÇÖZÜM 1: Kurye listesini YOK ETME, sadece seçimi sıfırla!
+        const courierSelect = document.getElementById('dynamic-courier-list');
+        if (courierSelect) {
+            courierSelect.value = ''; 
+        }
+
+        // 🚀 ÇÖZÜM 2: Yemek listesini SİLME, sadece ilk satırı koruyup değerini sıfırla!
         const foodContainer = document.getElementById('food-items-container');
         if (foodContainer) {
-            foodContainer.innerHTML = ''; 
+            const rows = foodContainer.querySelectorAll('.food-row');
+            if (rows.length > 0) {
+                const firstRow = rows[0];
+                
+                // Sadece ilk satırın değerlerini boşalt
+                const selectBox = firstRow.querySelector('select');
+                const qtyBox = firstRow.querySelector('input[name="quantity"]');
+                if (selectBox) selectBox.value = '';
+                if (qtyBox) qtyBox.value = '1';
+                
+                // Yanındaki kırmızı 'X' silme butonunu kaldır
+                const removeBtn = firstRow.querySelector('.remove-btn');
+                if (removeBtn) removeBtn.remove();
 
-            const row = document.createElement('div');
-            row.className = 'food-row';
-            row.style = "display: flex; gap: 5px; margin-bottom: 5px; width: 100%;";
-            
-            row.innerHTML = `
-                <select name="food_id" class="food-select dynamic-food-list" style="flex: 2; height: 35px; padding: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
-                    <option value="">Select Food...</option>
-                </select>
-                <input type="number" name="quantity" placeholder="Qty" value="1" min="1" 
-                       style="flex: 0.8; height: 35px; padding: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
-            `;
-            foodContainer.appendChild(row);
+                // Eğer 2., 3., 4. yemek satırları varsa sadece onları temizle
+                for (let i = 1; i < rows.length; i++) {
+                    rows[i].remove();
+                }
+            }
         }
     
         const qtyInput = document.getElementById('order-sales-quantity');
         const amtInput = document.getElementById('order-sales-amount');
-        const tableInput = document.getElementById('order-table-no');
         const typeSelect = document.getElementById('order-type');
         const idInput = document.getElementById('order-id');
-        const resInput = document.getElementById('order-restaurant-id');
 
-        const inputsToUnlock = [qtyInput, amtInput, tableInput, typeSelect, idInput, resInput];
+        const inputsToUnlock = [qtyInput, amtInput, tableInput, typeSelect, idInput, userRestInput];
 
         inputsToUnlock.forEach(el => {
             if (el) {
                 el.style.backgroundColor = ""; 
                 el.style.cursor = ""; 
-                
                 if (el.tagName === 'SELECT') {
                     el.style.pointerEvents = "auto"; 
                     el.style.color = ""; 
@@ -234,19 +224,29 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
 
-        toggleOrderFields(); 
+        if (typeof toggleOrderFields === 'function') {
+            toggleOrderFields(); 
+        }
     }
 
     function handleCheckboxChange(event) {
-    const selectedCheckboxes = document.querySelectorAll('#order-list input[type="checkbox"]:checked');
+        const currentCheckbox = event.target;
 
-    if (selectedCheckboxes.length > 0) {
-        const lastCheckbox = selectedCheckboxes[selectedCheckboxes.length - 1];
-        updateInputs(lastCheckbox);
-    } else {
-        clearInputs();
+        // 1. DURUM: Kullanıcı tiki kaldırdıysa
+        if (!currentCheckbox.checked) {
+            clearInputs(); // Sadece formu temizle, işlemi bitir
+            return; 
+        }
+
+        // 2. DURUM: Kullanıcı bir siparişe tik attıysa (Tekli Seçim Mantığı)
+        // A) Ekranda başka seçili siparişler varsa onların tikini zorla kaldır
+        document.querySelectorAll('#order-list input[type="checkbox"]').forEach(cb => {
+            if (cb !== currentCheckbox) cb.checked = false;
+        });
+
+        // B) Temiz bir sayfayla, sadece tıkladığı bu siparişin bilgilerini yukarı doldur
+        updateInputs(currentCheckbox);
     }
-}
 
     orderCards.forEach(card => {
         const checkbox = card.querySelector('input[type="checkbox"]');

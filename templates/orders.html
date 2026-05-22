@@ -221,10 +221,24 @@
                         {% if not ns.found %} - {% endif %}
                     </p>
                     <span class="order-table-no hidden"></span>
-                {% else %}
+                    <div style="margin-top: 10px; font-size: 0.9em;">
+                        <strong>💳 Payment:</strong> 
+                        {% if order['payment_method'] == 'Online Payment' %}
+                            <span style="color: #059669; background: #dcfce3; padding: 2px 6px; border-radius: 4px; font-weight: 600;">🌐 Online Paid</span>
+                        {% else %}
+                            <span style="color: #b45309; background: #fef3c7; padding: 2px 6px; border-radius: 4px; font-weight: 600;">💰 {{ order['payment_method'] or 'Not Specified' }}</span>
+                        {% endif %}
+                    </div>
+
+                    {% if order['order_note'] %}
+                        <div style="margin-top: 8px; background-color: #fef2f2; border-left: 3px solid #ef4444; padding: 8px; border-radius: 4px; font-size: 0.85em; color: #7f1d1d; font-style: italic;">
+                            <strong>📌 Note:</strong> "{{ order['order_note'] }}"
+                        </div>
+                    {% endif %}
+                    {% else %}
                     <p style="color: #0984e3;"><strong>🍽️ Dine-in</strong></p>
                     <p><strong>Table No:</strong> <span class="order-table-no">{{ order['table_no'] }}</span></p>
-                {% endif %}
+                    {% endif %}
                 
                 <div style="margin-top: 15px; text-align: center;">
                     <button type="button" class="search-button" style="padding: 5px 15px; font-size: 0.9em; background-color: #6c5ce7; color: white; border: none; border-radius: 4px; cursor: pointer;" onclick="showOrderDetails(event, '{{ order.order_id }}')">

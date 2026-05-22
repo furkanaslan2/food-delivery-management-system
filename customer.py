@@ -152,6 +152,8 @@ def checkout():
     if request.method == 'POST':
         phone = request.form.get('phone')
         address = request.form.get('address')
+        order_note = request.form.get('order_note', '') 
+        payment_method = request.form.get('payment_method')
         customer_id = session.get('customer_id')
 
         # Sepetteki toplam tutar ve miktarı hesapla
@@ -173,12 +175,13 @@ def checkout():
                 insert_order_query = """
                     INSERT INTO orders (
                         restaurant_id, order_status, order_date, sales_qty, 
-                        sales_amount, order_type, customer_id, customer_name, customer_phone, customer_address
+                        sales_amount, order_type, customer_id, customer_name, customer_phone, customer_address,
+                        order_note, payment_method
                     )
-                    VALUES (%s, 'pending', NOW(), %s, %s, 'Delivery', %s, %s, %s, %s)
+                    VALUES (%s, 'pending', NOW(), %s, %s, 'Delivery', %s, %s, %s, %s, %s, %s)
                 """
                 cursor.execute(insert_order_query, (
-                    restaurant_id, total_qty, total_amount, customer_id, customer_name, phone, address
+                    restaurant_id, total_qty, total_amount, customer_id, customer_name, phone, address, order_note, payment_method
                 ))
                 
                 new_order_id = cursor.lastrowid # Yeni oluşan Siparişin ID'si
@@ -202,10 +205,15 @@ def checkout():
 
                 connection.commit()
                 
-                # İşlem bitti, sepeti temizle
-                session.pop('cart', None) 
-                flash("🎉 Order placed successfully! The restaurant has received your order.", "success")
-                return redirect(url_for('index'))
+                # --- YENİ: ÖDEME YÖNTEMİNE GÖRE YÖNLENDİRME ---
+                if payment_method == 'Online Payment':
+                    # SENİN ORİJİNAL ÖDEME SAYFANA YÖNLENDİRİYORUZ
+                    return redirect(url_for('checkout_payment')) 
+                else:
+                    # Kapıda ödeme (Nakit veya Kart) ise işlemi bitir ve sepeti temizle
+                    session.pop('cart', None) 
+                    flash("🎉 Siparişiniz başarıyla alındı! Restoran hazırlanıyor.", "success")
+                    return redirect(url_for('index'))
 
             except Exception as e:
                 connection.rollback()

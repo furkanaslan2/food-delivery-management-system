@@ -87,7 +87,9 @@ CREATE TABLE orders (
     table_no INT,               
     customer_name VARCHAR(100), 
     customer_phone VARCHAR(20), 
-    customer_address TEXT,     
+    customer_address TEXT,
+    order_note TEXT,
+    payment_method VARCHAR(50),
     
     PRIMARY KEY (order_id),
     FOREIGN KEY (restaurant_id) REFERENCES restaurants(restaurant_id)
