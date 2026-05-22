@@ -75,9 +75,23 @@ def login():
     return render_template('login.html')
     
 def logout():
-    session.pop('logged_in', None)
+    # 1. Oturumu temizlemeden önce kullanıcının rolünü hafızaya alıyoruz
+    role = session.get('role')
+    
+    # 2. Artık güvenle TÜM oturum verilerini silebiliriz (sepet, id'ler, lokasyon vb. her şey sıfırlanır)
+    session.clear()
+    
+    # 3. Flash mesajını session temizlendikten SONRA eklemeliyiz (çünkü flash da arka planda session kullanır)
     flash('You have been logged out!', 'success')
-    return redirect(url_for('login'))
+    
+    # 4. Öğrendiğimiz role göre kişiyi kendi giriş kapısına yönlendiriyoruz
+    if role == 'customer':
+        return redirect(url_for('customer_login')) 
+    elif role == 'courier':
+        return redirect(url_for('courier_login'))
+    else:
+        # Garson, Restoran Sahibi (user), Admin veya role atanmamışsa ana login'e gönder
+        return redirect(url_for('login'))
 
 def register():
     if request.method == 'POST':
