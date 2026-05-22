@@ -10,10 +10,11 @@ from couriers import couriers, courier_action
 from menus import menus, menus_action
 from orders import orders, order_action, get_order_details, get_restaurant_details
 from foods import foods, food_action
-from waiters import waiter_dashboard, waiter_create_order, waiters, waiter_action
+from waiters import waiter_dashboard, waiter_create_order, waiters, waiter_action, waiter_close_bill
 from customer import view_restaurant, add_to_cart, view_cart, checkout, customer_orders, set_location, remove_from_cart, increase_cart_item, decrease_cart_item, submit_review
 from courier_panel import courier_dashboard, update_delivery_status, courier_login, courier_logout
 from payment_handler import checkout_payment, payment_callback
+from profile_settings import view_profile, update_profile
 
 load_dotenv()
 
@@ -45,6 +46,7 @@ app.add_url_rule('/waiters', 'waiters', waiters)
 app.add_url_rule('/waiters', 'waiter_action', waiter_action, methods=['POST'])
 app.add_url_rule('/waiter_dashboard', 'waiter_dashboard', waiter_dashboard)
 app.add_url_rule('/waiter_create_order', 'waiter_create_order', waiter_create_order, methods=['POST'])
+app.add_url_rule('/waiter_close_bill', 'waiter_close_bill', waiter_close_bill, methods=['POST'])
 app.add_url_rule('/analytics', view_func=restaurant_analytics, methods=['GET'])
 app.add_url_rule('/customer_login', 'customer_login', customer_login, methods=['GET', 'POST'])
 app.add_url_rule('/customer_register', 'customer_register', customer_register, methods=['GET', 'POST'])
@@ -63,6 +65,8 @@ app.add_url_rule('/decrease_item/<int:menu_id>', view_func=decrease_cart_item, m
 app.add_url_rule('/courier_login', view_func=courier_login, methods=['GET', 'POST'])
 app.add_url_rule('/courier_logout', view_func=courier_logout)
 app.add_url_rule('/submit_review', view_func=submit_review, methods=['POST'])
+app.add_url_rule('/profile', endpoint='view_profile', view_func=view_profile, methods=['GET'])
+app.add_url_rule('/profile/update', endpoint='update_profile', view_func=update_profile, methods=['POST'])
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -408,3 +408,55 @@ def waiter_create_order():
             connection.close()
 
     return redirect(url_for('waiter_dashboard'))
+
+def waiter_close_bill():
+    # Giriş ve Rol Kontrolü
+    if not session.get('logged_in') or session.get('role') != 'waiter':
+        return redirect(url_for('login'))
+
+    restaurant_id = session.get('restaurant_id')
+    table_no = request.form.get('table_no')
+    
+    if not table_no:
+        flash("Lütfen hesabı kapatılacak masa numarasını seçin veya girin!", "danger")
+        return redirect(url_for('waiter_dashboard'))
+
+    connection = get_db_connection()
+    if connection is None:
+        return redirect(url_for('waiter_dashboard'))
+
+    try:
+        cursor = connection.cursor(dictionary=True)
+
+        # 1. Aşama: Bu masaya ait aktif (pending) bir sipariş var mı kontrol et
+        cursor.execute("""
+            SELECT order_id FROM orders 
+            WHERE restaurant_id = %s AND table_no = %s AND order_status = 'pending'
+        """, (restaurant_id, table_no))
+        order = cursor.fetchone()
+
+        if order:
+            order_id = order['order_id']
+            
+            # 2. Aşama: Sipariş durumunu 'completed' (tamamlandı) olarak güncelle
+            cursor.execute("""
+                UPDATE orders 
+                SET order_status = 'completed' 
+                WHERE order_id = %s
+            """, (order_id,))
+            
+            connection.commit()
+            flash(f"💳 Masa {table_no} için hesap başarıyla kapatıldı! Sipariş #{order_id} tamamlandı. 🎉", "success")
+        else:
+            flash(f"Masa {table_no} zaten boş veya aktif bir adisyonu bulunmuyor.", "warning")
+
+    except Error as e:
+        flash(f"Hesap kapatılırken bir hata oluştu: {e}", "danger")
+        connection.rollback()
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+    # İşlem bitince garson panelini yenile (Masa otomatik yeşile dönecek!)
+    return redirect(url_for('waiter_dashboard'))

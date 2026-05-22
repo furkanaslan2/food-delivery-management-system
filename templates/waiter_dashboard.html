@@ -166,6 +166,10 @@
             <img class="button-img" src="{{ url_for('static', filename='images/order.png') }}" alt="order icon" style="filter: brightness(0) invert(1);"> 
             Complete Order
         </button>
+
+        <button type="submit" formaction="{{ url_for('waiter_close_bill') }}" class="add-button" style="background-color: #e74c3c; border-color: #c0392b;">
+            💳 Hesabı Kapat
+        </button>
     </div>
 
         <div class="list">
@@ -201,6 +205,7 @@
 
     <script src="{{ url_for('static', filename='js/common.js') }}"></script>
     <script>
+        // Sayfa içi input dinleyicileri
         document.querySelectorAll('.qty-input').forEach(input => {
             input.addEventListener('change', function() {
                 const checkbox = this.closest('.table-card').querySelector('input[type="checkbox"]');
@@ -212,15 +217,16 @@
                 checkbox.checked = true;
                 e.stopPropagation(); 
             });
+        });
 
-            function setTable(num) {
+        // GLOBAL fonksiyon: Masaya tıklandığında input kutusunu doldurur
+        function setTable(num) {
             const input = document.getElementById('table_no');
             if(input) {
                 input.value = num;
                 input.focus(); 
             }
         }
-        });
     </script>
 </body>
 </html>

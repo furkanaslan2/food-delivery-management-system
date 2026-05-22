@@ -45,7 +45,12 @@
 
     <nav class="customer-nav">
         <a href="/" class="nav-brand">🍔 DeliveryApp</a>
-        <a href="/" style="text-decoration: none; color: #4b5563; font-weight: 500;">Back to Restaurants</a>
+        
+        <div style="display: flex; gap: 20px; align-items: center;">
+            <a href="{{ url_for('view_profile') }}" style="text-decoration: none; color: #4b5563; font-weight: 500;">⚙️ Ayarlarım</a>
+            
+            <a href="/" style="text-decoration: none; color: #4b5563; font-weight: 500;">Back to Restaurants</a>
+        </div>
     </nav>
 
     <div class="container">

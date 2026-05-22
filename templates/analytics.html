@@ -11,14 +11,47 @@
             background-color: #f4f7f6; 
         }
         
+        /* Özet Kartları Konteyneri */
+        .summary-container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 120px auto 30px auto; /* Üstten boşluk burada */
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+
+        /* Grafik Konteyneri (Eski margin'i düzelttik) */
         .dashboard-container {
             width: 90%;
             max-width: 1200px;
-            margin: 120px auto 40px auto;
+            margin: 0 auto 40px auto; 
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); 
             gap: 30px;
         }
+
+        /* Tekil Özet Kartı Tasarımı */
+        .summary-card {
+            background: white;
+            padding: 20px 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            border-left: 6px solid #4f46e5; /* Varsayılan Mavi Çizgi */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            transition: transform 0.2s ease;
+        }
+        
+        .summary-card:hover { transform: translateY(-3px); }
+        .summary-card.green { border-left-color: #10b981; }
+        .summary-card.orange { border-left-color: #f59e0b; }
+        .summary-card.purple { border-left-color: #8b5cf6; }
+
+        .summary-title { font-size: 13px; color: #6b7280; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 8px; }
+        .summary-value { font-size: 26px; font-weight: 700; color: #111827; margin: 0; line-height: 1.2; }
+        .summary-subtext { font-size: 13px; color: #9ca3af; margin-top: 5px; font-style: italic; }
 
         .chart-card {
             background: white;
@@ -59,6 +92,37 @@
             <li><a href="/logout">Logout</a></li>
         </ul>
     </nav>
+
+    <div class="summary-container">
+        
+        <div class="summary-card green">
+            <span class="summary-title">Total Revenue</span>
+            <h3 class="summary-value">${{ "%.2f"|format(total_revenue) }}</h3>
+            <span class="summary-subtext">Completed orders only</span>
+        </div>
+        
+        <div class="summary-card">
+            <span class="summary-title">Total Orders</span>
+            <h3 class="summary-value">{{ total_orders }}</h3>
+            <span class="summary-subtext">Successfully delivered</span>
+        </div>
+
+        <div class="summary-card orange">
+            <span class="summary-title">Order Distribution</span>
+            <h3 class="summary-value" style="font-size: 18px;">
+                🛵 {{ delivery_count }} Delivery <br> 
+                🍽️ {{ dinein_count }} Dine-in
+            </h3>
+            <span class="summary-subtext">Operational summary</span>
+        </div>
+
+        <div class="summary-card purple">
+            <span class="summary-title">Restaurant Rating</span>
+            <h3 class="summary-value">⭐ {{ restaurant_rating }}</h3>
+            <span class="summary-subtext">{{ rating_enum }}</span>
+        </div>
+
+    </div>
 
     <div class="dashboard-container">
         

@@ -518,7 +518,8 @@ def restaurant_analytics():
     try:
         cursor = connection.cursor(dictionary=True)
 
-        query = """
+        # 1. GRAFİKLER İÇİN: En Çok Satan 10 Ürün
+        query_charts = """
             SELECT f.item_name, SUM(oi.quantity) as total_sold
             FROM order_items oi
             JOIN orders o ON oi.order_id = o.order_id
@@ -528,19 +529,65 @@ def restaurant_analytics():
             ORDER BY total_sold DESC
             LIMIT 10
         """
-        cursor.execute(query, (restaurant_id,))
+        cursor.execute(query_charts, (restaurant_id,))
         results = cursor.fetchall()
-
         labels = [row['item_name'] for row in results]
         data = [float(row['total_sold']) for row in results] 
 
+        # --- YENİ EKLENEN ÖZET KARTLARI BÖLÜMÜ BAŞLANGICI ---
+        
+        # 2. TOPLAM KAZANÇ VE TOPLAM SİPARİŞ
+        cursor.execute("""
+            SELECT SUM(sales_amount) as total_revenue, COUNT(*) as total_orders 
+            FROM orders 
+            WHERE restaurant_id = %s AND order_status != 'canceled'
+        """, (restaurant_id,))
+        stats = cursor.fetchone()
+        total_revenue = float(stats['total_revenue']) if stats['total_revenue'] else 0.0
+        total_orders = stats['total_orders'] if stats['total_orders'] else 0
+
+        # 3. PAKET SERVİS (Delivery) SAYISI
+        cursor.execute("""
+            SELECT COUNT(*) as delivery_count 
+            FROM orders 
+            WHERE restaurant_id = %s AND order_status != 'canceled' AND order_type = 'Delivery'
+        """, (restaurant_id,))
+        delivery_count = cursor.fetchone()['delivery_count']
+
+        # 4. MASA SERVİSİ (Dine-in) SAYISI
+        cursor.execute("""
+            SELECT COUNT(*) as dinein_count 
+            FROM orders 
+            WHERE restaurant_id = %s AND order_status != 'canceled' AND order_type = 'Dine-in'
+        """, (restaurant_id,))
+        dinein_count = cursor.fetchone()['dinein_count']
+
+        # 5. RESTORANIN GENEL PUANI VE YORUM SAYISI
+        cursor.execute("SELECT rating, rating_count FROM restaurants WHERE restaurant_id = %s", (restaurant_id,))
+        res_info = cursor.fetchone()
+        restaurant_rating = res_info['rating'] if res_info['rating'] else 0.0
+        rating_enum = res_info['rating_count'] if res_info['rating_count'] else "No Ratings"
+
+        # --- YENİ EKLENEN ÖZET KARTLARI BÖLÜMÜ BİTİŞİ ---
+
     except Exception as e:
         flash(f"Error fetching analytics: {e}", "danger")
-        labels = []
-        data = []
+        labels, data = [], []
+        total_revenue, total_orders, delivery_count, dinein_count, restaurant_rating, rating_enum = 0, 0, 0, 0, 0, ""
     finally:
         if connection.is_connected():
             cursor.close()
             connection.close()
             
-    return render_template('analytics.html', labels=labels, data=data)
+    # Tüm verileri HTML'e gönderiyoruz
+    return render_template(
+        'analytics.html', 
+        labels=labels, 
+        data=data,
+        total_revenue=total_revenue,
+        total_orders=total_orders,
+        delivery_count=delivery_count,
+        dinein_count=dinein_count,
+        restaurant_rating=restaurant_rating,
+        rating_enum=rating_enum
+    )
