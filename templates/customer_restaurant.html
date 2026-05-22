@@ -23,7 +23,6 @@
         
         /* Menü İçeriği */
         .container { max-width: 900px; margin: 40px auto; padding: 0 20px; }
-        .section-title { font-size: 22px; font-weight: 600; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; margin-bottom: 25px; }
         
         /* Yemek Listesi */
         .menu-list { display: flex; flex-direction: column; gap: 15px; }
@@ -103,6 +102,26 @@
         
         /* Üzerine gelince menüyü göster */
         .dropdown:hover .dropdown-content { display: block; }
+
+        /* SEKMELER (TABS) CSS STİLLERİ */
+        .menu-tabs-container {
+            display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 25px; border-bottom: 2px solid #e5e7eb;
+            /* Scrollbar gizleme/küçültme */
+            scrollbar-width: thin;
+        }
+        .menu-tabs-container::-webkit-scrollbar { height: 4px; }
+        .menu-tabs-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        
+        .tab-btn {
+            background: #f3f4f6; border: none; padding: 10px 20px; font-size: 15px; font-weight: 600; color: #4b5563; cursor: pointer; border-radius: 20px; white-space: nowrap; transition: all 0.2s;
+        }
+        .tab-btn:hover { background: #e5e7eb; color: #111827; }
+        .tab-btn.active { background: #111827; color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        
+        .tab-content { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .tab-content.active { display: block; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
@@ -158,61 +177,109 @@
           {% endif %}
         {% endwith %}
 
-        <h2 class="section-title">Menu</h2>
-        
-        <div class="menu-list">
-            {% for item in menu_items %}
-            <div class="menu-item">
-                <div class="item-info">
-                    <h3>{{ item['food_name'] if item['food_name'] else 'Delicious Food' }}</h3>
-                    <span class="type">{{ item['veg_or_non_veg'] if item['veg_or_non_veg'] else 'Not Specified' }}</span>
-                    <p class="price">${{ item['price'] }}</p>
-                </div>
-                
-                <form class="add-to-cart-form" action="{{ url_for('add_to_cart') }}" method="POST">
-                    <input type="hidden" name="menu_id" value="{{ item['menu_id'] }}">
-                    <input type="hidden" name="restaurant_id" value="{{ restaurant['restaurant_id'] }}">
-                    <input type="hidden" name="food_name" value="{{ item['food_name'] }}">
-                    <input type="hidden" name="price" value="{{ item['price'] }}">
-                    
-                    <input type="number" name="quantity" class="qty-input" value="1" min="1" max="{{ item['stock_quantity'] }}">
-                    <button type="submit" class="add-btn">+ Add</button>
-                </form>
-            </div>
-            {% else %}
-                <p style="text-align: center; color: #6b7280; margin-top: 20px;">This restaurant hasn't added any menu items yet.</p>
+        <div class="menu-tabs-container">
+            <button class="tab-btn active" onclick="openMenuTab(event, 'tab-popular')">🔥 Çok Satanlar</button>
+            
+            {% for category in grouped_menus.keys() %}
+                <button class="tab-btn" onclick="openMenuTab(event, 'tab-{{ loop.index }}')">{{ category }}</button>
             {% endfor %}
         </div>
+
+        <div id="tab-popular" class="tab-content active">
+            <div class="menu-list">
+                {% if popular_items %}
+                    {% for item in popular_items %}
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <h3>{{ item['food_name'] if item['food_name'] else 'Delicious Food' }}</h3>
+                            <span class="type">{{ item['veg_or_non_veg'] if item['veg_or_non_veg'] else 'Not Specified' }}</span>
+                            <p class="price">${{ item['price'] }}</p>
+                        </div>
+                        
+                        <form class="add-to-cart-form" action="{{ url_for('add_to_cart') }}" method="POST">
+                            <input type="hidden" name="menu_id" value="{{ item['menu_id'] }}">
+                            <input type="hidden" name="restaurant_id" value="{{ restaurant['restaurant_id'] }}">
+                            <input type="hidden" name="food_name" value="{{ item['food_name'] }}">
+                            <input type="hidden" name="price" value="{{ item['price'] }}">
+                            
+                            <input type="number" name="quantity" class="qty-input" value="1" min="1" max="{{ item['stock_quantity'] }}">
+                            <button type="submit" class="add-btn">+ Add</button>
+                        </form>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p style="text-align: center; color: #6b7280; margin-top: 20px;">This restaurant hasn't added any menu items yet.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        {% for category, items in grouped_menus.items() %}
+        <div id="tab-{{ loop.index }}" class="tab-content">
+            <div class="menu-list">
+                {% for item in items %}
+                <div class="menu-item">
+                    <div class="item-info">
+                        <h3>{{ item['food_name'] if item['food_name'] else 'Delicious Food' }}</h3>
+                        <span class="type">{{ item['veg_or_non_veg'] if item['veg_or_non_veg'] else 'Not Specified' }}</span>
+                        <p class="price">${{ item['price'] }}</p>
+                    </div>
+                    
+                    <form class="add-to-cart-form" action="{{ url_for('add_to_cart') }}" method="POST">
+                        <input type="hidden" name="menu_id" value="{{ item['menu_id'] }}">
+                        <input type="hidden" name="restaurant_id" value="{{ restaurant['restaurant_id'] }}">
+                        <input type="hidden" name="food_name" value="{{ item['food_name'] }}">
+                        <input type="hidden" name="price" value="{{ item['price'] }}">
+                        
+                        <input type="number" name="quantity" class="qty-input" value="1" min="1" max="{{ item['stock_quantity'] }}">
+                        <button type="submit" class="add-btn">+ Add</button>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+
+    </div> <script>
+        function openMenuTab(evt, tabName) {
+            // Tüm içerikleri gizle
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            // Tüm butonların aktif (siyah) rengini al
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Sadece tıklanan sekmenin içeriğini göster ve butonunu siyah yap
+            document.getElementById(tabName).classList.add('active');
+            evt.currentTarget.classList.add('active');
+        }
+    </script>
+
     <div id="reviewsModal" class="modal-overlay" onclick="if(event.target == this) this.style.display='none'">
         <div class="modal-content">
-            
             <div class="modal-header">
                 <h3>Müşteri Değerlendirmeleri ({{ reviews|length }})</h3>
                 <button class="close-btn" onclick="document.getElementById('reviewsModal').style.display='none'">&times;</button>
             </div>
-            
             <div class="modal-body">
                 {% if reviews %}
                     <div style="display: grid; grid-template-columns: 1fr; gap: 15px;">
                     {% for review in reviews %}
                         <div style="background-color: #ffffff; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid #f3f4f6;">
-                            
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                                 <span style="font-weight: 600; color: #374151; font-size: 16px;">👤 {{ review.customer_name }}</span>
                                 <span style="color: #9ca3af; font-size: 13px;">{{ review.created_at.strftime('%d %b %Y') }}</span>
                             </div>
-                            
                             <div style="margin-bottom: 12px; font-size: 14px;">
                                 {% for i in range(review.rating) %}⭐{% endfor %}
                                 <span style="color: #6b7280; font-size: 13px; margin-left: 5px;">({{ review.rating }})</span>
                             </div>
-                            
                             {% if review.comment %}
                                 <p style="margin: 0; color: #4b5563; font-size: 15px; line-height: 1.6; font-style: italic; background-color: #f9fafb; padding: 12px; border-radius: 8px; border-left: 3px solid #fbbf24;">
                                     "{{ review.comment }}"
                                 </p>
                             {% endif %}
-                            
                         </div>
                     {% endfor %}
                     </div>
@@ -227,36 +294,30 @@
         </div>
     </div>
 
-<script>
+    <script>
         document.addEventListener("DOMContentLoaded", function() {
-            // Sayfadaki tüm "Sepete Ekle" formlarını bul
             const addForms = document.querySelectorAll('.add-to-cart-form');
             
             addForms.forEach(form => {
                 form.addEventListener('submit', function(e) {
-                    // 1. OTO-YENİLEMEYİ DURDUR!
                     e.preventDefault(); 
                     
                     const btn = form.querySelector('.add-btn');
                     const originalText = btn.innerHTML;
-                    
-                    // Formdaki tüm verileri (id, fiyat, isim, miktar) paketle
                     const formData = new FormData(form);
                     
-                    // 2. ARKA PLANDAN SESSİZCE PYTHON'A GÖNDER
                     fetch(form.action, {
                         method: 'POST',
                         body: formData,
                         headers: {
-                            'X-Requested-With': 'XMLHttpRequest' // Python'un AJAX olduğunu anlaması için şifre
+                            'X-Requested-With': 'XMLHttpRequest'
                         }
                     })
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            // 3. BUTON ANİMASYONU: Eklendi yazıp 1.5 saniye sonra eski haline döndür
                             btn.innerHTML = '✓ Eklendi';
-                            btn.style.backgroundColor = '#059669'; // Daha koyu ve güven veren bir yeşil
+                            btn.style.backgroundColor = '#059669'; 
                             btn.style.transform = 'scale(1.05)';
                             btn.style.transition = 'all 0.2s';
                             
@@ -266,26 +327,21 @@
                                 btn.style.transform = 'scale(1)';
                             }, 1500);
                             
-                            // 4. SAĞ ÜSTTEKİ SEPET RAKAMINI CANLI GÜNCELLE
                             const cartBtn = document.querySelector('.cart-btn');
                             let badge = document.querySelector('.cart-badge');
                             
-                            // Eğer sepette daha önce hiç ürün yoksa, o kırmızı yuvarlağı sıfırdan oluştur
                             if (!badge) {
                                 badge = document.createElement('span');
                                 badge.className = 'cart-badge';
                                 cartBtn.appendChild(badge);
                             }
                             
-                            // İçindeki sayıyı Python'dan gelen GÜNCEL SAYI ile değiştir
                             badge.innerText = data.total_cart_qty;
                             
-                            // Ekstra: Eğer müşteri eski sepeti unutulup yeni restorandan ürün eklediyse uyar
                             if (data.cart_cleared) {
                                 alert("Yeni bir restorandan ürün eklediğiniz için önceki restoranın sepeti temizlendi.");
                             }
                         } else {
-                            // Giriş yapmamışsa veya başka bir sorun varsa uyar
                             alert(data.message || 'Sepete eklenirken bir hata oluştu.');
                             if(data.message.includes('login')) window.location.href = '/customer_login';
                         }
@@ -297,6 +353,5 @@
             });
         });
     </script>
-
 </body>
 </html>

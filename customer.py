@@ -4,6 +4,7 @@ from db import get_db_connection
 from mysql.connector import Error
 
 # 1. RESTORAN MENÜSÜNÜ GÖRÜNTÜLEME
+# 1. RESTORAN MENÜSÜNÜ GÖRÜNTÜLEME
 def view_restaurant(restaurant_id):
     if 'logged_in' not in session or session.get('role') != 'customer':
         flash("Please login to view restaurants.", "danger")
@@ -12,7 +13,11 @@ def view_restaurant(restaurant_id):
     connection = get_db_connection()
     restaurant = None
     menu_items = []
-    reviews = [] # Yorumları tutacağımız yeni listemiz
+    reviews = []
+    
+    # YENİ EKLENEN DEĞİŞKENLER
+    grouped_menus = {}
+    popular_items = []
 
     if connection:
         try:
@@ -22,15 +27,45 @@ def view_restaurant(restaurant_id):
             restaurant = cursor.fetchone()
 
             # 2. Menüleri Foods (Yemekler) tablosuyla birleştirerek (JOIN) çek!
+            # DİKKAT: Veritabanındaki kategori sütunun f.type veya f.category olduğunu varsayıyoruz.
+            # Kodda food tablosundan tüm verileri ('f.*') çektiğimiz için kategori de gelecektir.
             cursor.execute("""
-                SELECT m.*, f.item_name AS food_name, f.veg_or_non_veg 
+                SELECT m.*, f.item_name AS food_name, f.veg_or_non_veg, f.category AS category 
                 FROM menus m
                 JOIN foods f ON m.food_id = f.food_id
                 WHERE m.restaurant_id = %s AND m.stock_quantity > 0
             """, (restaurant_id,))
             menu_items = cursor.fetchall()
             
-            # 3. YENİ AŞAMA: Bu restorana ait yorumları ve müşteri isimlerini çek!
+            # --- YENİ ALGORİTMA: KATEGORİLERE GÖRE GRUPLAMA ---
+            for item in menu_items:
+                # Veritabanında kategoriler genelde 'type' olarak tutulur. 
+                # (Eğer senin DB'nde sütun farklıysa örn: 'category' diye değiştir)
+                cat = item.get('category') or 'Diğer' 
+                
+                if cat not in grouped_menus:
+                    grouped_menus[cat] = []
+                grouped_menus[cat].append(item)
+
+            # --- YENİ ALGORİTMA: ÇOK SATANLAR (POPÜLER) ---
+            cursor.execute("""
+                SELECT m.*, f.item_name AS food_name, f.veg_or_non_veg, 
+                       COALESCE((
+                           SELECT SUM(oi.quantity) 
+                           FROM order_items oi 
+                           JOIN orders o ON oi.order_id = o.order_id 
+                           WHERE oi.food_id = m.food_id AND o.order_status = 'delivered'
+                       ), 0) as total_sales
+                FROM menus m
+                JOIN foods f ON m.food_id = f.food_id
+                WHERE m.restaurant_id = %s AND m.stock_quantity > 0
+                ORDER BY total_sales DESC
+                LIMIT 4
+            """, (restaurant_id,))
+            
+            popular_items = cursor.fetchall()
+
+            # 3. Bu restorana ait yorumları ve müşteri isimlerini çek!
             cursor.execute("""
                 SELECT r.rating, r.comment, r.created_at, c.name AS customer_name 
                 FROM reviews r
@@ -51,8 +86,13 @@ def view_restaurant(restaurant_id):
         flash("Restaurant not found.", "danger")
         return redirect(url_for('index'))
 
-    # 'reviews=reviews' kısmını HTML'e göndermek için ekledik
-    return render_template('customer_restaurant.html', restaurant=restaurant, menu_items=menu_items, reviews=reviews)
+    # YENİ EKLENEN 'grouped_menus' VE 'popular_items' DEĞİŞKENLERİNİ HTML'E GÖNDERİYORUZ
+    return render_template('customer_restaurant.html', 
+                           restaurant=restaurant, 
+                           menu_items=menu_items, 
+                           reviews=reviews,
+                           grouped_menus=grouped_menus,
+                           popular_items=popular_items)
 
 
 # 2. SEPETE ÜRÜN EKLEME (SESSION CART)
