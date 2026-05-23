@@ -11,7 +11,7 @@ from menus import menus, menus_action
 from orders import orders, order_action, get_order_details, get_restaurant_details, api_check_new_orders
 from foods import foods, food_action
 from waiters import waiter_dashboard, waiter_create_order, waiters, waiter_action, waiter_close_bill, waiter_receipt
-from customer import view_restaurant, add_to_cart, view_cart, checkout, customer_orders, set_location, remove_from_cart, increase_cart_item, decrease_cart_item, submit_review, get_active_order_status
+from customer import view_restaurant, add_to_cart, view_cart, checkout, customer_orders, set_location, remove_from_cart, increase_cart_item, decrease_cart_item, submit_review, get_active_order_status, toggle_favorite, view_favorites
 from courier_panel import courier_dashboard, update_delivery_status, courier_login, courier_logout
 from payment_handler import checkout_payment, payment_callback
 from profile_settings import view_profile, update_profile
@@ -71,6 +71,8 @@ app.add_url_rule('/profile/update', endpoint='update_profile', view_func=update_
 app.add_url_rule('/api/active_order_status', view_func=get_active_order_status)
 app.add_url_rule('/api/check_new_orders', view_func=api_check_new_orders)
 app.add_url_rule('/api/check_courier_orders', view_func=api_check_courier_orders)
+app.add_url_rule('/api/toggle_favorite', view_func=toggle_favorite, methods=['POST'])
+app.add_url_rule('/favorites', view_func=view_favorites, methods=['GET'])
 
 if __name__ == '__main__':
     app.run(debug=True)

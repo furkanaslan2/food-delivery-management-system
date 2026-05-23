@@ -117,9 +117,10 @@
                 <button class="dropdown-btn">
                     👤 Hesabım ▾
                 </button>
-                <div class="dropdown-content">
-                    <a href="{{ url_for('view_profile') }}">⚙️ Ayarlarım</a>
+                <div class="dropdown-content">                  
                     <a href="{{ url_for('customer_orders') }}">📦 Siparişlerim</a>
+                    <a href="{{ url_for('view_favorites') }}">❤️ Favorilerim</a>
+                    <a href="{{ url_for('view_profile') }}">⚙️ Ayarlarım</a>
                     <div style="height: 1px; background: #e5e7eb; margin: 4px 0;"></div>
                     <a href="/logout" style="color: #ef4444;">🚪 Çıkış Yap</a>
                 </div>
@@ -227,7 +228,15 @@
         
         <div class="restaurant-grid">
             {% for restaurant in restaurants %}
-            <a href="{{ url_for('view_restaurant', restaurant_id=restaurant['restaurant_id']) }}" class="restaurant-card">
+            <a href="{{ url_for('view_restaurant', restaurant_id=restaurant['restaurant_id']) }}" class="restaurant-card" style="position: relative;">
+                
+                <button class="main-page-fav-btn" data-id="{{ restaurant['restaurant_id'] }}" style="position: absolute; top: 15px; right: 15px; z-index: 10; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
+                    {% if restaurant['restaurant_id'] in favorited_restaurant_ids %}
+                        <svg viewBox="0 0 24 24" class="heart-svg" fill="#ef4444" stroke="#ef4444" stroke-width="2" style="width:18px; height:18px; transition: all 0.2s;"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                    {% else %}
+                        <svg viewBox="0 0 24 24" class="heart-svg" fill="none" stroke="#6b7280" stroke-width="2" style="width:18px; height:18px; transition: all 0.2s;"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                    {% endif %}
+                </button>
                 
                 <div class="card-image">
                     {% if restaurant['cuisine'] == 'Pizza' %} 🍕 
@@ -260,7 +269,6 @@
                 </p>
             {% endfor %}
         </div>
-    </div>
 <div id="location-data" data-has-location="{{ 'true' if session.get('latitude') else 'false' }}" style="display:none;"></div>
 
 <script>
@@ -282,5 +290,55 @@
         }
     });
 </script>
+
+<script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const mainFavBtns = document.querySelectorAll('.main-page-fav-btn');
+            
+            mainFavBtns.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault(); // Kartın içine girilmesini (linki) engeller
+                    e.stopPropagation(); // Tıklamanın dışa taşmasını keser
+                    
+                    const restaurantId = this.getAttribute('data-id');
+                    const svg = this.querySelector('.heart-svg');
+                    
+                    // Küçük yaylanma animasyonu
+                    this.style.transform = 'scale(1.2)';
+                    setTimeout(() => { this.style.transform = 'scale(1)'; }, 200);
+
+                    fetch('/api/toggle_favorite', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({ restaurant_id: restaurantId })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            if (data.action === 'added') {
+                                svg.setAttribute('fill', '#ef4444');
+                                svg.setAttribute('stroke', '#ef4444');
+                            } else {
+                                svg.setAttribute('fill', 'none');
+                                svg.setAttribute('stroke', '#6b7280');
+                            }
+                        } else {
+                            alert(data.message);
+                            if(data.message.includes('giriş')) window.location.href = '/customer_login';
+                        }
+                    })
+                    .catch(error => console.error('Ana Sayfa Favori Hatası:', error));
+                });
+                
+                // Hover (Üzerine gelme) efekti
+                btn.addEventListener('mouseenter', function() { this.style.transform = 'scale(1.1)'; });
+                btn.addEventListener('mouseleave', function() { this.style.transform = 'scale(1)'; });
+            });
+        });
+    </script>
+
 </body>
 </html>

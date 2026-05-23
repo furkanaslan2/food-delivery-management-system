@@ -27,8 +27,6 @@ def view_restaurant(restaurant_id):
             restaurant = cursor.fetchone()
 
             # 2. Menüleri Foods (Yemekler) tablosuyla birleştirerek (JOIN) çek!
-            # DİKKAT: Veritabanındaki kategori sütunun f.type veya f.category olduğunu varsayıyoruz.
-            # Kodda food tablosundan tüm verileri ('f.*') çektiğimiz için kategori de gelecektir.
             cursor.execute("""
                 SELECT m.*, f.item_name AS food_name, f.veg_or_non_veg, f.category AS category 
                 FROM menus m
@@ -74,6 +72,16 @@ def view_restaurant(restaurant_id):
                 ORDER BY r.created_at DESC
             """, (restaurant_id,))
             reviews = cursor.fetchall()
+
+            is_favorited = False
+            customer_id = session.get('customer_id')
+            if customer_id:
+                cursor.execute("""
+                    SELECT id FROM favorite_restaurants 
+                    WHERE customer_id = %s AND restaurant_id = %s
+                """, (customer_id, restaurant_id))
+                if cursor.fetchone():
+                    is_favorited = True
             
         except Exception as e:
             flash(f"Error loading menu: {e}", "danger")
@@ -92,7 +100,8 @@ def view_restaurant(restaurant_id):
                            menu_items=menu_items, 
                            reviews=reviews,
                            grouped_menus=grouped_menus,
-                           popular_items=popular_items)
+                           popular_items=popular_items,
+                           is_favorited=is_favorited)
 
 
 # 2. SEPETE ÜRÜN EKLEME (SESSION CART)
@@ -452,3 +461,85 @@ def get_active_order_status():
                 connection.close()
                 
     return jsonify({'has_active_order': False})
+
+def toggle_favorite():
+    # Güvenlik: Sadece giriş yapmış müşteriler favoriye ekleyebilir
+    if 'logged_in' not in session or session.get('role') != 'customer':
+        return jsonify({'success': False, 'message': 'Favorilere eklemek için giriş yapmalısınız.'}), 401
+
+    customer_id = session.get('customer_id')
+    
+    # AJAX (JavaScript) üzerinden gelen JSON verisini alıyoruz
+    data = request.get_json()
+    restaurant_id = data.get('restaurant_id')
+
+    connection = get_db_connection()
+    if connection:
+        try:
+            cursor = connection.cursor(dictionary=True)
+            
+            # 1. Önce kontrol et: Bu restoran zaten müşterinin favorilerinde var mı?
+            cursor.execute("""
+                SELECT * FROM favorite_restaurants 
+                WHERE customer_id = %s AND restaurant_id = %s
+            """, (customer_id, restaurant_id))
+            exists = cursor.fetchone()
+
+            if exists:
+                # 2A. Zaten varsa favorilerden ÇIKAR (Kalp boşalır)
+                cursor.execute("""
+                    DELETE FROM favorite_restaurants 
+                    WHERE customer_id = %s AND restaurant_id = %s
+                """, (customer_id, restaurant_id))
+                action = 'removed'
+            else:
+                # 2B. Yoksa favorilere EKLE (Kalp kırmızı olur)
+                cursor.execute("""
+                    INSERT INTO favorite_restaurants (customer_id, restaurant_id) 
+                    VALUES (%s, %s)
+                """, (customer_id, restaurant_id))
+                action = 'added'
+
+            connection.commit()
+            return jsonify({'success': True, 'action': action})
+            
+        except Exception as e:
+            print(f"Favori işlemi hatası: {e}")
+            return jsonify({'success': False, 'message': 'Bir hata oluştu.'}), 500
+        finally:
+            if connection.is_connected():
+                cursor.close()
+                connection.close()
+
+    return jsonify({'success': False, 'message': 'Veritabanı bağlantı hatası.'}), 500
+
+def view_favorites():
+    # Güvenlik: Sadece giriş yapmış müşteriler görebilir
+    if 'logged_in' not in session or session.get('role') != 'customer':
+        flash("Favorilerinizi görmek için lütfen giriş yapın.", "danger")
+        return redirect(url_for('customer_login'))
+
+    customer_id = session.get('customer_id')
+    connection = get_db_connection()
+    favorited_restaurants = []
+
+    if connection:
+        try:
+            cursor = connection.cursor(dictionary=True)
+            # Müşterinin favori tablosundaki restoran id'leri ile restoran detaylarını birleştirip çekiyoruz
+            cursor.execute("""
+                SELECT r.* FROM restaurants r
+                JOIN favorite_restaurants fr ON r.restaurant_id = fr.restaurant_id
+                WHERE fr.customer_id = %s
+            """, (customer_id,))
+            favorited_restaurants = cursor.fetchall()
+            
+        except Exception as e:
+            print(f"Favoriler yüklenirken hata oluştu: {e}")
+            flash("Favorileriniz yüklenirken bir hata oluştu.", "danger")
+        finally:
+            if connection.is_connected():
+                cursor.close()
+                connection.close()
+
+    return render_template('customer_favorites.html', restaurants=favorited_restaurants)

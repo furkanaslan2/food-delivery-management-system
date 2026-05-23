@@ -69,6 +69,11 @@ def index():
 
                 restaurants = all_restaurants
 
+                favorited_restaurant_ids = []
+                if session.get('customer_id'):
+                    cursor.execute("SELECT restaurant_id FROM favorite_restaurants WHERE customer_id = %s", (session.get('customer_id'),))
+                    favorited_restaurant_ids = [row['restaurant_id'] for row in cursor.fetchall()]
+
             except Exception as e:
                 print(f"Restoranlar yüklenirken bir hata oluştu: {e}")
             finally:
@@ -76,7 +81,7 @@ def index():
                     cursor.close()
                     connection.close()
                     
-        return render_template('customer_index.html', restaurants=restaurants)
+        return render_template('customer_index.html', restaurants=restaurants, favorited_restaurant_ids=favorited_restaurant_ids)
 
     if role == 'waiter':
         return redirect(url_for('waiter_dashboard'))

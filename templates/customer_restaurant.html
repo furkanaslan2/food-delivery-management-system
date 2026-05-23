@@ -122,6 +122,43 @@
         .tab-content.active { display: block; }
         
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Modern & Minimalist Yuvarlak Favori Butonu */
+        .fav-btn-container {
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            padding: 0;
+        }
+        /* Üzerine gelince (Hover) basılabilir hissi */
+        .fav-btn-container:hover {
+            transform: scale(1.08);
+            border-color: #fca5a5;
+            background-color: #fef2f2;
+        }
+        /* Tıklandığı an (Active) içeri yaylanma hissi */
+        .fav-btn-container:active {
+            transform: scale(0.92);
+        }
+        .heart-svg {
+            width: 22px;
+            height: 22px;
+            transition: fill 0.2s ease, stroke 0.2s ease;
+        }
+        @keyframes heartPop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+        .heart-animate { animation: heartPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
     </style>
 </head>
 <body>
@@ -149,8 +186,9 @@
                     👤 Hesabım ▾
                 </button>
                 <div class="dropdown-content">
-                    <a href="{{ url_for('view_profile') }}">⚙️ Ayarlarım</a>
                     <a href="{{ url_for('customer_orders') }}">📦 Siparişlerim</a>
+                    <a href="{{ url_for('view_favorites') }}">❤️ Favorilerim</a>
+                    <a href="{{ url_for('view_profile') }}">⚙️ Ayarlarım</a>
                     <div style="height: 1px; background: #e5e7eb; margin: 4px 0;"></div>
                     <a href="/logout" style="color: #ef4444;">🚪 Çıkış Yap</a>
                 </div>
@@ -159,7 +197,18 @@
     </nav>
 
     <div class="restaurant-header">
-        <h1>{{ restaurant['restaurant_name'] }}</h1>
+        <div style="display: flex; justify-content: center; align-items: center; gap: 15px; margin-bottom: 10px;">
+            <h1 style="margin: 0;">{{ restaurant['restaurant_name'] }}</h1>
+            
+            <button id="fav-btn" class="fav-btn-container" data-id="{{ restaurant['restaurant_id'] }}">
+                {% if is_favorited %}
+                    <svg viewBox="0 0 24 24" class="heart-svg" fill="#ef4444" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                {% else %}
+                    <svg viewBox="0 0 24 24" class="heart-svg" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                {% endif %}
+            </button>
+        </div>
+        
         <p>{{ restaurant['cuisine'] }} • {{ restaurant['restaurant_address'] }}</p>
         <div class="rating" onclick="document.getElementById('reviewsModal').style.display='flex'" style="cursor: pointer; transition: transform 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
             ⭐ {{ restaurant['rating'] }} ({{ restaurant['rating_count'] }}) - Yorumları Gör
@@ -351,6 +400,49 @@
                     });
                 });
             });
+        });
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const favBtn = document.getElementById('fav-btn');
+            
+            if (favBtn) {
+                favBtn.addEventListener('click', function() {
+                    const restaurantId = this.getAttribute('data-id');
+                    const svg = this.querySelector('.heart-svg');
+                    
+                    this.classList.remove('heart-animate');
+                    void this.offsetWidth; 
+                    this.classList.add('heart-animate');
+
+                    fetch('/api/toggle_favorite', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({ restaurant_id: restaurantId })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Emojiyi değiştirmek yerine SVG renk özelliklerini canlı güncelliyoruz
+                            if (data.action === 'added') {
+                                svg.setAttribute('fill', '#ef4444');
+                                svg.setAttribute('stroke', '#ef4444');
+                            } else {
+                                svg.setAttribute('fill', 'none');
+                                svg.setAttribute('stroke', '#6b7280');
+                            }
+                        } else {
+                            alert(data.message);
+                            if(data.message.includes('giriş')) window.location.href = '/customer_login';
+                        }
+                    })
+                    .catch(error => console.error('Favori AJAX Hatası:', error));
+                });
+            }
         });
     </script>
 </body>
