@@ -245,7 +245,7 @@ def waiter_dashboard():
             total_tables = 0
 
         cursor.execute('''
-            SELECT m.menu_id, m.price, m.stock_quantity, f.item_name, f.veg_or_non_veg, m.cuisine 
+            SELECT m.menu_id, m.price, m.stock_quantity, f.item_name, m.cuisine 
             FROM menus m 
             JOIN foods f ON m.food_id = f.food_id 
             WHERE m.restaurant_id = %s

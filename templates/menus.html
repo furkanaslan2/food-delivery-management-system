@@ -42,11 +42,6 @@
             <input type="hidden" id="menu-restaurant-id" name="restaurant_id">
             
             <input type="text" id="food-name" name="name" placeholder="Food Name">
-            <select id="food-type" name="food_type" aria-label="Select food type">
-                <option value="">Select Type</option>
-                <option value="Veg">Veg</option>
-                <option value="Non-veg">Non-veg</option>
-            </select>
             <input type="text" id="menu-cuisine" name="cuisine" placeholder="Cuisine">
             <input type="number" id="menu-price" name="price" placeholder="Price">
             <input type="number" id="menu-stock" name="stock_quantity" placeholder="Stock Quantity">
@@ -69,7 +64,6 @@
                 <form id="sort-form" action="{{ url_for('menus_action') }}" method="post">
                     <select name="sort_by" id="sort-by">
                         <option value="item_name">Name</option>
-                        <option value="veg_or_non_veg">Type</option>
                         <option value="cuisine">Cuisine</option>
                         <option value="price">Price</option>
                     </select>
@@ -102,7 +96,6 @@
                 <span class="menu-restaurant-id" style="display: none;">{{ item['restaurant_id'] }}</span>
                 
                 <p><strong>Name:</strong> <span class="menu-name">{{ item['food_name'] if item['food_name'] else 'No food name' }}</span></p>
-                <p><strong>Type:</strong> <span class="menu-type">{{ item['veg_or_non_veg'] if item['veg_or_non_veg'] else 'Not specified' }}</span></p>
                 <p><strong>Cuisine:</strong> <span class="menu-cuisine">{{ item['cuisine'] if item['cuisine'] else 'Not specified' }}</span></p>
                 <p><strong>Price:</strong> <span class="menu-price">{{ item['price'] }}</span></p>
                 <p><strong>Stock:</strong> <span class="menu-stock">{{ item['stock_quantity'] }}</span></p>

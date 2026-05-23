@@ -17,15 +17,14 @@ def view_profile():
     try:
         cursor = connection.cursor(dictionary=True)
 
-        # 1. MÜŞTERİ PROFİLİ
+        # 1. MÜŞTERİ PROFİLİ (DEĞİŞTİ: 'city' eklendi)
         if role == 'customer':
             customer_id = session.get('customer_id')
-            cursor.execute("SELECT name, phone, address FROM customers WHERE customer_id = %s", (customer_id,))
+            cursor.execute("SELECT name, phone, city, address FROM customers WHERE customer_id = %s", (customer_id,))
             user_data = cursor.fetchone()
 
         # 2. GARSON PROFİLİ
         elif role == 'waiter':
-            # Giriş sisteminizde garsonun ID'sini 'waiter_id' olarak tuttuğunuzu varsayıyoruz
             waiter_id = session.get('waiter_id') or session.get('user_id') 
             cursor.execute("SELECT name, email, password FROM waiters WHERE waiter_id = %s", (waiter_id,))
             user_data = cursor.fetchone()
@@ -33,7 +32,6 @@ def view_profile():
         # 3. RESTORAN SAHİBİ VEYA ADMIN PROFİLİ
         elif role in ['user', 'admin']:
             user_id = session.get('user_id')
-            # 'users' tablonuzdaki alan adlarına göre (username/email/password) uyarlayabilirsiniz
             cursor.execute("SELECT username, email, password FROM users WHERE user_id = %s", (user_id,))
             user_data = cursor.fetchone()
 
@@ -64,17 +62,23 @@ def update_profile():
     try:
         cursor = connection.cursor(dictionary=True)
 
-        # 1. MÜŞTERİ GÜNCELLEME
+        # 1. MÜŞTERİ GÜNCELLEME (DEĞİŞTİ: 'city' eklendi ve session güncellendi)
         if role == 'customer':
             customer_id = session.get('customer_id')
             name = request.form.get('name')
             phone = request.form.get('phone')
+            city = request.form.get('city')  # YENİ
             address = request.form.get('address')
 
+            # SQL Sorgusuna city eklendi
             cursor.execute("""
-                UPDATE customers SET name = %s, phone = %s, address = %s WHERE customer_id = %s
-            """, (name, phone, address, customer_id))
+                UPDATE customers SET name = %s, phone = %s, city = %s, address = %s WHERE customer_id = %s
+            """, (name, phone, city, address, customer_id))
             connection.commit()
+            
+            # YENİ: Navbar'daki 📍 yazısının anında değişmesi için session'ı güncelliyoruz
+            session['customer_city'] = city
+            
             flash("Profil bilgileriniz başarıyla güncellendi! ✨", "success")
 
         # 2. GARSON GÜNCELLEME
@@ -104,7 +108,7 @@ def update_profile():
 
     except Error as e:
         connection.rollback()
-        flash(f"Güncelleme sırasında bir hata oluşti: {e}", "danger")
+        flash(f"Güncelleme sırasında bir hata oluştu: {e}", "danger")
     finally:
         if connection.is_connected():
             cursor.close()

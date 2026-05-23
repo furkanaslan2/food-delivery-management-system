@@ -6,11 +6,9 @@ document.addEventListener("DOMContentLoaded", function () {
         const card = checkbox.closest('.table-card');
         const id = card.querySelector('.food-id')?.textContent.trim() || '';
         const name = card.querySelector('.food-name')?.textContent.trim() || '';
-        const type = card.querySelector('.food-type')?.textContent.trim() || '';
 
         document.getElementById('food-id').value = id;
         document.getElementById('food-name').value = name;
-        document.getElementById('food-type').value = type;
         document.getElementById('update-food-id').value = id;
 
         const role = document.getElementById('current-user-role').value;
@@ -34,7 +32,6 @@ document.addEventListener("DOMContentLoaded", function () {
     function clearInputs() {
         document.getElementById('food-id').value = '';
         document.getElementById('food-name').value = '';
-        document.getElementById('food-type').value = '';
         document.getElementById('update-food-id').value = '';
 
         const idInput = document.getElementById('food-id');
@@ -47,7 +44,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function handleCheckboxChange(event) {
-  
         const selectedCheckboxes = document.querySelectorAll('#food-list input[type="checkbox"]:checked');
 
         if (selectedCheckboxes.length === 0) {
@@ -63,7 +59,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
     foodCards.forEach(card => {
         const checkbox = card.querySelector('input[type="checkbox"]');
-        checkbox.addEventListener('change', handleCheckboxChange);
+        if (checkbox) {
+            checkbox.addEventListener('change', handleCheckboxChange);
+        }
     });
 });
 
@@ -89,12 +87,11 @@ let currentMatchIndex = 0;
 function searchFood() {
     const idInput = document.getElementById('food-id').value.trim().toLowerCase();
     const nameInput = document.getElementById('food-name').value.trim().toLowerCase();
-    const typeInput = document.getElementById('food-type').value.trim();
     const cards = document.querySelectorAll('.table-card');
     matchedCards = [];
     currentMatchIndex = -1;
 
-    if (!idInput && !nameInput && !typeInput) {
+    if (!idInput && !nameInput) {
         alert("Please enter at least one search criterion.");
         return;
     }
@@ -104,12 +101,10 @@ function searchFood() {
     cards.forEach(card => {
         const id = card.querySelector('.food-id').textContent.trim();
         const name = card.querySelector('.food-name').textContent.toLowerCase();
-        const type = card.querySelector('.food-type').textContent;
 
         if (
             (!idInput || id === idInput) &&
-            (!nameInput || name.includes(nameInput)) &&
-            (!typeInput || type === typeInput)
+            (!nameInput || name.includes(nameInput))
         ) {
             matchedCards.push(card);
         }
@@ -139,7 +134,6 @@ function goToNextMatch() {
 function clearSearch() {
     document.getElementById('food-id').value = "";
     document.getElementById('food-name').value = "";
-    document.getElementById('food-type').value = "";
     
     document.getElementById('form-action').value = 'clear';
     document.getElementById('food-form').submit();
@@ -202,19 +196,14 @@ function toggleSortMenu(event) {
     }
 }
 
-// Merge all DOMContentLoaded event listeners into one
 document.addEventListener("DOMContentLoaded", function() {
     const foodForm = document.getElementById('food-form');
-    const foodCards = document.querySelectorAll('.table-card');
-    let lastCheckedBox = null;
     
-    // Add event listener for sort button
     const sortButton = document.querySelector('.sort-button');
     if (sortButton) {
         sortButton.addEventListener('click', toggleSortMenu);
     }
 
-    // Add event listener for overlay to close the sort menu
     const overlay = document.getElementById('overlay');
     const sortMenu = document.getElementById('sort-menu');
     if (overlay) {
@@ -224,7 +213,6 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // Close sort menu when clicking outside
     document.addEventListener('click', function(event) {
         if (!event.target.closest('.sort-button') && 
             !event.target.closest('.sort-menu') && 
@@ -234,12 +222,10 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 
-    // Prevent clicks inside the sort menu from closing it
     sortMenu.addEventListener('click', function(event) {
         event.stopPropagation();
     });
 
-    // Add event listeners for action buttons
     ['add-button', 'delete-button', 'update-button', 'filter-button'].forEach(buttonClass => {
         const button = document.querySelector('.' + buttonClass);
         if (button) {
@@ -261,29 +247,4 @@ document.addEventListener("DOMContentLoaded", function() {
             });
         }
     });
-
-    // Rest of your existing DOMContentLoaded code...
-    function updateInputs(checkbox) {
-        const card = checkbox.closest('.table-card');
-        const id = card.querySelector('.food-id')?.textContent.trim() || '';
-        const name = card.querySelector('.food-name')?.textContent.trim() || '';
-        const type = card.querySelector('.food-type')?.textContent.trim() || '';
-
-        document.getElementById('food-id').value = id;
-        document.getElementById('food-name').value = name;
-        document.getElementById('food-type').value = type;
-        document.getElementById('update-food-id').value = id;
-    }
-
-    function clearInputs() {
-        document.getElementById('food-id').value = '';
-        document.getElementById('food-name').value = '';
-        document.getElementById('food-type').value = '';
-        document.getElementById('update-food-id').value = '';
-    }
-
-    foodCards.forEach(card => {
-        const checkbox = card.querySelector('input[type="checkbox"]');
-        checkbox.addEventListener('change', handleCheckboxChange);
-    });
-}); 
+});

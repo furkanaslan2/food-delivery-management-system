@@ -18,20 +18,20 @@ def foods():
         cursor = connection.cursor(dictionary=True)
         if role == 'admin':
             cursor.execute('''
-                SELECT f.food_id, f.item_name, f.veg_or_non_veg,
+                SELECT f.food_id, f.item_name,
                        COUNT(m.menu_id) as menu_count
                 FROM foods f
                 LEFT JOIN menus m ON f.food_id = m.food_id
-                GROUP BY f.food_id, f.item_name, f.veg_or_non_veg
+                GROUP BY f.food_id, f.item_name
             ''')
         elif role == 'user' and restaurant_id:
             cursor.execute('''
-                SELECT DISTINCT f.food_id, f.item_name, f.veg_or_non_veg,
+                SELECT DISTINCT f.food_id, f.item_name,
                        COUNT(m.menu_id) as menu_count
                 FROM foods f
                 LEFT JOIN menus m ON f.food_id = m.food_id
                 WHERE m.restaurant_id = %s OR m.restaurant_id IS NULL
-                GROUP BY f.food_id, f.item_name, f.veg_or_non_veg
+                GROUP BY f.food_id, f.item_name
             ''', (restaurant_id,))
         else:
             flash("Unauthorized access!", "danger")
@@ -65,11 +65,10 @@ def food_action():
 
         if action == 'add':
             food_name = request.form.get('name')
-            food_type = request.form.get('food_type')
             food_id = request.form.get('food_id')
 
-            if not all([food_name, food_type]):
-                flash("Food name and type are required.", "warning")
+            if not food_name:
+                flash("Food name is required.", "warning")
                 return redirect(url_for('foods'))
 
             try:
@@ -79,11 +78,11 @@ def food_action():
                         flash("Food ID already exists.", "warning")
                         return redirect(url_for('foods'))
                     
-                    query = "INSERT INTO foods (food_id, item_name, veg_or_non_veg) VALUES (%s, %s, %s)"
-                    cursor.execute(query, (food_id, food_name, food_type))
+                    query = "INSERT INTO foods (food_id, item_name) VALUES (%s, %s)"
+                    cursor.execute(query, (food_id, food_name))
                 else:
-                    query = "INSERT INTO foods (item_name, veg_or_non_veg) VALUES (%s, %s)"
-                    cursor.execute(query, (food_name, food_type))
+                    query = "INSERT INTO foods (item_name) VALUES (%s)"
+                    cursor.execute(query, (food_name,))
 
                 connection.commit()
                 flash("Food item added successfully!", "success")
@@ -118,23 +117,22 @@ def food_action():
         elif action == 'update':
             update_food_id = request.form.get('update_food_id')
             food_name = request.form.get('name')
-            food_type = request.form.get('food_type')
 
             if not update_food_id:
                 flash("No food item selected for update.", "warning")
                 return redirect(url_for('foods'))
             
-            if not all([food_name, food_type]):
-                flash("All fields (Name and Type) are required for update.", "warning")
+            if not food_name:
+                flash("Food name is required for update.", "warning")
                 return redirect(url_for('foods'))
 
             try:
                 query = """
                     UPDATE foods 
-                    SET item_name = %s, veg_or_non_veg = %s
+                    SET item_name = %s
                     WHERE food_id = %s
                 """
-                cursor.execute(query, (food_name, food_type, update_food_id))
+                cursor.execute(query, (food_name, update_food_id))
                 connection.commit()
                 flash("Food item updated successfully!", "success")
 
@@ -146,7 +144,6 @@ def food_action():
             try:
                 food_id = request.form.get('food_id')
                 food_name = request.form.get('name')
-                food_type = request.form.get('food_type')
 
                 query = """
                     SELECT f.*, COUNT(m.menu_id) as menu_count
@@ -162,11 +159,8 @@ def food_action():
                 if food_name:
                     query += " AND f.item_name LIKE %s"
                     params.append(f"%{food_name}%")
-                if food_type:
-                    query += " AND f.veg_or_non_veg = %s"
-                    params.append(food_type)
 
-                query += " GROUP BY f.food_id, f.item_name, f.veg_or_non_veg"
+                query += " GROUP BY f.food_id, f.item_name"
                 cursor.execute(query, params)
                 foods = cursor.fetchall()
                 
@@ -193,7 +187,7 @@ def food_action():
                 SELECT f.*, COUNT(m.menu_id) as menu_count
                 FROM foods f
                 LEFT JOIN menus m ON f.food_id = m.food_id
-                GROUP BY f.food_id, f.item_name, f.veg_or_non_veg
+                GROUP BY f.food_id, f.item_name
                 ORDER BY f.{sort_by} {sort_order}
             """
             cursor.execute(query)
@@ -206,7 +200,7 @@ def food_action():
                 SELECT f.*, COUNT(m.menu_id) as menu_count
                 FROM foods f
                 LEFT JOIN menus m ON f.food_id = m.food_id
-                GROUP BY f.food_id, f.item_name, f.veg_or_non_veg
+                GROUP BY f.food_id, f.item_name
             """
             cursor.execute(query)
             foods = cursor.fetchall()
@@ -220,4 +214,4 @@ def food_action():
             cursor.close()
             connection.close()
 
-    return redirect(url_for('foods')) 
+    return redirect(url_for('foods'))

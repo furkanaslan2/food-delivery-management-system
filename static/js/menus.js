@@ -6,7 +6,6 @@ document.addEventListener("DOMContentLoaded", function () {
         const card = checkbox.closest('.table-card');
         const id = card.querySelector('.menu-id')?.textContent.trim() || '';
         const name = card.querySelector('.menu-name')?.textContent.trim() || '';
-        const type = card.querySelector('.menu-type')?.textContent.trim() || '';
         const cuisine = card.querySelector('.menu-cuisine')?.textContent.trim() || '';
         const price = card.querySelector('.menu-price')?.textContent.trim() || '';
         const stock = card.querySelector('.menu-stock')?.textContent.trim() || '';
@@ -14,7 +13,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
         document.getElementById('menu-id').value = id;
         document.getElementById('food-name').value = name;
-        document.getElementById('food-type').value = type === 'Veg' ? 'Veg' : 'Non-veg';
         document.getElementById('menu-cuisine').value = cuisine;
         document.getElementById('menu-price').value = price;
         document.getElementById('menu-stock').value = stock;
@@ -63,7 +61,6 @@ document.addEventListener("DOMContentLoaded", function () {
     function clearInputs() {
         document.getElementById('menu-id').value = '';
         document.getElementById('food-name').value = '';
-        document.getElementById('food-type').value = '';
         document.getElementById('menu-cuisine').value = '';
         document.getElementById('menu-price').value = '';
         document.getElementById('menu-stock').value = '';
@@ -88,11 +85,10 @@ document.addEventListener("DOMContentLoaded", function () {
                     el.readOnly = false; 
                 }
             }
-    });
+        });
     }
 
     function handleCheckboxChange(event) {
-
         const selectedCheckboxes = document.querySelectorAll('#menu-list input[type="checkbox"]:checked');
 
         if (selectedCheckboxes.length === 0) {
@@ -108,7 +104,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
     menuCards.forEach(card => {
         const checkbox = card.querySelector('input[type="checkbox"]');
-        checkbox.addEventListener('change', handleCheckboxChange);
+        if (checkbox) {
+            checkbox.addEventListener('change', handleCheckboxChange);
+        }
     });
 });
 
@@ -135,7 +133,6 @@ document.addEventListener("DOMContentLoaded", function() {
             e.preventDefault();
             if (collectSelected()) {
                 const form = document.getElementById('menu-form');
-                // Set the action value
                 document.getElementById('form-action').value = 'delete';
                 form.submit();
             }
@@ -149,7 +146,6 @@ let currentMatchIndex = 0;
 function searchMenu() {
     const idInput = document.getElementById('menu-id').value.trim().toLowerCase();
     const foodNameInput = document.getElementById('food-name').value.trim().toLowerCase();
-    const foodTypeInput = document.getElementById('food-type').value.trim();
     const cuisineInput = document.getElementById('menu-cuisine').value.trim().toLowerCase();
     const priceInput = document.getElementById('menu-price').value.trim().toLowerCase();
     const stockInput = document.getElementById('menu-stock').value.trim();
@@ -158,7 +154,7 @@ function searchMenu() {
     matchedCards = [];
     currentMatchIndex = -1;
 
-    if (!idInput && !foodNameInput && !foodTypeInput && !cuisineInput && !priceInput && !restaurantIdInput) {
+    if (!idInput && !foodNameInput && !cuisineInput && !priceInput && !stockInput && !restaurantIdInput) {
         alert("Please enter at least one search criterion.");
         return;
     }
@@ -168,7 +164,6 @@ function searchMenu() {
     cards.forEach(card => {
         const id = card.querySelector('.menu-id').textContent.toLowerCase();
         const foodName = card.querySelector('.menu-name').textContent.toLowerCase();
-        const foodType = card.querySelector('.menu-type').textContent;
         const cuisine = card.querySelector('.menu-cuisine').textContent.toLowerCase();
         const price = card.querySelector('.menu-price').textContent.toLowerCase();
         const stock = card.querySelector('.menu-stock').textContent;
@@ -177,7 +172,6 @@ function searchMenu() {
         if (
             (!idInput || id === idInput) &&
             (!foodNameInput || foodName.includes(foodNameInput)) &&
-            (!foodTypeInput || foodType === foodTypeInput) &&
             (!cuisineInput || cuisine.includes(cuisineInput)) &&
             (!priceInput || price.includes(priceInput)) &&
             (!stockInput || stock === stockInput) &&
@@ -210,25 +204,6 @@ function goToNextMatch() {
 
     nextCard.classList.add('highlight');
     nextCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-}
-
-function clearSearch() {
-    document.getElementById('menu-id').value = "";
-    document.getElementById('food-name').value = "";
-    document.getElementById('menu-cuisine').value = "";
-    document.getElementById('menu-price').value = "";
-    document.getElementById('menu-restaurant-id').value = "";
-
-    document.getElementById('clear-filter').value = "true";
-    document.getElementById('menu-form').submit();
-
-    document.querySelectorAll('.table-card').forEach(card => card.classList.remove('highlight'));
-    document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => checkbox.checked = false);
-
-    matchedCards = [];
-    currentMatchIndex = 0;
-
-    document.getElementById('navigation').classList.add('hidden');
 }
 
 const scrollTopBtn = document.getElementById("scrollTopBtn");
@@ -295,7 +270,6 @@ document.addEventListener("DOMContentLoaded", function() {
             }
             
             const form = document.getElementById('menu-form');
-            // Set the action value before submitting
             document.getElementById('form-action').value = 'update';
             
             const formData = new FormData(form);
@@ -303,7 +277,6 @@ document.addEventListener("DOMContentLoaded", function() {
                 action: formData.get('action'),
                 update_menu_id: formData.get('update_menu_id'),
                 name: formData.get('name'),
-                food_type: formData.get('food_type'),
                 cuisine: formData.get('cuisine'),
                 price: formData.get('price'),
                 restaurant_id: formData.get('restaurant_id')
@@ -329,24 +302,24 @@ document.addEventListener("DOMContentLoaded", function() {
 document.addEventListener("DOMContentLoaded", function() {
     const menuForm = document.getElementById('menu-form');
     
-    menuForm.addEventListener('submit', function(e) {
-        const submitter = e.submitter;
-        if (submitter && submitter.name === 'action') {
-            document.getElementById('form-action').value = submitter.value;
-        }
-    });
+    if (menuForm) {
+        menuForm.addEventListener('submit', function(e) {
+            const submitter = e.submitter;
+            if (submitter && submitter.name === 'action') {
+                document.getElementById('form-action').value = submitter.value;
+            }
+        });
+    }
 
-    // Update the clear search function
     window.clearSearch = function() {
         document.getElementById('menu-id').value = "";
         document.getElementById('food-name').value = "";
-        document.getElementById('food-type').value = "";
         document.getElementById('menu-cuisine').value = "";
         document.getElementById('menu-price').value = "";
         document.getElementById('menu-stock').value = "";
         document.getElementById('menu-restaurant-id').value = "";
         
         document.getElementById('form-action').value = 'clear';
-        menuForm.submit();
+        if (menuForm) menuForm.submit();
     };
 });

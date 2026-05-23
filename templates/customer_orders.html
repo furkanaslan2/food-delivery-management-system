@@ -111,8 +111,9 @@
                     👤 Hesabım ▾
                 </button>
                 <div class="dropdown-content">
-                    <a href="{{ url_for('view_profile') }}">⚙️ Ayarlarım</a>
                     <a href="{{ url_for('customer_orders') }}">📦 Siparişlerim</a>
+                    <a href="{{ url_for('view_favorites') }}">❤️ Favorilerim</a>
+                    <a href="{{ url_for('view_profile') }}">⚙️ Ayarlarım</a>
                     <div style="height: 1px; background: #e5e7eb; margin: 4px 0;"></div>
                     <a href="/logout" style="color: #ef4444;">🚪 Çıkış Yap</a>
                 </div>

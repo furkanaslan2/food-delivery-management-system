@@ -40,7 +40,6 @@ CREATE TABLE restaurants (
 CREATE TABLE foods (
     food_id INT AUTO_INCREMENT,
     item_name VARCHAR(255) NOT NULL,
-    veg_or_non_veg ENUM('Veg', 'Non-veg') NOT NULL,
     category VARCHAR(50) DEFAULT 'ANA YEMEK',
     PRIMARY KEY (food_id)
 );

@@ -41,12 +41,7 @@
             <input type="hidden" id="food-id" name="food_id">
             
             <input type="text" id="food-name" name="name" placeholder="Food Name">
-            <select id="food-type" name="food_type" aria-label="Select food type">
-                <option value="">Select Type</option>
-                <option value="Veg">Veg</option>
-                <option value="Non-veg">Non-veg</option>
-            </select>
-        </form>
+            </form>
         <button class="search-button" onclick="searchFood()"><img class="button-img" src="{{ url_for('static', filename='images/search.png') }}" alt="search icon">Search</button>
         <button class="clear-button" type="submit" form="food-form" name="action" value="clear" onclick="clearSearch()"><img class="button-img" src="{{ url_for('static', filename='images/clear.png') }}" alt="clear icon">Clear</button>
     </div>
@@ -68,8 +63,7 @@
                     <input type="hidden" name="action" value="sort">
                     <select name="sort_by" id="sort-by">
                         <option value="item_name">Name</option>
-                        <option value="veg_or_non_veg">Type</option>
-                    </select>
+                        </select>
                     <h3 id="second-h3">Order</h3>
                     <select name="sort_order" id="sort-order">
                         <option value="ASC">Ascending</option>
@@ -91,7 +85,6 @@
                 <span class="food-id" style="display: none;">{{ item['food_id'] }}</span>
                 
                 <p><strong>Name:</strong> <span class="food-name">{{ item['item_name'] }}</span></p>
-                <p><strong>Type:</strong> <span class="food-type">{{ item['veg_or_non_veg'] }}</span></p>
                 <p><strong>Used in Menus:</strong> <span class="menu-count">{{ item['menu_count'] }}</span></p>
             </label>
         </div>

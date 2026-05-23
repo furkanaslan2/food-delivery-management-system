@@ -19,14 +19,14 @@ def menus():
         if role == 'admin':
             cursor.execute('''
                 SELECT m.menu_id, m.restaurant_id, m.food_id, m.cuisine, m.price, m.stock_quantity,
-                       f.item_name as food_name, f.veg_or_non_veg 
+                       f.item_name as food_name
                 FROM menus m 
                 LEFT JOIN foods f ON m.food_id = f.food_id
             ''')
         elif role == 'user' and restaurant_id:
             cursor.execute('''
                 SELECT m.menu_id, m.restaurant_id, m.food_id, m.cuisine, m.price, m.stock_quantity,
-                       f.item_name as food_name, f.veg_or_non_veg 
+                       f.item_name as food_name
                 FROM menus m 
                 LEFT JOIN foods f ON m.food_id = f.food_id 
                 WHERE m.restaurant_id = %s
@@ -36,11 +36,10 @@ def menus():
             return redirect(url_for('index'))
 
         menus_list = cursor.fetchall()
-        #print("Fetched menus:", menus_list)  # Debug print
         return render_template('menus.html', menus=menus_list)
 
     except Error as e:
-        print(f"Database error: {str(e)}")  # Debug print
+        print(f"Database error: {str(e)}")
         flash(f"Query failed: {e}", "danger")
         return render_template('menus.html', menus=[])
     finally:
@@ -65,49 +64,40 @@ def menus_action():
         cursor = connection.cursor(dictionary=True)
 
         if action == 'add':
-            # Get form data
             food_name = request.form.get('name')
-            food_type = request.form.get('food_type')
             cuisine = request.form.get('cuisine')
             price = request.form.get('price')
             stock_quantity = request.form.get('stock_quantity', 0)
             restaurant_id = request.form.get('restaurant_id')
-            menu_id = request.form.get('menu_id')  # Changed from menus_id
-            stock_quantity = request.form.get('stock_quantity', 0)
+            menu_id = request.form.get('menu_id')
 
-            # Validate required fields
-            if not all([food_name, food_type, cuisine, price, restaurant_id, stock_quantity]):
+            if not all([food_name, cuisine, price, restaurant_id, stock_quantity]):
                 flash("All fields are required except Menu ID.", "warning")
                 return redirect(url_for('menus'))
 
             try:
-                # Check if restaurant exists
                 cursor.execute("SELECT COUNT(*) as count FROM restaurants WHERE restaurant_id = %s", (restaurant_id,))
                 result = cursor.fetchone()
                 if result['count'] == 0:
                     flash('No restaurant found with that Restaurant ID!', 'danger')
                     return redirect(url_for('menus'))
 
-                # First, insert or get the food item
                 cursor.execute("""
                     SELECT food_id FROM foods 
-                    WHERE item_name = %s AND veg_or_non_veg = %s
-                """, (food_name, food_type))
+                    WHERE item_name = %s
+                """, (food_name,))
                 food_result = cursor.fetchone()
 
                 if not food_result:
-                    # Create new food item
                     cursor.execute("""
-                        INSERT INTO foods (item_name, veg_or_non_veg)
-                        VALUES (%s, %s)
-                    """, (food_name, food_type))
+                        INSERT INTO foods (item_name)
+                        VALUES (%s)
+                    """, (food_name,))
                     food_id = cursor.lastrowid
                 else:
                     food_id = food_result['food_id']
 
-                # Then insert the menu item
                 if menu_id:
-                    # Check if menu_id already exists
                     cursor.execute("SELECT menu_id FROM menus WHERE menu_id = %s", (menu_id,))
                     if cursor.fetchone():
                         flash("Menu ID already exists. Please use a different ID.", "warning")
@@ -129,14 +119,11 @@ def menus_action():
                 flash("Menu item added successfully!", "success")
 
             except Error as e:
-                print(f"Database error: {str(e)}")  # Debug print
                 connection.rollback()
                 flash(f"Error adding menu item: {str(e)}", "danger")
 
         elif action == 'delete':
             selected_ids = request.form.get('selected_menu_items')
-            print("Form data received:", request.form)  # Debug print
-            print("Selected IDs received:", selected_ids)  # Debug print
             
             if not selected_ids:
                 flash("No menu item(s) selected for deletion.", "warning")
@@ -145,9 +132,7 @@ def menus_action():
             try:
                 selected_ids = selected_ids.split(',')
                 
-                # Verify user has permission to delete these menu items
                 if role == 'user':
-                    # For users, verify they own the restaurant these menu items belong to
                     query = """
                         DELETE FROM menus 
                         WHERE menu_id IN ({}) 
@@ -155,7 +140,6 @@ def menus_action():
                     """.format(','.join(['%s'] * len(selected_ids)))
                     params = selected_ids + [restaurant_id_session]
                 else:
-                    # For admins, allow deletion of any menu items
                     query = """
                         DELETE FROM menus 
                         WHERE menu_id IN ({})
@@ -171,7 +155,6 @@ def menus_action():
                     flash("No menu items were deleted. Please check your permissions.", "warning")
                     
             except Error as e:
-                print(f"Database error: {str(e)}")  # Debug print
                 connection.rollback()
                 flash(f"Error deleting menu items: {str(e)}", "danger")
 
@@ -181,22 +164,10 @@ def menus_action():
             update_menu_id = request.form.get('update_menu_id')
             new_menu_id = request.form.get('menu_id')
             food_name = request.form.get('name')
-            food_type = request.form.get('food_type')
             cuisine = request.form.get('cuisine')
             price = request.form.get('price')
             restaurant_id = request.form.get('restaurant_id')
             stock_quantity = request.form.get('stock_quantity', 0)
-
-            # Add debug logging
-            print("Update request received with data:", {
-                'update_menu_id': update_menu_id,
-                'food_name': food_name,
-                'food_type': food_type,
-                'cuisine': cuisine,
-                'price': price,
-                'restaurant_id': restaurant_id,
-                'stock_quantity': stock_quantity
-            })
 
             if not update_menu_id:
                 flash("No menu item selected for update.", "warning")
@@ -206,8 +177,8 @@ def menus_action():
                 flash("Unauthorized action! You cannot change your Menu Item's ID or Restaurant ID.", "danger")
                 return redirect(url_for('menus'))
             
-            if not all([food_name, food_type, cuisine, price, restaurant_id]):
-                flash("All fields (Name, Type, Cuisine, Price, Restaurant ID) are required for update.", "warning")
+            if not all([food_name, cuisine, price, restaurant_id]):
+                flash("All fields (Name, Cuisine, Price, Restaurant ID) are required for update.", "warning")
                 return redirect(url_for('menus'))
             
             if stock_quantity == "":
@@ -215,46 +186,33 @@ def menus_action():
                 return redirect(url_for('menus'))
 
             try:
-                # First, get the food_id based on the food name and type
                 cursor.execute("""
                     SELECT food_id FROM foods 
-                    WHERE item_name = %s AND veg_or_non_veg = %s
-                """, (food_name, food_type))
+                    WHERE item_name = %s
+                """, (food_name,))
                 food_result = cursor.fetchone()
                 
-                print("Food query result:", food_result)  # Debug log
-                
                 if not food_result:
-                    # If food doesn't exist, create it
                     cursor.execute("""
-                        INSERT INTO foods (item_name, veg_or_non_veg)
-                        VALUES (%s, %s)
-                    """, (food_name, food_type))
+                        INSERT INTO foods (item_name)
+                        VALUES (%s)
+                    """, (food_name,))
                     food_id = cursor.lastrowid
-                    print("Created new food with ID:", food_id)  # Debug log
                 else:
                     food_id = food_result['food_id']
-                    print("Found existing food with ID:", food_id)  # Debug log
 
-                # Now update the menu item
                 query = """
                     UPDATE menus 
                     SET food_id = %s, cuisine = %s, price = %s, restaurant_id = %s, stock_quantity = %s 
                     WHERE menu_id = %s
                 """
                 params = (food_id, cuisine, price, restaurant_id, stock_quantity, update_menu_id)
-                print("Update query:", query)  # Debug log
-                print("Update parameters:", params)  # Debug log
                 
                 cursor.execute(query, params)
-                rows_affected = cursor.rowcount
-                print("Rows affected by update:", rows_affected)  # Debug log
-                
                 connection.commit()
                 flash("Menu item updated successfully!", "success")
 
             except Error as e:
-                print("Database error:", str(e))  # Debug log
                 connection.rollback()
                 flash(f"Error updating menu item: {str(e)}", "danger")
                 return redirect(url_for('menus'))
@@ -263,35 +221,29 @@ def menus_action():
             try:
                 menu_id = request.form.get('menu_id')
                 food_name = request.form.get('name')
-                food_type = request.form.get('food_type')
                 cuisine = request.form.get('cuisine')
                 price = request.form.get('price')
                 restaurant_id = request.form.get('restaurant_id')
 
                 query = """
                     SELECT m.menu_id, m.restaurant_id, m.cuisine, m.price,
-                           f.item_name as food_name, f.veg_or_non_veg 
+                           f.item_name as food_name
                     FROM menus m 
                     LEFT JOIN foods f ON m.food_id = f.food_id 
                     WHERE 1=1
                 """
                 params = []
 
-                # Add conditions based on user role
                 if role == 'user':
                     query += " AND m.restaurant_id = %s"
                     params.append(restaurant_id_session)
 
-                # Add filter conditions
                 if menu_id:
                     query += " AND m.menu_id = %s"
                     params.append(menu_id)
                 if food_name:
                     query += " AND f.item_name LIKE %s"
                     params.append(f"%{food_name}%")
-                if food_type:
-                    query += " AND f.veg_or_non_veg = %s"
-                    params.append(food_type)
                 if cuisine:
                     query += " AND m.cuisine LIKE %s"
                     params.append(f"%{cuisine}%")
@@ -324,12 +276,9 @@ def menus_action():
                 flash("Invalid sort parameters.", "danger")
                 return redirect(url_for('menus'))
 
-            # Modify the sort_by column for special cases
             order_clause = ""
             if sort_by == 'item_name':
                 order_clause = f"f.item_name {sort_order}"
-            elif sort_by == 'veg_or_non_veg':
-                order_clause = f"f.veg_or_non_veg {sort_order}"
             else:
                 order_clause = f"m.{sort_by} {sort_order}"
 
@@ -337,7 +286,7 @@ def menus_action():
                 filtered_ids = [item['menus_id'] for item in session['filtered_menus']]
 
                 query = f"""
-                    SELECT m.*, f.item_name as food_name, f.veg_or_non_veg 
+                    SELECT m.*, f.item_name as food_name 
                     FROM menus m 
                     LEFT JOIN foods f ON m.food_id = f.food_id 
                     WHERE m.menus_id IN ({','.join(['%s'] * len(filtered_ids))}) 
@@ -346,7 +295,6 @@ def menus_action():
                 cursor.execute(query, filtered_ids)
                 menus = cursor.fetchall()
 
-                # Transform the menus items to use food_name when available
                 for item in menus:
                     if item['food_name']:
                         item['name'] = item['food_name']
@@ -354,7 +302,7 @@ def menus_action():
                 flash("Filtered menus items sorted successfully!", "success")
             else:
                 query = """
-                    SELECT m.*, f.item_name as food_name, f.veg_or_non_veg 
+                    SELECT m.*, f.item_name as food_name
                     FROM menus m 
                     LEFT JOIN foods f ON m.food_id = f.food_id 
                     WHERE 1=1
@@ -368,12 +316,11 @@ def menus_action():
                 cursor.execute(query, params)
                 menus = cursor.fetchall()
 
-                # Transform the menus items to use food_name when available
                 for item in menus:
                     if item['food_name']:
                         item['name'] = item['food_name']
 
-                flash("menus items sorted successfully!", "success")
+                flash("Menus items sorted successfully!", "success")
 
             return render_template('menus.html', menus=menus)
 
@@ -381,9 +328,8 @@ def menus_action():
             if 'filtered_menus' in session:
                 session.pop('filtered_menus', None)
 
-            # Update the query to include JOIN with foods table
             query = """
-                SELECT m.*, f.item_name as food_name, f.veg_or_non_veg 
+                SELECT m.*, f.item_name as food_name
                 FROM menus m 
                 LEFT JOIN foods f ON m.food_id = f.food_id 
                 WHERE 1=1
@@ -396,7 +342,6 @@ def menus_action():
             cursor.execute(query, params)
             menus = cursor.fetchall()
 
-            # Transform the menus items to use food_name when available
             for item in menus:
                 if item['food_name']:
                     item['name'] = item['food_name']

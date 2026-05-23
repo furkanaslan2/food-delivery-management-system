@@ -4,7 +4,6 @@ from db import get_db_connection
 from mysql.connector import Error
 
 # 1. RESTORAN MENÜSÜNÜ GÖRÜNTÜLEME
-# 1. RESTORAN MENÜSÜNÜ GÖRÜNTÜLEME
 def view_restaurant(restaurant_id):
     if 'logged_in' not in session or session.get('role') != 'customer':
         flash("Please login to view restaurants.", "danger")
@@ -15,39 +14,31 @@ def view_restaurant(restaurant_id):
     menu_items = []
     reviews = []
     
-    # YENİ EKLENEN DEĞİŞKENLER
     grouped_menus = {}
     popular_items = []
 
     if connection:
         try:
             cursor = connection.cursor(dictionary=True)
-            # 1. Restoran Bilgilerini Çek
             cursor.execute("SELECT * FROM restaurants WHERE restaurant_id = %s", (restaurant_id,))
             restaurant = cursor.fetchone()
 
-            # 2. Menüleri Foods (Yemekler) tablosuyla birleştirerek (JOIN) çek!
             cursor.execute("""
-                SELECT m.*, f.item_name AS food_name, f.veg_or_non_veg, f.category AS category 
+                SELECT m.*, f.item_name AS food_name, f.category AS category 
                 FROM menus m
                 JOIN foods f ON m.food_id = f.food_id
                 WHERE m.restaurant_id = %s AND m.stock_quantity > 0
             """, (restaurant_id,))
             menu_items = cursor.fetchall()
             
-            # --- YENİ ALGORİTMA: KATEGORİLERE GÖRE GRUPLAMA ---
             for item in menu_items:
-                # Veritabanında kategoriler genelde 'type' olarak tutulur. 
-                # (Eğer senin DB'nde sütun farklıysa örn: 'category' diye değiştir)
                 cat = item.get('category') or 'Diğer' 
-                
                 if cat not in grouped_menus:
                     grouped_menus[cat] = []
                 grouped_menus[cat].append(item)
 
-            # --- YENİ ALGORİTMA: ÇOK SATANLAR (POPÜLER) ---
             cursor.execute("""
-                SELECT m.*, f.item_name AS food_name, f.veg_or_non_veg, 
+                SELECT m.*, f.item_name AS food_name, 
                        COALESCE((
                            SELECT SUM(oi.quantity) 
                            FROM order_items oi 
@@ -63,7 +54,6 @@ def view_restaurant(restaurant_id):
             
             popular_items = cursor.fetchall()
 
-            # 3. Bu restorana ait yorumları ve müşteri isimlerini çek!
             cursor.execute("""
                 SELECT r.rating, r.comment, r.created_at, c.name AS customer_name 
                 FROM reviews r
@@ -94,7 +84,6 @@ def view_restaurant(restaurant_id):
         flash("Restaurant not found.", "danger")
         return redirect(url_for('index'))
 
-    # YENİ EKLENEN 'grouped_menus' VE 'popular_items' DEĞİŞKENLERİNİ HTML'E GÖNDERİYORUZ
     return render_template('customer_restaurant.html', 
                            restaurant=restaurant, 
                            menu_items=menu_items, 
