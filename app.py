@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from index import index
 from auth import login, logout, register, customer_login, customer_register
 from users import users, user_action
-from restaurants import restaurants, restaurant_action, restaurant_analytics
+from restaurants import restaurants, restaurant_action, restaurant_analytics, restaurant_profile
 from couriers import couriers, courier_action, api_check_courier_orders
 from menus import menus, menus_action
 from orders import orders, order_action, get_order_details, get_restaurant_details, api_check_new_orders
@@ -33,6 +33,7 @@ app.add_url_rule('/users', 'user_action', user_action, methods=['POST'])
 app.add_url_rule('/restaurants', 'restaurants', restaurants)
 app.add_url_rule('/restaurants', 'restaurant_action', restaurant_action, methods=['POST'])
 app.add_url_rule('/restaurant/<int:restaurant_id>', 'view_restaurant', view_restaurant)
+app.add_url_rule('/restaurant/profile', view_func=restaurant_profile, methods=['GET', 'POST'])
 app.add_url_rule('/couriers', 'couriers', couriers)
 app.add_url_rule('/couriers', 'courier_action', courier_action, methods=['POST'])
 app.add_url_rule('/menus', 'menus', menus)

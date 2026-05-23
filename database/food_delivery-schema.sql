@@ -30,6 +30,7 @@ CREATE TABLE restaurants (
     latitude DECIMAL(10, 8) NULL,   
     longitude DECIMAL(11, 8) NULL,
     table_count INT NOT NULL DEFAULT 10,
+    image_url VARCHAR(255) DEFAULT 'default_restaurant.jpg',
     PRIMARY KEY (restaurant_id),
     FOREIGN KEY (user_id) REFERENCES users(user_id)
     ON DELETE SET NULL

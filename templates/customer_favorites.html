@@ -31,7 +31,12 @@
         /* Restoran Kartı */
         .restaurant-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: all 0.3s ease; text-decoration: none; color: inherit; display: block; }
         .restaurant-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
-        .card-image { height: 160px; background-color: #e5e7eb; display: flex; justify-content: center; align-items: center; font-size: 40px; }
+        .restaurant-img {
+            transition: transform 0.3s ease;
+        }
+        .restaurant-card:hover .restaurant-img {
+            transform: scale(1.08);
+        }
         .card-content { padding: 16px; }
         .card-title { font-size: 18px; font-weight: 600; margin: 0 0 8px 0; display: flex; justify-content: space-between; align-items: center; }
         .rating-badge { background: #fef08a; color: #854d0e; padding: 4px 8px; border-radius: 6px; font-size: 13px; font-weight: 600; }
@@ -84,11 +89,27 @@
                     <svg viewBox="0 0 24 24" class="heart-svg" fill="#ef4444" stroke="#ef4444" stroke-width="2" style="width:18px; height:18px; transition: all 0.2s;"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
                 </button>
                 
-                <div class="card-image">
-                    {% if restaurant['cuisine'] == 'Pizza' %} 🍕 
-                    {% elif restaurant['cuisine'] == 'Burger' %} 🍔
-                    {% elif restaurant['cuisine'] == 'Sushi' %} 🍣
-                    {% else %} 🍽️ {% endif %}
+                <div class="card-image" style="width: 100%; height: 180px; background-color: #f3f4f6; overflow: hidden; position: relative;">
+                    {% if restaurant['image_url'] and restaurant['image_url'] != 'default_restaurant.jpg' %}
+                        
+                        {% set card_img_path = url_for('static', filename='images/restaurants/' ~ restaurant['image_url']) %}
+                        
+                        <div class="restaurant-img" 
+                             style="width: 100%; height: 100%; 
+                                    background-image: url('{{ card_img_path }}'); 
+                                    background-size: cover; 
+                                    background-position: center; 
+                                    background-repeat: no-repeat;">
+                        </div>
+                    
+                    {% else %}
+                        <div style="font-size: 40px; display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;">
+                            {% if restaurant['cuisine'] == 'Pizza' %} 🍕 
+                            {% elif restaurant['cuisine'] == 'Burger' %} 🍔
+                            {% elif restaurant['cuisine'] == 'Sushi' %} 🍣
+                            {% else %} 🍽️ {% endif %}
+                        </div>
+                    {% endif %}
                 </div>
                 
                 <div class="card-content">

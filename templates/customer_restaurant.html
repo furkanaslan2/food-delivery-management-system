@@ -196,9 +196,17 @@
         </div>
     </nav>
 
-    <div class="restaurant-header">
+    {% set bg_image = url_for('static', filename='images/restaurants/' ~ restaurant['image_url']) %}
+    
+    <div class="restaurant-header" 
+         {% if restaurant['image_url'] and restaurant['image_url'] != 'default_restaurant.jpg' %}
+            style="background: linear-gradient(rgba(31, 41, 55, 0.7), rgba(31, 41, 55, 0.8)), url('{{ bg_image }}') center/cover; color: white; padding: 60px 5%; text-align: center; border-bottom: 4px solid #10b981;"
+         {% else %}
+            style="background: #1f2937; color: white; padding: 50px 5%; text-align: center;"
+         {% endif %}>
+        
         <div style="display: flex; justify-content: center; align-items: center; gap: 15px; margin-bottom: 10px;">
-            <h1 style="margin: 0;">{{ restaurant['restaurant_name'] }}</h1>
+            <h1 style="margin: 0; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">{{ restaurant['restaurant_name'] }}</h1>
             
             <button id="fav-btn" class="fav-btn-container" data-id="{{ restaurant['restaurant_id'] }}">
                 {% if is_favorited %}
@@ -209,8 +217,8 @@
             </button>
         </div>
         
-        <p>{{ restaurant['cuisine'] }} • {{ restaurant['restaurant_address'] }}</p>
-        <div class="rating" onclick="document.getElementById('reviewsModal').style.display='flex'" style="cursor: pointer; transition: transform 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+        <p style="text-shadow: 0 1px 3px rgba(0,0,0,0.5);">{{ restaurant['cuisine'] }} • {{ restaurant['restaurant_address'] }}</p>
+        <div class="rating" onclick="document.getElementById('reviewsModal').style.display='flex'" style="cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.3);" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
             ⭐ {{ restaurant['rating'] }} ({{ restaurant['rating_count'] }}) - Yorumları Gör
         </div>
     </div>

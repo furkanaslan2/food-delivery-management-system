@@ -2,6 +2,8 @@ from flask import render_template, request, redirect, url_for, session, flash
 from db import get_db_connection
 from mysql.connector import Error
 import json
+import os
+from werkzeug.utils import secure_filename
 
 def restaurants():
     if not session.get('logged_in'):
@@ -591,3 +593,55 @@ def restaurant_analytics():
         restaurant_rating=restaurant_rating,
         rating_enum=rating_enum
     )
+
+def restaurant_profile():
+    if 'logged_in' not in session or session.get('role') != 'user':
+        return redirect(url_for('login'))
+
+    restaurant_id = session.get('restaurant_id')
+    connection = get_db_connection()
+    restaurant = None
+
+    if connection:
+        try:
+            cursor = connection.cursor(dictionary=True)
+            
+            if request.method == 'POST':
+                name = request.form.get('restaurant_name')
+                cuisine = request.form.get('cuisine')
+                image_file = request.files.get('restaurant_image')
+                
+                update_query = "UPDATE restaurants SET restaurant_name = %s, cuisine = %s"
+                params = [name, cuisine]
+                
+                if image_file and image_file.filename != '':
+                    filename = secure_filename(image_file.filename)
+                    
+                    # SENİN KLASÖR YAPINA GÖRE GÜNCELLENDİ
+                    upload_folder = os.path.join('static', 'images', 'restaurants')
+                    os.makedirs(upload_folder, exist_ok=True) 
+                    file_path = os.path.join(upload_folder, filename)
+                    image_file.save(file_path)
+                    
+                    update_query += ", image_url = %s"
+                    params.append(filename)
+                
+                update_query += " WHERE restaurant_id = %s"
+                params.append(restaurant_id)
+                
+                cursor.execute(update_query, tuple(params))
+                connection.commit()
+                flash("Profiliniz başarıyla güncellendi!", "success")
+
+            cursor.execute("SELECT * FROM restaurants WHERE restaurant_id = %s", (restaurant_id,))
+            restaurant = cursor.fetchone()
+            
+        except Exception as e:
+            print(f"Profil güncellenirken hata: {e}")
+            flash("Bir hata oluştu.", "danger")
+        finally:
+            if connection.is_connected():
+                cursor.close()
+                connection.close()
+
+    return render_template('restaurant_profile.html', restaurant=restaurant)

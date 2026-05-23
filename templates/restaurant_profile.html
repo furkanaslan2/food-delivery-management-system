@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restoran Profili</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; margin: 0; padding: 40px 20px; color: #1f2937; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        h2 { margin-top: 0; margin-bottom: 25px; color: #111827; }
+        
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; color: #4b5563; font-size: 14px; }
+        .form-group input[type="text"] { width: 100%; padding: 10px 15px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 15px; box-sizing: border-box; outline: none; }
+        .form-group input[type="text"]:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+        
+        /* Fotoğraf Alanı CSS */
+        .image-preview { width: 100%; height: 200px; background-color: #f9fafb; border: 2px dashed #d1d5db; border-radius: 8px; display: flex; justify-content: center; align-items: center; margin-bottom: 15px; overflow: hidden; position: relative; }
+        .image-preview img { width: 100%; height: 100%; object-fit: cover; }
+        .file-input-wrapper { position: relative; overflow: hidden; display: inline-block; }
+        .file-input-wrapper input[type=file] { font-size: 100px; position: absolute; left: 0; top: 0; opacity: 0; cursor: pointer; }
+        .btn-upload { background: #f3f4f6; border: 1px solid #d1d5db; padding: 8px 16px; border-radius: 6px; font-weight: 500; color: #374151; cursor: pointer; transition: all 0.2s; }
+        .btn-upload:hover { background: #e5e7eb; }
+        
+        .btn-submit { background: #10b981; color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; font-weight: 600; font-size: 16px; cursor: pointer; transition: background 0.2s; margin-top: 10px; }
+        .btn-submit:hover { background: #059669; }
+        .alert { padding: 12px; border-radius: 6px; margin-bottom: 20px; text-align: center; }
+        .alert-success { background: #d1fae5; color: #065f46; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2>⚙️ Restoran Ayarları</h2>
+            <a href="/" style="text-decoration: none; color: #6b7280; font-size: 14px;">← Panele Dön</a>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form action="{{ url_for('restaurant_profile') }}" method="POST" enctype="multipart/form-data">
+            
+            <div class="form-group">
+                <label>Mevcut Kapak Fotoğrafı</label>
+                <div class="image-preview">
+                    {% if restaurant['image_url'] and restaurant['image_url'] != 'default_restaurant.jpg' %}
+                        <img src="{{ url_for('static', filename='images/restaurants/' + restaurant['image_url']) }}" alt="Restaurant Image">
+                    {% else %}
+                        <span style="color: #9ca3af;">Görsel Yüklenmemiş 🏪</span>
+                    {% endif %}
+                </div>
+                
+                <div class="file-input-wrapper">
+                    <button type="button" class="btn-upload">📷 Yeni Fotoğraf Seç</button>
+                    <input type="file" name="restaurant_image" accept="image/*">
+                </div>
+                <small style="display:block; color: #6b7280; margin-top: 5px;">Sadece .jpg ve .png formatları desteklenir.</small>
+            </div>
+
+            <div class="form-group">
+                <label>Restoran Adı</label>
+                <input type="text" name="restaurant_name" value="{{ restaurant['restaurant_name'] }}" required>
+            </div>
+
+            <div class="form-group">
+                <label>Mutfak Türü (Örn: Pizza, Burger)</label>
+                <input type="text" name="cuisine" value="{{ restaurant['cuisine'] }}" required>
+            </div>
+
+            <button type="submit" class="btn-submit">Değişiklikleri Kaydet</button>
+        </form>
+    </div>
+    <script>
+        // Dosya seçiciyi dinle
+        document.querySelector('input[name="restaurant_image"]').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            
+            if (file) {
+                // Sadece resim dosyası seçildiyse işlem yap
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    
+                    reader.onload = function(e) {
+                        // Önizleme kutusunu bul ve içindeki HTML'i yeni seçilen resimle değiştir
+                        const previewBox = document.querySelector('.image-preview');
+                        previewBox.innerHTML = `<img src="${e.target.result}" alt="Yeni Kapak Fotoğrafı" style="width: 100%; height: 100%; object-fit: cover;">`;
+                    }
+                    
+                    // Resmi bellekte oku ve ekrana bas
+                    reader.readAsDataURL(file);
+                } else {
+                    alert("Lütfen geçerli bir resim dosyası seçin (.jpg, .png)");
+                    this.value = ''; // Yanlış dosyayı temizle
+                }
+            }
+        });
+    </script>
+</body>
+</html>
