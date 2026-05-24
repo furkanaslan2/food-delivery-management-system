@@ -163,3 +163,24 @@ CREATE TABLE favorite_restaurants (
     FOREIGN KEY (customer_id) REFERENCES customers(customer_id) ON DELETE CASCADE,
     FOREIGN KEY (restaurant_id) REFERENCES restaurants(restaurant_id) ON DELETE CASCADE
 );
+
+CREATE TABLE customer_addresses (
+    address_id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_id INT NOT NULL,
+    title VARCHAR(50) NOT NULL,            
+    city VARCHAR(50) NOT NULL,             
+    district VARCHAR(50) NOT NULL,        
+    neighborhood VARCHAR(100) NOT NULL,    
+    street VARCHAR(100) NOT NULL,         
+    building_no VARCHAR(20) NOT NULL,      
+    floor_no VARCHAR(10),                  
+    apt_no VARCHAR(20),                    
+    directions TEXT,                      
+    latitude DECIMAL(10, 8),               
+    longitude DECIMAL(11, 8),              
+    contact_name VARCHAR(100),             
+    contact_phone VARCHAR(20),             
+    is_active BOOLEAN DEFAULT FALSE,       
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (customer_id) REFERENCES customers(customer_id) ON DELETE CASCADE
+);

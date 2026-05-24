@@ -45,29 +45,36 @@ def index():
                     sql_query += " AND rating >= %s"
                     query_params.append(float(min_rating))
 
-                # 3. Sorguyu çalıştır ve filtrelenmiş verileri al
+                # 3. Sorguyu çalıştır ve tüm verileri al
                 cursor.execute(sql_query, tuple(query_params))
                 all_restaurants = cursor.fetchall()
                 
-                # 4. MEVCUT SİSTEMİN: Mesafe Hesaplama ve Sıralama
+                # 4. YENİ SİSTEM: 10 KM MESAFE SINIRI (GEOFENCING) 🛡️
                 customer_lat = session.get('latitude')
                 customer_lon = session.get('longitude')
+                
+                final_restaurants = []
 
                 if customer_lat and customer_lon:
+                    # Müşteri konum izni verdiyse: Mesafe hesabı yap
                     for r in all_restaurants:
                         if r['latitude'] and r['longitude']:
                             dist = calculate_distance(float(customer_lat), float(customer_lon), float(r['latitude']), float(r['longitude']))
-                            r['distance'] = round(dist, 1) # Virgülden sonra 1 basamak (Örn: 2.4 km)
-                        else:
-                            r['distance'] = 999 # Restoranın konumu girilmediyse en sona at
-
-                    # Restoranları mesafeye göre yakından uzağa sırala
-                    all_restaurants.sort(key=lambda x: x.get('distance', 999))
+                            
+                            # KİLİT NOKTA: Sadece 10 km ve altındakileri listeye alıyoruz!
+                            if dist <= 10.0:
+                                r['distance'] = round(dist, 1)
+                                final_restaurants.append(r)
+                                
+                    # Filtreden geçen restoranları mesafeye göre yakından uzağa sırala
+                    final_restaurants.sort(key=lambda x: x.get('distance', 999))
                 else:
-                    # Müşteri konum izni vermediyse veya lokasyon yoksa, varsayılan olarak puana göre sırala
+                    # Müşteri konum izni vermediyse veya GPS kapalıysa: 
+                    # Konumu 999 km yapıp listelemiyoruz, sadece yedek (fallback) olarak en iyi restoranları gösteriyoruz
                     all_restaurants.sort(key=lambda x: float(x.get('rating', 0) or 0), reverse=True)
+                    final_restaurants = all_restaurants
 
-                restaurants = all_restaurants
+                restaurants = final_restaurants
 
                 favorited_restaurant_ids = []
                 if session.get('customer_id'):

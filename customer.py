@@ -195,7 +195,26 @@ def view_cart():
     cart = session.get('cart', [])
     total_amount = sum(item['price'] * item['quantity'] for item in cart)
     
-    return render_template('customer_cart.html', cart=cart, total_amount=total_amount)
+    # YENİ: Müşterinin aktif (is_active=1) adresini veritabanından çek ve HTML'e gönder
+    customer_id = session.get('customer_id')
+    active_address = None
+    connection = get_db_connection()
+    if connection:
+        try:
+            cursor = connection.cursor(dictionary=True)
+            cursor.execute("""
+                SELECT * FROM customer_addresses 
+                WHERE customer_id = %s AND is_active = 1
+            """, (customer_id,))
+            active_address = cursor.fetchone()
+        except Exception as e:
+            print(f"Aktif adres yüklenirken hata: {e}")
+        finally:
+            if connection.is_connected():
+                cursor.close()
+                connection.close()
+                
+    return render_template('customer_cart.html', cart=cart, total_amount=total_amount, active_address=active_address)
 
 # 4. SİPARİŞİ TAMAMLAMA (CHECKOUT)
 def checkout():
@@ -208,8 +227,6 @@ def checkout():
         return redirect(url_for('index'))
 
     if request.method == 'POST':
-        phone = request.form.get('phone')
-        address = request.form.get('address')
         order_note = request.form.get('order_note', '') 
         payment_method = request.form.get('payment_method')
         customer_id = session.get('customer_id')
@@ -224,10 +241,29 @@ def checkout():
             try:
                 cursor = connection.cursor(dictionary=True)
                 
-                # Müşterinin adını alıyoruz
-                cursor.execute("SELECT name FROM customers WHERE customer_id = %s", (customer_id,))
-                customer = cursor.fetchone()
-                customer_name = customer['name'] if customer else 'Unknown Customer'
+                # YENİ: Telefon ve Adres formdan değil, doğrudan aktif adresten çekiliyor!
+                cursor.execute("""
+                    SELECT * FROM customer_addresses 
+                    WHERE customer_id = %s AND is_active = 1
+                """, (customer_id,))
+                active_address = cursor.fetchone()
+
+                if not active_address:
+                    flash("Lütfen siparişi tamamlamak için önce bir teslimat adresi seçin.", "danger")
+                    return redirect(url_for('index'))
+
+                phone = active_address['contact_phone']
+                customer_name = active_address['contact_name']
+                
+                # Adresi formatlı bir metne çeviriyoruz
+                address_parts = [f"{active_address['neighborhood']} Mh.", f"{active_address['street']} Sk.", f"No:{active_address['building_no']}"]
+                if active_address.get('floor_no'): address_parts.append(f"Kat:{active_address['floor_no']}")
+                if active_address.get('apt_no'): address_parts.append(f"Daire:{active_address['apt_no']}")
+                address_parts.append(f"{active_address['district']}/{active_address['city']}")
+                
+                address = " ".join(address_parts)
+                if active_address.get('directions'):
+                    address += f" (Tarif: {active_address['directions']})"
 
                 # 1. AŞAMA: Siparişi ana "orders" tablosuna kaydet
                 insert_order_query = """
@@ -246,29 +282,21 @@ def checkout():
 
                 # 2. AŞAMA: Sepetteki her bir ürünü "order_items" tablosuna ekle
                 for item in cart:
-                    # Tablomuz food_id istiyor. Önce menu_id üzerinden food_id'yi bulalım:
                     cursor.execute("SELECT food_id FROM menus WHERE menu_id = %s", (item['menu_id'],))
                     menu_data = cursor.fetchone()
                     
                     if menu_data:
                         food_id = menu_data['food_id']
-                        # Şimdi alt detayları order_items tablosuna yazıyoruz
                         cursor.execute("""
                             INSERT INTO order_items (order_id, food_id, quantity, unit_price)
                             VALUES (%s, %s, %s, %s)
                         """, (new_order_id, food_id, item['quantity'], item['price']))
 
-                # 3. AŞAMA (Opsiyonel): Müşteri tablosundaki telefon ve adresi güncelle (Gelecek sefere kolaylık)
-                cursor.execute("UPDATE customers SET phone = %s, address = %s WHERE customer_id = %s AND phone IS NULL", (phone, address, customer_id))
-
                 connection.commit()
                 
-                # --- YENİ: ÖDEME YÖNTEMİNE GÖRE YÖNLENDİRME ---
                 if payment_method == 'Online Payment':
-                    # SENİN ORİJİNAL ÖDEME SAYFANA YÖNLENDİRİYORUZ
                     return redirect(url_for('checkout_payment')) 
                 else:
-                    # Kapıda ödeme (Nakit veya Kart) ise işlemi bitir ve sepeti temizle
                     session.pop('cart', None) 
                     flash("🎉 Siparişiniz başarıyla alındı! Restoran hazırlanıyor.", "success")
                     return redirect(url_for('index'))
@@ -532,3 +560,167 @@ def view_favorites():
                 connection.close()
 
     return render_template('customer_favorites.html', restaurants=favorited_restaurants)
+
+def get_addresses():
+    if 'customer_id' not in session:
+        return jsonify({'success': False, 'message': 'Lütfen giriş yapın.'}), 401
+        
+    customer_id = session.get('customer_id')
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'success': False, 'message': 'Veritabanı bağlantı hatası.'}), 500
+        
+    try:
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute("""
+            SELECT * FROM customer_addresses 
+            WHERE customer_id = %s 
+            ORDER BY is_active DESC, created_at DESC
+        """, (customer_id,))
+        addresses = cursor.fetchall()
+        return jsonify({'success': True, 'addresses': addresses})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+    finally:
+        cursor.close()
+        connection.close()
+
+
+def add_address():
+    if 'customer_id' not in session:
+        return jsonify({'success': False, 'message': 'Lütfen giriş yapın.'}), 401
+        
+    customer_id = session.get('customer_id')
+    data = request.get_json()
+    
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'success': False, 'message': 'Veritabanı bağlantı hatası.'}), 500
+        
+    try:
+        cursor = connection.cursor(dictionary=True)
+        
+        # Eğer bu müşterinin ilk adresiyse otomatik aktif (is_active=True) yapalım
+        cursor.execute("SELECT COUNT(*) as count FROM customer_addresses WHERE customer_id = %s", (customer_id,))
+        is_first = cursor.fetchone()['count'] == 0
+        is_active = 1 if is_first else 0
+        
+        # Eğer yeni adres aktif olacaksa, eski aktif adresleri pasif yap
+        if is_active:
+            cursor.execute("UPDATE customer_addresses SET is_active = 0 WHERE customer_id = %s", (customer_id,))
+
+        query = """
+            INSERT INTO customer_addresses (
+                customer_id, title, city, district, neighborhood, street, 
+                building_no, floor_no, apt_no, directions, latitude, longitude, 
+                contact_name, contact_phone, is_active
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """
+        cursor.execute(query, (
+            customer_id, data.get('title'), data.get('city'), data.get('district'),
+            data.get('neighborhood'), data.get('street'), data.get('building_no'),
+            data.get('floor_no'), data.get('apt_no'), data.get('directions'),
+            data.get('latitude'), data.get('longitude'), data.get('contact_name'),
+            data.get('contact_phone'), is_active
+        ))
+        connection.commit()
+        
+        # Eğer aktif adres olarak kaydedildiyse session'ı da güncelle ki ana ekran anında yenilensin
+        if is_active:
+            session['latitude'] = data.get('latitude')
+            session['longitude'] = data.get('longitude')
+            session['customer_city'] = f"{data.get('district')}, {data.get('city')}"
+            
+        return jsonify({'success': True, 'message': 'Adres başarıyla eklendi!'})
+    except Exception as e:
+        connection.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+    finally:
+        cursor.close()
+        connection.close()
+
+
+def select_address():
+    if 'customer_id' not in session:
+        return jsonify({'success': False, 'message': 'Lütfen giriş yapın.'}), 401
+        
+    customer_id = session.get('customer_id')
+    data = request.get_json()
+    address_id = data.get('address_id')
+    
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'success': False, 'message': 'Veritabanı bağlantı hatası.'}), 500
+        
+    try:
+        cursor = connection.cursor(dictionary=True)
+        
+        # Tüm adresleri pasif yap
+        cursor.execute("UPDATE customer_addresses SET is_active = 0 WHERE customer_id = %s", (customer_id,))
+        
+        # Seçilen adresi aktif yap
+        cursor.execute("UPDATE customer_addresses SET is_active = 1 WHERE address_id = %s AND customer_id = %s", (address_id, customer_id))
+        
+        # Seçilen adresin koordinatlarını çekip session'a yaz
+        cursor.execute("SELECT latitude, longitude, city, district FROM customer_addresses WHERE address_id = %s", (address_id,))
+        active_addr = cursor.fetchone()
+        
+        if active_addr:
+            session['latitude'] = float(active_addr['latitude'])
+            session['longitude'] = float(active_addr['longitude'])
+            session['customer_city'] = f"{active_addr['district']}, {active_addr['city']}"
+            
+        connection.commit()
+        return jsonify({'success': True, 'message': 'Teslimat adresi değiştirildi.'})
+    except Exception as e:
+        connection.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+    finally:
+        cursor.close()
+        connection.close()
+
+def update_address():
+    if 'customer_id' not in session:
+        return jsonify({'success': False, 'message': 'Lütfen giriş yapın.'}), 401
+        
+    customer_id = session.get('customer_id')
+    data = request.get_json()
+    
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'success': False, 'message': 'Veritabanı bağlantı hatası.'}), 500
+        
+    try:
+        cursor = connection.cursor(dictionary=True)
+        
+        query = """
+            UPDATE customer_addresses SET 
+                title = %s, city = %s, district = %s, neighborhood = %s, street = %s, 
+                building_no = %s, floor_no = %s, apt_no = %s, directions = %s, 
+                latitude = %s, longitude = %s, contact_name = %s, contact_phone = %s
+            WHERE address_id = %s AND customer_id = %s
+        """
+        cursor.execute(query, (
+            data.get('title'), data.get('city'), data.get('district'),
+            data.get('neighborhood'), data.get('street'), data.get('building_no'),
+            data.get('floor_no'), data.get('apt_no'), data.get('directions'),
+            data.get('latitude'), data.get('longitude'), data.get('contact_name'),
+            data.get('contact_phone'), data.get('address_id'), customer_id
+        ))
+        connection.commit()
+        
+        # Eğer düzenlenen adres şu an "seçili/aktif" adres ise, session'ı da (10 KM filtresi için) güncelle!
+        cursor.execute("SELECT is_active FROM customer_addresses WHERE address_id = %s", (data.get('address_id'),))
+        res = cursor.fetchone()
+        if res and res['is_active']:
+            session['latitude'] = data.get('latitude')
+            session['longitude'] = data.get('longitude')
+            session['customer_city'] = f"{data.get('district')}, {data.get('city')}"
+            
+        return jsonify({'success': True, 'message': 'Adres başarıyla güncellendi!'})
+    except Exception as e:
+        connection.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+    finally:
+        cursor.close()
+        connection.close()

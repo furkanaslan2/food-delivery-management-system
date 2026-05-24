@@ -8,7 +8,6 @@
     <style>
         body { margin: 0; font-family: 'Inter', sans-serif; background-color: #f8f9fa; color: #111827; }
         
-        /* Modern Müşteri Navbar */
         .customer-nav { background: #ffffff; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; }
         .nav-brand { font-size: 22px; font-weight: 700; color: #4f46e5; text-decoration: none; display: flex; align-items: center; gap: 8px;}
         .nav-links { display: flex; gap: 20px; align-items: center; }
@@ -16,84 +15,35 @@
         .nav-links a:hover { color: #4f46e5; }
         .cart-btn { background: #4f46e5; color: white !important; padding: 8px 16px; border-radius: 20px; display: flex; align-items: center; gap: 5px; }
         
-        /* Karşılama Alanı (Hero) */
         .hero-section { background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%); padding: 60px 5%; color: white; text-align: center; }
         .hero-section h1 { font-size: 36px; margin: 0 0 15px 0; }
         .hero-section p { font-size: 18px; color: #e0e7ff; margin-bottom: 30px; }
         
-        /* Restoran Izgarası (Grid) */
         .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
         .section-title { font-size: 24px; font-weight: 600; margin-bottom: 25px; color: #1f2937; }
-        
         .restaurant-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
         
-        /* Restoran Kartı */
         .restaurant-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: transform 0.2s ease, box-shadow 0.2s ease; text-decoration: none; color: inherit; display: block; }
         .restaurant-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
-        
-        .restaurant-img {
-            transition: transform 0.3s ease;
-        }
-        .restaurant-card:hover .restaurant-img {
-            transform: scale(1.08);
-        }
+        .restaurant-img { transition: transform 0.3s ease; }
+        .restaurant-card:hover .restaurant-img { transform: scale(1.08); }
         
         .card-content { padding: 16px; }
         .card-title { font-size: 18px; font-weight: 600; margin: 0 0 8px 0; display: flex; justify-content: space-between; align-items: center; }
-        
-        /* Puan Rozeti */
         .rating-badge { background: #fef08a; color: #854d0e; padding: 4px 8px; border-radius: 6px; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 4px; }
-        
         .card-info { color: #6b7280; font-size: 14px; margin-bottom: 12px; }
-        
         .card-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f3f4f6; padding-top: 12px; font-size: 13px; color: #4b5563; }
-        
         .cuisine-tag { background: #f3f4f6; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; color: #374151; }
 
-        /* Sepet Bildirim Balonu CSS'i */
         .cart-wrapper { position: relative; }
-        .cart-badge {
-            position: absolute;
-            top: -8px;
-            right: -10px;
-            background-color: #ef4444;
-            color: white;
-            font-size: 12px;
-            font-weight: bold;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 18px;
-            height: 18px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
+        .cart-badge { position: absolute; top: -8px; right: -10px; background-color: #ef4444; color: white; font-size: 12px; font-weight: bold; border-radius: 50%; display: flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
 
-        /* Modern Açılır Menü (Dropdown) Stilleri */
         .dropdown { position: relative; display: inline-block; }
-        
-        .dropdown-btn { 
-            background-color: #f3f4f6; color: #374151; padding: 8px 16px; 
-            font-size: 15px; font-weight: 600; border: none; border-radius: 20px; 
-            cursor: pointer; display: flex; align-items: center; gap: 8px; 
-            transition: background-color 0.2s; font-family: inherit;
-        }
+        .dropdown-btn { background-color: #f3f4f6; color: #374151; padding: 8px 16px; font-size: 15px; font-weight: 600; border: none; border-radius: 20px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background-color 0.2s; font-family: inherit; }
         .dropdown-btn:hover { background-color: #e5e7eb; }
-        
-        .dropdown-content { 
-            display: none; position: absolute; right: 0; top: 100%;
-            background-color: #ffffff; min-width: 180px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
-            border-radius: 12px; overflow: hidden; z-index: 1000; border: 1px solid #f3f4f6; 
-        }
-        
-        .dropdown-content a { 
-            color: #4b5563; padding: 12px 16px; text-decoration: none; display: flex; 
-            align-items: center; gap: 10px; font-size: 14px; font-weight: 500; 
-            transition: background-color 0.2s; 
-        }
+        .dropdown-content { display: none; position: absolute; right: 0; top: 100%; background-color: #ffffff; min-width: 180px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-radius: 12px; overflow: hidden; z-index: 1000; border: 1px solid #f3f4f6; }
+        .dropdown-content a { color: #4b5563; padding: 12px 16px; text-decoration: none; display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 500; transition: background-color 0.2s; }
         .dropdown-content a:hover { background-color: #f9fafb; color: #4f46e5; }
-        
-        /* Üzerine gelince menüyü göster */
         .dropdown:hover .dropdown-content { display: block; }
     </style>
 </head>
@@ -102,8 +52,11 @@
     <nav class="customer-nav">
         <a href="/" class="nav-brand">🍔 DeliveryApp</a>
         <div class="nav-links">
+            
             {% if request.endpoint == 'index' %}
-            <span>📍 {{ session.get('customer_city', 'Select Location') }}</span>
+            <button onclick="openAddressModal()" style="background: #f3f4f6; border: 1px solid #e5e7eb; padding: 8px 16px; border-radius: 20px; font-family: inherit; font-weight: 600; color: #374151; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background 0.2s;">
+                📍 <span id="navbar-address-text">{{ session.get('customer_city') or 'Teslimat Adresi Seçin' }}</span> ▾
+            </button>
             {% endif %}
 
             <a href="{{ url_for('view_cart') }}" class="cart-btn cart-wrapper" style="text-decoration: none;">
@@ -118,9 +71,7 @@
             </a>
 
             <div class="dropdown">
-                <button class="dropdown-btn">
-                    👤 Hesabım ▾
-                </button>
+                <button class="dropdown-btn">👤 Hesabım ▾</button>
                 <div class="dropdown-content">                  
                     <a href="{{ url_for('customer_orders') }}">📦 Siparişlerim</a>
                     <a href="{{ url_for('view_favorites') }}">❤️ Favorilerim</a>
@@ -148,55 +99,40 @@
                     const textSpan = document.getElementById('live-order-text');
                     
                     if (data.has_active_order) {
-                        // Sipariş varsa banner'ı görünür yap (display: flex)
                         banner.style.display = 'flex';
-                        
-                        // Duruma göre yazıyı anında değiştir
                         if (data.order_status === 'pending') {
                             textSpan.innerText = '🕒 Siparişiniz restorana iletildi, onay bekleniyor...';
-                            banner.style.backgroundColor = '#f59e0b'; // Turuncu
+                            banner.style.backgroundColor = '#f59e0b';
                             textSpan.nextElementSibling.style.color = '#f59e0b';
                             textSpan.nextElementSibling.innerText = 'Siparişe Git ➔';
-                        } 
-                        else if (data.order_status === 'preparing') {
+                        } else if (data.order_status === 'preparing') {
                             textSpan.innerText = '👨‍🍳 Harika! Siparişiniz şu an mutfakta hazırlanıyor...';
-                            banner.style.backgroundColor = '#3b82f6'; // Mavi
+                            banner.style.backgroundColor = '#3b82f6';
                             textSpan.nextElementSibling.style.color = '#3b82f6';
                             textSpan.nextElementSibling.innerText = 'Siparişe Git ➔';
-                        } 
-                        else if (data.order_status === 'on_the_way') {
+                        } else if (data.order_status === 'on_the_way') {
                             textSpan.innerText = '🛵 Siparişiniz yola çıktı, gelmek üzere!';
-                            banner.style.backgroundColor = '#10b981'; // Yeşil
+                            banner.style.backgroundColor = '#10b981';
                             textSpan.nextElementSibling.style.color = '#10b981';
                             textSpan.nextElementSibling.innerText = 'Siparişe Git ➔';
-                        } 
-                        // --- YENİ EKLENEN DURUMLAR ---
-                        else if (data.order_status === 'delivered') {
+                        } else if (data.order_status === 'delivered') {
                             textSpan.innerText = '✅ Siparişiniz teslim edildi. Afiyet olsun!';
-                            banner.style.backgroundColor = '#059669'; // Koyu Yeşil
+                            banner.style.backgroundColor = '#059669';
                             textSpan.nextElementSibling.style.color = '#059669';
-                            textSpan.nextElementSibling.innerText = 'Değerlendir ⭐'; // Buton yazısı değişti
-                        } 
-                        else if (data.order_status === 'canceled') {
+                            textSpan.nextElementSibling.innerText = 'Değerlendir ⭐';
+                        } else if (data.order_status === 'canceled') {
                             textSpan.innerText = '❌ Siparişiniz iptal edildi.';
-                            banner.style.backgroundColor = '#ef4444'; // Kırmızı
+                            banner.style.backgroundColor = '#ef4444';
                             textSpan.nextElementSibling.style.color = '#ef4444';
                             textSpan.nextElementSibling.innerText = 'Detay Gör ➔';
                         }
                     } else {
-                        // Aktif sipariş bittiyse (veya yoksa) banner'ı gizle
                         banner.style.display = 'none';
                     }
                 })
                 .catch(err => console.error('Sipariş API hatası:', err));
         }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            // Sayfa açılır açılmaz durumu 1 kez kontrol et
-            checkOrderStatus();
-            // Ardından HER 5 SANİYEDE BİR arka plandan sessizce kontrol etmeye devam et!
-            setInterval(checkOrderStatus, 5000);
-        });
+        document.addEventListener('DOMContentLoaded', () => { checkOrderStatus(); setInterval(checkOrderStatus, 5000); });
     </script>
 
     <div class="hero-section">
@@ -209,12 +145,10 @@
 
         <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 30px; display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
         <form action="{{ url_for('index') }}" method="GET" style="display: flex; gap: 15px; width: 100%; align-items: center;">
-            
             <div style="flex: 2; min-width: 200px;">
                 <input type="text" name="search" placeholder="🔍 Restoran adı veya mutfak (Örn: Pizza, Burger)..." value="{{ request.args.get('search', '') }}" 
                        style="width: 100%; padding: 12px 15px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 15px; outline: none; box-sizing: border-box;">
             </div>
-
             <div style="flex: 1; min-width: 150px;">
                 <select name="min_rating" style="width: 100%; padding: 12px 15px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 15px; outline: none; background: white; box-sizing: border-box;">
                     <option value="0" {% if request.args.get('min_rating') == '0' %}selected{% endif %}>⭐ Tüm Puanlar</option>
@@ -222,7 +156,6 @@
                     <option value="4.5" {% if request.args.get('min_rating') == '4.5' %}selected{% endif %}>🔥 4.5+ Yıldız (Süper)</option>
                 </select>
             </div>
-
             <div>
                 <button type="submit" style="background: #3b82f6; color: white; border: none; padding: 12px 25px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 15px;">Ara</button>
                 <a href="{{ url_for('index') }}" style="text-decoration: none; color: #6b7280; padding: 12px 15px; font-weight: 500; font-size: 14px;">Temizle</a>
@@ -233,7 +166,6 @@
         <div class="restaurant-grid">
             {% for restaurant in restaurants %}
             <a href="{{ url_for('view_restaurant', restaurant_id=restaurant['restaurant_id']) }}" class="restaurant-card" style="position: relative;">
-                
                 <button class="main-page-fav-btn" data-id="{{ restaurant['restaurant_id'] }}" style="position: absolute; top: 15px; right: 15px; z-index: 10; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
                     {% if restaurant['restaurant_id'] in favorited_restaurant_ids %}
                         <svg viewBox="0 0 24 24" class="heart-svg" fill="#ef4444" stroke="#ef4444" stroke-width="2" style="width:18px; height:18px; transition: all 0.2s;"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
@@ -244,17 +176,8 @@
                 
                 <div class="card-image" style="width: 100%; height: 180px; background-color: #f3f4f6; overflow: hidden; position: relative;">
                     {% if restaurant['image_url'] and restaurant['image_url'] != 'default_restaurant.jpg' %}
-                        
                         {% set card_img_path = url_for('static', filename='images/restaurants/' ~ restaurant['image_url']) %}
-                        
-                        <div class="restaurant-img" 
-                             style="width: 100%; height: 100%; 
-                                    background-image: url('{{ card_img_path }}'); 
-                                    background-size: cover; 
-                                    background-position: center; 
-                                    background-repeat: no-repeat;">
-                        </div>
-                    
+                        <div class="restaurant-img" style="width: 100%; height: 100%; background-image: url('{{ card_img_path }}'); background-size: cover; background-position: center; background-repeat: no-repeat;"></div>
                     {% else %}
                         <div style="font-size: 40px; display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;">
                             {% if restaurant['cuisine'] == 'Pizza' %} 🍕 
@@ -270,9 +193,7 @@
                         {{ restaurant['restaurant_name'] }}
                         <span class="rating-badge">⭐ {{ restaurant['rating'] }}</span>
                     </div>
-                    <div class="card-info">
-                        {{ restaurant['city'] }} • {{ restaurant['restaurant_address'] }}
-                    </div>
+                    <div class="card-info">{{ restaurant['city'] }} • {{ restaurant['restaurant_address'] }}</div>
                     <div class="card-footer">
                         <span class="cuisine-tag">{{ restaurant['cuisine'] }}</span>
                         {% if restaurant.get('distance') and restaurant.get('distance') != 999 %}
@@ -284,81 +205,347 @@
                 </div>
             </a>
             {% else %}
-                <p style="grid-column: 1 / -1; text-align: center; color: #6b7280; font-size: 16px;">
-                    We couldn't find any restaurants in your area yet. 😢
-                </p>
+                <p style="grid-column: 1 / -1; text-align: center; color: #6b7280; font-size: 16px;">We couldn't find any restaurants in your area yet. 😢</p>
             {% endfor %}
         </div>
-<div id="location-data" data-has-location="{{ 'true' if session.get('latitude') else 'false' }}" style="display:none;"></div>
+    </div>
 
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const locationDiv = document.getElementById('location-data');
-        const hasLocation = locationDiv.getAttribute('data-has-location') === 'true';
-
-        if (!hasLocation && navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(function(position) {
-                fetch("{{ url_for('set_location') }}", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        latitude: position.coords.latitude,
-                        longitude: position.coords.longitude
-                    })
-                }).then(() => window.location.reload());
-            });
-        }
-    });
-</script>
-
-<script>
+    <div id="location-data" data-has-location="{{ 'true' if session.get('latitude') else 'false' }}" style="display:none;"></div>
+    <script>
         document.addEventListener("DOMContentLoaded", function() {
-            const mainFavBtns = document.querySelectorAll('.main-page-fav-btn');
+            const locationDiv = document.getElementById('location-data');
+            const hasLocation = locationDiv.getAttribute('data-has-location') === 'true';
+            if (!hasLocation && navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    fetch("{{ url_for('set_location') }}", {
+                        method: "POST", headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ latitude: position.coords.latitude, longitude: position.coords.longitude })
+                    }).then(() => window.location.reload());
+                });
+            }
             
+            const mainFavBtns = document.querySelectorAll('.main-page-fav-btn');
             mainFavBtns.forEach(btn => {
                 btn.addEventListener('click', function(e) {
-                    e.preventDefault(); // Kartın içine girilmesini (linki) engeller
-                    e.stopPropagation(); // Tıklamanın dışa taşmasını keser
-                    
+                    e.preventDefault(); e.stopPropagation(); 
                     const restaurantId = this.getAttribute('data-id');
                     const svg = this.querySelector('.heart-svg');
-                    
-                    // Küçük yaylanma animasyonu
                     this.style.transform = 'scale(1.2)';
                     setTimeout(() => { this.style.transform = 'scale(1)'; }, 200);
 
                     fetch('/api/toggle_favorite', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Requested-With': 'XMLHttpRequest'
-                        },
+                        method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
                         body: JSON.stringify({ restaurant_id: restaurantId })
                     })
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            if (data.action === 'added') {
-                                svg.setAttribute('fill', '#ef4444');
-                                svg.setAttribute('stroke', '#ef4444');
-                            } else {
-                                svg.setAttribute('fill', 'none');
-                                svg.setAttribute('stroke', '#6b7280');
-                            }
+                            if (data.action === 'added') { svg.setAttribute('fill', '#ef4444'); svg.setAttribute('stroke', '#ef4444'); }
+                            else { svg.setAttribute('fill', 'none'); svg.setAttribute('stroke', '#6b7280'); }
                         } else {
                             alert(data.message);
                             if(data.message.includes('giriş')) window.location.href = '/customer_login';
                         }
-                    })
-                    .catch(error => console.error('Ana Sayfa Favori Hatası:', error));
+                    }).catch(error => console.error('Ana Sayfa Favori Hatası:', error));
                 });
-                
-                // Hover (Üzerine gelme) efekti
                 btn.addEventListener('mouseenter', function() { this.style.transform = 'scale(1.1)'; });
                 btn.addEventListener('mouseleave', function() { this.style.transform = 'scale(1)'; });
             });
         });
     </script>
 
+    <div id="addressListModal" class="modal-overlay" onclick="if(event.target == this) closeAddressModal()" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center; backdrop-filter:blur(4px);">
+        <div class="modal-content" style="background:white; width:90%; max-width:450px; border-radius:16px; padding:25px; box-shadow:0 10px 25px rgba(0,0,0,0.1); display:flex; flex-direction:column; gap:15px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f3f4f6; padding-bottom:10px;">
+                <h3 style="margin:0; font-size:18px; color:#111827;">Adreslerim</h3>
+                <button onclick="closeAddressModal()" style="background:none; border:none; font-size:24px; cursor:pointer; color:#9ca3af;">&times;</button>
+            </div>
+            <div id="addresses-container" style="max-height:250px; overflow-y:auto; display:flex; flex-direction:column; gap:10px;">
+                </div>
+            <button onclick="openNewAddressModal()" style="background:#4f46e5; color:white; border:none; padding:12px; border-radius:8px; font-weight:600; cursor:pointer; width:100%; text-align:center; margin-top:10px;">+ Yeni Adres Ekle</button>
+        </div>
+    </div>
+
+    <div id="addressMapModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10000; justify-content:center; align-items:center;">
+        <div class="modal-content" style="background:white; width:90%; max-width:550px; border-radius:16px; padding:25px; display:flex; flex-direction:column; gap:15px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h3 style="margin:0; font-size:16px;" id="map-modal-title">Haritadan Konum Seçin</h3>
+                <button onclick="document.getElementById('addressMapModal').style.display='none'" style="background:none; border:none; font-size:24px; cursor:pointer;">&times;</button>
+            </div>
+            <div id="address-picker-map" style="width:100%; height:300px; border-radius:12px; border:1px solid #ddd; position:relative;"></div>
+            <button onclick="confirmMapLocation()" style="background:#10b981; color:white; border:none; padding:12px; border-radius:8px; font-weight:600; cursor:pointer; width:100%;">Bu Konumu Kullan</button>
+        </div>
+    </div>
+
+    <div id="addressFormModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10001; justify-content:center; align-items:center; overflow-y:auto;">
+        <div class="modal-content" style="background:white; width:90%; max-width:500px; border-radius:16px; padding:25px; margin:30px auto; display:flex; flex-direction:column; gap:15px; box-shadow:0 10px 25px rgba(0,0,0,0.2);">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f3f4f6; padding-bottom:10px;">
+                <h3 style="margin:0; font-size:18px;" id="form-modal-title">Adres Detayları</h3>
+                <button onclick="document.getElementById('addressFormModal').style.display='none'" style="background:none; border:none; font-size:24px; cursor:pointer;">&times;</button>
+            </div>
+            
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                <div><label style="font-size:12px; font-weight:600;">İl *</label><input type="text" id="addr-city" class="form-control" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box;" required></div>
+                <div><label style="font-size:12px; font-weight:600;">İlçe *</label><input type="text" id="addr-district" class="form-control" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box;" required></div>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                <div><label style="font-size:12px; font-weight:600;">Mahalle *</label><input type="text" id="addr-neighborhood" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box;" required></div>
+                <div><label style="font-size:12px; font-weight:600;">Sokak/Cadde *</label><input type="text" id="addr-street" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box;" required></div>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;">
+                <div><label style="font-size:12px; font-weight:600;">Bina No *</label><input type="text" id="addr-building" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box;" required></div>
+                <div><label style="font-size:12px; font-weight:600;">Kat</label><input type="text" id="addr-floor" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box;"></div>
+                <div><label style="font-size:12px; font-weight:600;">Daire No</label><input type="text" id="addr-apt" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box;"></div>
+            </div>
+            <div>
+                <label style="font-size:12px; font-weight:600;">Adres Tarifi</label>
+                <textarea id="addr-directions" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; resize:none; height:50px; box-sizing:border-box;"></textarea>
+            </div>
+            <div>
+                <label style="font-size:12px; font-weight:600;">Adres Başlığı * (Örn: Ev, İş)</label>
+                <input type="text" id="addr-title" placeholder="Örn: Evim" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box;" required>
+            </div>
+            
+            <div style="border-top:1px dashed #ddd; padding-top:10px;">
+                <span style="font-size:13px; font-weight:700; color:#4f46e5; display:block; margin-bottom:8px;">👤 İletişim Bilgileri</span>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <div><label style="font-size:12px; font-weight:600;">Ad Soyad *</label><input type="text" id="addr-cname" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box;" required></div>
+                    <div><label style="font-size:12px; font-weight:600;">Telefon *</label><input type="text" id="addr-cphone" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box;" required></div>
+                </div>
+            </div>
+
+            <input type="hidden" id="addr-lat"><input type="hidden" id="addr-lon">
+            <button id="form-submit-btn" onclick="submitAddressForm()" style="background:#4f46e5; color:white; border:none; padding:12px; border-radius:8px; font-weight:600; cursor:pointer; width:100%;">Adresi Kaydet ve Kullan</button>
+        </div>
+    </div>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        let pickerMap, pickerMarker, gpsControl;
+        let selectedLat, selectedLon;
+        let globalAddresses = []; 
+        let editingAddressId = null;
+
+        function openAddressModal() {
+            document.getElementById('addressListModal').style.display = 'flex';
+            fetchActiveAddresses();
+        }
+        function closeAddressModal() {
+            document.getElementById('addressListModal').style.display = 'none';
+        }
+
+        function fetchActiveAddresses() {
+            fetch('/api/get_addresses')
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    globalAddresses = data.addresses; 
+                    const container = document.getElementById('addresses-container');
+                    container.innerHTML = '';
+                    if(globalAddresses.length === 0) {
+                        container.innerHTML = '<p style="text-align:center; color:#6b7280; font-size:14px;">Kayıtlı adresiniz bulunmuyor.</p>';
+                        return;
+                    }
+                    globalAddresses.forEach(addr => {
+                        let activeStyle = addr.is_active ? 'border: 2px solid #4f46e5; background: #f0fdf4;' : 'border: 1px solid #e5e7eb;';
+                        let checkedCircle = addr.is_active ? '🟢' : '⚪';
+                        container.innerHTML += `
+                            <div onclick="selectActiveAddress(${addr.address_id})" style="padding:12px; border-radius:10px; cursor:pointer; display:flex; align-items:center; justify-content:space-between; ${activeStyle}">
+                                <div>
+                                    <strong style="font-size:15px; color:#111827;">${addr.title}</strong>
+                                    <p style="margin:4px 0 0 0; font-size:13px; color:#4b5563;">${addr.neighborhood} Mh. ${addr.street} Sk. No:${addr.building_no} ${addr.district}/${addr.city}</p>
+                                </div>
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <button onclick="startEditingAddress(event, ${addr.address_id})" style="background:#f3f4f6; border:1px solid #d1d5db; border-radius:6px; padding:4px 8px; font-size:14px; cursor:pointer; transition:0.2s;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'" title="Düzenle">✏️</button>
+                                    <span style="font-size:18px;">${checkedCircle}</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+            });
+        }
+
+        function selectActiveAddress(id) {
+            fetch('/api/select_address', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({address_id: id})
+            }).then(res => res.json()).then(data => { if(data.success) location.reload(); });
+        }
+
+        // 🎯 YENİ: Harita üzerine yerleşen GPS Butonunu oluşturan fonksiyon
+        function addGpsButtonToMap() {
+            if(gpsControl) return; // Zaten eklendiyse tekrar ekleme
+            
+            gpsControl = L.control({position: 'topleft'});
+            gpsControl.onAdd = function(map) {
+                let btn = L.DomUtil.create('button', 'leaflet-bar leaflet-control');
+                // Nişangah SVG İkonu
+                btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-top:3px;"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><circle cx="12" cy="12" r="8"></circle></svg>';
+                btn.style.backgroundColor = 'white';
+                btn.style.width = '34px';
+                btn.style.height = '34px';
+                btn.style.cursor = 'pointer';
+                btn.style.display = 'flex';
+                btn.style.justifyContent = 'center';
+                btn.style.alignItems = 'center';
+                btn.title = "Mevcut Konumumu Bul";
+                
+                btn.onclick = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if(navigator.geolocation) {
+                        btn.style.opacity = '0.5'; // Yükleniyor hissi
+                        navigator.geolocation.getCurrentPosition(function(pos) {
+                            let lat = pos.coords.latitude; 
+                            let lon = pos.coords.longitude;
+                            pickerMap.setView([lat, lon], 16);
+                            pickerMarker.setLatLng([lat, lon]);
+                            btn.style.opacity = '1';
+                        }, function() {
+                            alert("Konum alınamadı. Lütfen tarayıcı izinlerinizi kontrol edin.");
+                            btn.style.opacity = '1';
+                        });
+                    } else {
+                        alert("Tarayıcınız konum özelliğini desteklemiyor.");
+                    }
+                };
+                return btn;
+            };
+            gpsControl.addTo(pickerMap);
+        }
+
+        function openNewAddressModal() {
+            editingAddressId = null;
+            document.getElementById('map-modal-title').innerText = "Yeni Harita Konumu Seçin";
+            document.getElementById('form-modal-title').innerText = "Yeni Adres Ekle";
+            document.getElementById('form-submit-btn').innerText = "Adresi Kaydet ve Kullan";
+            document.querySelectorAll('#addressFormModal input[type="text"], #addressFormModal textarea').forEach(el => el.value = '');
+            
+            closeAddressModal();
+            document.getElementById('addressMapModal').style.display = 'flex';
+            
+            setTimeout(() => {
+                if (!pickerMap) {
+                    pickerMap = L.map('address-picker-map').setView([41.0082, 28.9784], 12);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(pickerMap);
+                    pickerMarker = L.marker([41.0082, 28.9784], {draggable: true}).addTo(pickerMap);
+                    pickerMap.on('click', function(e) { pickerMarker.setLatLng(e.latlng); });
+                    addGpsButtonToMap(); // 🎯 Butonu Haritaya Ekle
+                } else {
+                    pickerMap.invalidateSize();
+                }
+                
+                if(navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(function(pos) {
+                        let lat = pos.coords.latitude; let lon = pos.coords.longitude;
+                        pickerMap.setView([lat, lon], 16);
+                        pickerMarker.setLatLng([lat, lon]);
+                    });
+                }
+            }, 200);
+        }
+
+        function startEditingAddress(event, id) {
+            event.stopPropagation(); 
+            
+            editingAddressId = id; 
+            const addr = globalAddresses.find(a => a.address_id === id);
+            if(!addr) return;
+
+            document.getElementById('map-modal-title').innerText = "Konumu Güncelleyin";
+            document.getElementById('form-modal-title').innerText = "Adresi Düzenle";
+            document.getElementById('form-submit-btn').innerText = "Değişiklikleri Kaydet";
+
+            document.getElementById('addr-title').value = addr.title;
+            document.getElementById('addr-city').value = addr.city;
+            document.getElementById('addr-district').value = addr.district;
+            document.getElementById('addr-neighborhood').value = addr.neighborhood;
+            document.getElementById('addr-street').value = addr.street;
+            document.getElementById('addr-building').value = addr.building_no;
+            document.getElementById('addr-floor').value = addr.floor_no || '';
+            document.getElementById('addr-apt').value = addr.apt_no || '';
+            document.getElementById('addr-directions').value = addr.directions || '';
+            document.getElementById('addr-cname').value = addr.contact_name || '';
+            document.getElementById('addr-cphone').value = addr.contact_phone || '';
+
+            selectedLat = addr.latitude;
+            selectedLon = addr.longitude;
+
+            closeAddressModal();
+            document.getElementById('addressMapModal').style.display = 'flex';
+
+            setTimeout(() => {
+                if (!pickerMap) {
+                    pickerMap = L.map('address-picker-map').setView([selectedLat, selectedLon], 16);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(pickerMap);
+                    pickerMarker = L.marker([selectedLat, selectedLon], {draggable: true}).addTo(pickerMap);
+                    pickerMap.on('click', function(e) { pickerMarker.setLatLng(e.latlng); });
+                    addGpsButtonToMap(); // 🎯 Butonu Haritaya Ekle
+                } else {
+                    pickerMap.setView([selectedLat, selectedLon], 16);
+                    pickerMarker.setLatLng([selectedLat, selectedLon]);
+                    pickerMap.invalidateSize();
+                }
+            }, 200);
+        }
+
+        function confirmMapLocation() {
+            let pos = pickerMarker.getLatLng();
+            selectedLat = pos.lat;
+            selectedLon = pos.lng;
+            
+            document.getElementById('addressMapModal').style.display = 'none';
+            document.getElementById('addressFormModal').style.display = 'flex';
+            
+            document.getElementById('addr-lat').value = selectedLat;
+            document.getElementById('addr-lon').value = selectedLon;
+        }
+
+        function submitAddressForm() {
+            const payload = {
+                title: document.getElementById('addr-title').value,
+                city: document.getElementById('addr-city').value,
+                district: document.getElementById('addr-district').value,
+                neighborhood: document.getElementById('addr-neighborhood').value,
+                street: document.getElementById('addr-street').value,
+                building_no: document.getElementById('addr-building').value,
+                floor_no: document.getElementById('addr-floor').value,
+                apt_no: document.getElementById('addr-apt').value,
+                directions: document.getElementById('addr-directions').value,
+                contact_name: document.getElementById('addr-cname').value,
+                contact_phone: document.getElementById('addr-cphone').value,
+                latitude: selectedLat,
+                longitude: selectedLon
+            };
+
+            if(!payload.title || !payload.city || !payload.district || !payload.neighborhood || !payload.street || !payload.building_no || !payload.contact_name || !payload.contact_phone) {
+                alert("Lütfen zorunlu (*) alanları doldurun.");
+                return;
+            }
+
+            let apiEndpoint = '/api/add_address';
+            if(editingAddressId !== null) {
+                payload.address_id = editingAddressId;
+                apiEndpoint = '/api/update_address';
+            }
+
+            fetch(apiEndpoint, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    location.reload(); 
+                } else {
+                    alert("Hata: " + data.message);
+                }
+            });
+        }
+    </script>
 </body>
 </html>
