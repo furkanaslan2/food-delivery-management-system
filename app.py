@@ -11,7 +11,7 @@ from menus import menus, menus_action
 from orders import orders, order_action, get_order_details, get_restaurant_details, api_check_new_orders
 from foods import foods, food_action
 from waiters import waiter_dashboard, waiter_create_order, waiters, waiter_action, waiter_close_bill, waiter_receipt
-from customer import view_restaurant, add_to_cart, view_cart, checkout, customer_orders, set_location, remove_from_cart, increase_cart_item, decrease_cart_item, submit_review, get_active_order_status, toggle_favorite, view_favorites, get_addresses, add_address, select_address, update_address
+from customer import view_restaurant, add_to_cart, view_cart, checkout, customer_orders, set_location, remove_from_cart, increase_cart_item, decrease_cart_item, submit_review, get_active_order_status, toggle_favorite, view_favorites, get_addresses, add_address, select_address, update_address, cancel_order
 from courier_panel import courier_dashboard, update_delivery_status, courier_login, courier_logout
 from payment_handler import checkout_payment, payment_callback
 from profile_settings import view_profile, update_profile
@@ -78,6 +78,7 @@ app.add_url_rule('/api/get_addresses', endpoint='api_get_addresses', view_func=g
 app.add_url_rule('/api/add_address', endpoint='api_add_address', view_func=add_address, methods=['POST'])
 app.add_url_rule('/api/select_address', endpoint='api_select_address', view_func=select_address, methods=['POST'])
 app.add_url_rule('/api/update_address', endpoint='api_update_address', view_func=update_address, methods=['POST'])
+app.add_url_rule('/api/cancel_order', endpoint='cancel_order', view_func=cancel_order, methods=['POST'])
 
 if __name__ == '__main__':
     app.run(debug=True)

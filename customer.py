@@ -786,3 +786,41 @@ def update_address():
     finally:
         cursor.close()
         connection.close()
+
+def cancel_order():
+    if 'logged_in' not in session or session.get('role') != 'customer':
+        return jsonify({'success': False, 'message': 'Lütfen giriş yapın.'}), 401
+
+    customer_id = session.get('customer_id')
+    data = request.get_json()
+    order_id = data.get('order_id')
+
+    connection = get_db_connection()
+    if connection:
+        try:
+            cursor = connection.cursor(dictionary=True)
+            
+            # 1. Sipariş gerçekten bu müşteriye mi ait ve durumu nedir?
+            cursor.execute("SELECT order_status FROM orders WHERE order_id = %s AND customer_id = %s", (order_id, customer_id))
+            order = cursor.fetchone()
+
+            if order:
+                # 2. Sadece beklemede (pending) olan siparişler iptal edilebilir!
+                if order['order_status'] == 'pending':
+                    cursor.execute("UPDATE orders SET order_status = 'canceled' WHERE order_id = %s", (order_id,))
+                    connection.commit()
+                    return jsonify({'success': True, 'message': 'Siparişiniz başarıyla iptal edildi.'})
+                else:
+                    return jsonify({'success': False, 'message': 'Bu sipariş restoran tarafından onaylandığı için artık iptal edilemez.'})
+            else:
+                return jsonify({'success': False, 'message': 'Sipariş bulunamadı veya yetkiniz yok.'})
+                
+        except Exception as e:
+            connection.rollback()
+            return jsonify({'success': False, 'message': f'Hata: {e}'}), 500
+        finally:
+            if connection.is_connected():
+                cursor.close()
+                connection.close()
+
+    return jsonify({'success': False, 'message': 'Veritabanı bağlantı hatası.'}), 500
