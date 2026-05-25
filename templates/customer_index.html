@@ -185,8 +185,18 @@
             // Sayfa yüklendiğinde ve her 5 saniyede bir kontrol et
             document.addEventListener('DOMContentLoaded', () => { checkOrderStatus(); setInterval(checkOrderStatus, 5000); });
         </script>
-        
+
         <h2 class="section-title">Popular Restaurants Near You</h2>
+
+        <div class="category-filters" style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 15px; margin-bottom: 20px; scrollbar-width: none;">
+            <button class="cat-btn active" data-filter="all" style="background: #111827; color: white; border: none; padding: 8px 18px; border-radius: 20px; font-weight: 600; font-size: 14px; cursor: pointer; white-space: nowrap; transition: 0.2s;">🍽️ Tümü</button>
+            <button class="cat-btn" data-filter="Burger" style="background: #f3f4f6; color: #374151; border: none; padding: 8px 18px; border-radius: 20px; font-weight: 600; font-size: 14px; cursor: pointer; white-space: nowrap; transition: 0.2s;">🍔 Burger</button>
+            <button class="cat-btn" data-filter="Pizza" style="background: #f3f4f6; color: #374151; border: none; padding: 8px 18px; border-radius: 20px; font-weight: 600; font-size: 14px; cursor: pointer; white-space: nowrap; transition: 0.2s;">🍕 Pizza</button>
+            <button class="cat-btn" data-filter="Kebab" style="background: #f3f4f6; color: #374151; border: none; padding: 8px 18px; border-radius: 20px; font-weight: 600; font-size: 14px; cursor: pointer; white-space: nowrap; transition: 0.2s;">🥩 Kebap & Et</button>
+            <button class="cat-btn" data-filter="Dessert" style="background: #f3f4f6; color: #374151; border: none; padding: 8px 18px; border-radius: 20px; font-weight: 600; font-size: 14px; cursor: pointer; white-space: nowrap; transition: 0.2s;">🍰 Tatlı</button>
+            <button class="cat-btn" data-filter="Vegan" style="background: #f3f4f6; color: #374151; border: none; padding: 8px 18px; border-radius: 20px; font-weight: 600; font-size: 14px; cursor: pointer; white-space: nowrap; transition: 0.2s;">🥗 Sağlıklı/Vegan</button>
+            <button class="cat-btn" data-filter="Fast Food" style="background: #f3f4f6; color: #374151; border: none; padding: 8px 18px; border-radius: 20px; font-weight: 600; font-size: 14px; cursor: pointer; white-space: nowrap; transition: 0.2s;">🍟 Fast Food</button>
+        </div>
 
         <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 30px; display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
         <form action="{{ url_for('index') }}" method="GET" style="display: flex; gap: 15px; width: 100%; align-items: center;">
@@ -211,7 +221,7 @@
         <div class="restaurant-grid">
             {% for restaurant in restaurants %}
             
-            <a href="{{ url_for('view_restaurant', restaurant_id=restaurant.get('restaurant_id')) }}" class="restaurant-card {% if restaurant.get('is_open') == False %}closed-restaurant{% endif %}" style="position: relative;">
+            <a href="{{ url_for('view_restaurant', restaurant_id=restaurant.get('restaurant_id')) }}" class="restaurant-card filterable-card {% if restaurant.get('is_open') == False %}closed-restaurant{% endif %}" data-category="{{ restaurant.get('cuisine') }}" style="position: relative;">
                 
                 <button class="main-page-fav-btn" data-id="{{ restaurant['restaurant_id'] }}" style="position: absolute; top: 15px; right: 15px; z-index: 10; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
                     {% if restaurant['restaurant_id'] in favorited_restaurant_ids %}
@@ -672,5 +682,39 @@
             });
         });
     </script>
+<script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const catBtns = document.querySelectorAll('.cat-btn');
+            const cards = document.querySelectorAll('.filterable-card');
+
+            catBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // 1. Tıklanan butonu siyah yap, diğerlerini griye çevir
+                    catBtns.forEach(b => {
+                        b.style.background = '#f3f4f6';
+                        b.style.color = '#374151';
+                    });
+                    btn.style.background = '#111827';
+                    btn.style.color = 'white';
+
+                    // 2. Butonun içindeki filtre kelimesini al (Örn: "burger")
+                    const filterValue = btn.getAttribute('data-filter').toLowerCase();
+
+                    // 3. Kartları gizle veya göster
+                    cards.forEach(card => {
+                        const category = (card.getAttribute('data-category') || '').toLowerCase();
+                        
+                        // Eğer 'Tümü' seçildiyse VEYA restoranın kategorisi (cuisine) butondaki kelimeyi içeriyorsa göster
+                        if (filterValue === 'all' || category.includes(filterValue)) {
+                            card.style.display = 'block';
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+
 </body>
 </html>
