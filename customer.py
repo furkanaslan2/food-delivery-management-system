@@ -1,8 +1,9 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask import render_template, request, redirect, url_for, session, flash, jsonify
 from db import get_db_connection
 from mysql.connector import Error
 
+# 1. RESTORAN MENÜSÜNÜ GÖRÜNTÜLEME
 # 1. RESTORAN MENÜSÜNÜ GÖRÜNTÜLEME
 def view_restaurant(restaurant_id):
     if 'logged_in' not in session or session.get('role') != 'customer':
@@ -22,6 +23,25 @@ def view_restaurant(restaurant_id):
             cursor = connection.cursor(dictionary=True)
             cursor.execute("SELECT * FROM restaurants WHERE restaurant_id = %s", (restaurant_id,))
             restaurant = cursor.fetchone()
+
+            if restaurant:
+                # YENİ: Restoran detay sayfasına da restoranın Açık/Kapalı bilgisini gönderiyoruz
+                now = datetime.now().time()
+                is_open = True
+                if restaurant.get('is_manually_closed'):
+                    is_open = False
+                elif restaurant.get('opening_time') is not None and restaurant.get('closing_time') is not None:
+                    op_td = restaurant['opening_time']
+                    cl_td = restaurant['closing_time']
+                    op_time = (datetime.min + op_td).time() if isinstance(op_td, timedelta) else op_td
+                    cl_time = (datetime.min + cl_td).time() if isinstance(cl_td, timedelta) else cl_td
+                    
+                    if op_time < cl_time:
+                        is_open = op_time <= now <= cl_time
+                    else:
+                        is_open = now >= op_time or now <= cl_time
+                        
+                restaurant['is_open'] = is_open
 
             cursor.execute("""
                 SELECT m.*, f.item_name AS food_name, f.category AS category 
@@ -96,7 +116,6 @@ def view_restaurant(restaurant_id):
 # 2. SEPETE ÜRÜN EKLEME (SESSION CART)
 def add_to_cart():
     if 'logged_in' not in session or session.get('role') != 'customer':
-        # AJAX isteği ise JSON hata dön, değilse normal redirect yap
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return jsonify({'success': False, 'message': 'Please login to add items.'}), 401
         flash("Please login to add items to your cart.", "danger")
@@ -109,10 +128,41 @@ def add_to_cart():
         price = float(request.form.get('price'))
         quantity = int(request.form.get('quantity', 1))
 
+        # --- YENİ EKLENEN: GÜVENLİK DUVARI (KAPALI RESTORANA SİPARİŞİ ENGELLE) ---
+        connection = get_db_connection()
+        if connection:
+            try:
+                cursor = connection.cursor(dictionary=True)
+                cursor.execute("SELECT opening_time, closing_time, is_manually_closed FROM restaurants WHERE restaurant_id = %s", (restaurant_id,))
+                res = cursor.fetchone()
+                if res:
+                    now = datetime.now().time()
+                    is_open = True
+                    if res.get('is_manually_closed'):
+                        is_open = False
+                    elif res.get('opening_time') is not None and res.get('closing_time') is not None:
+                        op_td = res['opening_time']
+                        cl_td = res['closing_time']
+                        op_time = (datetime.min + op_td).time() if isinstance(op_td, timedelta) else op_td
+                        cl_time = (datetime.min + cl_td).time() if isinstance(cl_td, timedelta) else cl_td
+                        
+                        if op_time < cl_time:
+                            is_open = op_time <= now <= cl_time
+                        else:
+                            is_open = now >= op_time or now <= cl_time
+                            
+                    if not is_open:
+                        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                            return jsonify({'success': False, 'message': 'Bu restoran şu an kapalıdır, sepete ürün ekleyemezsiniz.'}), 400
+                        flash("Bu restoran şu an kapalıdır, sipariş veremezsiniz.", "danger")
+                        return redirect(url_for('view_restaurant', restaurant_id=restaurant_id))
+            finally:
+                connection.close()
+        # -------------------------------------------------------------------------
+
         if 'cart' not in session:
             session['cart'] = []
 
-        # Eğer sepette ürün varsa ve farklı restorandan ekleniyorsa sepeti temizle
         cart_cleared = False
         if len(session['cart']) > 0 and str(session['cart'][0]['restaurant_id']) != str(restaurant_id):
             session['cart'] = [] 
@@ -136,10 +186,8 @@ def add_to_cart():
 
         session.modified = True
         
-        # Toplam sepet ürün sayısını hesapla
         total_cart_qty = sum(int(item['quantity']) for item in session['cart'])
 
-        # --- YENİ EKLENEN AJAX (JSON) KONTROLÜ ---
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return jsonify({
                 'success': True, 
@@ -147,9 +195,7 @@ def add_to_cart():
                 'cart_cleared': cart_cleared,
                 'message': f"Added {quantity}x {food_name} to cart!"
             })
-        # ----------------------------------------
 
-        # Normal (Eski usul) form gönderimi ise:
         if cart_cleared:
             flash("Your cart was cleared because you selected a different restaurant.", "warning")
         flash(f"Added {quantity}x {food_name} to cart!", "success")
@@ -195,28 +241,39 @@ def view_cart():
     cart = session.get('cart', [])
     total_amount = sum(item['price'] * item['quantity'] for item in cart)
     
-    # YENİ: Müşterinin aktif (is_active=1) adresini veritabanından çek ve HTML'e gönder
     customer_id = session.get('customer_id')
     active_address = None
+    min_order_amount = 0.0
+
     connection = get_db_connection()
     if connection:
         try:
             cursor = connection.cursor(dictionary=True)
+            # Müşterinin aktif adresini çek
             cursor.execute("""
                 SELECT * FROM customer_addresses 
                 WHERE customer_id = %s AND is_active = 1
             """, (customer_id,))
             active_address = cursor.fetchone()
+
+            # YENİ: Restoranın minimum sipariş tutarını çek
+            if cart:
+                restaurant_id = cart[0]['restaurant_id']
+                cursor.execute("SELECT min_order_amount FROM restaurants WHERE restaurant_id = %s", (restaurant_id,))
+                res = cursor.fetchone()
+                if res and res.get('min_order_amount'):
+                    min_order_amount = float(res['min_order_amount'])
+
         except Exception as e:
-            print(f"Aktif adres yüklenirken hata: {e}")
+            print(f"Hata: {e}")
         finally:
             if connection.is_connected():
                 cursor.close()
                 connection.close()
                 
-    return render_template('customer_cart.html', cart=cart, total_amount=total_amount, active_address=active_address)
+    return render_template('customer_cart.html', cart=cart, total_amount=total_amount, active_address=active_address, min_order_amount=min_order_amount)
 
-# 4. SİPARİŞİ TAMAMLAMA (CHECKOUT)
+
 def checkout():
     if 'logged_in' not in session or session.get('role') != 'customer':
         return redirect(url_for('customer_login'))
@@ -231,7 +288,6 @@ def checkout():
         payment_method = request.form.get('payment_method')
         customer_id = session.get('customer_id')
 
-        # Sepetteki toplam tutar ve miktarı hesapla
         restaurant_id = cart[0]['restaurant_id']
         total_qty = sum(item['quantity'] for item in cart)
         total_amount = sum(item['price'] * item['quantity'] for item in cart)
@@ -241,7 +297,16 @@ def checkout():
             try:
                 cursor = connection.cursor(dictionary=True)
                 
-                # YENİ: Telefon ve Adres formdan değil, doğrudan aktif adresten çekiliyor!
+                # YENİ: BACKEND GÜVENLİK DUVARI (Eğer limitin altındaysa form hacklense bile siparişi engelle)
+                cursor.execute("SELECT min_order_amount FROM restaurants WHERE restaurant_id = %s", (restaurant_id,))
+                r_data = cursor.fetchone()
+                min_order_amount = float(r_data['min_order_amount']) if r_data and r_data.get('min_order_amount') else 0.0
+
+                if total_amount < min_order_amount:
+                    flash(f"Minimum sipariş tutarı ${min_order_amount}. Lütfen sepetinize ürün ekleyin.", "danger")
+                    return redirect(url_for('view_cart'))
+
+                # Aktif adresi çek
                 cursor.execute("""
                     SELECT * FROM customer_addresses 
                     WHERE customer_id = %s AND is_active = 1
@@ -255,7 +320,6 @@ def checkout():
                 phone = active_address['contact_phone']
                 customer_name = active_address['contact_name']
                 
-                # Adresi formatlı bir metne çeviriyoruz
                 address_parts = [f"{active_address['neighborhood']} Mh.", f"{active_address['street']} Sk.", f"No:{active_address['building_no']}"]
                 if active_address.get('floor_no'): address_parts.append(f"Kat:{active_address['floor_no']}")
                 if active_address.get('apt_no'): address_parts.append(f"Daire:{active_address['apt_no']}")
@@ -265,7 +329,6 @@ def checkout():
                 if active_address.get('directions'):
                     address += f" (Tarif: {active_address['directions']})"
 
-                # 1. AŞAMA: Siparişi ana "orders" tablosuna kaydet
                 insert_order_query = """
                     INSERT INTO orders (
                         restaurant_id, order_status, order_date, sales_qty, 
@@ -278,9 +341,8 @@ def checkout():
                     restaurant_id, total_qty, total_amount, customer_id, customer_name, phone, address, order_note, payment_method
                 ))
                 
-                new_order_id = cursor.lastrowid # Yeni oluşan Siparişin ID'si
+                new_order_id = cursor.lastrowid 
 
-                # 2. AŞAMA: Sepetteki her bir ürünü "order_items" tablosuna ekle
                 for item in cart:
                     cursor.execute("SELECT food_id FROM menus WHERE menu_id = %s", (item['menu_id'],))
                     menu_data = cursor.fetchone()

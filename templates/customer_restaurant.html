@@ -16,7 +16,7 @@
         .cart-btn { background: #4f46e5; color: white !important; padding: 8px 16px; border-radius: 20px; display: flex; align-items: center; gap: 5px; }
         
         /* Restoran Header (Kapak) */
-        .restaurant-header { background: #1f2937; color: white; padding: 50px 5%; text-align: center; }
+        .restaurant-header { background: #1f2937; color: white; padding: 50px 5%; text-align: center; transition: all 0.3s; }
         .restaurant-header h1 { margin: 0 0 10px 0; font-size: 32px; }
         .restaurant-header p { margin: 0; color: #9ca3af; font-size: 15px; }
         .rating { background: #fef08a; color: #854d0e; padding: 4px 10px; border-radius: 6px; font-size: 14px; font-weight: 600; display: inline-block; margin-top: 15px; }
@@ -38,6 +38,30 @@
         .qty-input { width: 50px; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; text-align: center; font-family: inherit; }
         .add-btn { background: #10b981; color: white; border: none; padding: 10px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.2s; font-family: inherit; }
         .add-btn:hover { background: #059669; }
+
+        /* Kapalı Restoran CSS Kuralları */
+        .closed-menu-item {
+            opacity: 0.55;
+            filter: grayscale(100%);
+            pointer-events: none; /* Tıklamaları tamamen engeller */
+        }
+        
+        /* 📍 YENİ: KAPALI RESTORAN RESMİ/KAPAĞI İÇİN SOLUKLAŞTIRMA SINIFI (Editör Hatası Vermez) */
+        .closed-header {
+            opacity: 0.65;
+            filter: grayscale(80%);
+        }
+
+        .add-btn:disabled {
+            background-color: #9ca3af !important;
+            color: #f3f4f6 !important;
+            cursor: not-allowed !important;
+            transform: none !important;
+        }
+        .qty-input:disabled {
+            background-color: #f3f4f6;
+            color: #9ca3af;
+        }
 
         /* Sepet Bildirim Balonu CSS'i */
         .cart-wrapper { position: relative; }
@@ -70,10 +94,9 @@
         .close-btn { background: none; border: none; font-size: 28px; cursor: pointer; color: #9ca3af; transition: color 0.2s; line-height: 1; }
         .close-btn:hover { color: #111827; }
         
-        /* Modal Gövdesi (Kaydırılabilir alan) */
+        /* Modal Gövdesi */
         .modal-body { padding: 20px; overflow-y: auto; background-color: #f8f9fa; }
         
-        /* Küçük bir açılış animasyonu */
         @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
         /* Modern Açılır Menü (Dropdown) Stilleri */
@@ -100,13 +123,11 @@
         }
         .dropdown-content a:hover { background-color: #f9fafb; color: #4f46e5; }
         
-        /* Üzerine gelince menüyü göster */
         .dropdown:hover .dropdown-content { display: block; }
 
         /* SEKMELER (TABS) CSS STİLLERİ */
         .menu-tabs-container {
             display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 25px; border-bottom: 2px solid #e5e7eb;
-            /* Scrollbar gizleme/küçültme */
             scrollbar-width: thin;
         }
         .menu-tabs-container::-webkit-scrollbar { height: 4px; }
@@ -138,13 +159,11 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.06);
             padding: 0;
         }
-        /* Üzerine gelince (Hover) basılabilir hissi */
         .fav-btn-container:hover {
             transform: scale(1.08);
             border-color: #fca5a5;
             background-color: #fef2f2;
         }
-        /* Tıklandığı an (Active) içeri yaylanma hissi */
         .fav-btn-container:active {
             transform: scale(0.92);
         }
@@ -198,7 +217,7 @@
 
     {% set bg_image = url_for('static', filename='images/restaurants/' ~ restaurant['image_url']) %}
     
-    <div class="restaurant-header" 
+    <div class="restaurant-header {% if restaurant.get('is_open') == False %}closed-header{% endif %}" 
          {% if restaurant['image_url'] and restaurant['image_url'] != 'default_restaurant.jpg' %}
             style="background: linear-gradient(rgba(31, 41, 55, 0.7), rgba(31, 41, 55, 0.8)), url('{{ bg_image }}') center/cover; color: white; padding: 60px 5%; text-align: center; border-bottom: 4px solid #10b981;"
          {% else %}
@@ -218,6 +237,13 @@
         </div>
         
         <p style="text-shadow: 0 1px 3px rgba(0,0,0,0.5);">{{ restaurant['cuisine'] }} • {{ restaurant['restaurant_address'] }}</p>
+        
+        {% if restaurant.get('is_open') == False %}
+            <div style="background-color: #ef4444; color: white; padding: 6px 16px; border-radius: 20px; font-weight: 700; font-size: 14px; display: inline-block; margin-top: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+                ŞU AN KAPALI - SİPARİŞ ALINMIYOR
+            </div>
+        {% endif %}
+
         <div class="rating" onclick="document.getElementById('reviewsModal').style.display='flex'" style="cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.3);" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
             ⭐ {{ restaurant['rating'] }} ({{ restaurant['rating_count'] }}) - Yorumları Gör
         </div>
@@ -246,7 +272,8 @@
             <div class="menu-list">
                 {% if popular_items %}
                     {% for item in popular_items %}
-                    <div class="menu-item">
+                    
+                    <div class="menu-item {% if restaurant.get('is_open') == False %}closed-menu-item{% endif %}">
                         <div class="item-info">
                             <h3>{{ item['food_name'] if item['food_name'] else 'Delicious Food' }}</h3>
                             <p class="price">${{ item['price'] }}</p>
@@ -258,8 +285,11 @@
                             <input type="hidden" name="food_name" value="{{ item['food_name'] }}">
                             <input type="hidden" name="price" value="{{ item['price'] }}">
                             
-                            <input type="number" name="quantity" class="qty-input" value="1" min="1" max="{{ item['stock_quantity'] }}">
-                            <button type="submit" class="add-btn">+ Add</button>
+                            <input type="number" name="quantity" class="qty-input" value="1" min="1" max="{{ item['stock_quantity'] }}" {% if restaurant.get('is_open') == False %}disabled{% endif %}>
+                            
+                            <button type="submit" class="add-btn" {% if restaurant.get('is_open') == False %}disabled{% endif %}>
+                                + Add
+                            </button>
                         </form>
                     </div>
                     {% endfor %}
@@ -273,7 +303,8 @@
         <div id="tab-{{ loop.index }}" class="tab-content">
             <div class="menu-list">
                 {% for item in items %}
-                <div class="menu-item">
+                
+                <div class="menu-item {% if restaurant.get('is_open') == False %}closed-menu-item{% endif %}">
                     <div class="item-info">
                         <h3>{{ item['food_name'] if item['food_name'] else 'Delicious Food' }}</h3>
                         <p class="price">${{ item['price'] }}</p>
@@ -285,8 +316,11 @@
                         <input type="hidden" name="food_name" value="{{ item['food_name'] }}">
                         <input type="hidden" name="price" value="{{ item['price'] }}">
                         
-                        <input type="number" name="quantity" class="qty-input" value="1" min="1" max="{{ item['stock_quantity'] }}">
-                        <button type="submit" class="add-btn">+ Add</button>
+                        <input type="number" name="quantity" class="qty-input" value="1" min="1" max="{{ item['stock_quantity'] }}" {% if restaurant.get('is_open') == False %}disabled{% endif %}>
+                        
+                        <button type="submit" class="add-btn" {% if restaurant.get('is_open') == False %}disabled{% endif %}>
+                            + Add
+                        </button>
                     </form>
                 </div>
                 {% endfor %}
@@ -294,18 +328,16 @@
         </div>
         {% endfor %}
 
-    </div> <script>
+    </div> 
+    
+    <script>
         function openMenuTab(evt, tabName) {
-            // Tüm içerikleri gizle
             document.querySelectorAll('.tab-content').forEach(tab => {
                 tab.classList.remove('active');
             });
-            // Tüm butonların aktif (siyah) rengini al
             document.querySelectorAll('.tab-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
-            
-            // Sadece tıklanan sekmenin içeriğini göster ve butonunu siyah yap
             document.getElementById(tabName).classList.add('active');
             evt.currentTarget.classList.add('active');
         }
@@ -358,6 +390,8 @@
                     e.preventDefault(); 
                     
                     const btn = form.querySelector('.add-btn');
+                    if(btn.disabled) return;
+
                     const originalText = btn.innerHTML;
                     const formData = new FormData(form);
                     
@@ -433,7 +467,6 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            // Emojiyi değiştirmek yerine SVG renk özelliklerini canlı güncelliyoruz
                             if (data.action === 'added') {
                                 svg.setAttribute('fill', '#ef4444');
                                 svg.setAttribute('stroke', '#ef4444');
