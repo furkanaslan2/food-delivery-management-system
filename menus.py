@@ -1,6 +1,8 @@
-from flask import render_template, request, redirect, url_for, session, flash
+from flask import render_template, request, redirect, url_for, session, flash, jsonify
 from db import get_db_connection
 from mysql.connector import Error
+import os
+from werkzeug.utils import secure_filename
 
 def menus():
     if not session.get('logged_in'):
@@ -18,14 +20,14 @@ def menus():
         cursor = connection.cursor(dictionary=True)
         if role == 'admin':
             cursor.execute('''
-                SELECT m.menu_id, m.restaurant_id, m.food_id, m.cuisine, m.price, m.stock_quantity,
+                SELECT m.menu_id, m.restaurant_id, m.food_id, m.cuisine, m.price, m.stock_quantity, m.image_url,
                        f.item_name as food_name
                 FROM menus m 
                 LEFT JOIN foods f ON m.food_id = f.food_id
             ''')
         elif role == 'user' and restaurant_id:
             cursor.execute('''
-                SELECT m.menu_id, m.restaurant_id, m.food_id, m.cuisine, m.price, m.stock_quantity,
+                SELECT m.menu_id, m.restaurant_id, m.food_id, m.cuisine, m.price, m.stock_quantity, m.image_url,
                        f.item_name as food_name
                 FROM menus m 
                 LEFT JOIN foods f ON m.food_id = f.food_id 
@@ -357,3 +359,104 @@ def menus_action():
             connection.close()
 
     return redirect(url_for('menus'))
+
+def manage_menu_options():
+    if 'logged_in' not in session:
+        return jsonify({'success': False, 'message': 'Giriş yapmalısınız'}), 401
+
+    # 📍 GÜVENLİK GÜNCELLEMESİ: Müşteriler (customer) seçenekleri OKUYABİLİR (GET), 
+    # ancak ekleme/silme (POST) işlemlerini sadece restoran (user) yapabilir.
+    role = session.get('role')
+    if request.method == 'POST' and role not in ['user', 'admin']:
+        return jsonify({'success': False, 'message': 'Yetkisiz erişim'}), 401
+
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'success': False, 'message': 'Veritabanı hatası'}), 500
+
+    try:
+        cursor = connection.cursor(dictionary=True)
+        
+        # Seçenekleri Okuma (GET)
+        if request.method == 'GET':
+            menu_id = request.args.get('menu_id')
+            cursor.execute("SELECT * FROM menu_options WHERE menu_id = %s", (menu_id,))
+            options = cursor.fetchall()
+            
+            for opt in options:
+                cursor.execute("SELECT * FROM menu_option_choices WHERE option_id = %s", (opt['option_id'],))
+                opt['choices'] = cursor.fetchall()
+                
+            return jsonify({'success': True, 'options': options})
+            
+        # Seçenek/Şık Ekleme & Silme İşlemleri (POST)
+        elif request.method == 'POST':
+            data = request.get_json()
+            action = data.get('action')
+            
+            if action == 'add_option':
+                cursor.execute("""
+                    INSERT INTO menu_options (menu_id, option_name, is_required, is_multiple) 
+                    VALUES (%s, %s, %s, %s)
+                """, (data['menu_id'], data['option_name'], data['is_required'], data['is_multiple']))
+                
+            elif action == 'add_choice':
+                cursor.execute("""
+                    INSERT INTO menu_option_choices (option_id, choice_name, additional_price) 
+                    VALUES (%s, %s, %s)
+                """, (data['option_id'], data['choice_name'], data['additional_price']))
+                
+            elif action == 'delete_option':
+                cursor.execute("DELETE FROM menu_options WHERE option_id = %s", (data['option_id'],))
+                
+            elif action == 'delete_choice':
+                cursor.execute("DELETE FROM menu_option_choices WHERE choice_id = %s", (data['choice_id'],))
+                
+            connection.commit()
+            return jsonify({'success': True})
+            
+    except Exception as e:
+        connection.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+def upload_menu_image():
+    if 'logged_in' not in session or session.get('role') not in ['user', 'admin']:
+        return jsonify({'success': False, 'message': 'Yetkisiz erişim'}), 401
+
+    if 'image' not in request.files:
+        return jsonify({'success': False, 'message': 'Görsel bulunamadı'}), 400
+
+    file = request.files['image']
+    menu_id = request.form.get('menu_id')
+
+    if file.filename == '':
+        return jsonify({'success': False, 'message': 'Dosya seçilmedi'}), 400
+
+    if file and menu_id:
+        filename = secure_filename(file.filename)
+        # Klasör yoksa otomatik oluştur
+        upload_folder = os.path.join('static', 'images', 'menus')
+        os.makedirs(upload_folder, exist_ok=True)
+        
+        filepath = os.path.join(upload_folder, filename)
+        file.save(filepath)
+
+        # Veritabanını güncelle
+        connection = get_db_connection()
+        if connection:
+            try:
+                cursor = connection.cursor()
+                cursor.execute("UPDATE menus SET image_url = %s WHERE menu_id = %s", (filename, menu_id))
+                connection.commit()
+                return jsonify({'success': True, 'image_url': filename})
+            except Exception as e:
+                return jsonify({'success': False, 'message': str(e)}), 500
+            finally:
+                cursor.close()
+                connection.close()
+
+    return jsonify({'success': False, 'message': 'Hata oluştu'}), 400

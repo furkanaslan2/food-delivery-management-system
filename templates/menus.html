@@ -91,19 +91,248 @@
             {% endif %}
 
             <input type="checkbox" id="menu-{{ loop.index }}" name="selected_menu_items" value="{{ item['menu_id'] }}">
-            <label for="menu-{{ loop.index }}">
+            <label for="menu-{{ loop.index }}" style="display: flex; flex-direction: column; gap: 10px;">
                 <span class="menu-id" style="display: none;">{{ item['menu_id'] }}</span>
                 <span class="menu-restaurant-id" style="display: none;">{{ item['restaurant_id'] }}</span>
                 
-                <p><strong>Name:</strong> <span class="menu-name">{{ item['food_name'] if item['food_name'] else 'No food name' }}</span></p>
-                <p><strong>Cuisine:</strong> <span class="menu-cuisine">{{ item['cuisine'] if item['cuisine'] else 'Not specified' }}</span></p>
-                <p><strong>Price:</strong> <span class="menu-price">{{ item['price'] }}</span></p>
-                <p><strong>Stock:</strong> <span class="menu-stock">{{ item['stock_quantity'] }}</span></p>
+                <div style="display: flex; gap: 15px; align-items: center;">
+                    {% if item.get('image_url') %}
+                        <img src="{{ url_for('static', filename='images/menus/' ~ item.get('image_url')) }}" style="width: 70px; height: 70px; object-fit: cover; border-radius: 8px; border: 1px solid #e5e7eb; box-shadow: 0 2px 4px rgba(0,0,0,0.05);" alt="Yemek Görseli">
+                    {% else %}
+                        <div style="width: 70px; height: 70px; background: #f3f4f6; border-radius: 8px; display: flex; justify-content: center; align-items: center; font-size: 24px; border: 1px dashed #cbd5e1; color: #94a3b8;" title="Görsel Yüklenmedi">
+                            🍽️
+                        </div>
+                    {% endif %}
+                    
+                    <div style="flex: 1;">
+                        <p style="margin: 2px 0;"><strong>Name:</strong> <span class="menu-name">{{ item['food_name'] if item['food_name'] else 'No food name' }}</span></p>
+                        <p style="margin: 2px 0;"><strong>Cuisine:</strong> <span class="menu-cuisine">{{ item['cuisine'] if item['cuisine'] else 'Not specified' }}</span></p>
+                    </div>
+                </div>
+                
+                <p style="margin: 2px 0;"><strong>Price:</strong> <span class="menu-price">{{ item['price'] }}</span></p>
+                <p style="margin: 2px 0;"><strong>Stock:</strong> <span class="menu-stock">{{ item['stock_quantity'] }}</span></p>
+                <button type="button" class="manage-options-btn" data-id="{{ item['menu_id'] }}" data-name="{{ item['food_name'] if item['food_name'] else 'Food' }}" style="margin-top: 10px; width: 100%; background: #4f46e5; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: 0.2s; position: relative; z-index: 5;" onmouseover="this.style.background='#4338ca'" onmouseout="this.style.background='#4f46e5'">
+                    ⚙️ Seçenekleri Yönet
+                </button>
+                <button type="button" class="upload-menu-img-btn" data-id="{{ item['menu_id'] }}" style="margin-top: 5px; width: 100%; background: #f59e0b; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: 0.2s; position: relative; z-index: 5;" onmouseover="this.style.background='#d97706'" onmouseout="this.style.background='#f59e0b'">
+                    📸 Görsel Yükle
+                </button>
             </label>
         </div>
         {% endfor %}
     </div>
     <script src="{{ url_for('static', filename='js/common.js') }}"></script>
     <script src="{{ url_for('static', filename='js/menus.js') }}"></script>
+
+    <div id="optionsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10000; justify-content:center; align-items:center; backdrop-filter:blur(4px);">
+        <div style="background:white; width:90%; max-width:600px; max-height:85vh; border-radius:12px; padding:25px; box-shadow:0 10px 25px rgba(0,0,0,0.2); display:flex; flex-direction:column; font-family: 'Inter', sans-serif;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #e5e7eb; padding-bottom:15px; margin-bottom:15px;">
+                <h3 style="margin:0; font-size:18px; color:#111827; font-weight: 700;">⚙️ Seçenekler: <span id="modal-food-name" style="color:#4f46e5;"></span></h3>
+                <button onclick="closeOptionsModal()" style="background: #10b981; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; font-family: inherit; font-size: 13px; transition: 0.2s; box-shadow: 0 2px 4px rgba(16,185,129,0.2);" onmouseover="this.style.background='#059669'" onmouseout="this.style.background='#10b981'">
+                    ✅ Kaydet ve Kapat
+                </button>
+            </div>
+            
+            <div id="options-container" style="overflow-y:auto; flex:1; margin-bottom:15px; padding-right:5px;">
+                </div>
+            
+            <div style="border-top:2px solid #e5e7eb; padding-top:20px; background:#f9fafb; padding:15px; border-radius:8px;">
+                <h4 style="margin:0 0 15px 0; color:#374151;">+ Yeni Seçenek Grubu Ekle</h4>
+                <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+                    <input type="text" id="new-option-name" placeholder="Grup Adı (Örn: İçecek Seçimi)" style="flex:1; min-width:200px; padding:10px; border:1px solid #d1d5db; border-radius:6px; font-family:inherit;">
+                    <label style="font-size:14px; cursor:pointer; display:flex; align-items:center; gap:5px;"><input type="checkbox" id="new-option-req"> Zorunlu mu?</label>
+                    <label style="font-size:14px; cursor:pointer; display:flex; align-items:center; gap:5px;"><input type="checkbox" id="new-option-mult"> Çoklu Seçim mi?</label>
+                    <button onclick="addOption()" style="background:#10b981; color:white; border:none; padding:10px 15px; border-radius:6px; font-weight:600; cursor:pointer; font-family:inherit; transition:0.2s;">Ekle</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentOptionsMenuId = null;
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const manageBtns = document.querySelectorAll('.manage-options-btn');
+            
+            manageBtns.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation(); // Label içindeki checkbox'ın tetiklenmesini kesin olarak engeller
+                    
+                    const menuId = this.getAttribute('data-id');
+                    const foodName = this.getAttribute('data-name');
+                    
+                    openOptionsModal(menuId, foodName);
+                });
+            });
+        });
+
+        function openOptionsModal(menuId, foodName) {
+            currentOptionsMenuId = menuId;
+            document.getElementById('modal-food-name').innerText = foodName;
+            document.getElementById('optionsModal').style.display = 'flex';
+            loadOptions();
+        }
+
+        function closeOptionsModal() {
+            document.getElementById('optionsModal').style.display = 'none';
+        }
+
+        function loadOptions() {
+            fetch('/api/menu_options?menu_id=' + currentOptionsMenuId)
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) renderOptions(data.options);
+            });
+        }
+
+        function renderOptions(options) {
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+            
+            if(options.length === 0) {
+                container.innerHTML = '<div style="text-align:center; color:#6b7280; padding:30px 0;">Bu yemek için henüz ekstra seçenek eklenmemiş.</div>';
+                return;
+            }
+
+            options.forEach(opt => {
+                let choicesHtml = '';
+                opt.choices.forEach(ch => {
+                    choicesHtml += `
+                        <div style="display:flex; justify-content:space-between; align-items:center; background:#f3f4f6; padding:10px; margin-top:8px; border-radius:6px;">
+                            <span style="font-size:14px; font-weight:500; color:#374151;">${ch.choice_name} <span style="color:#059669;">(+${ch.additional_price} $)</span></span>
+                            <button onclick="deleteChoice(${ch.choice_id})" style="background:#fee2e2; border:1px solid #fecaca; color:#ef4444; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:12px;">✖ Sil</button>
+                        </div>
+                    `;
+                });
+
+                const optHtml = `
+                    <div style="border:1px solid #e5e7eb; border-radius:8px; padding:15px; margin-bottom:20px; background:#ffffff; box-shadow:0 2px 4px rgba(0,0,0,0.02);">
+                        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f3f4f6; padding-bottom:10px; margin-bottom:10px;">
+                            <h4 style="margin:0; font-size:16px; color:#111827;">${opt.option_name} 
+                                <span style="font-size:12px; font-weight:normal; background:#e0e7ff; color:#4338ca; padding:2px 6px; border-radius:4px; margin-left:5px;">${opt.is_required ? 'Zorunlu' : 'Opsiyonel'}</span>
+                                <span style="font-size:12px; font-weight:normal; background:#fef3c7; color:#b45309; padding:2px 6px; border-radius:4px; margin-left:2px;">${opt.is_multiple ? 'Çoklu Seçim' : 'Tekli Seçim'}</span>
+                            </h4>
+                            <button onclick="deleteOption(${opt.option_id})" style="background:none; border:none; color:#ef4444; font-size:13px; font-weight:600; cursor:pointer; text-decoration:underline;">Grubu Sil</button>
+                        </div>
+                        
+                        <div style="margin-bottom:15px;">${choicesHtml}</div>
+                        
+                        <div style="display:flex; gap:10px;">
+                            <input type="text" id="choice-name-${opt.option_id}" placeholder="Şık Adı (Örn: Kola)" style="flex:2; padding:8px; border:1px solid #d1d5db; border-radius:6px; font-size:13px; font-family:inherit;">
+                            <input type="number" id="choice-price-${opt.option_id}" placeholder="Fiyat ($)" step="0.01" style="flex:1; padding:8px; border:1px solid #d1d5db; border-radius:6px; font-size:13px; font-family:inherit;">
+                            <button onclick="addChoice(${opt.option_id})" style="background:#4f46e5; color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; font-size:13px; font-weight:600; transition:0.2s;">+ Şık Ekle</button>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += optHtml;
+            });
+        }
+
+        function addOption() {
+            const name = document.getElementById('new-option-name').value;
+            const isReq = document.getElementById('new-option-req').checked;
+            const isMult = document.getElementById('new-option-mult').checked;
+            if(!name) return alert("Lütfen bir grup adı yazın!");
+
+            fetch('/api/menu_options', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({action: 'add_option', menu_id: currentOptionsMenuId, option_name: name, is_required: isReq, is_multiple: isMult})
+            }).then(res => res.json()).then(data => {
+                if(data.success) {
+                    document.getElementById('new-option-name').value = '';
+                    document.getElementById('new-option-req').checked = false;
+                    document.getElementById('new-option-mult').checked = false;
+                    loadOptions();
+                } else alert(data.message);
+            });
+        }
+
+        function addChoice(optionId) {
+            const name = document.getElementById(`choice-name-${optionId}`).value;
+            const price = document.getElementById(`choice-price-${optionId}`).value;
+            if(!name) return alert("Şık adı boş olamaz!");
+
+            fetch('/api/menu_options', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({action: 'add_choice', option_id: optionId, choice_name: name, additional_price: price})
+            }).then(res => res.json()).then(data => {
+                if(data.success) loadOptions();
+                else alert(data.message);
+            });
+        }
+
+        function deleteOption(optionId) {
+            if(!confirm("Bu grubu ve altındaki tüm şıkları silmek istediğinize emin misiniz?")) return;
+            fetch('/api/menu_options', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({action: 'delete_option', option_id: optionId})
+            }).then(res => res.json()).then(data => {
+                if(data.success) loadOptions();
+            });
+        }
+
+        function deleteChoice(choiceId) {
+            fetch('/api/menu_options', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({action: 'delete_choice', choice_id: choiceId})
+            }).then(res => res.json()).then(data => {
+                if(data.success) loadOptions();
+            });
+        }
+    </script>
+
+    <form id="imageUploadForm" style="display: none;">
+        <input type="hidden" id="img-upload-menu-id" name="menu_id">
+        <input type="file" id="imageUploadInput" name="image" accept="image/*" onchange="submitMenuImage()">
+    </form>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const uploadButtons = document.querySelectorAll('.upload-menu-img-btn');
+            const hiddenMenuIdInput = document.getElementById('img-upload-menu-id');
+            const hiddenFileInput = document.getElementById('imageUploadInput');
+
+            uploadButtons.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation(); // Checkbox seçimini engeller
+                    
+                    // Tıklanan butonun üzerindeki menu_id değerini gizli inputa aktarıyoruz
+                    const menuId = this.getAttribute('data-id');
+                    hiddenMenuIdInput.value = menuId;
+                    
+                    // Dosya seçme penceresini tetikliyoruz
+                    hiddenFileInput.click();
+                });
+            });
+        });
+
+        // Resim seçildiği an otomatik olarak backend'e yükleyen fonksiyon
+        function submitMenuImage() {
+            const formData = new FormData(document.getElementById('imageUploadForm'));
+            fetch('/api/upload_menu_image', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    alert("✅ Görsel başarıyla yüklendi! Sayfayı yenilediğinizde aktif olacaktır.");
+                    window.location.reload(); // Değişikliği anında görmeleri için sayfayı yeniliyoruz
+                } else {
+                    alert("❌ Hata: " + data.message);
+                }
+                document.getElementById('imageUploadInput').value = ''; 
+            })
+            .catch(err => console.error('Görsel yükleme hatası:', err));
+        }
+    </script>
+
 </body>
 </html>

@@ -68,7 +68,8 @@ CREATE TABLE menus (
     food_id INT,
     cuisine VARCHAR(50) NOT NULL,
     price DECIMAL(10, 2) NOT NULL CHECK (price > 0),
-    stock_quantity INT DEFAULT 0 CHECK (stock_quantity >= 0), 
+    stock_quantity INT DEFAULT 0 CHECK (stock_quantity >= 0),
+    image_url VARCHAR(255) DEFAULT NULL,
     PRIMARY KEY (menu_id),
     FOREIGN KEY (restaurant_id) REFERENCES restaurants(restaurant_id)
     ON DELETE CASCADE
@@ -187,4 +188,21 @@ CREATE TABLE customer_addresses (
     is_active BOOLEAN DEFAULT FALSE,       
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (customer_id) REFERENCES customers(customer_id) ON DELETE CASCADE
+);
+
+CREATE TABLE menu_options (
+    option_id INT AUTO_INCREMENT PRIMARY KEY,
+    menu_id INT NOT NULL,
+    option_name VARCHAR(255) NOT NULL,
+    is_required BOOLEAN DEFAULT FALSE, 
+    is_multiple BOOLEAN DEFAULT FALSE, 
+    FOREIGN KEY (menu_id) REFERENCES menus(menu_id) ON DELETE CASCADE
+);
+
+CREATE TABLE menu_option_choices (
+    choice_id INT AUTO_INCREMENT PRIMARY KEY,
+    option_id INT NOT NULL,
+    choice_name VARCHAR(255) NOT NULL,
+    additional_price DECIMAL(10, 2) DEFAULT 0.00, 
+    FOREIGN KEY (option_id) REFERENCES menu_options(option_id) ON DELETE CASCADE
 );

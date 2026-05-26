@@ -170,7 +170,7 @@ def add_to_cart():
 
         found = False
         for item in session['cart']:
-            if str(item['menu_id']) == str(menu_id):
+            if str(item['menu_id']) == str(menu_id) and item.get('food_name') == food_name:
                 item['quantity'] += quantity
                 found = True
                 break

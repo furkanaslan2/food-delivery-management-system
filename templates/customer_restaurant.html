@@ -274,9 +274,15 @@
                     {% for item in popular_items %}
                     
                     <div class="menu-item {% if restaurant.get('is_open') == False %}closed-menu-item{% endif %}">
-                        <div class="item-info">
-                            <h3>{{ item['food_name'] if item['food_name'] else 'Delicious Food' }}</h3>
-                            <p class="price">${{ item['price'] }}</p>
+                        <div style="display: flex; gap: 15px; align-items: center; flex: 1;">
+                            {% if item.get('image_url') %}
+                                <img src="{{ url_for('static', filename='images/menus/' ~ item.get('image_url')) }}" style="width: 85px; height: 85px; object-fit: cover; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);" alt="{{ item.get('food_name') }}">
+                            {% endif %}
+                            
+                            <div class="item-info">
+                                <h3>{{ item['food_name'] if item['food_name'] else 'Delicious Food' }}</h3>
+                                <p class="price">${{ item['price'] }}</p>
+                            </div>
                         </div>
                         
                         <form class="add-to-cart-form" action="{{ url_for('add_to_cart') }}" method="POST">
@@ -305,9 +311,15 @@
                 {% for item in items %}
                 
                 <div class="menu-item {% if restaurant.get('is_open') == False %}closed-menu-item{% endif %}">
-                    <div class="item-info">
-                        <h3>{{ item['food_name'] if item['food_name'] else 'Delicious Food' }}</h3>
-                        <p class="price">${{ item['price'] }}</p>
+                    <div style="display: flex; gap: 15px; align-items: center; flex: 1;">
+                            {% if item.get('image_url') %}
+                                <img src="{{ url_for('static', filename='images/menus/' ~ item.get('image_url')) }}" style="width: 85px; height: 85px; object-fit: cover; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);" alt="{{ item.get('food_name') }}">
+                            {% endif %}
+                            
+                            <div class="item-info">
+                                <h3>{{ item['food_name'] if item['food_name'] else 'Delicious Food' }}</h3>
+                                <p class="price">${{ item['price'] }}</p>
+                            </div>
                     </div>
                     
                     <form class="add-to-cart-form" action="{{ url_for('add_to_cart') }}" method="POST">
@@ -381,7 +393,31 @@
         </div>
     </div>
 
+    <div id="customerOptionsModal" class="modal-overlay" style="z-index: 10001; display: none;">
+        <div class="modal-content" style="max-height: 90vh; display: flex; flex-direction: column;">
+            <div class="modal-header">
+                <h3><span id="opt-food-name" style="color: #4f46e5;"></span> Seçenekleri</h3>
+                <button class="close-btn" type="button" onclick="closeCustomerOptionsModal()">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 0; flex: 1; overflow-y: auto;">
+                <form id="customer-options-form">
+                    <div id="opt-dynamic-content" style="padding: 20px;"></div>
+                </form>
+            </div>
+            <div style="padding: 15px 20px; border-top: 1px solid #e5e7eb; background: #f9fafb; display: flex; justify-content: space-between; align-items: center;">
+                <div style="font-size: 18px; font-weight: 700; color: #111827;">Total: $<span id="opt-total-price">0.00</span></div>
+                <button type="button" onclick="submitOptionsToCart()" style="background: #10b981; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 15px; box-shadow: 0 4px 6px rgba(16,185,129,0.2);" onmouseover="this.style.background='#059669'" onmouseout="this.style.background='#10b981'">
+                    🛒 Sepete Ekle
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        let currentBasePrice = 0;
+        let activeFormData = null;
+        let activeFormElement = null;
+
         document.addEventListener("DOMContentLoaded", function() {
             const addForms = document.querySelectorAll('.add-to-cart-form');
             
@@ -392,55 +428,135 @@
                     const btn = form.querySelector('.add-btn');
                     if(btn.disabled) return;
 
-                    const originalText = btn.innerHTML;
                     const formData = new FormData(form);
+                    const menuId = formData.get('menu_id');
+                    const basePrice = parseFloat(formData.get('price'));
+                    const foodName = formData.get('food_name');
                     
-                    fetch(form.action, {
-                        method: 'POST',
-                        body: formData,
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
-                    })
-                    .then(response => response.json())
+                    // 1. Ürünün ekstra seçenekleri var mı arka planda hızlıca sor
+                    fetch('/api/menu_options?menu_id=' + menuId)
+                    .then(res => res.json())
                     .then(data => {
-                        if (data.success) {
-                            btn.innerHTML = '✓ Eklendi';
-                            btn.style.backgroundColor = '#059669'; 
-                            btn.style.transform = 'scale(1.05)';
-                            btn.style.transition = 'all 0.2s';
-                            
-                            setTimeout(() => {
-                                btn.innerHTML = originalText;
-                                btn.style.backgroundColor = '';
-                                btn.style.transform = 'scale(1)';
-                            }, 1500);
-                            
-                            const cartBtn = document.querySelector('.cart-btn');
-                            let badge = document.querySelector('.cart-badge');
-                            
-                            if (!badge) {
-                                badge = document.createElement('span');
-                                badge.className = 'cart-badge';
-                                cartBtn.appendChild(badge);
-                            }
-                            
-                            badge.innerText = data.total_cart_qty;
-                            
-                            if (data.cart_cleared) {
-                                alert("Yeni bir restorandan ürün eklediğiniz için önceki restoranın sepeti temizlendi.");
-                            }
+                        if (data.success && data.options && data.options.length > 0) {
+                            // 📍 Seçenek varsa pencereyi aç!
+                            openCustomerOptionsModal(data.options, formData, basePrice, foodName, form);
                         } else {
-                            alert(data.message || 'Sepete eklenirken bir hata oluştu.');
-                            if(data.message.includes('login')) window.location.href = '/customer_login';
+                            // 📍 Seçenek yoksa müşteriyi hiç bekletmeden direkt sepete at
+                            executeCartAjax(formData, form);
                         }
                     })
-                    .catch(error => {
-                        console.error('AJAX Hatası:', error);
+                    .catch(err => {
+                        console.error('Opsiyon kontrol hatası:', err);
+                        executeCartAjax(formData, form); 
                     });
                 });
             });
         });
+
+        function openCustomerOptionsModal(options, formData, basePrice, foodName, formEl) {
+            activeFormData = formData;
+            activeFormElement = formEl;
+            currentBasePrice = basePrice;
+            
+            document.getElementById('opt-food-name').innerText = foodName;
+            
+            const container = document.getElementById('opt-dynamic-content');
+            container.innerHTML = '';
+            
+            options.forEach(opt => {
+                let html = `<div style="margin-bottom: 20px;">
+                    <h4 style="margin: 0 0 10px 0; font-size: 15px; color: #374151;">${opt.option_name} ${opt.is_required ? '<span style="color:#ef4444; font-size:12px; margin-left:5px;">(Zorunlu)</span>' : ''}</h4>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">`;
+                
+                const inputType = opt.is_multiple ? 'checkbox' : 'radio';
+                const reqAttr = opt.is_required && !opt.is_multiple ? 'required' : '';
+                
+                opt.choices.forEach(ch => {
+                    html += `
+                        <label style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; transition: 0.2s;" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='transparent'">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <input type="${inputType}" name="opt_${opt.option_id}" value="${ch.choice_name}" data-price="${ch.additional_price}" onchange="calculateModalPrice()" ${reqAttr} style="transform: scale(1.2); cursor: pointer;">
+                                <span style="font-size: 14px; font-weight: 500; color: #111827;">${ch.choice_name}</span>
+                            </div>
+                            ${ch.additional_price > 0 ? `<span style="color: #059669; font-weight: 600; font-size: 13px;">+$${ch.additional_price}</span>` : ''}
+                        </label>
+                    `;
+                });
+                html += `</div></div>`;
+                container.innerHTML += html;
+            });
+            
+            calculateModalPrice();
+            document.getElementById('customerOptionsModal').style.display = 'flex';
+        }
+
+        function calculateModalPrice() {
+            let totalExtra = 0;
+            const inputs = document.querySelectorAll('#customer-options-form input:checked');
+            inputs.forEach(input => {
+                totalExtra += parseFloat(input.getAttribute('data-price'));
+            });
+            
+            const qty = parseInt(activeFormData.get('quantity'));
+            const finalPrice = (currentBasePrice + totalExtra) * qty;
+            document.getElementById('opt-total-price').innerText = finalPrice.toFixed(2);
+            return currentBasePrice + totalExtra;
+        }
+
+        function submitOptionsToCart() {
+            const form = document.getElementById('customer-options-form');
+            if(!form.checkValidity()) { form.reportValidity(); return; } // Zorunlu alan kontrolü
+            
+            let selectedTexts = [];
+            let totalExtra = 0;
+            
+            document.querySelectorAll('#customer-options-form input:checked').forEach(input => {
+                selectedTexts.push(input.value);
+                totalExtra += parseFloat(input.getAttribute('data-price'));
+            });
+            
+            // Fiyatı ve ürün adını sepete yansıtılacak şekilde güncelliyoruz
+            if(selectedTexts.length > 0) {
+                const currentName = activeFormData.get('food_name');
+                activeFormData.set('food_name', currentName + ' (' + selectedTexts.join(', ') + ')');
+            }
+            activeFormData.set('price', currentBasePrice + totalExtra);
+            
+            executeCartAjax(activeFormData, activeFormElement);
+            closeCustomerOptionsModal();
+        }
+
+        function closeCustomerOptionsModal() { document.getElementById('customerOptionsModal').style.display = 'none'; }
+
+        function executeCartAjax(formData, formElement) {
+            const btn = formElement.querySelector('.add-btn');
+            const originalText = btn.innerHTML;
+            
+            fetch(formElement.action, {
+                method: 'POST', body: formData, headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    btn.innerHTML = '✓ Eklendi';
+                    btn.style.backgroundColor = '#059669'; 
+                    btn.style.transform = 'scale(1.05)';
+                    
+                    setTimeout(() => { btn.innerHTML = originalText; btn.style.backgroundColor = ''; btn.style.transform = 'scale(1)'; }, 1500);
+                    
+                    const cartBtn = document.querySelector('.cart-btn');
+                    let badge = document.querySelector('.cart-badge');
+                    if (!badge) { badge = document.createElement('span'); badge.className = 'cart-badge'; cartBtn.appendChild(badge); }
+                    badge.innerText = data.total_cart_qty;
+                    
+                    if (data.cart_cleared) alert("Yeni bir restorandan ürün eklediğiniz için önceki restoranın sepeti temizlendi.");
+                } else {
+                    alert(data.message || 'Hata oluştu.');
+                    if(data.message.includes('login')) window.location.href = '/customer_login';
+                }
+            })
+            .catch(error => console.error('AJAX Hatası:', error));
+        }
     </script>
 
     <script>
