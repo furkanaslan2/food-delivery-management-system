@@ -120,9 +120,22 @@
                     </select>
                 </div>          
                 
-                <div class="summary-row" style="margin-top: 25px;">
+                <input type="hidden" name="applied_promo_code" id="hidden_promo_code" value="">
+                <input type="hidden" id="original_total_amount" value="{{ total_amount }}">
+                
+                <div style="display: flex; gap: 10px; margin-top: 20px; padding-bottom: 20px; border-bottom: 1px solid #e5e7eb;">
+                    <input type="text" id="promo_input" placeholder="Promosyon Kodu Girin" style="flex: 1; padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 8px; font-family: inherit; font-size: 14px; text-transform: uppercase;">
+                    <button type="button" onclick="applyPromoCode()" style="background: #111827; color: white; border: none; padding: 0 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s;" id="promo_btn">Uygula</button>
+                </div>
+
+                <div class="summary-row" style="margin-top: 20px;">
                     <span>Subtotal</span>
-                    <span>${{ "%.2f"|format(total_amount) }}</span>
+                    <span>$<span id="ui_subtotal">{{ "%.2f"|format(total_amount) }}</span></span>
+                </div>
+                
+                <div class="summary-row" id="ui_discount_row" style="display: none; color: #10b981; font-weight: 600;">
+                    <span>İndirim (Kupon)</span>
+                    <span>-$<span id="ui_discount_amount">0.00</span></span>
                 </div>
                 
                 {% set missing_amount = min_order_amount - total_amount %}
@@ -161,6 +174,82 @@
             </form>
         </div>
     </div>
+
+    <script>
+
+        function applyPromoCode() {
+            const code = document.getElementById('promo_input').value;
+            if (!code) return alert("Lütfen bir promosyon kodu girin.");
+
+            const btn = document.getElementById('promo_btn');
+            btn.innerText = "Bekleyin...";
+            btn.disabled = true;
+
+            fetch('/api/apply_promo', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ promo_code: code })
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.disabled = false;
+                if (data.success) {
+                    // 📍 YENİ: Başarılı olunca butonu Kırmızı "Kaldır" butonuna çevir
+                    btn.innerText = "✖ Kaldır";
+                    btn.style.background = "#ef4444"; 
+                    btn.onclick = removePromoCode; // Tıklama görevini değiştir
+                    
+                    // Arayüzdeki fiyatları güncelle
+                    document.getElementById('ui_discount_row').style.display = "flex";
+                    document.getElementById('ui_discount_amount').innerText = data.discount_amount.toFixed(2);
+                    
+                    const origAmount = parseFloat(document.getElementById('original_total_amount').value);
+                    const totalElements = document.querySelectorAll('.summary-total span:last-child');
+                    totalElements.forEach(el => {
+                        el.innerText = '$' + origAmount.toFixed(2);
+                    });
+
+                    // Başarılı kodu satın alma işlemine dahil etmek için gizli inputa yaz
+                    document.getElementById('hidden_promo_code').value = code;
+                    document.getElementById('promo_input').disabled = true;
+                } else {
+                    btn.innerText = "Uygula";
+                    alert(data.message);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                btn.disabled = false;
+                btn.innerText = "Uygula";
+            });
+        }
+
+        // 📍 YENİ EKLENEN: KUPONU İPTAL ETME FONKSİYONU
+        function removePromoCode() {
+            // Gizli inputu temizle (Backend'e gitmesini engelle)
+            document.getElementById('hidden_promo_code').value = "";
+            
+            // Görünür inputu temizle ve kilidini aç
+            const input = document.getElementById('promo_input');
+            input.value = "";
+            input.disabled = false;
+
+            // Butonu eski "Uygula" haline geri getir
+            const btn = document.getElementById('promo_btn');
+            btn.innerText = "Uygula";
+            btn.style.background = "#111827";
+            btn.onclick = applyPromoCode; // Görevi tekrar uygula yap
+
+            // İndirim satırını gizle
+            document.getElementById('ui_discount_row').style.display = "none";
+            
+            // Fiyatı eski orijinal haline döndür
+            const totalElements = document.querySelectorAll('.summary-total span:last-child');
+            totalElements.forEach(el => {
+                el.innerText = '$' + originalTotalAmount.toFixed(2);
+            });
+        }
+    </script>
 
 </body>
 </html>

@@ -460,3 +460,62 @@ def upload_menu_image():
                 connection.close()
 
     return jsonify({'success': False, 'message': 'Hata oluştu'}), 400
+
+def manage_promos():
+    if 'logged_in' not in session or session.get('role') not in ['user', 'admin']:
+        return jsonify({'success': False, 'message': 'Yetkisiz erişim'}), 401
+
+    restaurant_id = session.get('restaurant_id')
+    if not restaurant_id:
+         return jsonify({'success': False, 'message': 'Restoran ID bulunamadı'}), 400
+
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'success': False, 'message': 'Veritabanı hatası'}), 500
+
+    try:
+        cursor = connection.cursor(dictionary=True)
+
+        if request.method == 'GET':
+            cursor.execute("SELECT * FROM promo_codes WHERE restaurant_id = %s ORDER BY created_at DESC", (restaurant_id,))
+            promos = cursor.fetchall()
+            return jsonify({'success': True, 'promos': promos})
+
+        elif request.method == 'POST':
+            data = request.get_json()
+            action = data.get('action')
+
+            if action == 'add':
+                code_name = data.get('code_name').upper()
+                discount_type = data.get('discount_type')
+                discount_value = data.get('discount_value')
+                min_cart_amount = data.get('min_cart_amount', 0)
+
+                # Kod daha önce eklenmiş mi kontrol et
+                cursor.execute("SELECT promo_id FROM promo_codes WHERE restaurant_id = %s AND code_name = %s", (restaurant_id, code_name))
+                if cursor.fetchone():
+                    return jsonify({'success': False, 'message': 'Bu kod zaten mevcut!'})
+
+                cursor.execute("""
+                    INSERT INTO promo_codes (restaurant_id, code_name, discount_type, discount_value, min_cart_amount)
+                    VALUES (%s, %s, %s, %s, %s)
+                """, (restaurant_id, code_name, discount_type, discount_value, min_cart_amount))
+
+            elif action == 'delete':
+                promo_id = data.get('promo_id')
+                cursor.execute("DELETE FROM promo_codes WHERE promo_id = %s AND restaurant_id = %s", (promo_id, restaurant_id))
+
+            elif action == 'toggle':
+                promo_id = data.get('promo_id')
+                cursor.execute("UPDATE promo_codes SET is_active = NOT is_active WHERE promo_id = %s AND restaurant_id = %s", (promo_id, restaurant_id))
+
+            connection.commit()
+            return jsonify({'success': True})
+
+    except Exception as e:
+        connection.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()

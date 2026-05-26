@@ -96,6 +96,7 @@ CREATE TABLE orders (
     customer_address TEXT,
     order_note TEXT,
     payment_method VARCHAR(50),
+    applied_promo_code VARCHAR(50) DEFAULT NULL,
     
     PRIMARY KEY (order_id),
     FOREIGN KEY (restaurant_id) REFERENCES restaurants(restaurant_id)
@@ -205,4 +206,16 @@ CREATE TABLE menu_option_choices (
     choice_name VARCHAR(255) NOT NULL,
     additional_price DECIMAL(10, 2) DEFAULT 0.00, 
     FOREIGN KEY (option_id) REFERENCES menu_options(option_id) ON DELETE CASCADE
+);
+
+CREATE TABLE promo_codes (
+    promo_id INT AUTO_INCREMENT PRIMARY KEY,
+    restaurant_id INT NOT NULL,
+    code_name VARCHAR(50) NOT NULL, 
+    discount_type ENUM('percentage', 'fixed') NOT NULL, 
+    discount_value DECIMAL(10, 2) NOT NULL, 
+    min_cart_amount DECIMAL(10, 2) DEFAULT 0.00, 
+    is_active BOOLEAN DEFAULT TRUE, 
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (restaurant_id) REFERENCES restaurants(restaurant_id) ON DELETE CASCADE
 );

@@ -75,6 +75,14 @@ def view_restaurant(restaurant_id):
             popular_items = cursor.fetchall()
 
             cursor.execute("""
+                SELECT code_name, discount_type, discount_value, min_cart_amount 
+                FROM promo_codes 
+                WHERE restaurant_id = %s AND is_active = 1 
+                ORDER BY created_at DESC
+            """, (restaurant_id,))
+            active_promos = cursor.fetchall()
+
+            cursor.execute("""
                 SELECT r.rating, r.comment, r.created_at, c.name AS customer_name 
                 FROM reviews r
                 JOIN customers c ON r.customer_id = c.customer_id
@@ -110,7 +118,8 @@ def view_restaurant(restaurant_id):
                            reviews=reviews,
                            grouped_menus=grouped_menus,
                            popular_items=popular_items,
-                           is_favorited=is_favorited)
+                           is_favorited=is_favorited,
+                           active_promos=active_promos)
 
 
 # 2. SEPETE ÜRÜN EKLEME (SESSION CART)
@@ -286,6 +295,7 @@ def checkout():
     if request.method == 'POST':
         order_note = request.form.get('order_note', '') 
         payment_method = request.form.get('payment_method')
+        applied_promo_code = request.form.get('applied_promo_code') # 📍 YENİ EKLENEN: Formdan kupon kodunu al
         customer_id = session.get('customer_id')
 
         restaurant_id = cart[0]['restaurant_id']
@@ -297,7 +307,20 @@ def checkout():
             try:
                 cursor = connection.cursor(dictionary=True)
                 
-                # YENİ: BACKEND GÜVENLİK DUVARI (Eğer limitin altındaysa form hacklense bile siparişi engelle)
+                # 📍 YENİ: KUPON KODU HESAPLAMASI
+                if applied_promo_code:
+                    cursor.execute("SELECT * FROM promo_codes WHERE code_name = %s AND restaurant_id = %s AND is_active = 1", (applied_promo_code, restaurant_id))
+                    promo = cursor.fetchone()
+                    
+                    if promo and total_amount >= float(promo['min_cart_amount']):
+                        discount = float(promo['discount_value']) if promo['discount_type'] == 'fixed' else (total_amount * float(promo['discount_value'])) / 100
+                        if discount > total_amount: discount = total_amount
+                        total_amount -= discount
+                        
+                        # Restoran görsün diye not kısmına otomatik bilgi iliştiriyoruz
+                        order_note = f"[KUPON KULLANILDI: {applied_promo_code} | İndirim: ${discount:.2f}] " + order_note
+                
+                # ESKİ KODUN DEVAMI: Minimum tutar kontrolü
                 cursor.execute("SELECT min_order_amount FROM restaurants WHERE restaurant_id = %s", (restaurant_id,))
                 r_data = cursor.fetchone()
                 min_order_amount = float(r_data['min_order_amount']) if r_data and r_data.get('min_order_amount') else 0.0
@@ -333,16 +356,17 @@ def checkout():
                     INSERT INTO orders (
                         restaurant_id, order_status, order_date, sales_qty, 
                         sales_amount, order_type, customer_id, customer_name, customer_phone, customer_address,
-                        order_note, payment_method
+                        order_note, payment_method, applied_promo_code
                     )
-                    VALUES (%s, 'pending', NOW(), %s, %s, 'Delivery', %s, %s, %s, %s, %s, %s)
+                    VALUES (%s, 'pending', NOW(), %s, %s, 'Delivery', %s, %s, %s, %s, %s, %s, %s)
                 """
                 cursor.execute(insert_order_query, (
-                    restaurant_id, total_qty, total_amount, customer_id, customer_name, phone, address, order_note, payment_method
+                    restaurant_id, total_qty, total_amount, customer_id, customer_name, phone, address, order_note, payment_method, applied_promo_code
                 ))
                 
                 new_order_id = cursor.lastrowid 
 
+                # Sepetteki ürünleri order_items tablosuna ekle
                 for item in cart:
                     cursor.execute("SELECT food_id FROM menus WHERE menu_id = %s", (item['menu_id'],))
                     menu_data = cursor.fetchone()
@@ -824,3 +848,64 @@ def cancel_order():
                 connection.close()
 
     return jsonify({'success': False, 'message': 'Veritabanı bağlantı hatası.'}), 500
+
+def apply_promo():
+    if 'logged_in' not in session or session.get('role') != 'customer':
+        return jsonify({'success': False, 'message': 'Lütfen giriş yapın.'}), 401
+
+    data = request.get_json()
+    code_name = data.get('promo_code', '').upper()
+    customer_id = session.get('customer_id') # 📍 Müşterinin kimliğini alıyoruz
+    
+    cart = session.get('cart', [])
+    if not cart:
+        return jsonify({'success': False, 'message': 'Sepetiniz boş.'}), 400
+        
+    restaurant_id = cart[0]['restaurant_id']
+    total_amount = sum(item['price'] * item['quantity'] for item in cart)
+    
+    connection = get_db_connection()
+    if connection:
+        try:
+            cursor = connection.cursor(dictionary=True)
+            
+            # 📍 YENİ: Müşteri bu kodu daha önce başarıyla kullanmış mı? (İptal edilen siparişler sayılmaz)
+            cursor.execute("SELECT order_id FROM orders WHERE customer_id = %s AND applied_promo_code = %s AND order_status != 'canceled'", (customer_id, code_name))
+            if cursor.fetchone():
+                return jsonify({'success': False, 'message': 'Bu promosyon kodunu daha önce kullandınız!'})
+
+            # Kuponun geçerliliğini kontrol et
+            cursor.execute("SELECT * FROM promo_codes WHERE code_name = %s AND restaurant_id = %s", (code_name, restaurant_id))
+            promo = cursor.fetchone()
+            
+            if not promo:
+                return jsonify({'success': False, 'message': 'Geçersiz veya bu restorana ait olmayan kupon.'})
+            
+            if not promo['is_active']:
+                return jsonify({'success': False, 'message': 'Bu kuponun süresi dolmuş veya artık pasif.'})
+                
+            if total_amount < float(promo['min_cart_amount']):
+                return jsonify({'success': False, 'message': f"Bu kupon için sepet tutarınız en az ${promo['min_cart_amount']} olmalıdır."})
+                
+            discount_amount = 0
+            if promo['discount_type'] == 'fixed':
+                discount_amount = float(promo['discount_value'])
+            elif promo['discount_type'] == 'percentage':
+                discount_amount = (total_amount * float(promo['discount_value'])) / 100
+                
+            if discount_amount > total_amount:
+                discount_amount = total_amount
+                
+            new_total = total_amount - discount_amount
+            
+            return jsonify({
+                'success': True, 
+                'discount_amount': discount_amount,
+                'new_total': new_total,
+                'message': 'Kupon başarıyla uygulandı!'
+            })
+        finally:
+            cursor.close()
+            connection.close()
+            
+    return jsonify({'success': False, 'message': 'Veritabanı hatası.'}), 500

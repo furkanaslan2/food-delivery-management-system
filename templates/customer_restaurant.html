@@ -260,6 +260,34 @@
           {% endif %}
         {% endwith %}
 
+        {% if active_promos %}
+        <div style="margin-bottom: 25px;">
+            <h3 style="font-size: 16px; margin: 0 0 10px 0; color: #374151;">🎟️ Fırsatları Kaçırma</h3>
+            <div style="display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: none;">
+                {% for promo in active_promos %}
+                <div onclick="navigator.clipboard.writeText('{{ promo.code_name }}'); alert('Kupon kodu kopyalandı: {{ promo.code_name }}');" 
+                     style="background: linear-gradient(135deg, #ec4899, #f43f5e); color: white; padding: 12px 16px; border-radius: 8px; min-width: max-content; box-shadow: 0 4px 6px rgba(236,72,153,0.2); border: 2px dashed rgba(255,255,255,0.4); cursor: pointer; transition: transform 0.2s;"
+                     onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'"
+                     title="Kodu kopyalamak için tıkla!">
+                    <div style="font-weight: 800; font-size: 16px; letter-spacing: 1px; text-shadow: 0 1px 2px rgba(0,0,0,0.2);">
+                        {{ promo.code_name }}
+                    </div>
+                    <div style="font-size: 13px; font-weight: 500; margin-top: 4px; opacity: 0.95;">
+                        {% if promo.discount_type == 'percentage' %}
+                            %{{ promo.discount_value|int }} İndirim
+                        {% else %}
+                            ${{ promo.discount_value|int }} İndirim
+                        {% endif %}
+                    </div>
+                    <div style="font-size: 11px; opacity: 0.8; margin-top: 2px;">
+                        {% if promo.min_cart_amount > 0 %}Min. Sepet: ${{ promo.min_cart_amount }}{% else %}Alt limitsiz{% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
         <div class="menu-tabs-container">
             <button class="tab-btn active" onclick="openMenuTab(event, 'tab-popular')">🔥 Çok Satanlar</button>
             

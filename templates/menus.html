@@ -13,7 +13,12 @@
             <a href="/"><img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo"></a>
             <h1><a href="/">Food Delivery Management System</a> / <span style="margin-left: 10px; color: white">Menu</span></h1>
         </div>
-        <ul class="navbar">
+        <ul class="navbar" style="display: flex; align-items: center; gap: 15px;">
+            <li>
+                <button onclick="openPromoModal()" style="background: #ec4899; color: white; border: none; padding: 8px 16px; border-radius: 20px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 14px; box-shadow: 0 2px 4px rgba(236,72,153,0.3); transition: 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                    🎟️ Kuponlar
+                </button>
+            </li>
             <li><a href="/logout">Logout</a></li>
         </ul>
     </nav>
@@ -331,6 +336,113 @@
                 document.getElementById('imageUploadInput').value = ''; 
             })
             .catch(err => console.error('Görsel yükleme hatası:', err));
+        }
+    </script>
+
+    <div id="promoModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10000; justify-content:center; align-items:center; backdrop-filter:blur(4px);">
+        <div style="background:white; width:90%; max-width:600px; max-height:85vh; border-radius:12px; padding:25px; box-shadow:0 10px 25px rgba(0,0,0,0.2); display:flex; flex-direction:column; font-family: 'Inter', sans-serif;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #e5e7eb; padding-bottom:15px; margin-bottom:15px;">
+                <h3 style="margin:0; font-size:18px; color:#111827; font-weight: 700;">🎟️ Promosyon Kodları</h3>
+                <button onclick="closePromoModal()" style="background: #10b981; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; font-family: inherit; font-size: 13px;">✅ Kapat</button>
+            </div>
+            
+            <div style="background:#f9fafb; padding:15px; border-radius:8px; border:1px solid #e5e7eb; margin-bottom:20px;">
+                <h4 style="margin:0 0 10px 0; color:#374151;">+ Yeni Kupon Oluştur</h4>
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <input type="text" id="new-promo-code" placeholder="Kod (Örn: İLK50)" style="flex:1; min-width:120px; padding:8px; border:1px solid #d1d5db; border-radius:6px; text-transform: uppercase;">
+                    <select id="new-promo-type" style="padding:8px; border:1px solid #d1d5db; border-radius:6px;">
+                        <option value="fixed">Sabit Tutar (TL/$)</option>
+                        <option value="percentage">Yüzde (%)</option>
+                    </select>
+                    <input type="number" id="new-promo-val" placeholder="İndirim" style="width:80px; padding:8px; border:1px solid #d1d5db; border-radius:6px;">
+                    <input type="number" id="new-promo-min" placeholder="Min. Sepet" style="width:100px; padding:8px; border:1px solid #d1d5db; border-radius:6px;">
+                    <button onclick="addPromoCode()" style="background:#4f46e5; color:white; border:none; padding:8px 15px; border-radius:6px; cursor:pointer; font-weight:bold;">Oluştur</button>
+                </div>
+            </div>
+
+            <div id="promo-list-container" style="overflow-y:auto; flex:1;">
+                </div>
+        </div>
+    </div>
+
+    <script>
+        function openPromoModal() {
+            document.getElementById('promoModal').style.display = 'flex';
+            loadPromos();
+        }
+
+        function closePromoModal() {
+            document.getElementById('promoModal').style.display = 'none';
+        }
+
+        function loadPromos() {
+            fetch('/api/manage_promos')
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) renderPromos(data.promos);
+            });
+        }
+
+        function renderPromos(promos) {
+            const container = document.getElementById('promo-list-container');
+            container.innerHTML = '';
+            
+            if(promos.length === 0) {
+                container.innerHTML = '<div style="text-align:center; color:#6b7280; padding:20px;">Henüz aktif bir kuponunuz yok.</div>';
+                return;
+            }
+
+            promos.forEach(promo => {
+                const discountText = promo.discount_type === 'percentage' ? `%${promo.discount_value}` : `$${promo.discount_value}`;
+                const statusColor = promo.is_active ? '#10b981' : '#9ca3af';
+                
+                container.innerHTML += `
+                    <div style="display:flex; justify-content:space-between; align-items:center; border:1px solid #e5e7eb; padding:12px; margin-bottom:10px; border-radius:8px; background:white;">
+                        <div>
+                            <strong style="color:#111827; font-size:16px;">${promo.code_name}</strong>
+                            <span style="background:#fef08a; color:#854d0e; padding:2px 6px; border-radius:4px; font-size:12px; margin-left:8px; font-weight:bold;">${discountText} İndirim</span>
+                            <div style="color:#6b7280; font-size:12px; margin-top:4px;">Min Sepet: $${promo.min_cart_amount}</div>
+                        </div>
+                        <div style="display:flex; gap:8px;">
+                            <button onclick="togglePromo(${promo.promo_id})" style="background:${statusColor}; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-size:12px;">${promo.is_active ? 'Kapat' : 'Aç'}</button>
+                            <button onclick="deletePromo(${promo.promo_id})" style="background:#fee2e2; color:#ef4444; border:1px solid #fecaca; padding:6px 12px; border-radius:4px; cursor:pointer; font-size:12px;">Sil</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function addPromoCode() {
+            const code = document.getElementById('new-promo-code').value;
+            const type = document.getElementById('new-promo-type').value;
+            const val = document.getElementById('new-promo-val').value;
+            const min = document.getElementById('new-promo-min').value;
+
+            if(!code || !val) return alert("Kod ve İndirim tutarı boş olamaz!");
+
+            fetch('/api/manage_promos', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({action: 'add', code_name: code, discount_type: type, discount_value: val, min_cart_amount: min || 0})
+            }).then(res => res.json()).then(data => {
+                if(data.success) {
+                    document.getElementById('new-promo-code').value = '';
+                    document.getElementById('new-promo-val').value = '';
+                    document.getElementById('new-promo-min').value = '';
+                    loadPromos();
+                } else alert(data.message);
+            });
+        }
+
+        function deletePromo(id) {
+            if(!confirm("Kuponu silmek istediğinize emin misiniz?")) return;
+            fetch('/api/manage_promos', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({action: 'delete', promo_id: id}) })
+            .then(res => res.json()).then(data => { if(data.success) loadPromos(); });
+        }
+
+        function togglePromo(id) {
+            fetch('/api/manage_promos', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({action: 'toggle', promo_id: id}) })
+            .then(res => res.json()).then(data => { if(data.success) loadPromos(); });
         }
     </script>
 

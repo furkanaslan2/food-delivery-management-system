@@ -121,7 +121,8 @@
 
         <script>
             function checkOrderStatus() {
-                fetch('/api/active_order_status')
+                // Sonuna getTime() ekleyerek tarayıcının tembellik yapıp eski veriyi (cache) getirmesini engelliyoruz
+                fetch('/api/active_order_status?t=' + new Date().getTime())
                     .then(response => response.json())
                     .then(data => {
                         const banner = document.getElementById('live-order-banner');
@@ -136,7 +137,14 @@
                         const step3 = document.getElementById('step-3');
                         
                         if (data.has_active_order) {
-                            banner.style.display = 'block'; // 📍 İşte çubuğu görünür yapan o sihirli kod!
+                            
+                            // 📍 YENİ EKLENEN KURAL: Sipariş teslim edildiyse veya iptal edildiyse, takip çubuğunu artık gizle ve işlemi kes.
+                            if (data.order_status === 'delivered' || data.order_status === 'canceled') {
+                                banner.style.display = 'none';
+                                return; 
+                            }
+
+                            banner.style.display = 'block'; 
                             
                             if (data.order_status === 'pending') {
                                 title.innerText = 'Restoran Onayı Bekleniyor';
@@ -149,8 +157,10 @@
                                 step2.style.background = '#e5e7eb';
                                 step3.style.background = '#e5e7eb';
 
-                                cancelBtn.style.display = 'block'; 
-                                cancelBtn.setAttribute('data-id', data.order_id); 
+                                if(cancelBtn) { 
+                                    cancelBtn.style.display = 'block'; 
+                                    cancelBtn.setAttribute('data-id', data.order_id); 
+                                }
                             } else if (data.order_status === 'preparing') {
                                 title.innerText = 'Siparişiniz Hazırlanıyor';
                                 desc.innerText = 'Restoran siparişinizi onayladı ve şu an mutfakta hazırlıyor.';
@@ -162,7 +172,7 @@
                                 step2.style.background = '#3b82f6';
                                 step3.style.background = '#e5e7eb';
 
-                                cancelBtn.style.display = 'none';
+                                if(cancelBtn) cancelBtn.style.display = 'none';
                             } else if (data.order_status === 'on_the_way') {
                                 title.innerText = 'Siparişiniz Yolda!';
                                 desc.innerText = 'Kuryemiz siparişinizi teslim aldı, adresinize doğru yola çıktı.';
@@ -174,7 +184,7 @@
                                 step2.style.background = '#10b981';
                                 step3.style.background = '#10b981';
 
-                                cancelBtn.style.display = 'none';
+                                if(cancelBtn) cancelBtn.style.display = 'none';
                             }
                         } else {
                             banner.style.display = 'none';

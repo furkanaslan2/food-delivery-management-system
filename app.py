@@ -7,11 +7,11 @@ from auth import login, logout, register, customer_login, customer_register
 from users import users, user_action
 from restaurants import restaurants, restaurant_action, restaurant_analytics, restaurant_profile
 from couriers import couriers, courier_action, api_check_courier_orders
-from menus import menus, menus_action, manage_menu_options, upload_menu_image
+from menus import menus, menus_action, manage_menu_options, upload_menu_image, manage_promos
 from orders import orders, order_action, get_order_details, get_restaurant_details, api_check_new_orders
 from foods import foods, food_action
 from waiters import waiter_dashboard, waiter_create_order, waiters, waiter_action, waiter_close_bill, waiter_receipt
-from customer import view_restaurant, add_to_cart, view_cart, checkout, customer_orders, set_location, remove_from_cart, increase_cart_item, decrease_cart_item, submit_review, get_active_order_status, toggle_favorite, view_favorites, get_addresses, add_address, select_address, update_address, cancel_order
+from customer import view_restaurant, add_to_cart, view_cart, checkout, customer_orders, set_location, remove_from_cart, increase_cart_item, decrease_cart_item, submit_review, get_active_order_status, toggle_favorite, view_favorites, get_addresses, add_address, select_address, update_address, cancel_order, apply_promo
 from courier_panel import courier_dashboard, update_delivery_status, courier_login, courier_logout
 from payment_handler import checkout_payment, payment_callback
 from profile_settings import view_profile, update_profile
@@ -81,6 +81,8 @@ app.add_url_rule('/api/update_address', endpoint='api_update_address', view_func
 app.add_url_rule('/api/cancel_order', endpoint='cancel_order', view_func=cancel_order, methods=['POST'])
 app.add_url_rule('/api/menu_options', endpoint='manage_menu_options', view_func=manage_menu_options, methods=['GET', 'POST'])
 app.add_url_rule('/api/upload_menu_image', endpoint='upload_menu_image', view_func=upload_menu_image, methods=['POST'])
+app.add_url_rule('/api/manage_promos', endpoint='manage_promos', view_func=manage_promos, methods=['GET', 'POST'])
+app.add_url_rule('/api/apply_promo', endpoint='apply_promo', view_func=apply_promo, methods=['POST'])
 
 if __name__ == '__main__':
     app.run(debug=True)
