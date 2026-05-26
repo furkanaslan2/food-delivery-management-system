@@ -25,7 +25,7 @@ CREATE TABLE restaurants (
     rating DECIMAL(2,1),
     rating_count ENUM('Too Few Ratings','20+ ratings','50+ ratings','100+ ratings','500+ ratings','1K+ ratings') NOT NULL,
     average_cost INT NOT NULL CHECK(average_cost > 0),
-    cuisine VARCHAR(100) NOT NULL,
+    cuisine ENUM('Hamburger', 'Döner', 'Pizza', 'Pide & Lahmacun', 'Çiğ Köfte', 'Tatlı', 'Sokak Lezzetleri', 'Köfte', 'Tavuk', 'Salata & Sağlık', 'Mantı & Makarna', 'Kebap', 'Tantuni', 'Ev Yemekleri', 'Tost & Sandviç', 'Kahve & İçecek', 'Pastane & Fırın', 'Çorba', 'Dünya Mutfağı & Cafe', 'Uzak Doğu', 'Balık & Deniz Ürünleri', 'Meze', 'Dondurma', 'Steak', 'Kahvaltı', 'Börek') NOT NULL,
     restaurant_address TEXT NOT NULL,
     latitude DECIMAL(10, 8) NULL,   
     longitude DECIMAL(11, 8) NULL,
@@ -126,13 +126,11 @@ CREATE TABLE customers (
     customer_id INT AUTO_INCREMENT,
     name VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL, -- Şifreleri yine hash'leyerek tutacağız
+    password VARCHAR(255) NOT NULL, 
     phone VARCHAR(20) NULL,
-    city VARCHAR(50) NULL,      -- İlk aşamada hızlı şehir filtrelemesi için
-    address TEXT NULL,          -- Kuryenin paketi götüreceği açık adres
-    latitude DECIMAL(10, 8) NULL,   -- Gelişmiş mesafe hesabı için Enlem (Örn: 41.0082)
-    longitude DECIMAL(11, 8) NULL,  -- Gelişmiş mesafe hesabı için Boylam (Örn: 28.9784)
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Hesap açılış tarihi
+    latitude DECIMAL(10, 8) NULL,  
+    longitude DECIMAL(11, 8) NULL,  
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
     PRIMARY KEY (customer_id)
 );
 

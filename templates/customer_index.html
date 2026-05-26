@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Order Food Online</title>
+    <title>Online Yemek Siparişi</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { margin: 0; font-family: 'Inter', sans-serif; background-color: #f8f9fa; color: #111827; }
@@ -43,6 +43,33 @@
             opacity: 0.65;
             filter: grayscale(80%);
         }
+        /* 📍 GÜNCELLENEN: KATEGORİ ETİKETLERİ (ÇOKLU SATIR TASARIMI) */
+        .category-filters {
+            display: flex;
+            flex-wrap: wrap; /* 💥 Sihirli Dokunuş: Ekrana sığmayan butonları otomatik alt satıra atar */
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .cat-btn {
+            background: #f3f4f6;
+            color: #374151;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            white-space: nowrap; /* Metnin kendi içinde alt satıra inmesini engeller */
+            transition: all 0.2s;
+        }
+        .cat-btn:hover {
+            background: #e5e7eb;
+        }
+        .cat-btn.active {
+            background: #111827 !important;
+            color: white !important;
+        }
     </style>
 </head>
 <body>
@@ -58,7 +85,7 @@
             {% endif %}
 
             <a href="{{ url_for('view_cart') }}" class="cart-btn cart-wrapper" style="text-decoration: none;">
-                🛒 Cart
+                🛒 Sepet
                 {% set cart_qty = namespace(total=0) %}
                 {% for item in session.get('cart', []) %}
                     {% set cart_qty.total = cart_qty.total + item['quantity']|int %}
@@ -82,8 +109,8 @@
     </nav>
 
     <div class="hero-section">
-        <h1>What are you craving today?</h1>
-        <p>Discover the best food & drinks in your area.</p>
+        <h1>Bugün canınız ne çekiyor?</h1>
+        <p>Çevrenizdeki en iyi restoranları ve yemekleri keşfedin.</p>
     </div>
 
     <div class="container">
@@ -196,16 +223,36 @@
             document.addEventListener('DOMContentLoaded', () => { checkOrderStatus(); setInterval(checkOrderStatus, 5000); });
         </script>
 
-        <h2 class="section-title">Popular Restaurants Near You</h2>
+        <h2 class="section-title">Yakınınızdaki Popüler Restoranlar</h2>
 
-        <div class="category-filters" style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 15px; margin-bottom: 20px; scrollbar-width: none;">
-            <button class="cat-btn active" data-filter="all" style="background: #111827; color: white; border: none; padding: 8px 18px; border-radius: 20px; font-weight: 600; font-size: 14px; cursor: pointer; white-space: nowrap; transition: 0.2s;">🍽️ Tümü</button>
-            <button class="cat-btn" data-filter="Burger" style="background: #f3f4f6; color: #374151; border: none; padding: 8px 18px; border-radius: 20px; font-weight: 600; font-size: 14px; cursor: pointer; white-space: nowrap; transition: 0.2s;">🍔 Burger</button>
-            <button class="cat-btn" data-filter="Pizza" style="background: #f3f4f6; color: #374151; border: none; padding: 8px 18px; border-radius: 20px; font-weight: 600; font-size: 14px; cursor: pointer; white-space: nowrap; transition: 0.2s;">🍕 Pizza</button>
-            <button class="cat-btn" data-filter="Kebab" style="background: #f3f4f6; color: #374151; border: none; padding: 8px 18px; border-radius: 20px; font-weight: 600; font-size: 14px; cursor: pointer; white-space: nowrap; transition: 0.2s;">🥩 Kebap & Et</button>
-            <button class="cat-btn" data-filter="Dessert" style="background: #f3f4f6; color: #374151; border: none; padding: 8px 18px; border-radius: 20px; font-weight: 600; font-size: 14px; cursor: pointer; white-space: nowrap; transition: 0.2s;">🍰 Tatlı</button>
-            <button class="cat-btn" data-filter="Vegan" style="background: #f3f4f6; color: #374151; border: none; padding: 8px 18px; border-radius: 20px; font-weight: 600; font-size: 14px; cursor: pointer; white-space: nowrap; transition: 0.2s;">🥗 Sağlıklı/Vegan</button>
-            <button class="cat-btn" data-filter="Fast Food" style="background: #f3f4f6; color: #374151; border: none; padding: 8px 18px; border-radius: 20px; font-weight: 600; font-size: 14px; cursor: pointer; white-space: nowrap; transition: 0.2s;">🍟 Fast Food</button>
+        <div class="category-filters">
+            <button class="cat-btn active" data-filter="all">🍽️ Tümü</button>
+            <button class="cat-btn" data-filter="hamburger">🍔 Hamburger</button>
+            <button class="cat-btn" data-filter="döner">🥙 Döner</button>
+            <button class="cat-btn" data-filter="pizza">🍕 Pizza</button>
+            <button class="cat-btn" data-filter="kebap">🥩 Kebap</button>
+            <button class="cat-btn" data-filter="pide & lahmacun">🛶 Pide & Lahmacun</button>
+            <button class="cat-btn" data-filter="çiğ köfte">🧆 Çiğ Köfte</button>
+            <button class="cat-btn" data-filter="köfte">🍘 Köfte</button>
+            <button class="cat-btn" data-filter="tavuk">🍗 Tavuk</button>
+            <button class="cat-btn" data-filter="tatlı">🍰 Tatlı</button>
+            <button class="cat-btn" data-filter="sokak lezzetleri">🌭 Sokak Lezzetleri</button>
+            <button class="cat-btn" data-filter="salata & sağlık">🥗 Salata & Sağlık</button>
+            <button class="cat-btn" data-filter="mantı & makarna">🍝 Mantı & Makarna</button>
+            <button class="cat-btn" data-filter="tantuni">🌯 Tantuni</button>
+            <button class="cat-btn" data-filter="ev yemekleri">🍲 Ev Yemekleri</button>
+            <button class="cat-btn" data-filter="tost & sandviç">🥪 Tost & Sandviç</button>
+            <button class="cat-btn" data-filter="kahve & içecek">☕ Kahve & İçecek</button>
+            <button class="cat-btn" data-filter="pastane & fırın">🥐 Pastane & Fırın</button>
+            <button class="cat-btn" data-filter="çorba">🥣 Çorba</button>
+            <button class="cat-btn" data-filter="dünya mutfağı & cafe">🌍 Dünya Mutfağı & Cafe</button>
+            <button class="cat-btn" data-filter="uzak doğu">🥢 Uzak Doğu</button>
+            <button class="cat-btn" data-filter="balık & deniz ürünleri">🐟 Balık & Deniz Ürünleri</button>
+            <button class="cat-btn" data-filter="meze">🫒 Meze</button>
+            <button class="cat-btn" data-filter="dondurma">🍦 Dondurma</button>
+            <button class="cat-btn" data-filter="steak">🥩 Steak</button>
+            <button class="cat-btn" data-filter="kahvaltı">🍳 Kahvaltı</button>
+            <button class="cat-btn" data-filter="börek">🥟 Börek</button>
         </div>
 
         <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 30px; display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
@@ -273,13 +320,13 @@
                         {% if restaurant.get('distance') and restaurant.get('distance') != 999 %}
                             <span style="color: #4f46e5; font-weight: 600;">📍 {{ restaurant['distance'] }} km</span>
                         {% else %}
-                            <span>💸 Avg: ${{ restaurant['average_cost'] }}</span>
+                            <span>💸 Ort: ${{ restaurant['average_cost'] }}</span>
                         {% endif %}
                     </div>
                 </div>
             </a>
             {% else %}
-                <p style="grid-column: 1 / -1; text-align: center; color: #6b7280; font-size: 16px;">We couldn't find any restaurants in your area yet. 😢</p>
+                <p style="grid-column: 1 / -1; text-align: center; color: #6b7280; font-size: 16px;">Çevrenizde henüz uygun bir restoran bulunmuyor. 😢</p>
             {% endfor %}
         </div>
     </div>
@@ -306,8 +353,8 @@
                             if (data.action === 'added') { svg.setAttribute('fill', '#ef4444'); svg.setAttribute('stroke', '#ef4444'); }
                             else { svg.setAttribute('fill', 'none'); svg.setAttribute('stroke', '#6b7280'); }
                         } else {
-                            alert(data.message);
-                            if(data.message.includes('giriş')) window.location.href = '/customer_login';
+                            showToast(data.message, 'error');
+                            if(data.message.includes('giriş')) setTimeout(() => { window.location.href = '/customer_login'; }, 1500);
                         }
                     }).catch(error => console.error('Ana Sayfa Favori Hatası:', error));
                 });
@@ -465,11 +512,11 @@
                             pickerMarker.setLatLng([lat, lon]);
                             btn.style.opacity = '1';
                         }, function() {
-                            alert("Konum alınamadı. Lütfen tarayıcı izinlerinizi kontrol edin.");
+                            showToast("Konum alınamadı. Lütfen tarayıcı izinlerinizi kontrol edin.", "error");
                             btn.style.opacity = '1';
                         });
                     } else {
-                        alert("Tarayıcınız konum özelliğini desteklemiyor.");
+                        showToast("Tarayıcınız konum özelliğini desteklemiyor.", "error");
                     }
                 };
                 return btn;
@@ -582,7 +629,7 @@
             };
 
             if(!payload.title || !payload.city || !payload.district || !payload.neighborhood || !payload.street || !payload.building_no || !payload.contact_name || !payload.contact_phone) {
-                alert("Lütfen zorunlu (*) alanları doldurun.");
+                showToast("Lütfen zorunlu (*) alanları doldurun.", "error");
                 return;
             }
 
@@ -602,7 +649,7 @@
                 if(data.success) {
                     location.reload(); 
                 } else {
-                    alert("Hata: " + data.message);
+                    showToast("Hata: " + data.message, "error");
                 }
             });
         }
@@ -692,29 +739,27 @@
             });
         });
     </script>
-<script>
+    <script>
         document.addEventListener("DOMContentLoaded", function() {
             const catBtns = document.querySelectorAll('.cat-btn');
             const cards = document.querySelectorAll('.filterable-card');
 
             catBtns.forEach(btn => {
                 btn.addEventListener('click', () => {
-                    // 1. Tıklanan butonu siyah yap, diğerlerini griye çevir
-                    catBtns.forEach(b => {
-                        b.style.background = '#f3f4f6';
-                        b.style.color = '#374151';
-                    });
-                    btn.style.background = '#111827';
-                    btn.style.color = 'white';
+                    // 1. Tüm butonlardan 'active' sınıfını sök (Siyah rengi sıfırla)
+                    catBtns.forEach(b => b.classList.remove('active'));
+                    
+                    // 2. Sadece Tıklanan butona 'active' sınıfını ekle (Siyah yap)
+                    btn.classList.add('active');
 
-                    // 2. Butonun içindeki filtre kelimesini al (Örn: "burger")
+                    // 3. Butonun içindeki filtre kelimesini al (Örn: "burger")
                     const filterValue = btn.getAttribute('data-filter').toLowerCase();
 
-                    // 3. Kartları gizle veya göster
+                    // 4. Kartları gizle veya göster
                     cards.forEach(card => {
                         const category = (card.getAttribute('data-category') || '').toLowerCase();
                         
-                        // Eğer 'Tümü' seçildiyse VEYA restoranın kategorisi (cuisine) butondaki kelimeyi içeriyorsa göster
+                        // Eğer 'Tümü' seçildiyse VEYA restoranın kategorisi butondaki kelimeyi içeriyorsa göster
                         if (filterValue === 'all' || category.includes(filterValue)) {
                             card.style.display = 'block';
                         } else {
@@ -724,6 +769,47 @@
                 });
             });
         });
+    </script>
+
+    <div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 99999; display: flex; flex-direction: column; gap: 10px;"></div>
+
+    <script>
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            const bgColor = type === 'success' ? '#10b981' : '#ef4444';
+            const icon = type === 'success' ? '✅' : '❌';
+
+            toast.style.background = bgColor;
+            toast.style.color = 'white';
+            toast.style.padding = '14px 24px';
+            toast.style.borderRadius = '8px';
+            toast.style.boxShadow = '0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)';
+            toast.style.fontFamily = "'Inter', sans-serif";
+            toast.style.fontSize = '14px';
+            toast.style.fontWeight = '600';
+            toast.style.display = 'flex';
+            toast.style.alignItems = 'center';
+            toast.style.gap = '10px';
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(100%)';
+            toast.style.transition = 'all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
+            
+            toast.innerHTML = `<span style="font-size: 18px;">${icon}</span> <span>${message}</span>`;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '1';
+                toast.style.transform = 'translateX(0)';
+            }, 10);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => toast.remove(), 400);
+            }, 3000);
+        }
     </script>
 
 </body>

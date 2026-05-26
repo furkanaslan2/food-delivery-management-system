@@ -7,7 +7,7 @@ from mysql.connector import Error
 # 1. RESTORAN MENÜSÜNÜ GÖRÜNTÜLEME
 def view_restaurant(restaurant_id):
     if 'logged_in' not in session or session.get('role') != 'customer':
-        flash("Please login to view restaurants.", "danger")
+        flash("Restoranları görmek için lütfen giriş yapın.", "danger")
         return redirect(url_for('customer_login'))
 
     connection = get_db_connection()
@@ -109,7 +109,7 @@ def view_restaurant(restaurant_id):
                 connection.close()
 
     if not restaurant:
-        flash("Restaurant not found.", "danger")
+        flash("Restoran bulunamadı.", "danger")
         return redirect(url_for('index'))
 
     return render_template('customer_restaurant.html', 
@@ -127,7 +127,7 @@ def add_to_cart():
     if 'logged_in' not in session or session.get('role') != 'customer':
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return jsonify({'success': False, 'message': 'Please login to add items.'}), 401
-        flash("Please login to add items to your cart.", "danger")
+        flash("Sepetinize ürün eklemek için lütfen giriş yapın.", "danger")
         return redirect(url_for('customer_login'))
 
     if request.method == 'POST':
@@ -202,11 +202,11 @@ def add_to_cart():
                 'success': True, 
                 'total_cart_qty': total_cart_qty,
                 'cart_cleared': cart_cleared,
-                'message': f"Added {quantity}x {food_name} to cart!"
+                'message': f"{quantity} adet {food_name} sepete eklendi!"
             })
 
         if cart_cleared:
-            flash("Your cart was cleared because you selected a different restaurant.", "warning")
+            flash("Farklı bir restoran seçtiğiniz için sepetiniz temizlendi.", "warning")
         flash(f"Added {quantity}x {food_name} to cart!", "success")
         return redirect(url_for('view_restaurant', restaurant_id=restaurant_id))
     
@@ -244,7 +244,7 @@ def decrease_cart_item(menu_id):
     
 def view_cart():
     if 'logged_in' not in session or session.get('role') != 'customer':
-        flash("Please login to view your cart.", "danger")
+        flash("Sepetinizi görmek için lütfen giriş yapın.", "danger")
         return redirect(url_for('customer_login'))
 
     cart = session.get('cart', [])
@@ -289,7 +289,7 @@ def checkout():
 
     cart = session.get('cart', [])
     if not cart:
-        flash("Your cart is empty!", "warning")
+        flash("Sepetiniz boş!", "warning")
         return redirect(url_for('index'))
 
     if request.method == 'POST':
@@ -399,7 +399,7 @@ def checkout():
 
 def customer_orders():
     if 'logged_in' not in session or session.get('role') != 'customer':
-        flash("Please login to view your orders.", "danger")
+        flash("Siparişlerinizi görmek için lütfen giriş yapın.", "danger")
         return redirect(url_for('customer_login'))
 
     customer_id = session.get('customer_id')

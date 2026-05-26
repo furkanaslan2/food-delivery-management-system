@@ -20,7 +20,7 @@ def view_profile():
 
         if role == 'customer':
             customer_id = session.get('customer_id')
-            cursor.execute("SELECT name, phone, city, address FROM customers WHERE customer_id = %s", (customer_id,))
+            cursor.execute("SELECT name, phone FROM customers WHERE customer_id = %s", (customer_id,))
             user_data = cursor.fetchone()
 
         elif role == 'waiter':
@@ -89,14 +89,11 @@ def update_profile():
             customer_id = session.get('customer_id')
             name = request.form.get('name')
             phone = request.form.get('phone')
-            city = request.form.get('city')
-            address = request.form.get('address')
 
             cursor.execute("""
-                UPDATE customers SET name = %s, phone = %s, city = %s, address = %s WHERE customer_id = %s
-            """, (name, phone, city, address, customer_id))
+                UPDATE customers SET name = %s, phone = %s WHERE customer_id = %s
+            """, (name, phone, customer_id))
             connection.commit()
-            session['customer_city'] = city
             flash("Profil bilgileriniz başarıyla güncellendi! ✨", "success")
 
         elif role == 'waiter':

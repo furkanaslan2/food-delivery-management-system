@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Cart - Checkout</title>
+    <title>Sepetiniz - Ödeme</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { margin: 0; font-family: 'Inter', sans-serif; background-color: #f8f9fa; color: #111827; }
@@ -36,13 +36,13 @@
     <nav class="customer-nav">
         <a href="/" class="nav-brand">🍔 DeliveryApp</a>
         <div style="display: flex; gap: 20px; align-items: center;">   
-            <a href="/" style="text-decoration: none; color: #4b5563; font-weight: 500;">Back to Restaurants</a>
+            <a href="/" style="text-decoration: none; color: #4b5563; font-weight: 500;">Restoranlara Dön</a>
         </div>
     </nav>
 
     <div class="container">
         <div class="cart-items">
-            <h2 class="section-title">Order Summary</h2>
+            <h2 class="section-title">Sipariş Özeti</h2>
             
             {% if cart %}
                 {% for item in cart %}
@@ -73,14 +73,14 @@
                 {% endfor %}
             {% else %}
                 <div class="empty-cart">
-                    <h3>Your cart is empty 😢</h3>
-                    <p>Looks like you haven't added any delicious food yet.</p>
+                    <h3>Sepetiniz boş 😢</h3>
+                    <p>Henüz lezzetli bir şeyler eklememişsiniz gibi görünüyor.</p>
                 </div>
             {% endif %}
         </div>
 
         <div class="checkout-box">
-            <h2 class="section-title">Delivery Details</h2>
+            <h2 class="section-title">Teslimat Detayları</h2>
             
             {% if active_address %}
             <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
@@ -108,17 +108,17 @@
 
             <form action="{{ url_for('checkout') }}" method="POST">
                 <div class="form-group">
-                    <label for="order_note">Order & Delivery Note (Optional)</label>
-                    <textarea id="order_note" name="order_note" rows="2" placeholder="e.g. Please don't ring the bell, baby is sleeping..."></textarea>
+                    <label for="order_note">Sipariş & Teslimat Notu (İsteğe Bağlı)</label>
+                    <textarea id="order_note" name="order_note" rows="2" placeholder="Örn: Lütfen zile basmayın, bebek uyuyor..."></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="payment_method">Payment Method</label>
+                    <label for="payment_method">Ödeme Yöntemi</label>
                     <select id="payment_method" name="payment_method" required>
-                        <option value="Cash on Delivery">💵 Cash on Delivery</option>
-                        <option value="Credit Card on Delivery">💳 Credit Card on Delivery</option>
-                        <option value="Online Payment">🌐 Online Payment</option>
+                        <option value="Cash on Delivery">💵 Kapıda Nakit Ödeme</option>
+                        <option value="Credit Card on Delivery">💳 Kapıda Kredi Kartı</option>
+                        <option value="Online Payment">🌐 Online Ödeme</option>
                     </select>
-                </div>          
+                </div>        
                 
                 <input type="hidden" name="applied_promo_code" id="hidden_promo_code" value="">
                 <input type="hidden" id="original_total_amount" value="{{ total_amount }}">
@@ -129,7 +129,7 @@
                 </div>
 
                 <div class="summary-row" style="margin-top: 20px;">
-                    <span>Subtotal</span>
+                    <span>Ara Toplam</span>
                     <span>$<span id="ui_subtotal">{{ "%.2f"|format(total_amount) }}</span></span>
                 </div>
                 
@@ -148,11 +148,11 @@
                 {% endif %}
 
                 <div class="summary-row">
-                    <span>Delivery Fee</span>
-                    <span style="color: #059669;">Free</span>
+                    <span>Teslimat Ücreti</span>
+                    <span style="color: #059669;">Ücretsiz</span>
                 </div>
                 <div class="summary-total">
-                    <span>Total</span>
+                    <span>Toplam</span>
                     <span>${{ "%.2f"|format(total_amount) }}</span>
                 </div>
 
@@ -163,13 +163,13 @@
                 {% endif %}
 
                 {% if cart and active_address and missing_amount <= 0 %}
-                    <button type="submit" class="checkout-btn">Confirm Order</button>
+                    <button type="submit" class="checkout-btn">Siparişi Onayla</button>
                 {% elif missing_amount > 0 and cart %}
                     <button type="button" class="checkout-btn" disabled>Sepet Tutarı Yetersiz</button>
                 {% elif not active_address %}
                     <button type="button" class="checkout-btn" disabled>Lütfen Adres Seçin</button>
                 {% else %}
-                    <button type="button" class="checkout-btn" disabled>Cart is Empty</button>
+                    <button type="button" class="checkout-btn" disabled>Sepet Boş</button>
                 {% endif %}
             </form>
         </div>

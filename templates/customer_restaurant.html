@@ -186,11 +186,11 @@
         <a href="/" class="nav-brand">🍔 DeliveryApp</a>
         <div class="nav-links">
             {% if request.endpoint == 'index' %}
-            <span>📍 {{ session.get('customer_city', 'Select Location') }}</span>
+            <span>📍 {{ session.get('customer_city', 'Konum Seçin') }}</span>
             {% endif %}
 
             <a href="{{ url_for('view_cart') }}" class="cart-btn cart-wrapper" style="text-decoration: none;">
-                🛒 Cart
+                🛒 Sepet
                 {% set cart_qty = namespace(total=0) %}
                 {% for item in session.get('cart', []) %}
                     {% set cart_qty.total = cart_qty.total + item.quantity|int %}
@@ -308,7 +308,7 @@
                             {% endif %}
                             
                             <div class="item-info">
-                                <h3>{{ item['food_name'] if item['food_name'] else 'Delicious Food' }}</h3>
+                                <h3>{{ item['food_name'] if item['food_name'] else 'Nefis Yemek' }}</h3>
                                 <p class="price">${{ item['price'] }}</p>
                             </div>
                         </div>
@@ -322,13 +322,13 @@
                             <input type="number" name="quantity" class="qty-input" value="1" min="1" max="{{ item['stock_quantity'] }}" {% if restaurant.get('is_open') == False %}disabled{% endif %}>
                             
                             <button type="submit" class="add-btn" {% if restaurant.get('is_open') == False %}disabled{% endif %}>
-                                + Add
+                                + Ekle
                             </button>
                         </form>
                     </div>
                     {% endfor %}
                 {% else %}
-                    <p style="text-align: center; color: #6b7280; margin-top: 20px;">This restaurant hasn't added any menu items yet.</p>
+                    <p style="text-align: center; color: #6b7280; margin-top: 20px;">Bu restoran henüz menüye ürün eklemedi.</p>
                 {% endif %}
             </div>
         </div>
@@ -345,7 +345,7 @@
                             {% endif %}
                             
                             <div class="item-info">
-                                <h3>{{ item['food_name'] if item['food_name'] else 'Delicious Food' }}</h3>
+                                <h3>{{ item['food_name'] if item['food_name'] else 'Nefis Yemek' }}</h3>
                                 <p class="price">${{ item['price'] }}</p>
                             </div>
                     </div>
@@ -359,7 +359,7 @@
                         <input type="number" name="quantity" class="qty-input" value="1" min="1" max="{{ item['stock_quantity'] }}" {% if restaurant.get('is_open') == False %}disabled{% endif %}>
                         
                         <button type="submit" class="add-btn" {% if restaurant.get('is_open') == False %}disabled{% endif %}>
-                            + Add
+                            + Ekle
                         </button>
                     </form>
                 </div>

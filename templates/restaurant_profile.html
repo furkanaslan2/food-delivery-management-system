@@ -70,8 +70,35 @@
             </div>
 
             <div class="form-group">
-                <label>Mutfak Türü (Örn: Pizza, Burger)</label>
-                <input type="text" name="cuisine" value="{{ restaurant['cuisine'] }}" required>
+                <label>Mutfak Türü</label>
+                <select name="cuisine" style="width: 100%; padding: 10px 15px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 15px; box-sizing: border-box; outline: none; background-color: white;" required>
+                    <option value="Hamburger" {% if restaurant['cuisine'] == 'Hamburger' %}selected{% endif %}>Hamburger</option>
+                    <option value="Döner" {% if restaurant['cuisine'] == 'Döner' %}selected{% endif %}>Döner</option>
+                    <option value="Pizza" {% if restaurant['cuisine'] == 'Pizza' %}selected{% endif %}>Pizza</option>
+                    <option value="Pide & Lahmacun" {% if restaurant['cuisine'] == 'Pide & Lahmacun' %}selected{% endif %}>Pide & Lahmacun</option>
+                    <option value="Çiğ Köfte" {% if restaurant['cuisine'] == 'Çiğ Köfte' %}selected{% endif %}>Çiğ Köfte</option>
+                    <option value="Tatlı" {% if restaurant['cuisine'] == 'Tatlı' %}selected{% endif %}>Tatlı</option>
+                    <option value="Sokak Lezzetleri" {% if restaurant['cuisine'] == 'Sokak Lezzetleri' %}selected{% endif %}>Sokak Lezzetleri</option>
+                    <option value="Köfte" {% if restaurant['cuisine'] == 'Köfte' %}selected{% endif %}>Köfte</option>
+                    <option value="Tavuk" {% if restaurant['cuisine'] == 'Tavuk' %}selected{% endif %}>Tavuk</option>
+                    <option value="Salata & Sağlık" {% if restaurant['cuisine'] == 'Salata & Sağlık' %}selected{% endif %}>Salata & Sağlık</option>
+                    <option value="Mantı & Makarna" {% if restaurant['cuisine'] == 'Mantı & Makarna' %}selected{% endif %}>Mantı & Makarna</option>
+                    <option value="Kebap" {% if restaurant['cuisine'] == 'Kebap' %}selected{% endif %}>Kebap</option>
+                    <option value="Tantuni" {% if restaurant['cuisine'] == 'Tantuni' %}selected{% endif %}>Tantuni</option>
+                    <option value="Ev Yemekleri" {% if restaurant['cuisine'] == 'Ev Yemekleri' %}selected{% endif %}>Ev Yemekleri</option>
+                    <option value="Tost & Sandviç" {% if restaurant['cuisine'] == 'Tost & Sandviç' %}selected{% endif %}>Tost & Sandviç</option>
+                    <option value="Kahve & İçecek" {% if restaurant['cuisine'] == 'Kahve & İçecek' %}selected{% endif %}>Kahve & İçecek</option>
+                    <option value="Pastane & Fırın" {% if restaurant['cuisine'] == 'Pastane & Fırın' %}selected{% endif %}>Pastane & Fırın</option>
+                    <option value="Çorba" {% if restaurant['cuisine'] == 'Çorba' %}selected{% endif %}>Çorba</option>
+                    <option value="Dünya Mutfağı & Cafe" {% if restaurant['cuisine'] == 'Dünya Mutfağı & Cafe' %}selected{% endif %}>Dünya Mutfağı & Cafe</option>
+                    <option value="Uzak Doğu" {% if restaurant['cuisine'] == 'Uzak Doğu' %}selected{% endif %}>Uzak Doğu</option>
+                    <option value="Balık & Deniz Ürünleri" {% if restaurant['cuisine'] == 'Balık & Deniz Ürünleri' %}selected{% endif %}>Balık & Deniz Ürünleri</option>
+                    <option value="Meze" {% if restaurant['cuisine'] == 'Meze' %}selected{% endif %}>Meze</option>
+                    <option value="Dondurma" {% if restaurant['cuisine'] == 'Dondurma' %}selected{% endif %}>Dondurma</option>
+                    <option value="Steak" {% if restaurant['cuisine'] == 'Steak' %}selected{% endif %}>Steak</option>
+                    <option value="Kahvaltı" {% if restaurant['cuisine'] == 'Kahvaltı' %}selected{% endif %}>Kahvaltı</option>
+                    <option value="Börek" {% if restaurant['cuisine'] == 'Börek' %}selected{% endif %}>Börek</option>
+                </select>
             </div>
 
             <button type="submit" class="btn-submit">Değişiklikleri Kaydet</button>
