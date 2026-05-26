@@ -812,5 +812,95 @@
         }
     </script>
 
+    <button onclick="toggleChat()" style="position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #4f46e5, #ec4899); color: white; border: none; font-size: 28px; box-shadow: 0 10px 25px rgba(79, 70, 229, 0.4); cursor: pointer; z-index: 9999; display: flex; justify-content: center; align-items: center; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+        🤖
+    </button>
+
+    <div id="ai-chat-window" style="display: none; position: fixed; bottom: 100px; right: 30px; width: 350px; height: 500px; background: white; border-radius: 16px; box-shadow: 0 15px 35px rgba(0,0,0,0.15); z-index: 9998; flex-direction: column; overflow: hidden; border: 1px solid #e5e7eb; font-family: 'Inter', sans-serif;">
+        
+        <div style="background: linear-gradient(135deg, #4f46e5, #ec4899); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 24px;">🤖</span>
+                <div>
+                    <strong style="display: block; font-size: 15px;">Gurme Asistan</strong>
+                    <span style="font-size: 12px; opacity: 0.9;">Yapay Zeka Destekli</span>
+                </div>
+            </div>
+            <button onclick="toggleChat()" style="background: none; border: none; color: white; font-size: 20px; cursor: pointer;">&times;</button>
+        </div>
+
+        <div id="chat-messages" style="flex: 1; padding: 20px; overflow-y: auto; background: #f9fafb; display: flex; flex-direction: column; gap: 15px;">
+            <div style="align-self: flex-start; background: white; padding: 12px 16px; border-radius: 16px 16px 16px 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); font-size: 14px; color: #374151; max-width: 85%; border: 1px solid #f3f4f6; line-height: 1.5;">
+                Merhaba! Ben Gurme Asistan. 🧑‍🍳<br>Bugün canın ne çekiyor? Sana en uygun restoranları ve yemekleri hemen bulabilirim!
+            </div>
+        </div>
+
+        <div style="padding: 15px; background: white; border-top: 1px solid #e5e7eb; display: flex; gap: 10px;">
+            <input type="text" id="chat-input" placeholder="Örn: Tatlı krizim tuttu..." style="flex: 1; padding: 10px 15px; border: 1px solid #d1d5db; border-radius: 20px; font-size: 14px; outline: none; font-family: inherit;" onkeypress="if(event.key === 'Enter') sendChatMessage()">
+            <button onclick="sendChatMessage()" style="background: #4f46e5; color: white; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.2s;">
+                ➤
+            </button>
+        </div>
+    </div>
+
+    <script>
+        function toggleChat() {
+            const chatWindow = document.getElementById('ai-chat-window');
+            chatWindow.style.display = chatWindow.style.display === 'none' ? 'flex' : 'none';
+        }
+
+        function sendChatMessage() {
+            const input = document.getElementById('chat-input');
+            const message = input.value.trim();
+            if (!message) return;
+
+            addMessageToChat(message, 'user');
+            input.value = '';
+
+            const typingId = 'typing-' + Date.now();
+            addMessageToChat("Düşünüyor... 💭", 'ai', typingId);
+
+            fetch('/api/ask_ai', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ message: message })
+            })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById(typingId).remove();
+                
+                if (data.success) {
+                    // Markdown tipi formatları biraz daha HTML'e uygun hale getirelim
+                    let formattedText = data.response.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                    formattedText = formattedText.replace(/\n/g, '<br>');
+                    addMessageToChat(formattedText, 'ai');
+                } else {
+                    addMessageToChat(data.response || "Bir hata oluştu. 😔", 'ai');
+                }
+            })
+            .catch(err => {
+                document.getElementById(typingId).remove();
+                addMessageToChat("Bağlantı hatası oluştu.", 'ai');
+            });
+        }
+
+        function addMessageToChat(text, sender, id = null) {
+            const chatContainer = document.getElementById('chat-messages');
+            const msgDiv = document.createElement('div');
+            if(id) msgDiv.id = id;
+
+            if (sender === 'user') {
+                msgDiv.style = "align-self: flex-end; background: #4f46e5; color: white; padding: 12px 16px; border-radius: 16px 16px 4px 16px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); font-size: 14px; max-width: 85%; word-wrap: break-word; line-height: 1.5;";
+                msgDiv.innerText = text;
+            } else if (sender === 'ai') {
+                msgDiv.style = "align-self: flex-start; background: white; color: #374151; padding: 12px 16px; border-radius: 16px 16px 16px 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); font-size: 14px; max-width: 85%; border: 1px solid #f3f4f6; line-height: 1.5;";
+                msgDiv.innerHTML = text; // Gemini'den gelen formatlı metin için innerHTML
+            }
+
+            chatContainer.appendChild(msgDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight; 
+        }
+    </script>
+
 </body>
 </html>

@@ -2,6 +2,12 @@ from datetime import datetime, timedelta
 from flask import render_template, request, redirect, url_for, session, flash, jsonify
 from db import get_db_connection
 from mysql.connector import Error
+import os
+from google import genai
+from dotenv import load_dotenv
+
+load_dotenv()
+client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 # 1. RESTORAN MENÜSÜNÜ GÖRÜNTÜLEME
 # 1. RESTORAN MENÜSÜNÜ GÖRÜNTÜLEME
@@ -909,3 +915,104 @@ def apply_promo():
             connection.close()
             
     return jsonify({'success': False, 'message': 'Veritabanı hatası.'}), 500
+
+def ask_ai():
+    data = request.get_json()
+    user_msg = data.get('message', '').strip()
+
+    if not user_msg:
+        return jsonify({'success': False, 'message': 'Boş mesaj gönderilemez.'})
+
+    connection = get_db_connection()
+    menu_context = ""
+    history_context = "Müşterinin henüz geçmiş siparişi bulunmuyor. Ona yeni lezzetler keşfetmesini öner."
+
+    if connection:
+        try:
+            cursor = connection.cursor(dictionary=True)
+            
+            # 1. VERİ: SADECE ŞU AN AÇIK OLAN RESTORANLARIN MENÜSÜ
+            cursor.execute("""
+                SELECT r.restaurant_name, f.item_name, m.price 
+                FROM menus m 
+                JOIN foods f ON m.food_id = f.food_id 
+                JOIN restaurants r ON m.restaurant_id = r.restaurant_id 
+                WHERE r.is_manually_closed = 0 
+                  AND (
+                      (r.opening_time <= r.closing_time AND CURTIME() BETWEEN r.opening_time AND r.closing_time)
+                      OR 
+                      (r.opening_time > r.closing_time AND (CURTIME() >= r.opening_time OR CURTIME() <= r.closing_time))
+                  )
+                LIMIT 20
+            """)
+            items = cursor.fetchall()
+            
+            if items:
+                menu_context = "Uygulamamızda kayıtlı olan bazı gerçek yemekler şunlar:\n"
+                for item in items:
+                    menu_context += f"- {item['restaurant_name']} restoranında {item['item_name']} ({item['price']} TL)\n"
+            
+            # 2. VERİ: MÜŞTERİNİN GEÇMİŞ SİPARİŞLERİ (SİHİRLİ DOKUNUŞ ✨)
+            if session.get('logged_in') and session.get('role') == 'customer':
+                customer_id = session.get('customer_id')
+                try:
+                    # En risksiz ve standart SQL sorgumuz:
+                    cursor.execute("""
+                        SELECT r.restaurant_name, f.item_name 
+                        FROM orders o
+                        JOIN order_items oi ON o.order_id = oi.order_id
+                        JOIN foods f ON oi.food_id = f.food_id
+                        JOIN restaurants r ON o.restaurant_id = r.restaurant_id
+                        WHERE o.customer_id = %s AND o.order_status != 'canceled'
+                        ORDER BY o.order_id DESC
+                        LIMIT 5
+                    """, (customer_id,))
+                    past_orders = cursor.fetchall()
+                    
+                    if past_orders:
+                        history_context = "Müşterinin son siparişleri şunlar (Ona kişiselleştirilmiş bir tavsiye vermek için bu veriyi KESİNLİKLE KULLAN!):\n"
+                        for po in past_orders:
+                            history_context += f"- {po['restaurant_name']} restoranından {po['item_name']}\n"
+                
+                except Exception as db_err:
+                    # Eğer SQL yine patlarsa, terminalde kabak gibi göreceğimiz mesaj:
+                    print("🚨 GEÇMİŞ SİPARİŞ SQL HATASI:", db_err)
+                        
+        except Exception as e:
+            print("DB Hatası:", e)
+        finally:
+            if connection.is_connected():
+                cursor.close()
+                connection.close()
+
+    # 🧠 YAPAY ZEKA BEYNİNE GİDEN GİZLİ VE KATI TALİMATLAR (PROMPT ENGINEERING)
+    system_prompt = f"""
+    Sen 'DeliveryApp' isimli yemek sipariş uygulamasının hiper-zeki, enerjik ve müşteriyi tanıyan Gurme Asistanısın.
+    Müşteri sana şunu sordu veya söyledi: "{user_msg}"
+    
+    {menu_context}
+    
+    {history_context}
+    
+    ÇOK ÖNEMLİ KURALLAR (BUNLARI KESİNLİKLE İHLAL ETME):
+    1. YALNIZCA sana yukarıda "gerçek yemekler" kısmında verilen listedeki restoranları ve yemekleri önerebilirsin.
+    2. Eğer sana verilen menü listesi boşsa (yani restoranlar kapalıysa), KESİNLİKLE dışarıdan, gerçek hayattan (Domino's, Burger King vb.) bir restoran veya marka UYDURMA. Böyle bir durumda sadece: "Şu an çevrende açık bir restoran bulamadım, birazdan tekrar dener misin? 😔" de ve konuşmayı bitir.
+    3. Kullanıcıya sanki çok yakın bir arkadaşıymışsın gibi samimi ve tatlı bir dille cevap ver (Maksimum 3-4 cümle).
+    4. Müşterinin geçmiş siparişi varsa bile, o restoran şu an menü listesinde YER ALMIYORSA onu asla tavsiye etme.
+    """
+
+    try:
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=system_prompt
+        )
+        ai_text = response.text
+
+        return jsonify({
+            'success': True, 
+            'response': ai_text
+        })
+        
+    except Exception as e:
+        print("Gemini Hatası:", e)
+        return jsonify({'success': False, 'response': 'Şu an mutfakta biraz yoğunum, lütfen birazdan tekrar dener misin? 🧑‍🍳'})

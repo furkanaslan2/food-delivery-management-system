@@ -205,7 +205,6 @@ def customer_login():
                     session['logged_in'] = True
                     session['role'] = 'customer' # Müşteriyi B2B panelden ayırmak için
                     session['customer_id'] = customer['customer_id']
-                    session['customer_city'] = customer['city'] # İleride sadece kendi şehrindeki restoranları görsün diye
                     
                     flash("Login successful! Welcome to the marketplace.", "success")
                     return redirect(url_for('index')) # Vitrin sayfası yapılınca oraya yönlendireceğiz
