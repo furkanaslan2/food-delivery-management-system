@@ -258,7 +258,7 @@
         <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 30px; display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
         <form action="{{ url_for('index') }}" method="GET" style="display: flex; gap: 15px; width: 100%; align-items: center;">
             <div style="flex: 2; min-width: 200px;">
-                <input type="text" name="search" placeholder="🔍 Restoran adı veya mutfak (Örn: Pizza, Burger)..." value="{{ request.args.get('search', '') }}" 
+                <input type="text" name="search" placeholder="🔍 Restoran, mutfak veya bir yemek arayın (Örn: Lahmacun, Künefe)..." value="{{ request.args.get('search', '') }}" 
                        style="width: 100%; padding: 12px 15px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 15px; outline: none; box-sizing: border-box;">
             </div>
             <div style="flex: 1; min-width: 150px;">
@@ -419,7 +419,10 @@
                 <span style="font-size:13px; font-weight:700; color:#4f46e5; display:block; margin-bottom:8px;">👤 İletişim Bilgileri</span>
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
                     <div><label style="font-size:12px; font-weight:600;">Ad Soyad *</label><input type="text" id="addr-cname" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box;" required></div>
-                    <div><label style="font-size:12px; font-weight:600;">Telefon *</label><input type="text" id="addr-cphone" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box;" required></div>
+                    <div>
+                        <label style="font-size:12px; font-weight:600;">Telefon *</label>
+                        <input type="tel" id="addr-cphone" placeholder="05XX..." maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box;" required>
+                    </div>
                 </div>
             </div>
 
@@ -529,7 +532,7 @@
             document.getElementById('map-modal-title').innerText = "Yeni Harita Konumu Seçin";
             document.getElementById('form-modal-title').innerText = "Yeni Adres Ekle";
             document.getElementById('form-submit-btn').innerText = "Adresi Kaydet ve Kullan";
-            document.querySelectorAll('#addressFormModal input[type="text"], #addressFormModal textarea').forEach(el => el.value = '');
+            document.querySelectorAll('#addressFormModal input[type="text"], #addressFormModal input[type="tel"], #addressFormModal textarea').forEach(el => el.value = '');
             
             closeAddressModal();
             document.getElementById('addressMapModal').style.display = 'flex';
@@ -900,6 +903,34 @@
             chatContainer.appendChild(msgDiv);
             chatContainer.scrollTop = chatContainer.scrollHeight; 
         }
+    </script>
+
+    <div id="flash-messages-container" style="display: none;">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <span class="flash-message-data" data-category="{{ category }}" data-message="{{ message }}"></span>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const flashElements = document.querySelectorAll('.flash-message-data');
+            flashElements.forEach((el, index) => {
+                let msgType = el.getAttribute('data-category');
+                let msgText = el.getAttribute('data-message');
+                
+                if (msgType === 'danger' || msgType === 'warning') msgType = 'error';
+                
+                setTimeout(() => {
+                    if (typeof showToast === "function") {
+                        showToast(msgText, msgType);
+                    }
+                }, 100 + (index * 150)); 
+            });
+        });
     </script>
 
 </body>

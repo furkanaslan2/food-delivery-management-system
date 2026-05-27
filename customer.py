@@ -143,7 +143,10 @@ def add_to_cart():
         price = float(request.form.get('price'))
         quantity = int(request.form.get('quantity', 1))
 
-        # --- YENİ EKLENEN: GÜVENLİK DUVARI (KAPALI RESTORANA SİPARİŞİ ENGELLE) ---
+        # 📍 YENİ: Ön yüzden seçilen ek seçeneklerin ID listesini alıyoruz
+        selected_choices = request.form.getlist('choices') 
+
+        # --- GÜVENLİK DUVARI (KAPALI RESTORANA SİPARİŞİ ENGELLE) ---
         connection = get_db_connection()
         if connection:
             try:
@@ -171,9 +174,28 @@ def add_to_cart():
                             return jsonify({'success': False, 'message': 'Bu restoran şu an kapalıdır, sepete ürün ekleyemezsiniz.'}), 400
                         flash("Bu restoran şu an kapalıdır, sipariş veremezsiniz.", "danger")
                         return redirect(url_for('view_restaurant', restaurant_id=restaurant_id))
+                
+                # 📍 YENİ: Seçilen seçeneklerin güncel fiyatlarını backend'de hesaplayıp fiyata ekliyoruz
+                extra_price = 0.0
+                choice_names = []
+                if selected_choices:
+                    format_strings = ','.join(['%s'] * len(selected_choices))
+                    cursor.execute(f"SELECT choice_name, additional_price FROM menu_option_choices WHERE choice_id IN ({format_strings})", tuple(selected_choices))
+                    choices_res = cursor.fetchall()
+                    for cr in choices_res:
+                        extra_price += float(cr['additional_price'])
+                        choice_names.append(cr['choice_name'])
+                
+                # Toplam birim fiyatı güncelliyoruz (Taban fiyat + Ekstralar)
+                price += extra_price
+
+                # Eğer isimde henüz parantez içi ekstralar yoksa backend'de de isme şıkça iliştiriyoruz
+                if choice_names and "(" not in food_name:
+                    food_name += f" ({', '.join(choice_names)})"
+
             finally:
-                connection.close()
-        # -------------------------------------------------------------------------
+                if connection.is_connected():
+                    cursor.close()
 
         if 'cart' not in session:
             session['cart'] = []
@@ -183,9 +205,10 @@ def add_to_cart():
             session['cart'] = [] 
             cart_cleared = True
 
+        # Aynı ürün ve aynı ekstra konfigürasyonuna sahip mi kontrolü
         found = False
         for item in session['cart']:
-            if str(item['menu_id']) == str(menu_id) and item.get('food_name') == food_name:
+            if str(item['menu_id']) == str(menu_id) and sorted(item.get('choices', [])) == sorted(selected_choices):
                 item['quantity'] += quantity
                 found = True
                 break
@@ -196,7 +219,8 @@ def add_to_cart():
                 'restaurant_id': restaurant_id,
                 'food_name': food_name,
                 'price': price,
-                'quantity': quantity
+                'quantity': quantity,
+                'choices': selected_choices # 📍 Seçim ID'leri session sepetine kaydoluyor
             })
 
         session.modified = True
@@ -301,19 +325,18 @@ def checkout():
     if request.method == 'POST':
         order_note = request.form.get('order_note', '') 
         payment_method = request.form.get('payment_method')
-        applied_promo_code = request.form.get('applied_promo_code') # 📍 YENİ EKLENEN: Formdan kupon kodunu al
+        applied_promo_code = request.form.get('applied_promo_code') 
         customer_id = session.get('customer_id')
 
         restaurant_id = cart[0]['restaurant_id']
         total_qty = sum(item['quantity'] for item in cart)
-        total_amount = sum(item['price'] * item['quantity'] for item in cart)
+        total_amount = sum(item['price'] * item['quantity'] for item in cart) # Fiyat artık ekstralı!
 
         connection = get_db_connection()
         if connection:
             try:
                 cursor = connection.cursor(dictionary=True)
                 
-                # 📍 YENİ: KUPON KODU HESAPLAMASI
                 if applied_promo_code:
                     cursor.execute("SELECT * FROM promo_codes WHERE code_name = %s AND restaurant_id = %s AND is_active = 1", (applied_promo_code, restaurant_id))
                     promo = cursor.fetchone()
@@ -322,11 +345,8 @@ def checkout():
                         discount = float(promo['discount_value']) if promo['discount_type'] == 'fixed' else (total_amount * float(promo['discount_value'])) / 100
                         if discount > total_amount: discount = total_amount
                         total_amount -= discount
-                        
-                        # Restoran görsün diye not kısmına otomatik bilgi iliştiriyoruz
                         order_note = f"[KUPON KULLANILDI: {applied_promo_code} | İndirim: ${discount:.2f}] " + order_note
                 
-                # ESKİ KODUN DEVAMI: Minimum tutar kontrolü
                 cursor.execute("SELECT min_order_amount FROM restaurants WHERE restaurant_id = %s", (restaurant_id,))
                 r_data = cursor.fetchone()
                 min_order_amount = float(r_data['min_order_amount']) if r_data and r_data.get('min_order_amount') else 0.0
@@ -335,11 +355,7 @@ def checkout():
                     flash(f"Minimum sipariş tutarı ${min_order_amount}. Lütfen sepetinize ürün ekleyin.", "danger")
                     return redirect(url_for('view_cart'))
 
-                # Aktif adresi çek
-                cursor.execute("""
-                    SELECT * FROM customer_addresses 
-                    WHERE customer_id = %s AND is_active = 1
-                """, (customer_id,))
+                cursor.execute("SELECT * FROM customer_addresses WHERE customer_id = %s AND is_active = 1", (customer_id,))
                 active_address = cursor.fetchone()
 
                 if not active_address:
@@ -356,7 +372,7 @@ def checkout():
                 
                 address = " ".join(address_parts)
                 if active_address.get('directions'):
-                    address += f" (Tarif: {active_address['directions']})"
+                    address += f" (Tarif: {active_address['directions']})" 
 
                 insert_order_query = """
                     INSERT INTO orders (
@@ -379,10 +395,19 @@ def checkout():
                     
                     if menu_data:
                         food_id = menu_data['food_id']
+                        # unit_price artık ekstralar eklenmiş nihai fiyattır
                         cursor.execute("""
                             INSERT INTO order_items (order_id, food_id, quantity, unit_price)
                             VALUES (%s, %s, %s, %s)
                         """, (new_order_id, food_id, item['quantity'], item['price']))
+
+                        # 📍 YENİ: Sipariş onaylandığı an ek seçenek tercihleri ilişki tablosuna tek tek yazılıyor
+                        if item.get('choices'):
+                            for choice_id in item['choices']:
+                                cursor.execute("""
+                                    INSERT INTO order_item_choices (order_id, food_id, choice_id)
+                                    VALUES (%s, %s, %s)
+                                """, (new_order_id, food_id, choice_id))
 
                 connection.commit()
                 
@@ -416,7 +441,6 @@ def customer_orders():
         try:
             cursor = connection.cursor(dictionary=True)
             
-            # 1. Aşama: Müşterinin tüm siparişlerini restoran isimleriyle çek
             cursor.execute("""
                 SELECT o.*, r.restaurant_name 
                 FROM orders o
@@ -426,28 +450,40 @@ def customer_orders():
             """, (customer_id,))
             orders_list = cursor.fetchall()
 
-            # 2. Aşama: Her bir siparişin iç detaylarını (yemekler) ve YORUMUNU çek!
             for order in orders_list:
-                # Siparişe ait yemekleri (items) çekiyoruz
                 cursor.execute("""
                     SELECT oi.*, f.item_name 
                     FROM order_items oi
                     JOIN foods f ON oi.food_id = f.food_id
                     WHERE oi.order_id = %s
                 """, (order['order_id'],))
-                order['items'] = cursor.fetchall()
+                order_items_list = cursor.fetchall()
                 
-                # --- YENİ EKLENEN KISIM: Bu sipariş için daha önce yorum yapılmış mı? ---
+                # 📍 YENİ: Geçmiş sipariş satırlarındaki yemeklerin ekstralarını bulup isme parantezle ekliyoruz
+                for oi in order_items_list:
+                    cursor.execute("""
+                        SELECT moc.choice_name 
+                        FROM order_item_choices oic
+                        JOIN menu_option_choices moc ON oic.choice_id = moc.choice_id
+                        WHERE oic.order_id = %s AND oic.food_id = %s
+                    """, (order['order_id'], oi['food_id']))
+                    choices_data = cursor.fetchall()
+                    
+                    if choices_data:
+                        names = [c['choice_name'] for c in choices_data]
+                        oi['item_name'] += f" ({', '.join(names)})" # "Pizza (Ekstra Peynir, İnce Hamur)" formatı
+                
+                order['items'] = order_items_list
+                
                 cursor.execute("""
                     SELECT rating, comment FROM reviews WHERE order_id = %s
                 """, (order['order_id'],))
                 review_data = cursor.fetchone()
                 
                 if review_data:
-                    order['review'] = review_data # Yorum varsa siparişin içine 'review' anahtarıyla ekle
+                    order['review'] = review_data 
                 else:
-                    order['review'] = None # Yorum yoksa None olarak işaretle
-                # -----------------------------------------------------------------------
+                    order['review'] = None 
                 
                 orders_data.append(order)
 
@@ -915,6 +951,95 @@ def apply_promo():
             connection.close()
             
     return jsonify({'success': False, 'message': 'Veritabanı hatası.'}), 500
+
+def api_reorder():
+    if 'customer_id' not in session:
+        return {"success": False, "message": "Lütfen önce giriş yapın."}, 401
+
+    data = request.get_json()
+    order_id = data.get('order_id')
+    
+    connection = get_db_connection()
+    try:
+        cursor = connection.cursor(dictionary=True)
+        
+        # Geçmiş siparişteki ürünleri buluyoruz
+        cursor.execute("""
+            SELECT oi.food_id, oi.quantity, f.item_name, m.price, m.restaurant_id, m.menu_id
+            FROM order_items oi
+            JOIN orders o ON oi.order_id = o.order_id
+            JOIN foods f ON oi.food_id = f.food_id
+            JOIN menus m ON f.food_id = m.food_id AND m.restaurant_id = o.restaurant_id
+            WHERE oi.order_id = %s
+        """, (order_id,))
+        items = cursor.fetchall()
+
+        if not items:
+            return {"success": False, "message": "Bu siparişteki ürünler artık menüde bulunmuyor."}, 404
+
+        target_restaurant_id = items[0]['restaurant_id']
+        
+        # Müşterinin sepetini yeni siparişle doldur
+        new_cart = []
+        for item in items:
+            food_id = item['food_id']
+            
+            # 📍 GÜNCELLEME 1: Geçmiş seçimlerin ID'leri ile birlikte İSİMLERİNİ (choice_name) de çekiyoruz
+            cursor.execute("""
+                SELECT oic.choice_id, moc.choice_name 
+                FROM order_item_choices oic
+                JOIN menu_option_choices moc ON oic.choice_id = moc.choice_id
+                WHERE oic.order_id = %s AND oic.food_id = %s
+            """, (order_id, food_id))
+            choices_data = cursor.fetchall()
+            
+            choices_list = [str(c['choice_id']) for c in choices_data]
+            choices_names = [c['choice_name'] for c in choices_data] # İsimleri listeye aldık
+            
+            extra_price = 0.0
+            # Eğer ekstra seçim varsa, güncel fiyatlarını topla
+            if choices_list:
+                format_strings = ','.join(['%s'] * len(choices_list))
+                cursor.execute(f"""
+                    SELECT SUM(additional_price) as total_extra 
+                    FROM menu_option_choices 
+                    WHERE choice_id IN ({format_strings})
+                """, tuple(choices_list))
+                extra_res = cursor.fetchone()
+                if extra_res and extra_res['total_extra']:
+                    extra_price = float(extra_res['total_extra'])
+
+            # Ürünün güncel taban fiyatı + ekstraların güncel fiyatı
+            current_total_price = float(item['price']) + extra_price
+
+            # 📍 GÜNCELLEME 2: Senin parantezli isim formatını sıfırdan inşa ediyoruz!
+            food_name_with_choices = item['item_name']
+            if choices_names:
+                # Eğer ekstralar varsa sonuna ekliyoruz: "Yemek Adı (Ekstra 1, Ekstra 2)"
+                food_name_with_choices += f" ({', '.join(choices_names)})"
+
+            new_cart.append({
+                'menu_id': item['menu_id'],
+                'food_id': food_id,
+                'food_name': food_name_with_choices, # 📍 Artık sepete parantezli hali gidiyor!
+                'price': current_total_price,
+                'quantity': item['quantity'],
+                'restaurant_id': target_restaurant_id,
+                'choices': choices_list
+            })
+            
+        session['cart'] = new_cart
+        session.modified = True
+
+        return {"success": True, "message": "Ürünler sepete eklendi!"}
+
+    except Exception as e:
+        print(f"Reorder Error: {e}")
+        return {"success": False, "message": "Sipariş kopyalanırken bir hata oluştu."}, 500
+    finally:
+        if connection and connection.is_connected():
+            cursor.close()
+            connection.close()
 
 def ask_ai():
     data = request.get_json()

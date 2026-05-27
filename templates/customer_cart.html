@@ -295,5 +295,39 @@
         }
     </script>
 
+    <div id="flash-messages-container" style="display: none;">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <span class="flash-message-data" data-category="{{ category }}" data-message="{{ message }}"></span>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Gizli mesaj elemanlarını bul
+            const flashElements = document.querySelectorAll('.flash-message-data');
+            
+            flashElements.forEach((el, index) => {
+                // Alıştığımız gibi verileri güvenle .getAttribute ile çekiyoruz
+                let msgType = el.getAttribute('data-category');
+                let msgText = el.getAttribute('data-message');
+                
+                if (msgType === 'danger' || msgType === 'warning') {
+                    msgType = 'error';
+                }
+                
+                // Mesajlar üst üste binmesin diye aralarına çok ufak (150ms) bir gecikme süresi koyuyoruz
+                setTimeout(() => {
+                    if (typeof showToast === "function") {
+                        showToast(msgText, msgType);
+                    }
+                }, 100 + (index * 150)); 
+            });
+        });
+    </script>
+
 </body>
 </html>

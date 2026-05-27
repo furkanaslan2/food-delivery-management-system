@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Orders</title>
+    <title>Siparişlerim</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { margin: 0; font-family: 'Inter', sans-serif; background-color: #f8f9fa; color: #111827; }
         
         .customer-nav { background: #ffffff; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
         .nav-brand { font-size: 22px; font-weight: 700; color: #4f46e5; text-decoration: none; }
-        .nav-links a { text-decoration: none; color: #4b5563; font-weight: 500; margin-left: 15px; }
+        .nav-links { display: flex; gap: 20px; align-items: center; }
+        .nav-links a { text-decoration: none; color: #4b5563; font-weight: 500; transition: color 0.2s; }
         
         .container { max-width: 800px; margin: 40px auto; padding: 0 20px; }
         .section-title { font-size: 24px; font-weight: 600; margin-bottom: 25px; color: #1f2937; }
@@ -57,6 +58,7 @@
             height: 18px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
+        .cart-btn { background: #4f46e5; color: white !important; padding: 8px 16px; border-radius: 20px; display: flex; align-items: center; gap: 5px; }
 
         /* Modern Açılır Menü (Dropdown) Stilleri */
         .dropdown { position: relative; display: inline-block; }
@@ -96,7 +98,7 @@
             {% endif %}
 
             <a href="{{ url_for('view_cart') }}" class="cart-btn cart-wrapper" style="text-decoration: none;">
-                🛒 Cart
+                🛒 Sepet
                 {% set cart_qty = namespace(total=0) %}
                 {% for item in session.get('cart', []) %}
                     {% set cart_qty.total = cart_qty.total + item.quantity|int %}
@@ -122,11 +124,11 @@
     </nav>
 
     <div class="container">
-        <h2 class="section-title">My Orders</h2>
+        <h2 class="section-title">Siparişlerim</h2>
 
         {% if orders %}
             {% for order in orders %}
-            <div class="order-card">
+            <div class="order-card" data-order-id="{{ order['order_id'] }}" data-status="{{ order['order_status'] }}">
                 <div class="order-header">
                     <div>
                         <p class="restaurant-name">{{ order['restaurant_name'] }}</p>
@@ -149,9 +151,15 @@
                 <div class="order-footer">
                     <span>Total Amount</span>
                     <div style="display: flex; align-items: center; gap: 15px;">
+                        
                         {% if order['order_status'] == 'pending' %}
                             <button class="cancel-order-btn" data-id="{{ order['order_id'] }}" style="background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; padding: 6px 12px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 13px; font-family: inherit; transition: 0.2s;" onmouseover="this.style.background='#fecaca'" onmouseout="this.style.background='#fee2e2'">
                                 ✖ Siparişi İptal Et
+                            </button>
+                            
+                        {% elif order['order_status'] in ['delivered', 'completed', 'canceled'] %}
+                            <button class="reorder-btn" data-id="{{ order['order_id'] }}" style="background: #e0e7ff; color: #4338ca; border: 1px solid #c7d2fe; padding: 6px 12px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 13px; font-family: inherit; transition: 0.2s; display: flex; align-items: center; gap: 5px;" onmouseover="this.style.background='#c7d2fe'" onmouseout="this.style.background='#e0e7ff'">
+                                🔄 Tekrar Sipariş Ver
                             </button>
                         {% endif %}
                         <span class="total-price">${{ "%.2f"|format(order['sales_amount']) }}</span>
@@ -204,86 +212,12 @@
             {% endfor %}
         {% else %}
             <div class="empty-state">
-                <h3>No orders yet! 🛒</h3>
-                <p>When you place your first order, it will appear here.</p>
-                <a href="/" style="display:inline-block; margin-top:15px; padding:10px 20px; background:#4f46e5; color:white; text-decoration:none; border-radius:6px; font-weight:500;">Start Exploring</a>
+                <h3>Henüz sipariş vermemişsiniz! 🛒</h3>
+                <p>İlk siparişinizi verdiğinizde burada gözükecek</p>
+                <a href="/" style="display:inline-block; margin-top:15px; padding:10px 20px; background:#4f46e5; color:white; text-decoration:none; border-radius:6px; font-weight:500;">Keşfetmeye başla</a>
             </div>
         {% endif %}
     </div>
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const cancelBtns = document.querySelectorAll('.cancel-order-btn');
-            const confirmModal = document.getElementById('cancelConfirmModal');
-            const btnYes = document.getElementById('btn-cancel-yes');
-            const btnNo = document.getElementById('btn-cancel-no');
-
-            const alertModal = document.getElementById('customAlertModal');
-            const alertTitle = document.getElementById('customAlertTitle');
-            const alertMessage = document.getElementById('customAlertMessage');
-            const alertIcon = document.getElementById('customAlertIcon');
-            const btnAlertOk = document.getElementById('btn-alert-ok');
-
-            let currentOrderIdToCancel = null;
-
-            // Özel mesaj kutusu gösterme fonksiyonu
-            function showCustomAlert(title, message, isSuccess, reloadOnClose = false) {
-                alertTitle.innerText = title;
-                alertMessage.innerText = message;
-                alertIcon.innerText = isSuccess ? '✅' : '❌';
-                alertModal.style.display = 'flex';
-                
-                btnAlertOk.onclick = function() {
-                    alertModal.style.display = 'none';
-                    if(reloadOnClose) {
-                        window.location.reload();
-                    }
-                };
-            }
-
-            // İptal butonuna basınca onay kutusunu aç
-            cancelBtns.forEach(btn => {
-                btn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    currentOrderIdToCancel = this.getAttribute('data-id');
-                    confirmModal.style.display = 'flex'; 
-                });
-            });
-
-            // Vazgeçe basılırsa kapat
-            btnNo.addEventListener('click', function() {
-                confirmModal.style.display = 'none';
-                currentOrderIdToCancel = null;
-            });
-
-            // Evet'e basılırsa backend'e istek at
-            btnYes.addEventListener('click', function() {
-                confirmModal.style.display = 'none'; 
-
-                if (!currentOrderIdToCancel) return;
-
-                fetch('/api/cancel_order', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    body: JSON.stringify({ order_id: currentOrderIdToCancel })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        showCustomAlert("Başarılı!", data.message, true, true);
-                    } else {
-                        showCustomAlert("İptal Edilemedi", data.message, false, false);
-                    }
-                })
-                .catch(error => {
-                    console.error('İptal işlemi hatası:', error);
-                    showCustomAlert("Bağlantı Hatası", "Bir hata oluştu, lütfen tekrar deneyin.", false, false);
-                });
-            });
-        });
-    </script>
 
     <div id="cancelConfirmModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10000; justify-content:center; align-items:center; backdrop-filter:blur(4px);">
         <div style="background:white; width:90%; max-width:400px; border-radius:16px; padding:25px; box-shadow:0 10px 25px rgba(0,0,0,0.2); text-align:center;">
@@ -305,5 +239,134 @@
             <button id="btn-alert-ok" style="background:#4f46e5; color:white; border:none; padding:12px; border-radius:8px; font-weight:600; cursor:pointer; width:100%; font-family:inherit; transition:0.2s;" onmouseover="this.style.background='#4338ca'" onmouseout="this.style.background='#4f46e5'">Tamam</button>
         </div>
     </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const confirmModal = document.getElementById('cancelConfirmModal');
+            const btnYes = document.getElementById('btn-cancel-yes');
+            const btnNo = document.getElementById('btn-cancel-no');
+
+            const alertModal = document.getElementById('customAlertModal');
+            const alertTitle = document.getElementById('customAlertTitle');
+            const alertMessage = document.getElementById('customAlertMessage');
+            const alertIcon = document.getElementById('customAlertIcon');
+            const btnAlertOk = document.getElementById('btn-alert-ok');
+
+            let currentOrderIdToCancel = null;
+
+            function showCustomAlert(title, message, isSuccess, reloadOnClose = false) {
+                alertTitle.innerText = title;
+                alertMessage.innerText = message;
+                alertIcon.innerText = isSuccess ? '✅' : (isSuccess === 'info' ? '🛵' : '❌');
+                alertModal.style.display = 'flex';
+                
+                btnAlertOk.onclick = function() {
+                    alertModal.style.display = 'none';
+                    if(reloadOnClose) window.location.reload();
+                };
+            }
+
+            // --- 📍 YENİ 1: DİNAMİK BUTON DİNLEYİCİLERİ (EVENT DELEGATION) ---
+            // Sayfaya sonradan gelen butonların da tıklandığında çalışmasını sağlar
+            document.addEventListener('click', function(e) {
+                
+                // 1. İptal Butonuna tıklandıysa
+                const cancelBtn = e.target.closest('.cancel-order-btn');
+                if (cancelBtn) {
+                    e.preventDefault();
+                    currentOrderIdToCancel = cancelBtn.getAttribute('data-id');
+                    confirmModal.style.display = 'flex'; 
+                }
+
+                // 2. Tekrar Sipariş Ver Butonuna tıklandıysa
+                const reorderBtn = e.target.closest('.reorder-btn');
+                if (reorderBtn) {
+                    e.preventDefault();
+                    const orderIdToReorder = reorderBtn.getAttribute('data-id');
+
+                    fetch('/api/reorder', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                        body: JSON.stringify({ order_id: orderIdToReorder })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) window.location.href = "{{ url_for('view_cart') }}";
+                        else showCustomAlert("Hata", data.message, false);
+                    })
+                    .catch(error => showCustomAlert("Bağlantı Hatası", "Bir sorun oluştu.", false));
+                }
+            });
+
+            // Vazgeç butonu (İptal Modal'ı için)
+            btnNo.addEventListener('click', function() {
+                confirmModal.style.display = 'none';
+                currentOrderIdToCancel = null;
+            });
+
+            // Evet, İptal Et butonu
+            btnYes.addEventListener('click', function() {
+                confirmModal.style.display = 'none'; 
+                if (!currentOrderIdToCancel) return;
+
+                fetch('/api/cancel_order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    body: JSON.stringify({ order_id: currentOrderIdToCancel })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) showCustomAlert("Başarılı!", data.message, true, true);
+                    else showCustomAlert("İptal Edilemedi", data.message, false, false);
+                })
+                .catch(error => showCustomAlert("Bağlantı Hatası", "Lütfen tekrar deneyin.", false, false));
+            });
+
+            // --- 🚀 YENİ 2: CANLI SİPARİŞ TAKİP MOTORU (AJAX SILENT POLLING) ---
+            setInterval(() => {
+                // Her 5 saniyede bir arka planda sayfayı sessizce indir
+                fetch(window.location.href, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(response => response.text())
+                .then(html => {
+                    // Gelen HTML'i sanal bir ekranda (DOM) ayrıştır
+                    const parser = new DOMParser();
+                    const newDoc = parser.parseFromString(html, 'text/html');
+                    
+                    const newCards = newDoc.querySelectorAll('.order-card');
+                    
+                    newCards.forEach(newCard => {
+                        const orderId = newCard.getAttribute('data-order-id');
+                        const newStatus = newCard.getAttribute('data-status');
+                        
+                        // Ekrandaki mevcut sipariş kartını bul
+                        const currentCard = document.querySelector(`.order-card[data-order-id="${orderId}"]`);
+                        
+                        // Eğer sipariş durumu EKRANDAKİYLE YENİ GELEN arasında FARKLIYSA
+                        if (currentCard && currentCard.getAttribute('data-status') !== newStatus) {
+                            
+                            // Sadece o siparişin kartını yeni gelen güncel HTML ile değiştir!
+                            currentCard.innerHTML = newCard.innerHTML;
+                            currentCard.setAttribute('data-status', newStatus);
+                            
+                            // Kullanıcının dikkatini çekmek için tatlı bir parlama efekti yap
+                            currentCard.style.transition = 'box-shadow 0.4s ease';
+                            currentCard.style.boxShadow = '0 0 25px rgba(16, 185, 129, 0.6)';
+                            setTimeout(() => { currentCard.style.boxShadow = '0 2px 5px rgba(0,0,0,0.05)'; }, 2000);
+                            
+                            // Duruma göre bildirim çıkart!
+                            if(newStatus === 'preparing') showCustomAlert("Harika Haber!", "#" + orderId + " numaralı siparişiniz hazırlanmaya başlandı! 👨‍🍳", true);
+                            else if(newStatus === 'on_the_way') showCustomAlert("Yolda!", "#" + orderId + " numaralı siparişiniz yola çıktı! 🛵", 'info');
+                            else if(newStatus === 'delivered') showCustomAlert("Teslim Edildi!", "#" + orderId + " numaralı siparişiniz teslim edildi. Afiyet olsun! 🍔", true);
+                            else if(newStatus === 'canceled') showCustomAlert("İptal Edildi", "#" + orderId + " numaralı siparişiniz iptal edildi.", false);
+                        }
+                    });
+                })
+                .catch(err => console.log('Oto-güncelleme hatası:', err));
+            }, 5000); // 5000 milisaniye (5 saniyede bir kontrol et)
+
+        });
+    </script>
 </body>
 </html>

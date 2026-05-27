@@ -206,6 +206,16 @@ CREATE TABLE menu_option_choices (
     FOREIGN KEY (option_id) REFERENCES menu_options(option_id) ON DELETE CASCADE
 );
 
+CREATE TABLE order_item_choices (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,
+    food_id INT NOT NULL,
+    choice_id INT NOT NULL,
+    FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE,
+    FOREIGN KEY (food_id) REFERENCES foods(food_id) ON DELETE CASCADE,
+    FOREIGN KEY (choice_id) REFERENCES menu_option_choices(choice_id) ON DELETE CASCADE
+);
+
 CREATE TABLE promo_codes (
     promo_id INT AUTO_INCREMENT PRIMARY KEY,
     restaurant_id INT NOT NULL,

@@ -55,7 +55,7 @@
         <a href="/" class="nav-brand">🍔 DeliveryApp</a>
         <div class="nav-links">
             <a href="{{ url_for('view_cart') }}" class="cart-btn cart-wrapper" style="text-decoration: none;">
-                🛒 Cart
+                🛒 Sepet
                 {% set cart_qty = namespace(total=0) %}
                 {% for item in session.get('cart', []) %}
                     {% set cart_qty.total = cart_qty.total + item.quantity|int %}

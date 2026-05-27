@@ -29,16 +29,25 @@ def index():
             try:
                 cursor = connection.cursor(dictionary=True)
                 
-                sql_query = "SELECT * FROM restaurants WHERE 1=1"
+                # 📍 SİHİRLİ DOKUNUŞ: Evrensel Arama (Omnisearch) için JOIN'leri ekledik
+                sql_query = """
+                    SELECT DISTINCT r.* FROM restaurants r
+                    LEFT JOIN menus m ON r.restaurant_id = m.restaurant_id
+                    LEFT JOIN foods f ON m.food_id = f.food_id
+                    WHERE 1=1
+                """
                 query_params = []
 
                 if search_query:
-                    sql_query += " AND (restaurant_name LIKE %s OR cuisine LIKE %s)"
+                    # Artık hem restoran adı, hem mutfak, hem de YEMEK ADI aranıyor
+                    sql_query += " AND (r.restaurant_name LIKE %s OR r.cuisine LIKE %s OR f.item_name LIKE %s)"
                     like_pattern = f"%{search_query}%"
-                    query_params.extend([like_pattern, like_pattern])
+                    # Üç farklı alanda aradığımız için listeye 3 tane pattern ekliyoruz
+                    query_params.extend([like_pattern, like_pattern, like_pattern])
 
                 if min_rating and float(min_rating) > 0:
-                    sql_query += " AND rating >= %s"
+                    # Tablolar karıştığı için rating'in kimin (r) olduğunu açıkça belirttik
+                    sql_query += " AND r.rating >= %s"
                     query_params.append(float(min_rating))
 
                 cursor.execute(sql_query, tuple(query_params))

@@ -240,46 +240,6 @@ def order_action():
             customer_address = request.form.get('customer_address')
             courier_id = request.form.get('courier_id')
             
-            food_ids = request.form.getlist('food_id')    
-            quantities = request.form.getlist('quantity') 
-
-            valid_items = []
-            total_qty = 0
-            total_amount = 0
-            
-            if food_ids and any(f for f in food_ids):
-                for i in range(len(food_ids)):
-                    f_id = food_ids[i]
-                    qty_str = quantities[i]
-                    
-                    if f_id and qty_str:
-                        try:
-                            qty = int(qty_str)
-                            if qty > 0:
-                                cursor.execute("SELECT price FROM menus WHERE food_id = %s", (f_id,))
-                                price_res = cursor.fetchone()
-                                if price_res:
-                                    price = float(price_res['price'])
-                                    item_total = price * qty
-                                    
-                                    total_qty += qty
-                                    total_amount += item_total
-                                    
-                                    valid_items.append({
-                                        'food_id': f_id,
-                                        'quantity': qty,
-                                        'unit_price': price
-                                    })
-                        except (ValueError, TypeError):
-                            continue
-            else:
-                if order_type == 'Delivery':
-                    pass
-                else:
-                    total_qty = request.form.get('sales_qty')
-                    total_amount = request.form.get('sales_amount')
-
-
             if not table_no: table_no = None
             if not courier_id: courier_id = None
 
@@ -298,6 +258,23 @@ def order_action():
                      flash(f"The new Order ID is already in use.", "warning")
                      return redirect(url_for('orders'))
 
+            # 📍 SİHİRLİ DOKUNUŞ: Fiyatı yeniden HESAPLAMIYORUZ! 
+            # Check-out anında ekstralarla kaydedilmiş o kusursuz fiyatı veritabanından aynen alıp koruyoruz.
+            cursor.execute("SELECT sales_qty, sales_amount FROM orders WHERE order_id = %s", (update_order_id,))
+            existing_order = cursor.fetchone()
+            
+            total_qty = existing_order['sales_qty'] if existing_order else 0
+            total_amount = existing_order['sales_amount'] if existing_order else 0
+
+            # (Eğer bu bir restoran içi siparişse ve admin formdan özel fiyat girdiyse onu kullanırız)
+            if order_type != 'Delivery':
+                form_qty = request.form.get('sales_qty')
+                form_amount = request.form.get('sales_amount')
+                if form_qty and form_amount:
+                    total_qty = form_qty
+                    total_amount = form_amount
+
+            # Siparişi GÜNCELLE (Ama asla fiyatını ve içeriklerini ezme!)
             query = """
                 UPDATE orders 
                 SET order_id = %s, sales_qty = %s, sales_amount = %s, 
@@ -312,13 +289,6 @@ def order_action():
                                    customer_name, customer_phone, customer_address, courier_id,
                                    update_order_id))
             
-            if order_type == 'Delivery' and valid_items:
-                cursor.execute("DELETE FROM order_items WHERE order_id = %s", (new_order_id,))
-                
-                for item in valid_items:
-                    item_query = "INSERT INTO order_items (order_id, food_id, quantity, unit_price) VALUES (%s, %s, %s, %s)"
-                    cursor.execute(item_query, (new_order_id, item['food_id'], item['quantity'], item['unit_price']))
-
             connection.commit()
             flash("Order updated successfully!", "success")
 
