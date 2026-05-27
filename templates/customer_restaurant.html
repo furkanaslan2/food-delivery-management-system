@@ -706,5 +706,64 @@
         });
     </script>
 
+    <div id="live-restaurant-data" 
+         data-is-open="{% if restaurant.get('is_open', True) %}true{% else %}false{% endif %}" 
+         data-restaurant-id="{{ restaurant['restaurant_id'] }}" 
+         style="display: none;">
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // HTML içine gizlediğimiz Jinja verilerini güvenle okuyoruz
+            const dataElement = document.getElementById('live-restaurant-data');
+            if (!dataElement) return;
+
+            let isRestaurantOpen = dataElement.getAttribute('data-is-open') === 'true';
+            const currentRestaurantId = dataElement.getAttribute('data-restaurant-id');
+
+            setInterval(() => {
+                fetch('/api/restaurant_statuses', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
+                    body: JSON.stringify({ restaurant_ids: [currentRestaurantId] })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success && data.statuses && data.statuses[currentRestaurantId] !== undefined) {
+                        const newStatus = data.statuses[currentRestaurantId];
+                        
+                        // 🛑 Eğer restoran aniden KAPANDIYSA
+                        if (newStatus === false && isRestaurantOpen) {
+                            isRestaurantOpen = false;
+                            
+                            document.querySelector('.restaurant-header').classList.add('closed-header');
+                            document.querySelectorAll('.menu-item').forEach(item => item.classList.add('closed-menu-item'));
+                            
+                            // Tüm sepete ekle butonlarını ve adet kutularını KİLİTLE
+                            document.querySelectorAll('.add-btn').forEach(btn => btn.disabled = true);
+                            document.querySelectorAll('.qty-input').forEach(input => input.disabled = true);
+                            
+                            if (typeof showToast === "function") showToast("Üzgünüz, restoran şu an kapandığı için yeni sipariş alamıyor.", "error");
+                        } 
+                        // 🟢 Eğer restoran aniden AÇILDIYSA
+                        else if (newStatus === true && !isRestaurantOpen) {
+                            isRestaurantOpen = true;
+                            
+                            document.querySelector('.restaurant-header').classList.remove('closed-header');
+                            document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('closed-menu-item'));
+                            
+                            // Tüm butonların KİLİDİNİ AÇ
+                            document.querySelectorAll('.add-btn').forEach(btn => btn.disabled = false);
+                            document.querySelectorAll('.qty-input').forEach(input => input.disabled = false);
+                            
+                            if (typeof showToast === "function") showToast("Harika! Restoran tekrar sipariş almaya başladı.", "success");
+                        }
+                    }
+                })
+                .catch(err => console.log('Canlı durum kontrolü hatası:', err));
+            }, 10000); // 10 Saniyede bir arka planda kontrol eder
+        });
+    </script>
+
 </body>
 </html>

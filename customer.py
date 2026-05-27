@@ -1041,6 +1041,54 @@ def api_reorder():
             cursor.close()
             connection.close()
 
+def api_restaurant_statuses():
+    data = request.get_json()
+    restaurant_ids = data.get('restaurant_ids', [])
+    
+    if not restaurant_ids:
+        return jsonify({'success': False, 'statuses': {}})
+
+    connection = get_db_connection()
+    statuses = {}
+    
+    if connection:
+        try:
+            cursor = connection.cursor(dictionary=True)
+            # Gelen ID listesini SQL için formatlıyoruz
+            format_strings = ','.join(['%s'] * len(restaurant_ids))
+            query = f"SELECT restaurant_id, opening_time, closing_time, is_manually_closed FROM restaurants WHERE restaurant_id IN ({format_strings})"
+            cursor.execute(query, tuple(restaurant_ids))
+            restaurants = cursor.fetchall()
+            
+            now = datetime.now().time()
+            for r in restaurants:
+                is_open = True
+                if r.get('is_manually_closed'):
+                    is_open = False
+                elif r.get('opening_time') is not None and r.get('closing_time') is not None:
+                    op_td = r['opening_time']
+                    cl_td = r['closing_time']
+                    op_time = (datetime.min + op_td).time() if isinstance(op_td, timedelta) else op_td
+                    cl_time = (datetime.min + cl_td).time() if isinstance(cl_td, timedelta) else cl_td
+                    
+                    if op_time < cl_time:
+                        is_open = op_time <= now <= cl_time
+                    else:
+                        is_open = now >= op_time or now <= cl_time
+                        
+                statuses[str(r['restaurant_id'])] = is_open
+                
+            return jsonify({'success': True, 'statuses': statuses})
+        except Exception as e:
+            print(f"Status check error: {e}")
+            return jsonify({'success': False, 'message': str(e)})
+        finally:
+            if connection.is_connected():
+                cursor.close()
+                connection.close()
+                
+    return jsonify({'success': False, 'message': 'Veritabanı bağlantı hatası.'})
+
 def ask_ai():
     data = request.get_json()
     user_msg = data.get('message', '').strip()
@@ -1050,59 +1098,79 @@ def ask_ai():
 
     connection = get_db_connection()
     menu_context = ""
-    history_context = "Müşterinin henüz geçmiş siparişi bulunmuyor. Ona yeni lezzetler keşfetmesini öner."
+    history_context = "Müşterinin henüz geçmiş siparişi bulunmuyor."
 
     if connection:
         try:
             cursor = connection.cursor(dictionary=True)
             
-            # 1. VERİ: SADECE ŞU AN AÇIK OLAN RESTORANLARIN MENÜSÜ
-            cursor.execute("""
-                SELECT r.restaurant_name, f.item_name, m.price 
-                FROM menus m 
-                JOIN foods f ON m.food_id = f.food_id 
-                JOIN restaurants r ON m.restaurant_id = r.restaurant_id 
-                WHERE r.is_manually_closed = 0 
-                  AND (
-                      (r.opening_time <= r.closing_time AND CURTIME() BETWEEN r.opening_time AND r.closing_time)
-                      OR 
-                      (r.opening_time > r.closing_time AND (CURTIME() >= r.opening_time OR CURTIME() <= r.closing_time))
-                  )
-                LIMIT 20
-            """)
+            # 📍 GÜNCELLEME 1: Müşterinin konumunu alıyoruz (10 KM filtresi için)
+            user_lat = session.get('latitude')
+            user_lon = session.get('longitude')
+            
+            if user_lat and user_lon:
+                # Müşterinin konumuna SADECE 10 KM ve daha yakın olan AÇIK restoranları getir
+                cursor.execute("""
+                    SELECT r.restaurant_name, f.item_name, m.price,
+                           (6371 * acos(cos(radians(%s)) * cos(radians(r.latitude)) * cos(radians(r.longitude) - radians(%s)) + sin(radians(%s)) * sin(radians(r.latitude)))) AS distance
+                    FROM menus m 
+                    JOIN foods f ON m.food_id = f.food_id 
+                    JOIN restaurants r ON m.restaurant_id = r.restaurant_id 
+                    WHERE r.is_manually_closed = 0 
+                      AND (
+                          (r.opening_time <= r.closing_time AND CURTIME() BETWEEN r.opening_time AND r.closing_time)
+                          OR 
+                          (r.opening_time > r.closing_time AND (CURTIME() >= r.opening_time OR CURTIME() <= r.closing_time))
+                      )
+                    HAVING distance <= 10
+                    ORDER BY distance ASC
+                    LIMIT 20
+                """, (user_lat, user_lon, user_lat))
+            else:
+                # Konum seçilmemişse sadece açık restoranları getir
+                cursor.execute("""
+                    SELECT r.restaurant_name, f.item_name, m.price 
+                    FROM menus m 
+                    JOIN foods f ON m.food_id = f.food_id 
+                    JOIN restaurants r ON m.restaurant_id = r.restaurant_id 
+                    WHERE r.is_manually_closed = 0 
+                      AND (
+                          (r.opening_time <= r.closing_time AND CURTIME() BETWEEN r.opening_time AND r.closing_time)
+                          OR 
+                          (r.opening_time > r.closing_time AND (CURTIME() >= r.opening_time OR CURTIME() <= r.closing_time))
+                      )
+                    LIMIT 20
+                """)
+                
             items = cursor.fetchall()
             
             if items:
-                menu_context = "Uygulamamızda kayıtlı olan bazı gerçek yemekler şunlar:\n"
+                menu_context = "AÇIK VE SİPARİŞ VERİLEBİLECEK RESTORANLAR:\n"
                 for item in items:
-                    menu_context += f"- {item['restaurant_name']} restoranında {item['item_name']} ({item['price']} TL)\n"
+                    menu_context += f"- {item['restaurant_name']} ({item['item_name']}, {item['price']} TL)\n"
+            else:
+                menu_context = "ŞU AN AÇIK HİÇBİR RESTORAN YOK."
             
-            # 2. VERİ: MÜŞTERİNİN GEÇMİŞ SİPARİŞLERİ (SİHİRLİ DOKUNUŞ ✨)
+            # Geçmiş Siparişleri Çek
             if session.get('logged_in') and session.get('role') == 'customer':
                 customer_id = session.get('customer_id')
-                try:
-                    # En risksiz ve standart SQL sorgumuz:
-                    cursor.execute("""
-                        SELECT r.restaurant_name, f.item_name 
-                        FROM orders o
-                        JOIN order_items oi ON o.order_id = oi.order_id
-                        JOIN foods f ON oi.food_id = f.food_id
-                        JOIN restaurants r ON o.restaurant_id = r.restaurant_id
-                        WHERE o.customer_id = %s AND o.order_status != 'canceled'
-                        ORDER BY o.order_id DESC
-                        LIMIT 5
-                    """, (customer_id,))
-                    past_orders = cursor.fetchall()
-                    
-                    if past_orders:
-                        history_context = "Müşterinin son siparişleri şunlar (Ona kişiselleştirilmiş bir tavsiye vermek için bu veriyi KESİNLİKLE KULLAN!):\n"
-                        for po in past_orders:
-                            history_context += f"- {po['restaurant_name']} restoranından {po['item_name']}\n"
+                cursor.execute("""
+                    SELECT r.restaurant_name, f.item_name 
+                    FROM orders o
+                    JOIN order_items oi ON o.order_id = oi.order_id
+                    JOIN foods f ON oi.food_id = f.food_id
+                    JOIN restaurants r ON o.restaurant_id = r.restaurant_id
+                    WHERE o.customer_id = %s AND o.order_status != 'canceled'
+                    ORDER BY o.order_id DESC
+                    LIMIT 5
+                """, (customer_id,))
+                past_orders = cursor.fetchall()
                 
-                except Exception as db_err:
-                    # Eğer SQL yine patlarsa, terminalde kabak gibi göreceğimiz mesaj:
-                    print("🚨 GEÇMİŞ SİPARİŞ SQL HATASI:", db_err)
-                        
+                if past_orders:
+                    history_context = "Müşterinin son siparişleri:\n"
+                    for po in past_orders:
+                        history_context += f"- {po['restaurant_name']} restoranından {po['item_name']}\n"
+                    
         except Exception as e:
             print("DB Hatası:", e)
         finally:
@@ -1110,20 +1178,21 @@ def ask_ai():
                 cursor.close()
                 connection.close()
 
-    # 🧠 YAPAY ZEKA BEYNİNE GİDEN GİZLİ VE KATI TALİMATLAR (PROMPT ENGINEERING)
+    # 📍 GÜNCELLEME 2: PEMBE FİL SENDROMUNU ÇÖZEN YENİ PROMPT
+    # Uydurmasını istemediğimiz markaların isimlerini komuttan sildik. Artık aklına bile gelmeyecek.
     system_prompt = f"""
-    Sen 'DeliveryApp' isimli yemek sipariş uygulamasının hiper-zeki, enerjik ve müşteriyi tanıyan Gurme Asistanısın.
-    Müşteri sana şunu sordu veya söyledi: "{user_msg}"
+    Sen 'DeliveryApp' uygulamasının Gurme Asistanısın. Müşteriye yemek önerileri yapıyorsun.
+    Müşterinin mesajı: "{user_msg}"
     
     {menu_context}
     
     {history_context}
     
-    ÇOK ÖNEMLİ KURALLAR (BUNLARI KESİNLİKLE İHLAL ETME):
-    1. YALNIZCA sana yukarıda "gerçek yemekler" kısmında verilen listedeki restoranları ve yemekleri önerebilirsin.
-    2. Eğer sana verilen menü listesi boşsa (yani restoranlar kapalıysa), KESİNLİKLE dışarıdan, gerçek hayattan (Domino's, Burger King vb.) bir restoran veya marka UYDURMA. Böyle bir durumda sadece: "Şu an çevrende açık bir restoran bulamadım, birazdan tekrar dener misin? 😔" de ve konuşmayı bitir.
-    3. Kullanıcıya sanki çok yakın bir arkadaşıymışsın gibi samimi ve tatlı bir dille cevap ver (Maksimum 3-4 cümle).
-    4. Müşterinin geçmiş siparişi varsa bile, o restoran şu an menü listesinde YER ALMIYORSA onu asla tavsiye etme.
+    KESİN KURALLAR (HAYATİ ÖNEM TAŞIR):
+    1. SADECE yukarıda sana verilen listedeki restoranları önerebilirsin.
+    2. Eğer sana "ŞU AN AÇIK HİÇBİR RESTORAN YOK." bilgisi geldiyse, hiçbir yer ismi kullanmadan "Şu an çevrende açık bir restoran bulamadım. 😔" demelisin.
+    3. Sistemde kayıtlı olmayan hiçbir markayı metne dahil etme. Asla veritabanı dışından isim kullanma.
+    4. Samimi ve kısa bir dille cevap ver (Maksimum 3-4 cümle).
     """
 
     try:
@@ -1131,11 +1200,9 @@ def ask_ai():
             model='gemini-2.5-flash',
             contents=system_prompt
         )
-        ai_text = response.text
-
         return jsonify({
             'success': True, 
-            'response': ai_text
+            'response': response.text
         })
         
     except Exception as e:

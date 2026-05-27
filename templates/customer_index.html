@@ -278,7 +278,7 @@
         <div class="restaurant-grid">
             {% for restaurant in restaurants %}
             
-            <a href="{{ url_for('view_restaurant', restaurant_id=restaurant.get('restaurant_id')) }}" class="restaurant-card filterable-card {% if restaurant.get('is_open') == False %}closed-restaurant{% endif %}" data-category="{{ restaurant.get('cuisine') }}" style="position: relative;">
+            <a href="{{ url_for('view_restaurant', restaurant_id=restaurant.get('restaurant_id')) }}" class="restaurant-card filterable-card {% if restaurant.get('is_open') == False %}closed-restaurant{% endif %}" data-category="{{ restaurant.get('cuisine') }}" data-rest-id="{{ restaurant['restaurant_id'] }}" style="position: relative;">
                 
                 <button class="main-page-fav-btn" data-id="{{ restaurant['restaurant_id'] }}" style="position: absolute; top: 15px; right: 15px; z-index: 10; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
                     {% if restaurant['restaurant_id'] in favorited_restaurant_ids %}
@@ -930,6 +930,57 @@
                     }
                 }, 100 + (index * 150)); 
             });
+        });
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            setInterval(() => {
+                const restaurantCards = document.querySelectorAll('.restaurant-card[data-rest-id]');
+                const restaurantIds = Array.from(restaurantCards).map(card => card.getAttribute('data-rest-id'));
+                
+                if (restaurantIds.length === 0) return;
+
+                fetch('/api/restaurant_statuses', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
+                    body: JSON.stringify({ restaurant_ids: restaurantIds })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success && data.statuses) {
+                        restaurantCards.forEach(card => {
+                            const restId = card.getAttribute('data-rest-id');
+                            const isOpen = data.statuses[restId];
+                            const isCurrentlyClosedInUI = card.classList.contains('closed-restaurant');
+                            const imgContainer = card.querySelector('.card-image');
+
+                            // 🛑 Restoran yeni KAPANIRSA
+                            if (isOpen === false && !isCurrentlyClosedInUI) {
+                                card.classList.add('closed-restaurant');
+                                
+                                const badgeHtml = `<div class="live-closed-badge" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 15; display: flex; align-items: center; justify-content: center;">
+                                    <span style="background: #ef4444; color: white; padding: 8px 16px; border-radius: 8px; font-weight: 700; font-size: 16px; letter-spacing: 0.5px; box-shadow: 0 4px 6px rgba(0,0,0,0.2);">ŞU AN KAPALI</span>
+                                </div>`;
+                                imgContainer.insertAdjacentHTML('beforeend', badgeHtml);
+                            } 
+                            // 🟢 Restoran yeni AÇILIRSA
+                            else if (isOpen === true && isCurrentlyClosedInUI) {
+                                card.classList.remove('closed-restaurant');
+                                
+                                // Yeni eklenen veya eskiden Jinja ile gelen kapalı rozetlerini sil
+                                const liveBadge = imgContainer.querySelector('.live-closed-badge');
+                                if (liveBadge) liveBadge.remove();
+                                
+                                Array.from(imgContainer.children).forEach(child => {
+                                    if (child.innerText && child.innerText.includes('KAPALI')) child.remove();
+                                });
+                            }
+                        });
+                    }
+                })
+                .catch(err => console.log('Ana sayfa restoran tarama hatası:', err));
+            }, 15000); // Sistemi yormamak için her 15 saniyede bir toplu kontrol eder
         });
     </script>
 
