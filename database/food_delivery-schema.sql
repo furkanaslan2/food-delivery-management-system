@@ -56,6 +56,8 @@ CREATE TABLE couriers (
     email VARCHAR(100) UNIQUE NOT NULL, 
     password VARCHAR(255) NOT NULL,
     restaurant_id INT,
+    current_lat DECIMAL(10, 8) NULL,
+    current_lon DECIMAL(11, 8) NULL,
     PRIMARY KEY (courier_id),
     FOREIGN KEY (restaurant_id) REFERENCES restaurants(restaurant_id)
     ON DELETE SET NULL

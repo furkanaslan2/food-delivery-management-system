@@ -1208,3 +1208,52 @@ def ask_ai():
     except Exception as e:
         print("Gemini Hatası:", e)
         return jsonify({'success': False, 'response': 'Şu an mutfakta biraz yoğunum, lütfen birazdan tekrar dener misin? 🧑‍🍳'})
+    
+def api_get_courier_location():
+    data = request.get_json()
+    order_id = data.get('order_id')
+
+    if not order_id:
+        return jsonify({'success': False, 'message': 'Sipariş ID eksik'})
+
+    connection = get_db_connection()
+    if connection:
+        try:
+            cursor = connection.cursor(dictionary=True)
+            # DİKKAT: "WHERE o.order_status = 'on_the_way'" şartını kaldırdık ve "o.order_status" sütununu ekledik
+            cursor.execute("""
+                SELECT c.current_lat, c.current_lon, c.name, 
+                       r.restaurant_name, r.latitude AS rest_lat, r.longitude AS rest_lon,
+                       o.order_status
+                FROM orders o
+                JOIN couriers c ON o.courier_id = c.courier_id
+                JOIN restaurants r ON o.restaurant_id = r.restaurant_id
+                WHERE o.order_id = %s
+            """, (order_id,))
+            courier = cursor.fetchone()
+
+            if courier:
+                return jsonify({
+                    'success': True, 
+                    'lat': float(courier['current_lat']) if courier['current_lat'] else None, 
+                    'lon': float(courier['current_lon']) if courier['current_lon'] else None,
+                    'name': courier['name'],
+                    'rest_name': courier['restaurant_name'],
+                    'rest_lat': float(courier['rest_lat']) if courier['rest_lat'] else None,
+                    'rest_lon': float(courier['rest_lon']) if courier['rest_lon'] else None,
+                    'cust_lat': float(session.get('latitude')) if session.get('latitude') else None,
+                    'cust_lon': float(session.get('longitude')) if session.get('longitude') else None,
+                    'order_status': courier['order_status'] # 🟢 YENİ: Siparişin o anki durumunu gönderiyoruz
+                })
+            else:
+                return jsonify({'success': False, 'message': 'Kurye veya sipariş bulunamadı'})
+                
+        except Exception as e:
+            print("Kurye Konum Çekme Hatası:", e)
+            return jsonify({'success': False})
+        finally:
+            if connection.is_connected():
+                cursor.close()
+                connection.close()
+
+    return jsonify({'success': False})

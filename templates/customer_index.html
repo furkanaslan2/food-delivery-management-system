@@ -133,6 +133,11 @@
                     <button id="live-cancel-btn" style="display: none; background: white; color: #ef4444; border: 1px solid #fca5a5; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='white'">
                         ✖ İptal Et
                     </button>
+                    
+                    <button id="live-track-btn" style="display: none; background: #10b981; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 6px rgba(16, 185, 129, 0.3);" onclick="openTrackModal(this.getAttribute('data-id'))">
+                        📍 Haritada İzle
+                    </button>
+
                     <a href="{{ url_for('customer_orders') }}" style="background: #f3f4f6; color: #374151; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 13px; border: 1px solid #e5e7eb; transition: 0.2s;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
                         Sipariş Detayı ➔
                     </a>
@@ -158,6 +163,7 @@
                         const icon = document.getElementById('tracker-icon');
                         const accent = document.getElementById('tracker-accent');
                         const cancelBtn = document.getElementById('live-cancel-btn');
+                        const trackBtn = document.getElementById('live-track-btn');
 
                         const step1 = document.getElementById('step-1');
                         const step2 = document.getElementById('step-2');
@@ -188,6 +194,8 @@
                                     cancelBtn.style.display = 'block'; 
                                     cancelBtn.setAttribute('data-id', data.order_id); 
                                 }
+                                if(trackBtn) trackBtn.style.display = 'none';
+
                             } else if (data.order_status === 'preparing') {
                                 title.innerText = 'Siparişiniz Hazırlanıyor';
                                 desc.innerText = 'Restoran siparişinizi onayladı ve şu an mutfakta hazırlıyor.';
@@ -200,6 +208,8 @@
                                 step3.style.background = '#e5e7eb';
 
                                 if(cancelBtn) cancelBtn.style.display = 'none';
+                                if(trackBtn) trackBtn.style.display = 'none';
+                                
                             } else if (data.order_status === 'on_the_way') {
                                 title.innerText = 'Siparişiniz Yolda!';
                                 desc.innerText = 'Kuryemiz siparişinizi teslim aldı, adresinize doğru yola çıktı.';
@@ -212,6 +222,11 @@
                                 step3.style.background = '#10b981';
 
                                 if(cancelBtn) cancelBtn.style.display = 'none';
+
+                                if(trackBtn) { 
+                                    trackBtn.style.display = 'block'; 
+                                    trackBtn.setAttribute('data-id', data.order_id); 
+                                }
                             }
                         } else {
                             banner.style.display = 'none';
@@ -383,6 +398,44 @@
             </div>
             <div id="address-picker-map" style="width:100%; height:300px; border-radius:12px; border:1px solid #ddd; position:relative;"></div>
             <button onclick="confirmMapLocation()" style="background:#10b981; color:white; border:none; padding:12px; border-radius:8px; font-weight:600; cursor:pointer; width:100%;">Bu Konumu Kullan</button>
+        </div>
+    </div>
+
+    <div id="courierTrackModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10002; justify-content:center; align-items:center; backdrop-filter:blur(4px);">
+        <div class="modal-content" style="background:white; width:90%; max-width:600px; border-radius:16px; padding:20px; box-shadow:0 15px 35px rgba(0,0,0,0.2); display:flex; flex-direction:column; gap:15px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f3f4f6; padding-bottom:10px;">
+                <h3 style="margin:0; font-size:18px; color:#111827; display:flex; align-items:center; gap:8px;">
+                    🛵 <span id="track-modal-title">Kuryeniz Yolda!</span>
+                </h3>
+                <button onclick="closeTrackModal()" style="background:none; border:none; font-size:24px; cursor:pointer; color:#9ca3af;">&times;</button>
+            </div>
+            
+            <div id="live-tracking-map" style="width:100%; height:350px; border-radius:12px; border:1px solid #e5e7eb; background:#f9fafb; position:relative; z-index: 1;"></div>
+            
+            <div id="modal-status-bar" style="display: flex; justify-content: space-between; position: relative; margin-top: 5px; padding: 0 10px;">
+                <div style="position: absolute; top: 15px; left: 15%; right: 15%; height: 4px; background: #e5e7eb; z-index: 1; border-radius: 2px;">
+                    <div id="modal-progress-line" style="width: 50%; height: 100%; background: #10b981; transition: width 0.8s ease-in-out; border-radius: 2px;"></div>
+                </div>
+                
+                <div style="position: relative; z-index: 2; text-align: center; width: 33%;">
+                    <div style="width: 32px; height: 32px; background: #10b981; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 5px; font-weight: bold; font-size: 14px;">✓</div>
+                    <div style="font-size: 11px; font-weight: 700; color: #374151;">Hazırlandı</div>
+                </div>
+                
+                <div style="position: relative; z-index: 2; text-align: center; width: 33%;">
+                    <div id="modal-step-2" style="width: 32px; height: 32px; background: #10b981; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 5px; font-weight: bold; font-size: 16px; box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2); animation: pulse 2s infinite;">🛵</div>
+                    <div id="modal-text-2" style="font-size: 11px; font-weight: 700; color: #10b981;">Yolda</div>
+                </div>
+                
+                <div style="position: relative; z-index: 2; text-align: center; width: 33%;">
+                    <div id="modal-step-3" style="width: 32px; height: 32px; background: white; color: #9ca3af; border: 2px solid #e5e7eb; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 5px; font-weight: bold; font-size: 14px; transition: all 0.5s;">🏠</div>
+                    <div id="modal-text-3" style="font-size: 11px; font-weight: 700; color: #9ca3af; transition: all 0.5s;">Teslim Edildi</div>
+                </div>
+            </div>
+
+            <style>
+                @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
+            </style>
         </div>
     </div>
 
@@ -982,6 +1035,138 @@
                 .catch(err => console.log('Ana sayfa restoran tarama hatası:', err));
             }, 15000); // Sistemi yormamak için her 15 saniyede bir toplu kontrol eder
         });
+    </script>
+
+    <script>
+        let trackingMap = null;
+        let courierMarker = null;
+        let restMarker = null;
+        let custMarker = null;
+        let trackingInterval = null;
+        let currentTrackOrderId = null;
+
+        // 🛵 1. Teslimat Motoru İkonu (Gerçekçi)
+        const motorIcon = L.divIcon({
+            html: '<div style="font-size: 40px; line-height: 1; filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.4));">🛵</div>',
+            className: '', // Leaflet'in varsayılan beyaz arka planını kaldırır
+            iconSize: [40, 40], 
+            iconAnchor: [20, 20], 
+            popupAnchor: [0, -20]
+        });
+
+        // 🏪 2. Restoran (Dükkan) İkonu
+        const restIcon = L.icon({
+            iconUrl: 'https://cdn-icons-png.flaticon.com/512/3448/3448609.png', 
+            iconSize: [38, 38], iconAnchor: [19, 38], popupAnchor: [0, -38]
+        });
+
+        // 🏠 3. Müşteri (Ev) İkonu
+        const homeIcon = L.icon({
+            iconUrl: 'https://cdn-icons-png.flaticon.com/512/2558/2558062.png', 
+            iconSize: [38, 38], iconAnchor: [19, 38], popupAnchor: [0, -38]
+        });
+
+        function openTrackModal(orderId) {
+            currentTrackOrderId = orderId;
+            document.getElementById('courierTrackModal').style.display = 'flex';
+            
+            setTimeout(() => {
+                if (!trackingMap) {
+                    trackingMap = L.map('live-tracking-map').setView([41.0082, 28.9784], 15);
+                    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                        attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+                    }).addTo(trackingMap);
+                }
+                trackingMap.invalidateSize(); 
+                
+                fetchCourierLocation();
+                trackingInterval = setInterval(fetchCourierLocation, 5000);
+            }, 200);
+        }
+
+        function closeTrackModal() {
+            document.getElementById('courierTrackModal').style.display = 'none';
+            if (trackingInterval) clearInterval(trackingInterval);
+        }
+
+        function fetchCourierLocation() {
+            if (!currentTrackOrderId) return;
+
+            fetch('/api/get_courier_location', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
+                body: JSON.stringify({ order_id: currentTrackOrderId })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    const courierLatLng = new L.LatLng(data.lat, data.lon);
+
+                    // 1. Restoran İkonunu Haritaya Koy (Eğer Yoksa)
+                    if (!restMarker && data.rest_lat && data.rest_lon) {
+                        restMarker = L.marker([data.rest_lat, data.rest_lon], {icon: restIcon}).addTo(trackingMap);
+                        restMarker.bindPopup(`<b>${data.rest_name}</b><br>Siparişi Hazırlayan`);
+                    }
+
+                    // 2. Müşteri Ev İkonunu Haritaya Koy (Eğer Yoksa)
+                    if (!custMarker && data.cust_lat && data.cust_lon) {
+                        custMarker = L.marker([data.cust_lat, data.cust_lon], {icon: homeIcon}).addTo(trackingMap);
+                        custMarker.bindPopup(`<b>Teslimat Adresiniz</b>`);
+                    }
+
+                    // 3. Kurye Motorunu Haritaya Koy ve Kaydır
+                    if (!courierMarker) {
+                        courierMarker = L.marker(courierLatLng, {icon: motorIcon}).addTo(trackingMap);
+                        courierMarker.bindPopup(`<b>${data.name}</b><br>Size doğru geliyor!`).openPopup();
+                        
+                        // 📍 SİHİR: Haritayı bu 3 ikonun hepsini ekrana sığdıracak şekilde otomatik uzaklaştır/yakınlaştır
+                        const group = new L.featureGroup([restMarker, custMarker, courierMarker].filter(Boolean));
+                        trackingMap.fitBounds(group.getBounds(), {padding: [40, 40]});
+                        
+                    } else {
+                        // Motor zaten varsa sadece pürüzsüzce kaydır
+                        courierMarker.setLatLng(courierLatLng);
+                        trackingMap.panTo(courierLatLng);
+                    }
+
+                    if (data.success) {
+                    // ... (Mevcut harita ikonlarını çizen kodlar burada duracak) ...
+
+                    // 🟢 YENİ: Sipariş Teslim Edildiyse Barı Doldur ve Haritayı Kapat!
+                    if (data.order_status === 'delivered') {
+                        // Kurye takibini (interval) durdur
+                        clearInterval(trackingInterval);
+                        
+                        // İlerleme çubuğunu %100 yap
+                        document.getElementById('modal-progress-line').style.width = '100%';
+                        
+                        // Adım 2 (Yolda) animasyonunu kapat
+                        document.getElementById('modal-step-2').style.animation = 'none';
+                        document.getElementById('modal-step-2').style.boxShadow = 'none';
+                        document.getElementById('modal-text-2').style.color = '#374151';
+                        
+                        // Adım 3 (Teslim Edildi) butonunu yeşil yap
+                        const step3 = document.getElementById('modal-step-3');
+                        step3.style.background = '#10b981';
+                        step3.style.color = 'white';
+                        step3.style.borderColor = '#10b981';
+                        step3.innerHTML = '✓';
+                        document.getElementById('modal-text-3').style.color = '#10b981';
+
+                        // Başlık metnini değiştir
+                        document.getElementById('track-modal-title').innerText = '🎉 Sipariş Teslim Edildi! Afiyet olsun.';
+
+                        // 3 saniye sonra modalı ve sayfayı yenileyip ana ekrana döndür
+                        setTimeout(() => {
+                            closeTrackModal();
+                            window.location.reload();
+                        }, 4000);
+                    }
+                }
+                }
+            })
+            .catch(err => console.error("Takip Hatası:", err));
+        }
     </script>
 
 </body>

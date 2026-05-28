@@ -11,8 +11,8 @@ from menus import menus, menus_action, manage_menu_options, upload_menu_image, m
 from orders import orders, order_action, get_order_details, get_restaurant_details, api_check_new_orders
 from foods import foods, food_action
 from waiters import waiter_dashboard, waiter_create_order, waiters, waiter_action, waiter_close_bill, waiter_receipt
-from customer import view_restaurant, add_to_cart, view_cart, checkout, customer_orders, set_location, remove_from_cart, increase_cart_item, decrease_cart_item, submit_review, get_active_order_status, toggle_favorite, view_favorites, get_addresses, add_address, select_address, update_address, cancel_order, apply_promo, ask_ai, api_reorder,api_restaurant_statuses
-from courier_panel import courier_dashboard, update_delivery_status, courier_login, courier_logout
+from customer import view_restaurant, add_to_cart, view_cart, checkout, customer_orders, set_location, remove_from_cart, increase_cart_item, decrease_cart_item, submit_review, get_active_order_status, toggle_favorite, view_favorites, get_addresses, add_address, select_address, update_address, cancel_order, apply_promo, ask_ai, api_reorder,api_restaurant_statuses, api_get_courier_location
+from courier_panel import courier_dashboard, update_delivery_status, courier_login, courier_logout, api_update_courier_location
 from payment_handler import checkout_payment, payment_callback
 from profile_settings import view_profile, update_profile
 
@@ -86,6 +86,10 @@ app.add_url_rule('/api/apply_promo', endpoint='apply_promo', view_func=apply_pro
 app.add_url_rule('/api/ask_ai', endpoint='ask_ai', view_func=ask_ai, methods=['POST'])
 app.add_url_rule('/api/reorder', view_func=api_reorder, methods=['POST'])
 app.add_url_rule('/api/restaurant_statuses', view_func=api_restaurant_statuses, methods=['POST'])
+app.add_url_rule('/api/update_courier_location', view_func=api_update_courier_location, methods=['POST'])
+app.add_url_rule('/api/get_courier_location', view_func=api_get_courier_location, methods=['POST'])
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)

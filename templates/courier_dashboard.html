@@ -41,6 +41,61 @@
             Logout 🚪
         </a>
     </div>
+
+    {% set ns = namespace(active_delivery='false') %}
+    {% if orders %}
+        {% for order in orders %}
+            {% if order.order_status == 'on_the_way' %}
+                {% set ns.active_delivery = 'true' %}
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+    
+    <div id="courier-gps-data" data-has-active-delivery="{{ ns.active_delivery }}" style="display: none;"></div>
+
+    <div id="gps-tracker-banner" style="display: none; background: #10b981; color: white; text-align: center; padding: 10px; font-size: 13px; font-weight: 600; box-shadow: 0 2px 4px rgba(0,0,0,0.1); position: sticky; top: 60px; z-index: 50;">
+        <span id="gps-status-text">📡 Müşteriye Canlı Konum Aktarılıyor...</span>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // HTML içindeki güvenli kutudan veriyi alıyoruz
+            const gpsDataElement = document.getElementById('courier-gps-data');
+            if (!gpsDataElement) return;
+
+            const hasActiveDelivery = gpsDataElement.getAttribute('data-has-active-delivery') === 'true';
+
+            // Eğer kurye yoldaysa, telefonun GPS'ini takip etmeye başla
+            if (hasActiveDelivery && navigator.geolocation) {
+                document.getElementById('gps-tracker-banner').style.display = 'block';
+
+                navigator.geolocation.watchPosition(
+                    (position) => {
+                        const lat = position.coords.latitude;
+                        const lon = position.coords.longitude;
+
+                        // Her konum değiştiğinde arka plandaki Python API'mize fırlatıyoruz
+                        fetch('/api/update_courier_location', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({ lat: lat, lon: lon })
+                        }).catch(err => console.log("GPS Gönderim Hatası:", err));
+                    },
+                    (error) => {
+                        console.error("Konum hatası:", error);
+                        const statusText = document.getElementById('gps-status-text');
+                        const banner = document.getElementById('gps-tracker-banner');
+                        
+                        banner.style.backgroundColor = "#ef4444"; // Hata durumunda kırmızı yap
+                        if (error.code === 1) statusText.innerText = "⚠️ Lütfen Tarayıcıdan Konum İzni Verin!";
+                        else statusText.innerText = "⚠️ Konum Sinyali Zayıf!";
+                    },
+                    // Yüksek doğruluk (Gerçek GPS) kullanmasını istiyoruz
+                    { enableHighAccuracy: true, maximumAge: 10000, timeout: 30000 }
+                );
+            }
+        });
+    </script>
     
     <div id="courier-alert" style="display: none; background-color: #3b82f6; color: white; padding: 15px; text-align: center; font-weight: 700; font-size: 16px; margin-bottom: -15px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); animation: flashPulse 1.5s infinite;" onclick="window.location.reload();">
         <span id="courier-alert-text">📦 YENİ PAKET GELDİ! Yenilemek için dokun.</span>

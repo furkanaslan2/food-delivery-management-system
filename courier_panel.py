@@ -1,5 +1,5 @@
 from werkzeug.security import check_password_hash
-from flask import render_template, request, redirect, url_for, session, flash
+from flask import render_template, request, redirect, url_for, session, flash, jsonify
 from db import get_db_connection
 
 def courier_dashboard(courier_id):
@@ -111,3 +111,38 @@ def courier_logout():
     
     flash("Başarıyla çıkış yaptınız. İyi dinlenmeler! 🛵", "success")
     return redirect(url_for('courier_login'))
+
+def api_update_courier_location():
+    # Sadece giriş yapmış kuryeler konum gönderebilir
+    courier_id = session.get('courier_id')
+    if not courier_id:
+        return jsonify({'success': False, 'message': 'Unauthorized'})
+
+    data = request.get_json()
+    lat = data.get('lat')
+    lon = data.get('lon')
+
+    if lat is None or lon is None:
+        return jsonify({'success': False, 'message': 'Missing coordinates'})
+
+    connection = get_db_connection()
+    if connection:
+        try:
+            cursor = connection.cursor()
+            # Kuryenin güncel konumunu veritabanına yazıyoruz
+            cursor.execute("""
+                UPDATE couriers 
+                SET current_lat = %s, current_lon = %s 
+                WHERE courier_id = %s
+            """, (lat, lon, courier_id))
+            connection.commit()
+            return jsonify({'success': True})
+        except Exception as e:
+            print("Konum Güncelleme Hatası:", e)
+            return jsonify({'success': False, 'message': str(e)})
+        finally:
+            if connection.is_connected():
+                cursor.close()
+                connection.close()
+
+    return jsonify({'success': False, 'message': 'Database connection error'})
