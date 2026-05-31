@@ -1,450 +1,329 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Menu</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-</head>
-<body class = "menus-page">
-    <nav>
-        <input type="hidden" id="current-user-role" value="{{ session['role'] }}">
-        <div class="logo navbar">
-            <a href="/"><img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo"></a>
-            <h1><a href="/">Food Delivery Management System</a> / <span style="margin-left: 10px; color: white">Menu</span></h1>
-        </div>
-        <ul class="navbar" style="display: flex; align-items: center; gap: 15px;">
-            <li>
-                <button onclick="openPromoModal()" style="background: #ec4899; color: white; border: none; padding: 8px 16px; border-radius: 20px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 14px; box-shadow: 0 2px 4px rgba(236,72,153,0.3); transition: 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-                    🎟️ Kuponlar
-                </button>
-            </li>
-            <li><a href="/logout">Logout</a></li>
-        </ul>
-    </nav>
-    <div class="flash-container">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <div class="flash-messages">
-                    {% for category, message in messages %}
-                    <div class="flash-message {{ category }}">
-                        {{ message }}
-                        <button class="close-flash" onclick="this.parentElement.style.display='none';">&times;</button>
-                    </div>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        {% endwith %}
-    </div>
-    <button id="scrollTopBtn"><img class="up-arrow" src="{{ url_for('static', filename='images/up-arrow.png') }}"></button>
-    <div class="search-bar">
-        <form id="menu-form" class="menu-form" action="{{ url_for('menus_action') }}" method="post">
-            <input type="hidden" id="selected-menu-items" name="selected_menu_items">
-            <input type="hidden" id="update-menu-id" name="update_menu_id">
-            <input type="hidden" id="form-action" name="action" value="">
-            
-            <input type="hidden" id="menu-id" name="menu_id">
-            <input type="hidden" id="menu-restaurant-id" name="restaurant_id">
-            
-            <input type="text" id="food-name" name="name" placeholder="Food Name">
-            <input type="text" id="menu-cuisine" name="cuisine" placeholder="Cuisine">
-            <input type="number" id="menu-price" name="price" placeholder="Price">
-            <input type="number" id="menu-stock" name="stock_quantity" placeholder="Stock Quantity">
-        </form>
-        <button class="search-button" onclick="searchMenu()"><img class="button-img" src="{{ url_for('static', filename='images/search.png') }}" alt="search icon">Search</button>
-        <button class="clear-button" type="submit" form="menu-form" name="action" value="clear" onclick="clearSearch()"><img class="button-img" src="{{ url_for('static', filename='images/clear.png') }}" alt="clear icon">Clear</button>
-    </div>
-    <div class="action-buttons">
-        <button class="add-button" type="submit" name="action" value="add" form="menu-form"><img class="button-img" src="{{ url_for('static', filename='images/add.png') }}" alt="add icon">Add</button>
-        <button class="delete-button" type="submit" name="action" value="delete" form="menu-form"><img class="button-img" src="{{ url_for('static', filename='images/delete.png') }}" alt="delete icon">Delete</button>
-        <button class="update-button" type="submit" name="action" value="update" form="menu-form"><img class="button-img" src="{{ url_for('static', filename='images/update.png') }}" alt="update icon">Update</button>
-        <button type="submit" class="filter-button" name="action" value="filter" form="menu-form">
-            <img class="button-img" src="{{ url_for('static', filename='images/filter.png') }}" alt="filter icon">Filter
-        </button>
-        <div class="sort-container">
-            <button class="sort-button" onclick="toggleSortMenu()"><img class="button-img" src="{{ url_for('static', filename='images/sort.png') }}" alt="sort icon"></img>Sort</button>
-            <div id="overlay" class="hidden"></div>
-            <div class="sort-menu hidden" id="sort-menu">
-                <h3>Sort By</h3>
-                <form id="sort-form" action="{{ url_for('menus_action') }}" method="post">
-                    <select name="sort_by" id="sort-by">
-                        <option value="item_name">Name</option>
-                        <option value="cuisine">Cuisine</option>
-                        <option value="price">Price</option>
-                    </select>
-                    <h3 id="second-h3">Order</h3>
-                    <select name="sort_order" id="sort-order">
-                        <option value="ASC">Ascending</option>
-                        <option value="DESC">Descending</option>
-                    </select>
-                    <button type="submit" name="action" value="sort">Apply</button>
-                </form>
-            </div>
-        </div>
-    </div>
-    <div id="navigation" class="hidden">
-        <button id="next-match-button" onclick="goToNextMatch()">Next Match</button>
-    </div>
-    <div class="list" id="menu-list">
-        {% for item in menus %}
-        {% set is_sold_out = item['stock_quantity'] <= 0 %}
-        
-        <div class="table-card {{ 'sold-out' if is_sold_out else '' }}" id="menu-card-{{ item['menu_id'] }}">
-            
-            {% if is_sold_out %}
-                <div class="sold-out-badge">Sold Out</div>
-            {% endif %}
+{% extends 'dashboard_base.html' %}
 
-            <input type="checkbox" id="menu-{{ loop.index }}" name="selected_menu_items" value="{{ item['menu_id'] }}">
-            <label for="menu-{{ loop.index }}" style="display: flex; flex-direction: column; gap: 10px;">
-                <span class="menu-id" style="display: none;">{{ item['menu_id'] }}</span>
-                <span class="menu-restaurant-id" style="display: none;">{{ item['restaurant_id'] }}</span>
-                
-                <div style="display: flex; gap: 15px; align-items: center;">
-                    {% if item.get('image_url') %}
-                        <img src="{{ url_for('static', filename='images/menus/' ~ item.get('image_url')) }}" style="width: 70px; height: 70px; object-fit: cover; border-radius: 8px; border: 1px solid #e5e7eb; box-shadow: 0 2px 4px rgba(0,0,0,0.05);" alt="Yemek Görseli">
-                    {% else %}
-                        <div style="width: 70px; height: 70px; background: #f3f4f6; border-radius: 8px; display: flex; justify-content: center; align-items: center; font-size: 24px; border: 1px dashed #cbd5e1; color: #94a3b8;" title="Görsel Yüklenmedi">
-                            🍽️
-                        </div>
-                    {% endif %}
-                    
-                    <div style="flex: 1;">
-                        <p style="margin: 2px 0;"><strong>Name:</strong> <span class="menu-name">{{ item['food_name'] if item['food_name'] else 'No food name' }}</span></p>
-                        <p style="margin: 2px 0;"><strong>Cuisine:</strong> <span class="menu-cuisine">{{ item['cuisine'] if item['cuisine'] else 'Not specified' }}</span></p>
-                    </div>
-                </div>
-                
-                <p style="margin: 2px 0;"><strong>Price:</strong> <span class="menu-price">{{ item['price'] }}</span></p>
-                <p style="margin: 2px 0;"><strong>Stock:</strong> <span class="menu-stock">{{ item['stock_quantity'] }}</span></p>
-                <button type="button" class="manage-options-btn" data-id="{{ item['menu_id'] }}" data-name="{{ item['food_name'] if item['food_name'] else 'Food' }}" style="margin-top: 10px; width: 100%; background: #4f46e5; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: 0.2s; position: relative; z-index: 5;" onmouseover="this.style.background='#4338ca'" onmouseout="this.style.background='#4f46e5'">
-                    ⚙️ Seçenekleri Yönet
-                </button>
-                <button type="button" class="upload-menu-img-btn" data-id="{{ item['menu_id'] }}" style="margin-top: 5px; width: 100%; background: #f59e0b; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: 0.2s; position: relative; z-index: 5;" onmouseover="this.style.background='#d97706'" onmouseout="this.style.background='#f59e0b'">
-                    📸 Görsel Yükle
-                </button>
-            </label>
-        </div>
-        {% endfor %}
-    </div>
-    <script src="{{ url_for('static', filename='js/common.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/menus.js') }}"></script>
+{% block title %}Menü Yönetimi{% endblock %}
+{% block page_title %}🍽️ Menü Yönetimi{% endblock %}
 
-    <div id="optionsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10000; justify-content:center; align-items:center; backdrop-filter:blur(4px);">
-        <div style="background:white; width:90%; max-width:600px; max-height:85vh; border-radius:12px; padding:25px; box-shadow:0 10px 25px rgba(0,0,0,0.2); display:flex; flex-direction:column; font-family: 'Inter', sans-serif;">
-            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #e5e7eb; padding-bottom:15px; margin-bottom:15px;">
-                <h3 style="margin:0; font-size:18px; color:#111827; font-weight: 700;">⚙️ Seçenekler: <span id="modal-food-name" style="color:#4f46e5;"></span></h3>
-                <button onclick="closeOptionsModal()" style="background: #10b981; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; font-family: inherit; font-size: 13px; transition: 0.2s; box-shadow: 0 2px 4px rgba(16,185,129,0.2);" onmouseover="this.style.background='#059669'" onmouseout="this.style.background='#10b981'">
-                    ✅ Kaydet ve Kapat
-                </button>
-            </div>
-            
-            <div id="options-container" style="overflow-y:auto; flex:1; margin-bottom:15px; padding-right:5px;">
-                </div>
-            
-            <div style="border-top:2px solid #e5e7eb; padding-top:20px; background:#f9fafb; padding:15px; border-radius:8px;">
-                <h4 style="margin:0 0 15px 0; color:#374151;">+ Yeni Seçenek Grubu Ekle</h4>
-                <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
-                    <input type="text" id="new-option-name" placeholder="Grup Adı (Örn: İçecek Seçimi)" style="flex:1; min-width:200px; padding:10px; border:1px solid #d1d5db; border-radius:6px; font-family:inherit;">
-                    <label style="font-size:14px; cursor:pointer; display:flex; align-items:center; gap:5px;"><input type="checkbox" id="new-option-req"> Zorunlu mu?</label>
-                    <label style="font-size:14px; cursor:pointer; display:flex; align-items:center; gap:5px;"><input type="checkbox" id="new-option-mult"> Çoklu Seçim mi?</label>
-                    <button onclick="addOption()" style="background:#10b981; color:white; border:none; padding:10px 15px; border-radius:6px; font-weight:600; cursor:pointer; font-family:inherit; transition:0.2s;">Ekle</button>
-                </div>
-            </div>
-        </div>
-    </div>
+{% block extra_css %}
+<style>
+    /* 🎨 MODERN TABLO TASARIMI */
+    .modern-table-wrapper {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+        border: 1px solid #e5e7eb;
+    }
 
-    <script>
-        let currentOptionsMenuId = null;
+    .modern-table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+    }
 
-        document.addEventListener("DOMContentLoaded", function() {
-            const manageBtns = document.querySelectorAll('.manage-options-btn');
-            
-            manageBtns.forEach(btn => {
-                btn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation(); // Label içindeki checkbox'ın tetiklenmesini kesin olarak engeller
-                    
-                    const menuId = this.getAttribute('data-id');
-                    const foodName = this.getAttribute('data-name');
-                    
-                    openOptionsModal(menuId, foodName);
-                });
-            });
-        });
+    .modern-table th {
+        background: #f9fafb;
+        padding: 15px 20px;
+        color: #6b7280;
+        font-size: 13px;
+        text-transform: uppercase;
+        font-weight: 600;
+        border-bottom: 1px solid #e5e7eb;
+    }
 
-        function openOptionsModal(menuId, foodName) {
-            currentOptionsMenuId = menuId;
-            document.getElementById('modal-food-name').innerText = foodName;
-            document.getElementById('optionsModal').style.display = 'flex';
-            loadOptions();
-        }
+    .modern-table td {
+        padding: 15px 20px;
+        border-bottom: 1px solid #e5e7eb;
+        color: #1f2937;
+        font-size: 14px;
+        vertical-align: middle;
+    }
 
-        function closeOptionsModal() {
-            document.getElementById('optionsModal').style.display = 'none';
-        }
+    .modern-table tr:hover {
+        background: #f9fafb;
+    }
 
-        function loadOptions() {
-            fetch('/api/menu_options?menu_id=' + currentOptionsMenuId)
-            .then(res => res.json())
-            .then(data => {
-                if(data.success) renderOptions(data.options);
-            });
-        }
+    /* 🏷️ STOK VE FİYAT ROZETLERİ */
+    .stock-badge {
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+        display: inline-block;
+    }
+    .stock-in { background: #dcfce3; color: #16a34a; }
+    .stock-out { background: #fee2e2; color: #dc2626; }
+    .stock-low { background: #fef3c7; color: #d97706; }
 
-        function renderOptions(options) {
-            const container = document.getElementById('options-container');
-            container.innerHTML = '';
-            
-            if(options.length === 0) {
-                container.innerHTML = '<div style="text-align:center; color:#6b7280; padding:30px 0;">Bu yemek için henüz ekstra seçenek eklenmemiş.</div>';
-                return;
-            }
+    .price-tag {
+        font-weight: 700;
+        color: #059669;
+        font-size: 15px;
+    }
 
-            options.forEach(opt => {
-                let choicesHtml = '';
-                opt.choices.forEach(ch => {
-                    choicesHtml += `
-                        <div style="display:flex; justify-content:space-between; align-items:center; background:#f3f4f6; padding:10px; margin-top:8px; border-radius:6px;">
-                            <span style="font-size:14px; font-weight:500; color:#374151;">${ch.choice_name} <span style="color:#059669;">(+${ch.additional_price} $)</span></span>
-                            <button onclick="deleteChoice(${ch.choice_id})" style="background:#fee2e2; border:1px solid #fecaca; color:#ef4444; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:12px;">✖ Sil</button>
-                        </div>
-                    `;
-                });
+    /* ⚙️ İŞLEM BUTONLARI */
+    .action-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 6px;
+        transition: 0.2s;
+        font-size: 16px;
+    }
+    .action-btn:hover { background: #e5e7eb; }
 
-                const optHtml = `
-                    <div style="border:1px solid #e5e7eb; border-radius:8px; padding:15px; margin-bottom:20px; background:#ffffff; box-shadow:0 2px 4px rgba(0,0,0,0.02);">
-                        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f3f4f6; padding-bottom:10px; margin-bottom:10px;">
-                            <h4 style="margin:0; font-size:16px; color:#111827;">${opt.option_name} 
-                                <span style="font-size:12px; font-weight:normal; background:#e0e7ff; color:#4338ca; padding:2px 6px; border-radius:4px; margin-left:5px;">${opt.is_required ? 'Zorunlu' : 'Opsiyonel'}</span>
-                                <span style="font-size:12px; font-weight:normal; background:#fef3c7; color:#b45309; padding:2px 6px; border-radius:4px; margin-left:2px;">${opt.is_multiple ? 'Çoklu Seçim' : 'Tekli Seçim'}</span>
-                            </h4>
-                            <button onclick="deleteOption(${opt.option_id})" style="background:none; border:none; color:#ef4444; font-size:13px; font-weight:600; cursor:pointer; text-decoration:underline;">Grubu Sil</button>
-                        </div>
-                        
-                        <div style="margin-bottom:15px;">${choicesHtml}</div>
-                        
-                        <div style="display:flex; gap:10px;">
-                            <input type="text" id="choice-name-${opt.option_id}" placeholder="Şık Adı (Örn: Kola)" style="flex:2; padding:8px; border:1px solid #d1d5db; border-radius:6px; font-size:13px; font-family:inherit;">
-                            <input type="number" id="choice-price-${opt.option_id}" placeholder="Fiyat ($)" step="0.01" style="flex:1; padding:8px; border:1px solid #d1d5db; border-radius:6px; font-size:13px; font-family:inherit;">
-                            <button onclick="addChoice(${opt.option_id})" style="background:#4f46e5; color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; font-size:13px; font-weight:600; transition:0.2s;">+ Şık Ekle</button>
-                        </div>
-                    </div>
-                `;
-                container.innerHTML += optHtml;
-            });
-        }
+    /* 🔝 ÜST ARAÇ ÇUBUĞU */
+    .toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
 
-        function addOption() {
-            const name = document.getElementById('new-option-name').value;
-            const isReq = document.getElementById('new-option-req').checked;
-            const isMult = document.getElementById('new-option-mult').checked;
-            if(!name) return alert("Lütfen bir grup adı yazın!");
-
-            fetch('/api/menu_options', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({action: 'add_option', menu_id: currentOptionsMenuId, option_name: name, is_required: isReq, is_multiple: isMult})
-            }).then(res => res.json()).then(data => {
-                if(data.success) {
-                    document.getElementById('new-option-name').value = '';
-                    document.getElementById('new-option-req').checked = false;
-                    document.getElementById('new-option-mult').checked = false;
-                    loadOptions();
-                } else alert(data.message);
-            });
-        }
-
-        function addChoice(optionId) {
-            const name = document.getElementById(`choice-name-${optionId}`).value;
-            const price = document.getElementById(`choice-price-${optionId}`).value;
-            if(!name) return alert("Şık adı boş olamaz!");
-
-            fetch('/api/menu_options', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({action: 'add_choice', option_id: optionId, choice_name: name, additional_price: price})
-            }).then(res => res.json()).then(data => {
-                if(data.success) loadOptions();
-                else alert(data.message);
-            });
-        }
-
-        function deleteOption(optionId) {
-            if(!confirm("Bu grubu ve altındaki tüm şıkları silmek istediğinize emin misiniz?")) return;
-            fetch('/api/menu_options', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({action: 'delete_option', option_id: optionId})
-            }).then(res => res.json()).then(data => {
-                if(data.success) loadOptions();
-            });
-        }
-
-        function deleteChoice(choiceId) {
-            fetch('/api/menu_options', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({action: 'delete_choice', choice_id: choiceId})
-            }).then(res => res.json()).then(data => {
-                if(data.success) loadOptions();
-            });
-        }
-    </script>
-
-    <form id="imageUploadForm" style="display: none;">
-        <input type="hidden" id="img-upload-menu-id" name="menu_id">
-        <input type="file" id="imageUploadInput" name="image" accept="image/*" onchange="submitMenuImage()">
-    </form>
+    .primary-btn {
+        background: #4f46e5;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .primary-btn:hover { background: #4338ca; }
     
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const uploadButtons = document.querySelectorAll('.upload-menu-img-btn');
-            const hiddenMenuIdInput = document.getElementById('img-upload-menu-id');
-            const hiddenFileInput = document.getElementById('imageUploadInput');
+    .promo-btn {
+        background: #ec4899;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .promo-btn:hover { background: #db2777; }
 
-            uploadButtons.forEach(btn => {
-                btn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation(); // Checkbox seçimini engeller
-                    
-                    // Tıklanan butonun üzerindeki menu_id değerini gizli inputa aktarıyoruz
-                    const menuId = this.getAttribute('data-id');
-                    hiddenMenuIdInput.value = menuId;
-                    
-                    // Dosya seçme penceresini tetikliyoruz
-                    hiddenFileInput.click();
-                });
-            });
-        });
+    /* FORM INPUTLARI */
+    .form-input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-family: inherit;
+        margin-top: 5px;
+    }
+</style>
+{% endblock %}
 
-        // Resim seçildiği an otomatik olarak backend'e yükleyen fonksiyon
-        function submitMenuImage() {
-            const formData = new FormData(document.getElementById('imageUploadForm'));
-            fetch('/api/upload_menu_image', {
-                method: 'POST',
-                body: formData
-            })
-            .then(res => res.json())
-            .then(data => {
-                if(data.success) {
-                    alert("✅ Görsel başarıyla yüklendi! Sayfayı yenilediğinizde aktif olacaktır.");
-                    window.location.reload(); // Değişikliği anında görmeleri için sayfayı yeniliyoruz
-                } else {
-                    alert("❌ Hata: " + data.message);
-                }
-                document.getElementById('imageUploadInput').value = ''; 
-            })
-            .catch(err => console.error('Görsel yükleme hatası:', err));
-        }
-    </script>
-
-    <div id="promoModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10000; justify-content:center; align-items:center; backdrop-filter:blur(4px);">
-        <div style="background:white; width:90%; max-width:600px; max-height:85vh; border-radius:12px; padding:25px; box-shadow:0 10px 25px rgba(0,0,0,0.2); display:flex; flex-direction:column; font-family: 'Inter', sans-serif;">
-            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #e5e7eb; padding-bottom:15px; margin-bottom:15px;">
-                <h3 style="margin:0; font-size:18px; color:#111827; font-weight: 700;">🎟️ Promosyon Kodları</h3>
-                <button onclick="closePromoModal()" style="background: #10b981; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; font-family: inherit; font-size: 13px;">✅ Kapat</button>
-            </div>
-            
-            <div style="background:#f9fafb; padding:15px; border-radius:8px; border:1px solid #e5e7eb; margin-bottom:20px;">
-                <h4 style="margin:0 0 10px 0; color:#374151;">+ Yeni Kupon Oluştur</h4>
-                <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                    <input type="text" id="new-promo-code" placeholder="Kod (Örn: İLK50)" style="flex:1; min-width:120px; padding:8px; border:1px solid #d1d5db; border-radius:6px; text-transform: uppercase;">
-                    <select id="new-promo-type" style="padding:8px; border:1px solid #d1d5db; border-radius:6px;">
-                        <option value="fixed">Sabit Tutar (TL/$)</option>
-                        <option value="percentage">Yüzde (%)</option>
-                    </select>
-                    <input type="number" id="new-promo-val" placeholder="İndirim" style="width:80px; padding:8px; border:1px solid #d1d5db; border-radius:6px;">
-                    <input type="number" id="new-promo-min" placeholder="Min. Sepet" style="width:100px; padding:8px; border:1px solid #d1d5db; border-radius:6px;">
-                    <button onclick="addPromoCode()" style="background:#4f46e5; color:white; border:none; padding:8px 15px; border-radius:6px; cursor:pointer; font-weight:bold;">Oluştur</button>
-                </div>
-            </div>
-
-            <div id="promo-list-container" style="overflow-y:auto; flex:1;">
-                </div>
-        </div>
+{% block content %}
+<div class="toolbar">
+    <div>
+        <h3 style="margin: 0; color: #111827;">Menü Listesi</h3>
+        <p style="margin: 5px 0 0 0; color: #6b7280; font-size: 14px;">Restoranınızdaki yemekleri, fiyatları ve stokları yönetin.</p>
     </div>
+    <div style="display: flex; gap: 10px;">
+        <form action="{{ url_for('menus_action') }}" method="POST" style="display: flex; gap: 10px;">
+            <input type="text" name="name" placeholder="Yemek Adı Ara..." class="form-input" style="margin: 0; padding: 8px 15px; width: 220px;">
+            <button type="submit" name="action" value="filter" class="action-btn" style="background-color: #3b82f6; color: white; border-radius: 6px; padding: 8px 15px; font-size: 14px;">Ara</button>
+            <button type="submit" name="action" value="clear" class="action-btn" style="background-color: #6b7280; color: white; border-radius: 6px; padding: 8px 15px; font-size: 14px;" onclick="document.querySelector('input[name=name]').value=''">Temizle</button>
+        </form>
 
-    <script>
-        function openPromoModal() {
-            document.getElementById('promoModal').style.display = 'flex';
-            loadPromos();
-        }
+        <button class="promo-btn" onclick="openPromoModal()">🎟️ Kupon Yönetimi</button>
+        <button class="primary-btn" onclick="openMenuModal()"><span>+</span> Yeni Yemek Ekle</button>
+    </div>
+</div>
 
-        function closePromoModal() {
-            document.getElementById('promoModal').style.display = 'none';
-        }
+<div class="modern-table-wrapper">
+    <table class="modern-table">
+        <thead>
+            <tr>
+                <th style="width: 50px;">Görsel</th>
+                <th>Yemek Adı</th>
+                {% if session['role'] == 'admin' %}
+                <th>Restoran</th>
+                {% endif %}
+                <th>Kategori (Mutfak)</th>
+                <th>Fiyat</th>
+                <th>Stok Durumu</th>
+                <th style="text-align: right;">İşlemler</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for menu in menus %}
+            <tr>
+                <td>
+                    {% if menu['image_url'] %}
+                        <img src="{{ url_for('static', filename='images/menus/' + menu['image_url']) }}" alt="food" style="width: 40px; height: 40px; border-radius: 8px; object-fit: cover;">
+                    {% else %}
+                        <div style="width: 40px; height: 40px; border-radius: 8px; background: #f3f4f6; display: flex; align-items: center; justify-content: center; font-size: 20px;">🍲</div>
+                    {% endif %}
+                </td>
+                <td style="font-weight: 600; font-size: 14px; color: #111827;">
+                    {{ menu['custom_name'] or menu['food_name'] }}
+                </td>
+                {% if session['role'] == 'admin' %}
+                <td>
+                    <span style="background-color: #e0e7ff; color: #4338ca; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700;">
+                        🏪 {{ menu['restaurant_name'] or 'Bilinmiyor' }}
+                    </span>
+                </td>
+                {% endif %}
+                <td>
+                    <span style="background-color: #f3f4f6; color: #4b5563; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; text-transform: capitalize;">
+                        {{ menu['food_name'] }}
+                    </span>
+                </td>
+                <td class="price-tag">${{ menu['price'] }}</td>
+                <td>
+                    {% if menu['stock_quantity'] > 10 %}
+                        <span class="stock-badge stock-in">Stokta ({{ menu['stock_quantity'] }})</span>
+                    {% elif menu['stock_quantity'] > 0 %}
+                        <span class="stock-badge stock-low">Az Kaldı ({{ menu['stock_quantity'] }})</span>
+                    {% else %}
+                        <span class="stock-badge stock-out">Tükendi</span>
+                    {% endif %}
+                </td>
+                <td style="text-align: right;">
+                    <button class="action-btn" title="Düzenle" 
+                        data-id="{{ menu['menu_id'] }}" 
+                        data-food-id="{{ menu['food_id'] }}" 
+                        data-custom-name="{% if menu['custom_name'] %}{{ menu['custom_name'] }}{% endif %}" 
+                        data-price="{{ menu['price'] }}" 
+                        data-stock="{{ menu['stock_quantity'] }}" 
+                        data-image="{{ menu['image_url'] or '' }}" 
+                        onclick="openMenuModalFromBtn(this)">✏️</button>
+                    
+                    <form action="{{ url_for('menus_action') }}" method="POST" style="display:inline;">
+                        <input type="hidden" name="selected_menu_items" value="{{ menu['menu_id'] }}">
+                        <input type="hidden" name="action" value="delete">
+                        <button type="submit" class="action-btn" title="Sil" onclick="return confirm('Bu yemeği menüden silmek istediğinize emin misiniz?');">🗑️</button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" style="text-align: center; padding: 40px; color: #6b7280;">
+                    Menünüzde henüz hiç yemek bulunmuyor.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 
-        function loadPromos() {
-            fetch('/api/manage_promos')
-            .then(res => res.json())
-            .then(data => {
-                if(data.success) renderPromos(data.promos);
-            });
-        }
+<div id="menuFormModal" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; backdrop-filter: blur(4px);">
+    <div style="background-color: #fff; padding: 25px; border-radius: 12px; width: 90%; max-width: 500px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f3f4f6; margin-bottom: 15px; padding-bottom: 10px;">
+            <h3 style="margin: 0; color: #111827;" id="menuModalTitle">Yeni Yemek Ekle</h3>
+            <span style="font-size: 24px; cursor: pointer; color: #9ca3af;" onclick="closeMenuModal()">&times;</span>
+        </div>
 
-        function renderPromos(promos) {
-            const container = document.getElementById('promo-list-container');
-            container.innerHTML = '';
-            
-            if(promos.length === 0) {
-                container.innerHTML = '<div style="text-align:center; color:#6b7280; padding:20px;">Henüz aktif bir kuponunuz yok.</div>';
-                return;
-            }
+        <form id="menu-form" action="{{ url_for('menus_action') }}" method="post" enctype="multipart/form-data">
+            <input type="hidden" id="menu-id" name="menu_id">
+            <input type="hidden" id="update-menu-id" name="update_menu_id">
+            <input type="hidden" id="menu-restaurant-id" name="restaurant_id" value="{{ session.get('restaurant_id', '') }}">
 
-            promos.forEach(promo => {
-                const discountText = promo.discount_type === 'percentage' ? `%${promo.discount_value}` : `$${promo.discount_value}`;
-                const statusColor = promo.is_active ? '#10b981' : '#9ca3af';
-                
-                container.innerHTML += `
-                    <div style="display:flex; justify-content:space-between; align-items:center; border:1px solid #e5e7eb; padding:12px; margin-bottom:10px; border-radius:8px; background:white;">
-                        <div>
-                            <strong style="color:#111827; font-size:16px;">${promo.code_name}</strong>
-                            <span style="background:#fef08a; color:#854d0e; padding:2px 6px; border-radius:4px; font-size:12px; margin-left:8px; font-weight:bold;">${discountText} İndirim</span>
-                            <div style="color:#6b7280; font-size:12px; margin-top:4px;">Min Sepet: $${promo.min_cart_amount}</div>
-                        </div>
-                        <div style="display:flex; gap:8px;">
-                            <button onclick="togglePromo(${promo.promo_id})" style="background:${statusColor}; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-size:12px;">${promo.is_active ? 'Kapat' : 'Aç'}</button>
-                            <button onclick="deletePromo(${promo.promo_id})" style="background:#fee2e2; color:#ef4444; border:1px solid #fecaca; padding:6px 12px; border-radius:4px; cursor:pointer; font-size:12px;">Sil</button>
-                        </div>
-                    </div>
-                `;
-            });
-        }
+            <div style="margin-bottom: 15px;">
+                <label style="font-size: 13px; font-weight: 600; color: #374151; display: block; margin-bottom: 8px;">Menü Görseli</label>
+                <div id="menu-image-preview" style="width: 100%; height: 160px; background-color: #f9fafb; border: 2px dashed #d1d5db; border-radius: 8px; display: flex; justify-content: center; align-items: center; margin-bottom: 10px; overflow: hidden; position: relative;">
+                    <span style="color: #9ca3af; font-size: 30px;">🍲</span>
+                </div>
+                <div style="position: relative; overflow: hidden; display: inline-block; width: 100%;">
+                    <button type="button" style="width: 100%; background: #f3f4f6; border: 1px solid #d1d5db; padding: 10px; border-radius: 6px; font-weight: 600; color: #374151; cursor: pointer;">📷 Fotoğraf Seç</button>
+                    <input type="file" name="menu_image" accept="image/*" style="font-size: 100px; position: absolute; left: 0; top: 0; opacity: 0; cursor: pointer;">
+                </div>
+            </div>
 
-        function addPromoCode() {
-            const code = document.getElementById('new-promo-code').value;
-            const type = document.getElementById('new-promo-type').value;
-            const val = document.getElementById('new-promo-val').value;
-            const min = document.getElementById('new-promo-min').value;
+            <div style="margin-bottom: 15px;">
+                <label style="font-size: 13px; font-weight: 600; color: #374151;">Ana Ürün Tipi (Kategori)</label>
+                <select id="food-name" name="food_id" class="form-input" style="background-color: white; cursor: pointer;" required>
+                    <option value="" hidden>Kategori ve Yemek Seçiniz...</option>
+                    {% set current_cat = [] %}
+                    {% for food in foods %}
+                        {% if food.category not in current_cat %}
+                            {% if current_cat.append(food.category) %}{% endif %}
+                            <optgroup label="📌 {{ food.category }}">
+                        {% endif %}
+                        <option value="{{ food.food_id }}">{{ food.item_name }}</option>
+                        {% if loop.last or foods[loop.index].category != food.category %}
+                            </optgroup>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label style="font-size: 13px; font-weight: 600; color: #374151;">Menüdeki Özel Adı (Havalı İsim)</label>
+                <input type="text" id="menu-custom-name" name="custom_name" class="form-input" placeholder="Örn: 🔥 Texas Smokehouse BBQ Burger" required>
+            </div>
 
-            if(!code || !val) return alert("Kod ve İndirim tutarı boş olamaz!");
+            <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+                <div style="flex: 1;">
+                    <label style="font-size: 13px; font-weight: 600; color: #374151;">Fiyat ($)</label>
+                    <input type="number" step="0.01" id="menu-price" name="price" class="form-input" placeholder="0.00" required>
+                </div>
+                <div style="flex: 1;">
+                    <label style="font-size: 13px; font-weight: 600; color: #374151;">Stok Adedi</label>
+                    <input type="number" id="menu-stock" name="stock_quantity" class="form-input" placeholder="Örn: 50" required>
+                </div>
+            </div>
 
-            fetch('/api/manage_promos', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({action: 'add', code_name: code, discount_type: type, discount_value: val, min_cart_amount: min || 0})
-            }).then(res => res.json()).then(data => {
-                if(data.success) {
-                    document.getElementById('new-promo-code').value = '';
-                    document.getElementById('new-promo-val').value = '';
-                    document.getElementById('new-promo-min').value = '';
-                    loadPromos();
-                } else alert(data.message);
-            });
-        }
+            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 25px; border-top: 1px solid #e5e7eb; padding-top: 15px;">
+                <button type="button" onclick="closeMenuModal()" style="background: #f3f4f6; color: #4b5563; padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">İptal</button>
+                <button type="submit" name="action" value="add" id="modal-add-btn" class="primary-btn">Listeye Ekle</button>
+                <button type="submit" name="action" value="update" id="modal-update-btn" style="background: #f59e0b; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; display: none;">Değişiklikleri Kaydet</button>
+            </div>
+        </form>
+    </div>
+</div>
 
-        function deletePromo(id) {
-            if(!confirm("Kuponu silmek istediğinize emin misiniz?")) return;
-            fetch('/api/manage_promos', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({action: 'delete', promo_id: id}) })
-            .then(res => res.json()).then(data => { if(data.success) loadPromos(); });
-        }
+<div id="promoModal" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; backdrop-filter: blur(4px);">
+    <div style="background-color: #fff; padding: 25px; border-radius: 12px; width: 90%; max-width: 600px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f3f4f6; margin-bottom: 15px; padding-bottom: 10px;">
+            <h3 style="margin: 0; color: #111827;">Kupon ve Promosyonlar</h3>
+            <span style="font-size: 24px; cursor: pointer; color: #9ca3af;" onclick="closePromoModal()">&times;</span>
+        </div>
 
-        function togglePromo(id) {
-            fetch('/api/manage_promos', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({action: 'toggle', promo_id: id}) })
-            .then(res => res.json()).then(data => { if(data.success) loadPromos(); });
-        }
-    </script>
+        <div style="background: #fdf2f8; padding: 15px; border-radius: 8px; border: 1px dashed #fbcfe8; margin-bottom: 20px;">
+            <h4 style="margin: 0 0 10px 0; color: #be185d;">Yeni Kupon Oluştur</h4>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <input type="text" id="new-promo-code" placeholder="Kupon Kodu (Örn: YAZ10)" class="form-input" style="flex: 1; min-width: 120px; margin-top:0;">
+                <select id="new-promo-type" class="form-input" style="flex: 1; min-width: 100px; margin-top:0;">
+                    <option value="percentage">% Yüzde İndirim</option>
+                    <option value="fixed">₺ Sabit İndirim</option>
+                </select>
+                <input type="number" id="new-promo-val" placeholder="Değer (Örn: 10)" class="form-input" style="flex: 1; min-width: 100px; margin-top:0;">
+                <input type="number" id="new-promo-min" placeholder="Min. Sepet" class="form-input" style="flex: 1; min-width: 100px; margin-top:0;">
+            </div>
+            <button onclick="addPromo()" style="width: 100%; margin-top: 10px; background: #ec4899; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: 600;">Oluştur</button>
+        </div>
 
-</body>
-</html>
+        <table class="modern-table" style="font-size: 13px;">
+            <thead>
+                <tr>
+                    <th>Kod</th>
+                    <th>İndirim</th>
+                    <th>Min. Sepet</th>
+                    <th>Durum</th>
+                    <th>Sil</th>
+                </tr>
+            </thead>
+            <tbody id="promo-table-body">
+                <tr><td colspan="5" style="text-align:center;">Yükleniyor...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/menus.js') }}?v=2"></script>
+{% endblock %}

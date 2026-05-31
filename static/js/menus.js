@@ -1,325 +1,165 @@
-document.addEventListener("DOMContentLoaded", function () {
-    const menuCards = document.querySelectorAll('.table-card');
-    let lastCheckedBox = null;
-
-    function updateInputs(checkbox) {
-        const card = checkbox.closest('.table-card');
-        const id = card.querySelector('.menu-id')?.textContent.trim() || '';
-        const name = card.querySelector('.menu-name')?.textContent.trim() || '';
-        const cuisine = card.querySelector('.menu-cuisine')?.textContent.trim() || '';
-        const price = card.querySelector('.menu-price')?.textContent.trim() || '';
-        const stock = card.querySelector('.menu-stock')?.textContent.trim() || '';
-        const restaurantId = card.querySelector('.menu-restaurant-id')?.textContent.trim() || '';
-
-        document.getElementById('menu-id').value = id;
-        document.getElementById('food-name').value = name;
-        document.getElementById('menu-cuisine').value = cuisine;
-        document.getElementById('menu-price').value = price;
-        document.getElementById('menu-stock').value = stock;
-        document.getElementById('menu-restaurant-id').value = restaurantId;
-        document.getElementById('update-menu-id').value = id;
-
-        const role = document.getElementById('current-user-role').value;
-        const idInput = document.getElementById('menu-id');
-        const resInput = document.getElementById('menu-restaurant-id');
-        
-        const inputsToLock = [idInput, resInput];
-
-        if (role !== 'admin') {
-            inputsToLock.forEach(el => {
-                if (el) {
-                    el.style.backgroundColor = "#e9ecef"; 
-                    el.style.cursor = "not-allowed"; 
-                    
-                    if (el.tagName === 'SELECT') {
-                        el.style.pointerEvents = "none"; 
-                        el.style.color = "#6c757d"; 
-                        el.parentElement.style.cursor = "not-allowed";
-                    } else {                  
-                        el.readOnly = true; 
+document.addEventListener("DOMContentLoaded", function() {
+    // 📷 FOTOĞRAF SEÇİLDİĞİNDE CANLI ÖNİZLEME YAPMA
+    const fileInput = document.querySelector('input[name="menu_image"]');
+    if(fileInput) {
+        fileInput.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const previewBox = document.getElementById('menu-image-preview');
+                    if(previewBox) {
+                        previewBox.innerHTML = `<img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">`;
                     }
                 }
-            });
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+});
+
+// ➕ YENİ YEMEK EKLEME MODALI
+function openMenuModal() {
+    document.getElementById('menuFormModal').style.display = 'flex';
+    document.getElementById('menuModalTitle').innerText = 'Yeni Yemek Ekle';
+    document.getElementById('modal-add-btn').style.display = 'block';
+    document.getElementById('modal-update-btn').style.display = 'none';
+
+    // Formu temizle
+    document.getElementById('menu-form').reset();
+    
+    const updateId = document.getElementById('update-menu-id');
+    if(updateId) updateId.value = '';
+    
+    const menuId = document.getElementById('menu-id');
+    if(menuId) menuId.value = '';
+
+    // Görseli sıfırla
+    const previewBox = document.getElementById('menu-image-preview');
+    if(previewBox) previewBox.innerHTML = '<span style="color: #9ca3af; font-size: 30px;">🍲</span>';
+}
+
+// ✏️ MENÜ DÜZENLEME MODALI (Hatasız Veri Doldurma)
+function openMenuModalFromBtn(btn) {
+    document.getElementById('menuFormModal').style.display = 'flex';
+    document.getElementById('menuModalTitle').innerText = 'Menüyü Düzenle';
+    document.getElementById('modal-add-btn').style.display = 'none';
+    document.getElementById('modal-update-btn').style.display = 'block';
+
+    // 🛡️ Korumalı Veri Doldurma (Eğer HTML'de o kutu yoksa kod çökmez, atlar)
+    const updateMenuId = document.getElementById('update-menu-id');
+    if(updateMenuId) updateMenuId.value = btn.getAttribute('data-id');
+
+    const menuId = document.getElementById('menu-id');
+    if(menuId) menuId.value = btn.getAttribute('data-id'); 
+
+    const foodName = document.getElementById('food-name');
+    if(foodName) foodName.value = btn.getAttribute('data-food-id');
+
+    const customName = document.getElementById('menu-custom-name');
+    if(customName) customName.value = btn.getAttribute('data-custom-name');
+
+    const menuPrice = document.getElementById('menu-price');
+    if(menuPrice) menuPrice.value = btn.getAttribute('data-price');
+
+    const menuStock = document.getElementById('menu-stock');
+    if(menuStock) menuStock.value = btn.getAttribute('data-stock');
+
+    // Mevcut resmi önizleme kutusuna ekle
+    const imageUrl = btn.getAttribute('data-image');
+    const previewBox = document.getElementById('menu-image-preview');
+    if(previewBox) {
+        if (imageUrl && imageUrl !== 'None' && imageUrl !== '') {
+            previewBox.innerHTML = `<img src="/static/images/menus/${imageUrl}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">`;
         } else {
-            inputsToLock.forEach(el => {
-                if (el) {
-                    el.style.backgroundColor = ""; 
-                    el.style.cursor = ""; 
-                    
-                    if (el.tagName === 'SELECT') {
-                        el.style.pointerEvents = "auto"; 
-                        el.style.color = ""; 
-                        el.parentElement.style.cursor = "";
-                    } else {                  
-                        el.readOnly = false; 
-                    }
-                }
-            });
+            previewBox.innerHTML = '<span style="color: #9ca3af; font-size: 30px;">🍲</span>';
         }
     }
+}
 
-    function clearInputs() {
-        document.getElementById('menu-id').value = '';
-        document.getElementById('food-name').value = '';
-        document.getElementById('menu-cuisine').value = '';
-        document.getElementById('menu-price').value = '';
-        document.getElementById('menu-stock').value = '';
-        document.getElementById('menu-restaurant-id').value = '';
-        document.getElementById('update-menu-id').value = '';
+// ❌ MODALI KAPAT
+function closeMenuModal() {
+    document.getElementById('menuFormModal').style.display = 'none';
+}
 
-        const idInput = document.getElementById('menu-id');
-        const resInput = document.getElementById('menu-restaurant-id');
+// ==========================================
+// 🎟️ KUPON VE PROMOSYON İŞLEMLERİ 
+// ==========================================
+
+function openPromoModal() {
+    document.getElementById('promoModal').style.display = 'flex';
+    loadPromos();
+}
+
+function closePromoModal() {
+    document.getElementById('promoModal').style.display = 'none';
+}
+
+function loadPromos() {
+    fetch('/api/manage_promos')
+    .then(res => res.json())
+    .then(data => {
+        const tbody = document.getElementById('promo-table-body');
+        if(!tbody) return;
         
-        const inputsToUnlock = [idInput, resInput];
-
-        inputsToUnlock.forEach(el => {
-            if (el) {
-                el.style.backgroundColor = ""; 
-                el.style.cursor = ""; 
-                
-                if (el.tagName === 'SELECT') {
-                    el.style.pointerEvents = "auto"; 
-                    el.style.color = ""; 
-                    el.parentElement.style.cursor = "";
-                } else {                  
-                    el.readOnly = false; 
-                }
-            }
-        });
-    }
-
-    function handleCheckboxChange(event) {
-        const selectedCheckboxes = document.querySelectorAll('#menu-list input[type="checkbox"]:checked');
-
-        if (selectedCheckboxes.length === 0) {
-            clearInputs();
-        } 
-        else if (selectedCheckboxes.length === 1) {
-            updateInputs(selectedCheckboxes[0]);
-        } 
-        else {
-            clearInputs();
+        tbody.innerHTML = '';
+        if(data.promos.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Aktif kupon yok.</td></tr>';
+            return;
         }
-    }
-
-    menuCards.forEach(card => {
-        const checkbox = card.querySelector('input[type="checkbox"]');
-        if (checkbox) {
-            checkbox.addEventListener('change', handleCheckboxChange);
-        }
-    });
-});
-
-function collectSelected() {
-    const selectedCheckboxes = document.querySelectorAll('.table-card input[type="checkbox"]:checked');
-    const selectedIds = Array.from(selectedCheckboxes).map(checkbox => {
-        const card = checkbox.closest('.table-card');
-        return card.querySelector('.menu-id').textContent.trim();
-    });
-    
-    if (selectedIds.length === 0) {
-        alert("Please select at least one menu item.");
-        return false;
-    }
-    
-    document.getElementById('selected-menu-items').value = selectedIds.join(',');
-    return true;
-}
-
-document.addEventListener("DOMContentLoaded", function() {
-    const deleteButton = document.querySelector('.delete-button');
-    if (deleteButton) {
-        deleteButton.addEventListener('click', function(e) {
-            e.preventDefault();
-            if (collectSelected()) {
-                const form = document.getElementById('menu-form');
-                document.getElementById('form-action').value = 'delete';
-                form.submit();
-            }
+        data.promos.forEach(p => {
+            const tr = document.createElement('tr');
+            const valStr = p.discount_type === 'percentage' ? `%${p.discount_value}` : `$${p.discount_value}`;
+            tr.innerHTML = `
+                <td><strong>${p.code_name}</strong></td>
+                <td><span style="background:#dcfce3; color:#16a34a; padding:2px 6px; border-radius:4px; font-weight:bold;">${valStr}</span></td>
+                <td>$${p.min_cart_amount}</td>
+                <td>
+                    <label style="display:flex; align-items:center; cursor:pointer;">
+                        <input type="checkbox" ${p.is_active ? 'checked' : ''} onchange="togglePromo(${p.promo_id})" style="margin-right:5px;">
+                        ${p.is_active ? 'Aktif' : 'Pasif'}
+                    </label>
+                </td>
+                <td><button onclick="deletePromo(${p.promo_id})" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:16px;">🗑️</button></td>
+            `;
+            tbody.appendChild(tr);
         });
-    }
-});
-
-let matchedCards = [];
-let currentMatchIndex = 0;
-
-function searchMenu() {
-    const idInput = document.getElementById('menu-id').value.trim().toLowerCase();
-    const foodNameInput = document.getElementById('food-name').value.trim().toLowerCase();
-    const cuisineInput = document.getElementById('menu-cuisine').value.trim().toLowerCase();
-    const priceInput = document.getElementById('menu-price').value.trim().toLowerCase();
-    const stockInput = document.getElementById('menu-stock').value.trim();
-    const restaurantIdInput = document.getElementById('menu-restaurant-id').value.trim().toLowerCase();
-    const cards = document.querySelectorAll('.table-card');
-    matchedCards = [];
-    currentMatchIndex = -1;
-
-    if (!idInput && !foodNameInput && !cuisineInput && !priceInput && !stockInput && !restaurantIdInput) {
-        alert("Please enter at least one search criterion.");
-        return;
-    }
-
-    cards.forEach(card => card.classList.remove('highlight'));
-
-    cards.forEach(card => {
-        const id = card.querySelector('.menu-id').textContent.toLowerCase();
-        const foodName = card.querySelector('.menu-name').textContent.toLowerCase();
-        const cuisine = card.querySelector('.menu-cuisine').textContent.toLowerCase();
-        const price = card.querySelector('.menu-price').textContent.toLowerCase();
-        const stock = card.querySelector('.menu-stock').textContent;
-        const restaurantId = card.querySelector('.menu-restaurant-id').textContent.toLowerCase();
-
-        if (
-            (!idInput || id === idInput) &&
-            (!foodNameInput || foodName.includes(foodNameInput)) &&
-            (!cuisineInput || cuisine.includes(cuisineInput)) &&
-            (!priceInput || price.includes(priceInput)) &&
-            (!stockInput || stock === stockInput) &&
-            (!restaurantIdInput || restaurantId.includes(restaurantIdInput))
-        ) {
-            matchedCards.push(card);
-        }
     });
-
-    if (matchedCards.length > 0) {
-        if (matchedCards.length === 1) {
-            document.getElementById('navigation').classList.add('hidden');
-        } else {
-            document.getElementById('navigation').classList.remove('hidden');
-        }
-        goToNextMatch();
-    } else {
-        document.getElementById('navigation').classList.add('hidden');
-        alert("No menu items found matching the criteria.");
-    }
 }
 
-function goToNextMatch() {
-    if (currentMatchIndex >= 0 && currentMatchIndex < matchedCards.length) {
-        matchedCards[currentMatchIndex].classList.remove('highlight');
-    }
+function addPromo() {
+    const code = document.getElementById('new-promo-code').value.trim().toUpperCase();
+    const type = document.getElementById('new-promo-type').value;
+    const val = document.getElementById('new-promo-val').value;
+    const min = document.getElementById('new-promo-min').value;
 
-    currentMatchIndex = (currentMatchIndex + 1) % matchedCards.length;
-    const nextCard = matchedCards[currentMatchIndex];
+    if(!code || !val) return alert("Kod ve İndirim tutarı boş olamaz!");
 
-    nextCard.classList.add('highlight');
-    nextCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-}
-
-const scrollTopBtn = document.getElementById("scrollTopBtn");
-
-function checkScrollPosition() {
-    if (window.scrollY > 100) {
-        scrollTopBtn.classList.add("visible");
-    } else {
-        scrollTopBtn.classList.remove("visible");
-    }
-}
-
-window.addEventListener("load", checkScrollPosition);
-window.addEventListener("scroll", checkScrollPosition);
-
-scrollTopBtn.addEventListener("click", function() {
-    window.scrollTo({
-        top: 0,
-        behavior: "smooth"
+    fetch('/api/manage_promos', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({action: 'add', code_name: code, discount_type: type, discount_value: val, min_cart_amount: min || 0})
+    }).then(res => res.json()).then(data => {
+        if(data.success) {
+            document.getElementById('new-promo-code').value = '';
+            document.getElementById('new-promo-val').value = '';
+            document.getElementById('new-promo-min').value = '';
+            loadPromos();
+        } else alert(data.message);
     });
-});
-
-function toggleSortMenu(event) {
-    const sortMenu = document.getElementById('sort-menu');
-    const overlay = document.getElementById('overlay');
-    const isHidden = sortMenu.style.display === 'none' || !sortMenu.style.display;
-
-    if (isHidden) {
-        sortMenu.style.display = 'block';
-        overlay.style.display = 'block';
-
-        const buttonRect = event.target.getBoundingClientRect();
-        sortMenu.style.top = `${buttonRect.top + window.scrollY}px`;
-        sortMenu.style.left = `${buttonRect.right + 10}px`;
-    } else {
-        sortMenu.style.display = 'none';
-        overlay.style.display = 'none';
-    }
 }
 
-document.getElementById('overlay').addEventListener('click', function () {
-    document.getElementById('sort-menu').style.display = 'none';
-    document.getElementById('overlay').style.display = 'none';
-});
+function deletePromo(id) {
+    if(!confirm("Kuponu silmek istediğinize emin misiniz?")) return;
+    fetch('/api/manage_promos', {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({action: 'delete', promo_id: id})
+    }).then(res => res.json()).then(data => { if(data.success) loadPromos(); });
+}
 
-document.addEventListener("DOMContentLoaded", function () {
-    const flashMessages = document.querySelectorAll(".flash-message");
-    flashMessages.forEach((msg) => {
-        setTimeout(() => {
-            msg.style.display = "none";
-        }, 5000);
-    });
-});
-
-document.addEventListener("DOMContentLoaded", function() {
-    const updateButton = document.querySelector('.update-button');
-    if (updateButton) {
-        updateButton.addEventListener('click', function(e) {
-            e.preventDefault();
-            const updateMenuId = document.getElementById('update-menu-id').value;
-            if (!updateMenuId) {
-                alert('Please select a menu item to update.');
-                return;
-            }
-            
-            const form = document.getElementById('menu-form');
-            document.getElementById('form-action').value = 'update';
-            
-            const formData = new FormData(form);
-            console.log('Form data being sent:', {
-                action: formData.get('action'),
-                update_menu_id: formData.get('update_menu_id'),
-                name: formData.get('name'),
-                cuisine: formData.get('cuisine'),
-                price: formData.get('price'),
-                restaurant_id: formData.get('restaurant_id')
-            });
-            
-            form.submit();
-        });
-    }
-});
-
-document.addEventListener("DOMContentLoaded", function() {
-    const addButton = document.querySelector('.add-button');
-    if (addButton) {
-        addButton.addEventListener('click', function(e) {
-            e.preventDefault();
-            const form = document.getElementById('menu-form');
-            document.getElementById('form-action').value = 'add';
-            form.submit();
-        });
-    }
-});
-
-document.addEventListener("DOMContentLoaded", function() {
-    const menuForm = document.getElementById('menu-form');
-    
-    if (menuForm) {
-        menuForm.addEventListener('submit', function(e) {
-            const submitter = e.submitter;
-            if (submitter && submitter.name === 'action') {
-                document.getElementById('form-action').value = submitter.value;
-            }
-        });
-    }
-
-    window.clearSearch = function() {
-        document.getElementById('menu-id').value = "";
-        document.getElementById('food-name').value = "";
-        document.getElementById('menu-cuisine').value = "";
-        document.getElementById('menu-price').value = "";
-        document.getElementById('menu-stock').value = "";
-        document.getElementById('menu-restaurant-id').value = "";
-        
-        document.getElementById('form-action').value = 'clear';
-        if (menuForm) menuForm.submit();
-    };
-});
+function togglePromo(id) {
+    fetch('/api/manage_promos', {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({action: 'toggle', promo_id: id})
+    }).then(res => res.json()).then(data => { if(data.success) loadPromos(); });
+}

@@ -1,116 +1,282 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ 'Restaurant' if session['role'] == 'user' else 'Restaurants' }}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-</head>
-<body>
-    <nav>
-        <div class="logo navbar">
-            <a href="/"><img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo"></a>
-            <h1><a href="/">Food Delivery Management System</a> / <span style="margin-left: 10px; color: white">{{ 'Restaurant' if session['role'] == 'user' else 'Restaurants' }}</span></h1>
-        </div>
-        <ul class="navbar">
-            <li><a href="/logout">Logout</a></li>
-        </ul>
-    </nav>
-    <div class="flash-container">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-            <div class="flash-messages">
-                {% for category, message in messages %}
-                <div class="flash-message {{ category }}">
-                    {{ message }}
-                    <button class="close-flash" onclick="this.parentElement.style.display='none';">&times;</button>
-                </div>
-                {% endfor %}
-            </div>
-            {% endif %}
-        {% endwith %}
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Restoran Yönetimi{% endblock %}
+{% block page_title %}🏢 {% if session['role'] == 'user' %}Restoranım{% else %}Restoran Yönetimi{% endif %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* 🎨 MODERN TABLO TASARIMI */
+    .modern-table-wrapper {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+        border: 1px solid #e5e7eb;
+    }
+
+    .modern-table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+    }
+
+    .modern-table th {
+        background: #f9fafb;
+        padding: 15px 20px;
+        color: #6b7280;
+        font-size: 13px;
+        text-transform: uppercase;
+        font-weight: 600;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .modern-table td {
+        padding: 15px 20px;
+        border-bottom: 1px solid #e5e7eb;
+        color: #1f2937;
+        font-size: 14px;
+        vertical-align: middle;
+    }
+
+    .modern-table tr:hover {
+        background: #f9fafb;
+    }
+
+    /* ⚙️ İŞLEM BUTONLARI */
+    .action-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 6px;
+        transition: 0.2s;
+        font-size: 16px;
+    }
+    .action-btn:hover { background: #e5e7eb; }
+
+    /* 🔝 ÜST ARAÇ ÇUBUĞU */
+    .toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .primary-btn {
+        background: #4f46e5;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .primary-btn:hover { background: #4338ca; }
+
+    /* FORM INPUTLARI */
+    .form-input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-family: inherit;
+        margin-top: 5px;
+    }
+
+    .rating-badge {
+        background: #fef3c7;
+        color: #d97706;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-weight: 700;
+        font-size: 13px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="toolbar">
+    <div>
+        <h3 style="margin: 0; color: #111827;">Restoran Listesi</h3>
+        <p style="margin: 5px 0 0 0; color: #6b7280; font-size: 14px;">Restoran bilgilerini, puanlarını ve masa kapasitelerini yönetin.</p>
     </div>
-    <button id="scrollTopBtn"><img class="up-arrow" src="{{ url_for('static', filename='images/up-arrow.png') }}"></button>
-    <div class="search-bar">
-        <form id="restaurant-form" class="restaurant-form" action="{{ url_for('restaurant_action') }}" method="post">
-            {% if session.role != 'user' %}
-            <input type="hidden" id="restaurant-id" name="restaurant_id" value="{{ clear_inputs.restaurant_id }}">
-            <input type="hidden" id="user-id" name="user_id" value="{{ clear_inputs.user_id }}">
-            {% else %}
-            <input type="hidden" id="restaurant-id" name="restaurant_id" value="{{ session.restaurant_id }}">
-            <input type="hidden" id="user-id" name="user_id" value="{{ session.user_id }}">
-            {% endif %}
-            <input list="restaurant-name-list" id="restaurant-name" name="restaurant_name" placeholder="Name" value="{{ clear_inputs.restaurant_name }}" autocomplete="off">
-            <datalist id="restaurant-name-list">
-                {% for name in restaurant_names %}
-                <option value="{{ name }}">
-                {% endfor %}
-            </datalist>
-            <input list="city-list" id="restaurant-city" name="city" placeholder="City" value="{{ clear_inputs.city }}" autocomplete="off">
-            <datalist id="city-list">
-                {% for city in cities %}
-                <option value="{{ city }}">
-                {% endfor %}
-            </datalist>
-            <input type="number" step="0.1" id="restaurant-rating" name="rating" placeholder="Rating" value="{{ clear_inputs.rating }}" autocomplete="off" min="0" max="5"> 
-            <select id="restaurant-rating-count" name="rating_count">
-                <option value="" hidden>Rating Count</option>
-                <option value="Too Few Ratings" {% if clear_inputs.rating_count == 'Too Few Ratings' %}selected{% endif %}>Too Few Ratings</option>
-                <option value="20+ ratings" {% if clear_inputs.rating_count == '20+ ratings' %}selected{% endif %}>20+ ratings</option>
-                <option value="50+ ratings" {% if clear_inputs.rating_count == '50+ ratings' %}selected{% endif %}>50+ ratings</option>
-                <option value="100+ ratings" {% if clear_inputs.rating_count == '100+ ratings' %}selected{% endif %}>100+ ratings</option>
-                <option value="500+ ratings" {% if clear_inputs.rating_count == '500+ ratings' %}selected{% endif %}>500+ ratings</option>
-                <option value="1K+ ratings" {% if clear_inputs.rating_count == '1K+ ratings' %}selected{% endif %}>1K+ ratings</option>
-            </select>
-            <input type="number" id="restaurant-average-cost" name="average_cost" placeholder="Average Cost" value="{{ clear_inputs.average_cost }}" autocomplete="off">
-            <input type="number" id="restaurant-table-count" name="table_count" placeholder="Table Count" value="{{ clear_inputs.table_count }}" min="1" autocomplete="off">
-            <input list="cuisine-list" id="restaurant-cuisine" name="cuisine" placeholder="Cuisine" value="{{ clear_inputs.cuisine }}" autocomplete="off">
-            <datalist id="cuisine-list">
-                {% for cuisine in cuisines %}
-                <option value="{{ cuisine }}">
-                {% endfor %}
-            </datalist>
-            <input type="text" id="restaurant-address" name="restaurant_address" placeholder="Address" value="{{ clear_inputs.restaurant_address }}" autocomplete="off">
-            <input type="hidden" id="selected-restaurants" name="selected_restaurants">
-            <input type="hidden" id="update-restaurant-id" name="update_restaurant_id">
-            <input type="hidden" id="clear-filter" name="clear_filter" value="false">
-            {% if session.role != 'user' %}
-            <button class="search-button" type="button" onclick="searchRestaurant()"><img class="button-img" src="{{ url_for('static', filename='images/search.png') }}" alt="search icon"></img>Search</button>
-            {% endif %}
-            <button class="clear-button" type="submit" name="action" value="clear" onclick="clearSearch()"><img class="button-img" src="{{ url_for('static', filename='images/clear.png') }}" alt="clear icon"></img>Clear</button>
+    
+    <div style="display: flex; gap: 10px;">
+        {% if session['role'] == 'admin' %}
+        <form action="{{ url_for('restaurant_action') }}" method="POST" style="display: flex; gap: 10px;">
+            <input type="text" name="restaurant_name" placeholder="Restoran Ara..." class="form-input" style="margin: 0; padding: 8px 15px; width: 220px;">
+            <button type="submit" name="action" value="filter" class="action-btn" style="background-color: #3b82f6; color: white; border-radius: 6px; padding: 8px 15px; font-size: 14px;">Ara</button>
+            <button type="submit" name="action" value="clear" class="action-btn" style="background-color: #6b7280; color: white; border-radius: 6px; padding: 8px 15px; font-size: 14px;" onclick="document.querySelector('input[name=restaurant_name]').value=''">Temizle</button>
         </form>
-    </div>
-    <div class="action-buttons">
-        <button class="add-button" type="submit" name="action" value="add" form="restaurant-form"><img class="button-img" src="{{ url_for('static', filename='images/add.png') }}" alt="add icon"></img>Add</button>
-        <button class="delete-button" type="submit" name="action" value="delete" form="restaurant-form" onclick="collectSelected()"><img class="button-img" src="{{ url_for('static', filename='images/delete.png') }}" alt="delete icon"></img>Delete</button>
-        <button class="update-button" type="submit" name="action" value="update" form="restaurant-form"><img class="button-img" src="{{ url_for('static', filename='images/update.png') }}" alt="update icon"></img>Update</button>
-        {% if session.role != 'user' %}
-        <button class="filter-button" type="submit" name="action" value="filter" form="restaurant-form"><img class="button-img" src="{{ url_for('static', filename='images/filter.png') }}" alt="filter icon"></img>Filter</button>
+        
+        <button class="primary-btn" onclick="openRestaurantModal()"><span>+</span> Yeni Restoran Ekle</button>
         {% endif %}
     </div>
-    <div id="navigation" class="hidden">
-        <button id="next-match-button" onclick="goToNextMatch()">Next Match</button>
-    </div>
-    <div class="list" id="restaurant-list">
-        {% for restaurant in restaurants %}
-        <div class="table-card" id="restaurant-card-{{ restaurant['restaurant_id'] }}">
-            <input type="checkbox" id="restaurant-{{ loop.index }}" name="selected_restaurants" value="{{ restaurant['restaurant_id'] }}">
-            <label for="restaurant-{{ loop.index }}">
-                <span class="restaurant-id" style="display: none;">{{ restaurant['restaurant_id'] }}</span>
-                <span class="user-id" style="display: none;">{{ restaurant['user_id'] }}</span>
-                <p><strong>Name:</strong> <span class="restaurant-name">{{ restaurant['restaurant_name'] }}</span></p>
-                <p><strong>City:</strong> <span class="restaurant-city">{{ restaurant['city'] }}</span></p>
-                <p><strong>Rating:</strong> <span class="restaurant-rating">{{ restaurant['rating'] }}</span></p>
-                <p><strong>Rating Count:</strong> <span class="restaurant-rating-count">{{ restaurant['rating_count'] }}</span></p>
-                <p><strong>Average Cost:</strong> <span class="restaurant-average-cost">{{ restaurant['average_cost'] }}</span></p>
-                <p><strong>Table Count:</strong> <span class="restaurant-table-count">{{ restaurant['table_count'] }}</span></p>
-                <p><strong>Cuisine:</strong> <span class="restaurant-cuisine">{{ restaurant['cuisine'] }}</span></p>
-                <p><strong>Address:</strong> <span class="restaurant-address">{{ restaurant['restaurant_address'] }}</span></p>
-            </label>
+</div>
+
+<div class="modern-table-wrapper">
+    <table class="modern-table">
+        <thead>
+            <tr>
+                <th>Restoran Adı</th>
+                <th>Konum / Adres</th>
+                <th>Mutfak</th>
+                <th>Masa Kapasitesi</th>
+                <th>Puan</th>
+                <th style="text-align: right;">İşlemler</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for restaurant in restaurants %}
+            <tr>
+                <td style="font-weight: 600; font-size: 15px; color: #111827;">
+                    {{ restaurant['restaurant_name'] }}
+                </td>
+                <td>
+                    <div style="font-weight: 600;">{{ restaurant['city'] }}</div>
+                    <div style="font-size: 12px; color: #6b7280; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        {{ restaurant['restaurant_address'] }}
+                    </div>
+                </td>
+                <td>
+                    <span style="background-color: #f3f4f6; color: #4b5563; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600;">
+                        {{ restaurant['cuisine'] or 'Belirtilmedi' }}
+                    </span>
+                </td>
+                <td>
+                    <div style="font-size: 13px; color: #374151;"><strong>{{ restaurant['table_count'] }}</strong> Masa</div>
+                </td>
+                <td>
+                    <div class="rating-badge">
+                        ⭐ {{ restaurant['rating'] }} 
+                    </div>
+                    <div style="font-size: 11px; color: #9ca3af; margin-top: 3px;">{{ restaurant['rating_count'] }}</div>
+                </td>
+                <td style="text-align: right;">
+                    <button class="action-btn" title="Düzenle" 
+                        data-id="{{ restaurant['restaurant_id'] }}" 
+                        data-userid="{{ restaurant['user_id'] }}"
+                        data-name="{{ restaurant['restaurant_name'] }}" 
+                        data-city="{{ restaurant['city'] }}" 
+                        data-address="{{ restaurant['restaurant_address'] }}" 
+                        data-cuisine="{{ restaurant['cuisine'] }}" 
+                        data-tables="{{ restaurant['table_count'] }}"
+                        data-rating="{{ restaurant['rating'] }}"
+                        data-ratingcount="{{ restaurant['rating_count'] }}"
+                        onclick="openRestaurantModalFromBtn(this)">✏️</button>
+                    
+                    {% if session['role'] == 'admin' %}
+                    <form action="{{ url_for('restaurant_action') }}" method="POST" style="display:inline;">
+                        <input type="hidden" name="selected_restaurants" value="{{ restaurant['restaurant_id'] }}">
+                        <input type="hidden" name="action" value="delete">
+                        <button type="submit" class="action-btn" title="Sil" onclick="return confirm('Bu restoranı tamamen silmek istediğinize emin misiniz?');">🗑️</button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" style="text-align: center; padding: 40px; color: #6b7280;">
+                    Kayıtlı restoran bulunmamaktadır.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div id="restaurantFormModal" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; backdrop-filter: blur(4px);">
+    <div style="background-color: #fff; padding: 25px; border-radius: 12px; width: 90%; max-width: 500px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto;">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f3f4f6; margin-bottom: 15px; padding-bottom: 10px;">
+            <h3 style="margin: 0; color: #111827;" id="modalTitle">Yeni Restoran Ekle</h3>
+            <span style="font-size: 24px; cursor: pointer; color: #9ca3af;" onclick="document.getElementById('restaurantFormModal').style.display='none'">&times;</span>
         </div>
-        {% endfor %}
+
+        <form id="restaurant-form" action="{{ url_for('restaurant_action') }}" method="POST">
+            <input type="hidden" name="action" id="modal-action" value="add">
+            <input type="hidden" name="update_restaurant_id" id="update-restaurant-id">
+            <input type="hidden" name="restaurant_id" id="restaurant-id">
+            
+            {% if session['role'] == 'admin' %}
+            <div style="margin-bottom: 15px;">
+                <label style="font-size: 13px; font-weight: 600; color: #dc2626;">Kullanıcı ID (Sahibi)</label>
+                <input type="number" id="user-id" name="user_id" class="form-input" style="border-color: #fca5a5;" required>
+            </div>
+            {% else %}
+                <input type="hidden" id="user-id" name="user_id" value="{{ session.get('user_id', '') }}">
+            {% endif %}
+
+            <div style="margin-bottom: 15px;">
+                <label style="font-size: 13px; font-weight: 600; color: #374151;">Restoran Adı</label>
+                <input type="text" id="restaurant-name-input" name="restaurant_name" class="form-input" required>
+            </div>
+
+            <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+                <div style="flex: 1;">
+                    <label style="font-size: 13px; font-weight: 600; color: #374151;">Şehir</label>
+                    <input type="text" id="restaurant-city" name="city" class="form-input" required>
+                </div>
+                <div style="flex: 1;">
+                    <label style="font-size: 13px; font-weight: 600; color: #374151;">Mutfak Türü</label>
+                    <select id="restaurant-cuisine" name="cuisine" class="form-input" style="background-color: white; cursor: pointer;" required>
+                        <option value="" hidden>Seçiniz...</option>
+                        <option value="Hamburger">Hamburger</option>
+                        <option value="Döner">Döner</option>
+                        <option value="Pizza">Pizza</option>
+                        <option value="Pide & Lahmacun">Pide & Lahmacun</option>
+                        <option value="Çiğ Köfte">Çiğ Köfte</option>
+                        <option value="Tatlı">Tatlı</option>
+                        <option value="Sokak Lezzetleri">Sokak Lezzetleri</option>
+                        <option value="Köfte">Köfte</option>
+                        <option value="Tavuk">Tavuk</option>
+                        <option value="Salata & Sağlık">Salata & Sağlık</option>
+                        <option value="Mantı & Makarna">Mantı & Makarna</option>
+                        <option value="Kebap">Kebap</option>
+                        <option value="Tantuni">Tantuni</option>
+                        <option value="Ev Yemekleri">Ev Yemekleri</option>
+                        <option value="Tost & Sandviç">Tost & Sandviç</option>
+                        <option value="Kahve & İçecek">Kahve & İçecek</option>
+                        <option value="Pastane & Fırın">Pastane & Fırın</option>
+                        <option value="Çorba">Çorba</option>
+                        <option value="Dünya Mutfağı & Cafe">Dünya Mutfağı & Cafe</option>
+                        <option value="Uzak Doğu">Uzak Doğu</option>
+                        <option value="Balık & Deniz Ürünleri">Balık & Deniz Ürünleri</option>
+                        <option value="Meze">Meze</option>
+                        <option value="Dondurma">Dondurma</option>
+                        <option value="Steak">Steak</option>
+                        <option value="Kahvaltı">Kahvaltı</option>
+                        <option value="Börek">Börek</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="font-size: 13px; font-weight: 600; color: #374151;">Masa Kapasitesi</label>
+                <input type="number" id="restaurant-table-count" name="table_count" class="form-input" min="1" required>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="font-size: 13px; font-weight: 600; color: #374151;">Tam Adres</label>
+                <input type="text" id="restaurant-address" name="restaurant_address" class="form-input" required>
+            </div>
+
+            <div style="display: flex; gap: 10px; justify-content: flex-end; border-top: 1px solid #e5e7eb; padding-top: 15px;">
+                <button type="button" onclick="document.getElementById('restaurantFormModal').style.display='none'" style="background: #f3f4f6; color: #4b5563; padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">İptal</button>
+                <button type="submit" id="modal-submit-btn" class="primary-btn">Kaydet</button>
+            </div>
+        </form>
     </div>
-    <script src="{{ url_for('static', filename='js/common.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/restaurants.js') }}"></script>
-</body>
-</html>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/restaurants.js') }}"></script>
+{% endblock %}

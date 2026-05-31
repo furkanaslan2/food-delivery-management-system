@@ -24,7 +24,6 @@ CREATE TABLE restaurants (
     city VARCHAR(50) NOT NULL,
     rating DECIMAL(2,1),
     rating_count ENUM('Too Few Ratings','20+ ratings','50+ ratings','100+ ratings','500+ ratings','1K+ ratings') NOT NULL,
-    average_cost INT NOT NULL CHECK(average_cost > 0),
     cuisine ENUM('Hamburger', 'Döner', 'Pizza', 'Pide & Lahmacun', 'Çiğ Köfte', 'Tatlı', 'Sokak Lezzetleri', 'Köfte', 'Tavuk', 'Salata & Sağlık', 'Mantı & Makarna', 'Kebap', 'Tantuni', 'Ev Yemekleri', 'Tost & Sandviç', 'Kahve & İçecek', 'Pastane & Fırın', 'Çorba', 'Dünya Mutfağı & Cafe', 'Uzak Doğu', 'Balık & Deniz Ürünleri', 'Meze', 'Dondurma', 'Steak', 'Kahvaltı', 'Börek') NOT NULL,
     restaurant_address TEXT NOT NULL,
     latitude DECIMAL(10, 8) NULL,   
@@ -68,7 +67,7 @@ CREATE TABLE menus (
     menu_id INT AUTO_INCREMENT,
     restaurant_id INT NOT NULL,
     food_id INT,
-    cuisine VARCHAR(50) NOT NULL,
+    custom_name VARCHAR(255) NULL
     price DECIMAL(10, 2) NOT NULL CHECK (price > 0),
     stock_quantity INT DEFAULT 0 CHECK (stock_quantity >= 0),
     image_url VARCHAR(255) DEFAULT NULL,

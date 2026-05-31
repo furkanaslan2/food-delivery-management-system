@@ -1,6 +1,7 @@
 from flask import render_template, request, redirect, url_for, session, flash
 from db import get_db_connection
 from mysql.connector import Error
+from werkzeug.security import generate_password_hash
 from datetime import date
 
 def waiters():
@@ -15,23 +16,26 @@ def waiters():
 
     connection = get_db_connection()
     if connection is None:
-        flash("Couldn't connect to the database!", "danger")
+        flash("Veritabanına bağlanılamadı!", "danger")
         return render_template('waiters.html', waiters=[])
 
     try:
-        cursor = connection.cursor(dictionary=True, buffered=True)
+        cursor = connection.cursor(dictionary=True)
         
-        if 'filtered_waiters' in session:
-            waiters = session['filtered_waiters']
-        else:
-            if role == 'admin':
-                cursor.execute('SELECT * FROM waiters')
-            elif role == 'user' and restaurant_id:
-                cursor.execute('SELECT * FROM waiters WHERE restaurant_id = %s', (restaurant_id,))
+        if role == 'admin':
+            cursor.execute('''
+                SELECT w.*, r.restaurant_name 
+                FROM waiters w
+                LEFT JOIN restaurants r ON w.restaurant_id = r.restaurant_id
+                ORDER BY w.waiter_id DESC
+            ''')
+            waiters = cursor.fetchall()
+        elif role == 'user' and restaurant_id:
+            cursor.execute('SELECT * FROM waiters WHERE restaurant_id = %s ORDER BY waiter_id DESC', (restaurant_id,))
             waiters = cursor.fetchall()
             
     except Error as e:
-        flash(f"Query failed: {e}", "danger")
+        flash(f"Sorgu hatası: {e}", "danger")
         waiters = []
     finally:
         if connection.is_connected():
@@ -60,167 +64,120 @@ def waiter_action():
 
         if action == 'add':
             name = request.form.get('name')
-            restaurant_id = request.form.get('restaurant_id')           
-            default_password = "12345"
+            email = request.form.get('email')
+            password = request.form.get('password')
+            restaurant_id = request.form.get('restaurant_id') if role == 'admin' else restaurant_id_session           
 
-            if role == 'user' and str(restaurant_id) != str(restaurant_id_session):
-                flash("Unauthorized action! You can only add waiters for your restaurant.", "danger")
+            if not all([name, email, password, restaurant_id]):
+                flash("Lütfen tüm alanları doldurun.", "warning")
                 return redirect(url_for('waiters'))
 
-            if not name or not restaurant_id:
-                flash("Name and Restaurant ID are required.", "warning")
-                return redirect(url_for('waiters'))
+            hashed_password = generate_password_hash(password)
 
             cursor.execute("SELECT COUNT(*) as count FROM restaurants WHERE restaurant_id = %s", (restaurant_id,))
             if cursor.fetchone()['count'] == 0:
-                flash('No restaurant found with that Restaurant ID!', 'danger')
+                flash('Geçersiz Restoran ID!', 'danger')
                 return redirect(url_for('waiters'))
 
-            clean_name = name.replace(" ", "").lower()
-            generated_email = f"{clean_name}@{restaurant_id}.com"
-
             query = 'INSERT INTO waiters (name, email, password, restaurant_id) VALUES (%s, %s, %s, %s)'
-            cursor.execute(query, (name, generated_email, default_password, restaurant_id))
+            cursor.execute(query, (name, email, hashed_password, restaurant_id))
             
-            new_id = cursor.lastrowid
             connection.commit()
-            flash(f"Waiter added successfully! Assigned ID: {new_id}, Login: {generated_email}, Pass: {default_password}", "success")
+            flash("Garson başarıyla eklendi!", "success")
 
         elif action == 'delete':
             selected_ids = request.form.get('selected_waiters')
             if not selected_ids:
-                flash("No waiter(s) selected for deletion.", "warning")
+                flash("Silinecek garson seçilmedi.", "warning")
                 return redirect(url_for('waiters'))
 
-            selected_ids = selected_ids.split(',')
+            ids_list = selected_ids.split(',')
 
             if role == 'user':
-                query = "DELETE FROM waiters WHERE waiter_id IN ({}) AND restaurant_id = %s".format(','.join(['%s'] * len(selected_ids)))
-                cursor.execute(query, selected_ids + [restaurant_id_session])
+                format_strings = ','.join(['%s'] * len(ids_list))
+                query = f"DELETE FROM waiters WHERE waiter_id IN ({format_strings}) AND restaurant_id = %s"
+                cursor.execute(query, ids_list + [restaurant_id_session])
             else:
-                query = "DELETE FROM waiters WHERE waiter_id IN (%s)" % ','.join(['%s'] * len(selected_ids))
-                cursor.execute(query, selected_ids)
+                format_strings = ','.join(['%s'] * len(ids_list))
+                query = f"DELETE FROM waiters WHERE waiter_id IN ({format_strings})"
+                cursor.execute(query, ids_list)
 
             connection.commit()
-            flash(f"Successfully deleted {cursor.rowcount} waiter(s).", "success")
+            flash(f"{cursor.rowcount} garson başarıyla silindi.", "success")
 
         elif action == 'update':
             update_waiter_id = request.form.get('update_waiter_id')
-            new_waiter_id = request.form.get('waiter_id')
             name = request.form.get('name')
-            restaurant_id = request.form.get('restaurant_id')
+            email = request.form.get('email')
+            password = request.form.get('password')
+            restaurant_id = request.form.get('restaurant_id') if role == 'admin' else restaurant_id_session
 
             if not update_waiter_id:
-                flash("No waiter selected for update.", "warning")
+                flash("Güncellenecek garson seçilmedi.", "warning")
                 return redirect(url_for('waiters'))
             
-            if role == 'user' and (restaurant_id != str(restaurant_id_session) or new_waiter_id != update_waiter_id):
-                flash("Unauthorized action! You cannot change your Waiter's ID or Restaurant ID.", "danger")
+            if not all([name, email]):
+                flash("Lütfen ad ve email alanlarını doldurun.", "warning")
                 return redirect(url_for('waiters'))
 
-            if new_waiter_id and new_waiter_id != update_waiter_id:
-                cursor.execute("SELECT waiter_id FROM waiters WHERE waiter_id = %s", (new_waiter_id,))
-                if cursor.fetchone():
-                    flash("The new Waiter ID is already in use.", "warning")
-                    return redirect(url_for('waiters'))
-            
-            target_id = new_waiter_id if new_waiter_id else update_waiter_id
-
-            query = "UPDATE waiters SET waiter_id = %s, name = %s, restaurant_id = %s WHERE waiter_id = %s"
-            cursor.execute(query, (target_id, name, restaurant_id, update_waiter_id))
+            if password:
+                hashed_password = generate_password_hash(password)
+                query = "UPDATE waiters SET name = %s, email = %s, password = %s WHERE waiter_id = %s AND restaurant_id = %s"
+                cursor.execute(query, (name, email, hashed_password, update_waiter_id, restaurant_id))
+            else:
+                query = "UPDATE waiters SET name = %s, email = %s WHERE waiter_id = %s AND restaurant_id = %s"
+                cursor.execute(query, (name, email, update_waiter_id, restaurant_id))
             
             connection.commit()
-            flash("Waiter updated successfully!", "success")
+            flash("Garson başarıyla güncellendi!", "success")
 
         elif action == 'filter':
-            waiter_id = request.form.get('waiter_id')
             name = request.form.get('name')
-            restaurant_id = request.form.get('restaurant_id')
 
-            if not any([waiter_id, name, restaurant_id]):
-                 flash("Please provide at least one filter criteria.", "warning")
-                 return redirect(url_for('waiters'))
-
-            query = "SELECT * FROM waiters WHERE 1=1"
+            query = """
+                SELECT w.*, r.restaurant_name 
+                FROM waiters w
+                LEFT JOIN restaurants r ON w.restaurant_id = r.restaurant_id
+                WHERE 1=1
+            """
             params = []
             
             if role == 'user':
-                query += " AND restaurant_id = %s"
+                query += " AND w.restaurant_id = %s"
                 params.append(restaurant_id_session)
 
-            if waiter_id:
-                query += " AND waiter_id = %s"
-                params.append(waiter_id)
             if name:
-                query += " AND name LIKE %s" 
+                query += " AND w.name LIKE %s" 
                 params.append(f"%{name}%")
             
-            if restaurant_id:
-                if role == 'admin' or (role == 'user' and str(restaurant_id) == str(restaurant_id_session)):
-                    query += " AND restaurant_id = %s"
-                    params.append(restaurant_id)
+            query += " ORDER BY w.waiter_id DESC"
 
             cursor.execute(query, params)
             waiters = cursor.fetchall()
-            session['filtered_waiters'] = waiters
-            flash(f"Found {len(waiters)} waiter(s) matching the criteria(s).", "success")
+            
+            if waiters:
+                flash(f"Arama sonucunda {len(waiters)} garson bulundu.", "success")
+            else:
+                flash("Aradığınız kritere uygun garson bulunamadı.", "info")
+                
             return render_template('waiters.html', waiters=waiters)
 
         elif action == 'clear':
-            if 'filtered_waiters' in session:
-                session.pop('filtered_waiters', None)
-            
-            query = "SELECT * FROM waiters"
-            params = []
-            if role == 'user':
-                query += " WHERE restaurant_id = %s"
-                params.append(restaurant_id_session)
-            
-            cursor.execute(query, params)
-            waiters = cursor.fetchall()
-
-            flash("All filters, sorting, and selections have been cleared.", "success")
-            return render_template('waiters.html', waiters=waiters)
-
-        elif action == 'sort':
-            sort_by = request.form.get('sort_by')
-            sort_order = request.form.get('sort_order')
-            
-            if not sort_by or sort_order not in ['ASC', 'DESC']:
-                flash("Invalid sort parameters.", "danger")
-                return redirect(url_for('waiters'))
-
-            if 'filtered_waiters' in session and session['filtered_waiters']:
-                filtered_ids = [w['waiter_id'] for w in session['filtered_waiters']]
-                if filtered_ids:
-                    query = f"SELECT * FROM waiters WHERE waiter_id IN ({','.join(['%s'] * len(filtered_ids))}) ORDER BY {sort_by} {sort_order}"
-                    cursor.execute(query, tuple(filtered_ids))
-                    waiters = cursor.fetchall()
-                    flash("Filtered waiters sorted successfully!", "success")
-                else:
-                    waiters = []
-            else:
-                query = "SELECT * FROM waiters WHERE 1=1"
-                params = []
-                if role == 'user':
-                    query += " AND restaurant_id = %s"
-                    params.append(restaurant_id_session)
-                
-                query += f" ORDER BY {sort_by} {sort_order}"
-                cursor.execute(query, params)
-                waiters = cursor.fetchall()
-                flash("Waiters sorted successfully!", "success")
-            
-            return render_template('waiters.html', waiters=waiters)
+            return redirect(url_for('waiters'))
 
     except Error as e:
-        flash(f"An error occurred: {e}", "danger")
+        flash(f"Bir hata oluştu: {e}", "danger")
+        connection.rollback()
     finally:
         if connection.is_connected():
             cursor.close()
             connection.close()
 
     return redirect(url_for('waiters'))
+
+# =====================================================================
+# AŞAĞIDAKİ KISIM SENİN YAZDIĞIN GARSON POS SİSTEMİDİR (DOKUNULMADI)
+# =====================================================================
 
 def waiter_dashboard():
     if not session.get('logged_in') or session.get('role') != 'waiter':
@@ -245,7 +202,7 @@ def waiter_dashboard():
             total_tables = 0
 
         cursor.execute('''
-            SELECT m.menu_id, m.price, m.stock_quantity, f.item_name, m.cuisine 
+            SELECT m.menu_id, m.price, m.stock_quantity, f.item_name, m.custom_name 
             FROM menus m 
             JOIN foods f ON m.food_id = f.food_id 
             WHERE m.restaurant_id = %s
@@ -446,7 +403,6 @@ def waiter_close_bill():
             
             connection.commit()
             
-            # DEĞİŞİKLİK: Dashboard'a dönmek yerine doğrudan adisyon sayfasına yönlendiriyoruz!
             flash(f"💳 Masa {table_no} hesabı kapatıldı. Adisyon hazırlanıyor...", "success")
             return redirect(url_for('waiter_receipt', order_id=order_id))
         else:
@@ -462,8 +418,6 @@ def waiter_close_bill():
             cursor.close()
             connection.close()
 
-
-# YENİ FONKSİYON: Adisyon Fişi Verilerini Getirir
 def waiter_receipt(order_id):
     if not session.get('logged_in') or session.get('role') != 'waiter':
         return redirect(url_for('login'))

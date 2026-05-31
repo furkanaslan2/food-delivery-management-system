@@ -1,74 +1,146 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ 'Profile' if session['role'] == 'user' else 'Users' }}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-</head>
-<body>
-    <nav>
-        <input type="hidden" id="current-user-role" value="{{ session['role'] }}">
-        <div class="logo navbar">
-            <a href="/"><img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo"></a>
-            <h1><a href="/">Food Delivery Management System</a> / <span style="margin-left: 10px; color: white">{{ 'Profile' if session['role'] == 'user' else 'Users' }}</span></h1>
-        </div>
-        <ul class="navbar">
-            <li><a href="/logout">Logout</a></li>
-        </ul>
-    </nav>
-    <div class="flash-container">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <div class="flash-messages">
-                    {% for category, message in messages %}
-                    <div class="flash-message {{ category }}">
-                        {{ message }}
-                        <button class="close-flash" onclick="this.parentElement.style.display='none';">&times;</button>
-                    </div>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        {% endwith %}
+{% extends 'dashboard_base.html' %}
+
+{% block title %}{{ 'Profilim' if session['role'] == 'user' else 'Kullanıcı Yönetimi' }}{% endblock %}
+{% block page_title %}👤 {{ 'Profilim' if session['role'] == 'user' else 'Kullanıcı Yönetimi' }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .modern-table-wrapper { background: white; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); overflow: hidden; border: 1px solid #e5e7eb; }
+    .modern-table { width: 100%; border-collapse: collapse; text-align: left; }
+    .modern-table th { background: #f9fafb; padding: 15px 20px; color: #6b7280; font-size: 13px; text-transform: uppercase; font-weight: 600; border-bottom: 1px solid #e5e7eb; }
+    .modern-table td { padding: 15px 20px; border-bottom: 1px solid #e5e7eb; color: #1f2937; font-size: 14px; vertical-align: middle; }
+    .modern-table tr:hover { background: #f9fafb; }
+    .action-btn { background: none; border: none; cursor: pointer; padding: 8px; border-radius: 6px; transition: 0.2s; font-size: 16px; }
+    .action-btn:hover { background: #e5e7eb; }
+    .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .primary-btn { background: #4f46e5; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 8px; }
+    .primary-btn:hover { background: #4338ca; }
+    .form-input { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-family: inherit; margin-top: 5px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="toolbar">
+    <div>
+        <h3 style="margin: 0; color: #111827;">{{ 'Profil Bilgilerim' if session['role'] == 'user' else 'Kullanıcı Listesi' }}</h3>
+        <p style="margin: 5px 0 0 0; color: #6b7280; font-size: 14px;">
+            {{ 'Hesap bilgilerinizi buradan güncelleyebilirsiniz.' if session['role'] == 'user' else 'Sisteme kayıtlı restoran sahiplerini (kullanıcıları) yönetin.' }}
+        </p>
     </div>
-    <button id="scrollTopBtn"><img class="up-arrow" src="{{ url_for('static', filename='images/up-arrow.png') }}"></button>
-    <div class="search-bar">
-        <form id="user-form" class="user-form" action="{{ url_for('user_action') }}" method="post">
-            <input type="hidden" id="user-id" name="user_id">
-            <input type="text" id="name" name="name" placeholder="Name">
-            <input type="email" id="email" name="email" placeholder="Email">
-            
-            <input type="hidden" id="selected-users" name="selected_users">
-            <input type="hidden" id="update-user-id" name="update_user_id">
-            <input type="hidden" id="clear-filter" name="clear_filter" value="false">
+    
+    <div style="display: flex; gap: 10px;">
+        {% if session['role'] == 'admin' %}
+        <form action="{{ url_for('user_action') }}" method="POST" style="display: flex; gap: 10px;">
+            <input type="text" name="name" placeholder="Kullanıcı Adı Ara..." class="form-input" style="margin: 0; padding: 8px 15px; width: 250px;">
+            <button type="submit" name="action" value="filter" class="action-btn" style="background-color: #3b82f6; color: white; border-radius: 6px; padding: 8px 15px; font-size: 14px;">Ara</button>
+            <button type="submit" name="action" value="clear" class="action-btn" style="background-color: #6b7280; color: white; border-radius: 6px; padding: 8px 15px; font-size: 14px;" onclick="document.querySelector('input[name=name]').value=''">Temizle</button>
         </form>
-        <button class="search-button" onclick="searchUser()"><img class="button-img" src="{{ url_for('static', filename='images/search.png') }}" alt="search icon"></img>Search</button>
-        <button class="clear-button" type="submit" form="user-form" name="action" value="clear" onclick="clearSearch()"><img class="button-img" src="{{ url_for('static', filename='images/clear.png') }}" alt="clear icon"></img>Clear</button>
-    </div>
-    <div class="action-buttons">
-        {%if session['role'] == 'admin' %}
-        <button class="add-button" type="submit" name="action" value="add" form="user-form"><img class="button-img" src="{{ url_for('static', filename='images/add.png') }}" alt="add icon"></img>Add</button>
-        <button class="delete-button" type="submit" name="action" value="delete" form="user-form" onclick="collectSelected()"><img class="button-img" src="{{ url_for('static', filename='images/delete.png') }}" alt="delete icon"></img>Delete</button>
-        <button class="filter-button" type="submit" name="action" value="filter" form="user-form"><img class="button-img" src="{{ url_for('static', filename='images/filter.png') }}" alt="filter icon"></img>Filter</button>
+
+        <button class="primary-btn" onclick="openUserModal()">
+            <span>+</span> Yeni Kullanıcı Ekle
+        </button>
         {% endif %}
-        <button class="update-button" type="submit" name="action" value="update" form="user-form"><img class="button-img" src="{{ url_for('static', filename='images/update.png') }}" alt="update icon"></img>Update</button>
     </div>
-    <div id="navigation" class="hidden">
-        <button id="next-match-button" onclick="goToNextMatch()">Next Match</button>
-    </div>
-    <div class="list" id="user-list">
-        {% for user in users %}
-        <div class="table-card" id="user-card-{{ user['user_id'] }}">
-            <input type="checkbox" id="user-{{ loop.index }}" name="selected_users" value="{{ user['user_id'] }}">
-            <label for="user-{{ loop.index }}">
-                <span class="user-id" style="display: none;">{{ user['user_id'] }}</span>
-                <p><strong>Name:</strong> <span class="name">{{ user['name'] }}</span></p>
-                <p><strong>Email:</strong> <span class="email">{{ user['email'] }}</span></p>
-            </label>
+</div>
+
+<div class="modern-table-wrapper">
+    <table class="modern-table">
+        <thead>
+            <tr>
+                <th>Ad Soyad</th>
+                <th>Email Adresi</th>
+                {% if session['role'] == 'admin' %}
+                <th>Restoranı</th>
+                {% endif %}
+                <th style="text-align: right;">İşlemler</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td style="font-weight: 600; font-size: 14px; color: #111827;">
+                    {{ user['name'] }}
+                </td>
+                <td style="color: #4b5563;">
+                    {{ user['email'] }}
+                </td>
+                {% if session['role'] == 'admin' %}
+                <td>
+                    {% if user['restaurant_name'] %}
+                        <span style="background-color: #e0e7ff; color: #4338ca; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700;">
+                            🏪 {{ user['restaurant_name'] }}
+                        </span>
+                    {% else %}
+                        <span style="background-color: #f3f4f6; color: #9ca3af; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600;">
+                            ❌ Atanmamış
+                        </span>
+                    {% endif %}
+                </td>
+                {% endif %}
+                <td style="text-align: right;">
+                    <button class="action-btn" title="Düzenle" 
+                        data-id="{{ user['user_id'] }}" 
+                        data-name="{{ user['name'] }}" 
+                        data-email="{{ user['email'] }}" 
+                        onclick="openUserModalFromBtn(this)">✏️</button>
+                    
+                    {% if session['role'] == 'admin' %}
+                    <form action="{{ url_for('user_action') }}" method="POST" style="display:inline;">
+                        <input type="hidden" name="selected_users" value="{{ user['user_id'] }}">
+                        <input type="hidden" name="action" value="delete">
+                        <button type="submit" class="action-btn" title="Sil" onclick="return confirm('Bu kullanıcıyı silmek istediğinize emin misiniz?');">🗑️</button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="4" style="text-align: center; padding: 40px; color: #6b7280;">
+                    Kayıtlı kullanıcı bulunmamaktadır.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div id="userFormModal" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; backdrop-filter: blur(4px);">
+    <div style="background-color: #fff; padding: 25px; border-radius: 12px; width: 90%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f3f4f6; margin-bottom: 15px; padding-bottom: 10px;">
+            <h3 style="margin: 0; color: #111827;" id="modalTitle">Yeni Kullanıcı Ekle</h3>
+            <span style="font-size: 24px; cursor: pointer; color: #9ca3af;" onclick="document.getElementById('userFormModal').style.display='none'">&times;</span>
         </div>
-        {% endfor %}
+
+        <form id="user-form" action="{{ url_for('user_action') }}" method="POST">
+            <input type="hidden" name="action" id="modal-action" value="add">
+            <input type="hidden" name="update_user_id" id="update-user-id">
+
+            <div style="margin-bottom: 15px;">
+                <label style="font-size: 13px; font-weight: 600; color: #374151;">Ad Soyad</label>
+                <input type="text" id="user-name" name="name" class="form-input" required>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="font-size: 13px; font-weight: 600; color: #374151;">Email Adresi</label>
+                <input type="email" id="user-email" name="email" class="form-input" required>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="font-size: 13px; font-weight: 600; color: #374151;">Şifre</label>
+                <input type="password" id="user-password" name="password" class="form-input" placeholder="********">
+                <small id="password-help" style="color: #9ca3af; font-size: 11px; margin-top:4px; display: none;">Güncellemek istemiyorsanız boş bırakın.</small>
+            </div>
+
+            <div style="display: flex; gap: 10px; justify-content: flex-end; border-top: 1px solid #e5e7eb; padding-top: 15px;">
+                <button type="button" onclick="document.getElementById('userFormModal').style.display='none'" style="background: #f3f4f6; color: #4b5563; padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">İptal</button>
+                <button type="submit" id="modal-submit-btn" class="primary-btn">Kaydet</button>
+            </div>
+        </form>
     </div>
-    <script src="{{ url_for('static', filename='js/common.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/users.js') }}"></script>
-</body>
-</html>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/users.js') }}"></script>
+{% endblock %}

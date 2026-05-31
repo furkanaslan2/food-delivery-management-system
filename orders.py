@@ -1,6 +1,7 @@
 from flask import render_template, request, redirect, url_for, session, flash, jsonify
 from db import get_db_connection
 from mysql.connector import Error
+from datetime import date
 
 def orders():
     if not session.get('logged_in'):
@@ -11,22 +12,28 @@ def orders():
 
     connection = get_db_connection()
     if connection is None:
-        flash("Couldn't connect to the database!", "danger")
-        return render_template('orders.html', orders=[])
+        flash("Veritabanına bağlanılamadı!", "danger")
+        return render_template('orders.html', orders=[], couriers=[], foods=[])
 
     try:
         cursor = connection.cursor(dictionary=True)
         if role == 'admin':
-            cursor.execute('SELECT * FROM orders')
-            orders = cursor.fetchall()
+            cursor.execute('''
+                SELECT o.*, r.restaurant_name 
+                FROM orders o
+                LEFT JOIN restaurants r ON o.restaurant_id = r.restaurant_id
+                ORDER BY o.order_id DESC
+            ''')
+            orders_data = cursor.fetchall()
             cursor.execute('SELECT * FROM couriers')
             couriers = cursor.fetchall()
             foods = []
         elif role == 'user' and restaurant_id:
-            cursor.execute('SELECT * FROM orders WHERE restaurant_id = %s', (restaurant_id,))
-            orders = cursor.fetchall()
+            cursor.execute('SELECT * FROM orders WHERE restaurant_id = %s ORDER BY order_id DESC', (restaurant_id,))
+            orders_data = cursor.fetchall()
             cursor.execute('SELECT * FROM couriers WHERE restaurant_id = %s', (restaurant_id,))
             couriers = cursor.fetchall()
+            
             query_foods = """
                 SELECT f.food_id, f.item_name, m.price 
                 FROM menus m 
@@ -36,18 +43,19 @@ def orders():
             cursor.execute(query_foods, (restaurant_id,))
             foods = cursor.fetchall()
         else:
-            flash("Unauthorized access!", "danger")
+            flash("Yetkisiz erişim!", "danger")
             return redirect(url_for('index'))
     except Error as e:
-        flash(f"Query failed: {e}", "danger")
-        orders = []
+        flash(f"Sorgu hatası: {e}", "danger")
+        orders_data = []
         couriers = []
+        foods = []
     finally:
         if connection.is_connected():
             cursor.close()
             connection.close()
 
-    return render_template('orders.html', orders=orders, couriers=couriers, foods=foods)
+    return render_template('orders.html', orders=orders_data, couriers=couriers, foods=foods)
     
 def order_action():
     if 'logged_in' not in session:
@@ -59,34 +67,38 @@ def order_action():
 
     connection = get_db_connection()
     if connection is None:
-        flash("Couldn't connect to the database!", "danger")
+        flash("Veritabanına bağlanılamadı!", "danger")
         return redirect(url_for('orders'))
 
     try:
-        cursor = connection.cursor(dictionary=True, buffered=True)
+        cursor = connection.cursor(dictionary=True)
 
         if action == 'add':
             order_type = request.form.get('order_type')
-
             if not order_type:
-                flash("Please select an Order Type (Dine-in or Delivery)!", "warning")
+                flash("Lütfen sipariş türünü seçin (Dine-in veya Delivery).", "warning")
                 return redirect(url_for('orders'))
             
-            if order_type == 'Dine-in':
-                flash("You cannot add Dine-in orders manually! Please use the Waiter system.", "danger")
-                return redirect(url_for('orders'))
-
-            order_id = request.form.get('order_id')
-
-            if role == 'user':
-                restaurant_id = restaurant_id_session 
-            else:
-                restaurant_id = request.form.get('restaurant_id')
+            restaurant_id = restaurant_id_session if role == 'user' else request.form.get('restaurant_id')
 
             customer_name = request.form.get('customer_name')
             customer_phone = request.form.get('customer_phone')
             customer_address = request.form.get('customer_address')
             courier_id = request.form.get('courier_id') or None
+            table_no = request.form.get('table_no') or None
+
+            # Paket servis için müşteri bilgileri kontrolü
+            if order_type == 'Delivery':
+                table_no = None
+                if not customer_name or not customer_phone or not customer_address:
+                    flash("Paket servis için müşteri bilgileri zorunludur!", "warning")
+                    return redirect(url_for('orders'))
+            
+            # Masa siparişi (Dine-in) için masa no kontrolü
+            if order_type == 'Dine-in':
+                if not table_no:
+                    flash("Masa siparişi için lütfen Masa Numarası girin!", "warning")
+                    return redirect(url_for('orders'))
 
             food_ids = request.form.getlist('food_id')    
             quantities = request.form.getlist('quantity') 
@@ -95,6 +107,7 @@ def order_action():
             total_qty = 0
             total_amount = 0
 
+            # Yemek stok ve fiyat hesaplamaları
             for i in range(len(food_ids)):
                 f_id = food_ids[i]
                 qty_str = quantities[i]
@@ -108,11 +121,10 @@ def order_action():
                             if menu_item:
                                 current_stock = menu_item['stock_quantity']
                                 if current_stock < qty:
-                                    flash(f"ERROR: Insufficient stock for item ID {f_id}! (Available: {current_stock})", "danger")
-                                    connection.close()
+                                    flash(f"HATA: Stok yetersiz! Ürün ID {f_id} (Mevcut: {current_stock})", "danger")
                                     return redirect(url_for('orders'))
                                 
-                                price = menu_item['price']
+                                price = float(menu_item['price'])
                                 item_total = price * qty
                                 total_amount += item_total
                                 total_qty += qty
@@ -126,54 +138,25 @@ def order_action():
                         continue 
 
             if not restaurant_id:
-                flash("Restaurant ID is required.", "warning")
-                return redirect(url_for('orders'))
-            
-            cursor.execute("SELECT COUNT(*) FROM restaurants WHERE restaurant_id = %s", (restaurant_id,))
-            if cursor.fetchone()['COUNT(*)'] == 0:
-                flash('No restaurant found with that Restaurant ID!', 'danger')
+                flash("Restoran ID zorunludur.", "warning")
                 return redirect(url_for('orders'))
 
-            if order_type == 'Delivery':
-                 if not customer_name or not customer_phone or not customer_address:
-                     flash("Customer details are required for Delivery!", "warning")
-                     return redirect(url_for('orders'))
-                 if not valid_items: 
-                     flash("Please add at least one food item!", "warning")
-                     return redirect(url_for('orders'))
+            if not valid_items: 
+                 flash("Lütfen en az bir ürün ekleyin!", "warning")
+                 return redirect(url_for('orders'))
 
-            order_status = request.form.get('order_status') or 'Pending'
+            order_status = request.form.get('order_status') or 'pending'
 
-            if order_id:
-                cursor.execute("SELECT order_id FROM orders WHERE order_id = %s", (order_id,))
-                if cursor.fetchone():
-                    cursor.execute("SELECT order_id FROM orders")
-                    used_ids = {row['order_id'] for row in cursor.fetchall()}
-                    all_possible_ids = set(range(1, 1001))
-                    unused_ids = all_possible_ids - used_ids
-                    suggestions = ', '.join(map(str, sorted(unused_ids)[:3]))
-                    flash(f"The Order ID {order_id} is already in use. Suggestions: {suggestions}", "warning")
-                    return redirect(url_for('orders'))
-
-                query = """
-                    INSERT INTO orders 
-                    (order_id, restaurant_id, order_date, order_status, sales_qty, sales_amount, 
-                     order_type, table_no, customer_name, customer_phone, customer_address, courier_id)
-                    VALUES (%s, %s, NOW(), %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                """
-                cursor.execute(query, (order_id, restaurant_id, order_status, total_qty, total_amount, 
-                                       order_type, None, customer_name, customer_phone, customer_address, courier_id))
-                final_order_id = order_id
-            else:
-                query = """
-                    INSERT INTO orders 
-                    (restaurant_id, order_date, order_status, sales_qty, sales_amount, 
-                     order_type, table_no, customer_name, customer_phone, customer_address, courier_id)
-                    VALUES (%s, NOW(), %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                """
-                cursor.execute(query, (restaurant_id, order_status, total_qty, total_amount, 
-                                       order_type, None, customer_name, customer_phone, customer_address, courier_id))
-                final_order_id = cursor.lastrowid
+            # MySQL AUTO_INCREMENT kullanarak ID otomatik atama!
+            query = """
+                INSERT INTO orders 
+                (restaurant_id, order_date, order_status, sales_qty, sales_amount, 
+                 order_type, table_no, customer_name, customer_phone, customer_address, courier_id)
+                VALUES (%s, NOW(), %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """
+            cursor.execute(query, (restaurant_id, order_status, total_qty, total_amount, 
+                                   order_type, table_no, customer_name, customer_phone, customer_address, courier_id))
+            final_order_id = cursor.lastrowid
 
             for item in valid_items:
                 item_query = "INSERT INTO order_items (order_id, food_id, quantity, unit_price) VALUES (%s, %s, %s, %s)"
@@ -187,21 +170,20 @@ def order_action():
                 """, (item['quantity'], item['food_id']))
 
             connection.commit()
-            flash(f"Order added successfully! Total: ${total_amount} (ID: {final_order_id})", "success")
-            return redirect(url_for('orders'))
+            flash(f"Sipariş başarıyla eklendi! Toplam: ${total_amount:.2f} (ID: {final_order_id})", "success")
 
         elif action == 'delete':
             selected_ids = request.form.get('selected_orders')
             if not selected_ids:
-                flash("No order(s) selected for deletion.", "warning")
+                flash("Silinecek sipariş seçilmedi.", "warning")
                 return redirect(url_for('orders'))
 
-            selected_ids = selected_ids.split(',')
+            ids_list = selected_ids.split(',')
 
-            for o_id in selected_ids:
+            # Silinen siparişlerin stoklarını iade et
+            for o_id in ids_list:
                 cursor.execute("SELECT food_id, quantity FROM order_items WHERE order_id = %s", (o_id,))
                 items_to_return = cursor.fetchall()
-
                 for item in items_to_return:
                     cursor.execute("""
                         UPDATE menus 
@@ -209,223 +191,93 @@ def order_action():
                         WHERE food_id = %s
                     """, (item['quantity'], item['food_id']))
 
+            format_strings = ','.join(['%s'] * len(ids_list))
             if role == 'user':
-                query = "DELETE FROM orders WHERE order_id IN ({}) AND restaurant_id = %s".format(','.join(['%s'] * len(selected_ids)))
-                cursor.execute(query, selected_ids + [restaurant_id_session])
+                query = f"DELETE FROM orders WHERE order_id IN ({format_strings}) AND restaurant_id = %s"
+                cursor.execute(query, ids_list + [restaurant_id_session])
             else:
-                query = "DELETE FROM orders WHERE order_id IN (%s)" % ','.join(['%s'] * len(selected_ids))
-                cursor.execute(query, selected_ids)
+                query = f"DELETE FROM orders WHERE order_id IN ({format_strings})"
+                cursor.execute(query, ids_list)
 
             connection.commit()
-            flash(f"Successfully deleted {cursor.rowcount} order(s).", "success")
+            flash(f"{cursor.rowcount} sipariş başarıyla silindi ve stoklar iade edildi.", "success")
 
         elif action == 'update':
             update_order_id = request.form.get('update_order_id')
-            new_order_id = request.form.get('order_id')         
-            if role == 'user':
-                restaurant_id = restaurant_id_session
-            else:
-                restaurant_id = request.form.get('restaurant_id')
             order_status = request.form.get('order_status')     
             order_type = request.form.get('order_type')
             table_no = request.form.get('table_no')
+            
+            restaurant_id = restaurant_id_session if role == 'user' else request.form.get('restaurant_id')
 
             if order_type == 'Delivery':
                 table_no = None  
-            else:
-                table_no = table_no if table_no else None
-
+            
             customer_name = request.form.get('customer_name')
             customer_phone = request.form.get('customer_phone')
             customer_address = request.form.get('customer_address')
-            courier_id = request.form.get('courier_id')
-            
-            if not table_no: table_no = None
-            if not courier_id: courier_id = None
+            courier_id = request.form.get('courier_id') or None
 
             if not update_order_id:
-                flash("No order selected for update.", "warning")
+                flash("Güncellenecek sipariş seçilmedi.", "warning")
                 return redirect(url_for('orders'))
 
-            if role == 'user' and str(new_order_id) != str(update_order_id):
-                flash("Unauthorized action! You cannot change your Order's ID.", "danger")
-                return redirect(url_for('orders'))
-            
-            if new_order_id != update_order_id:
-                cursor.execute("SELECT COUNT(*) AS count FROM orders WHERE order_id = %s", (new_order_id,))
-                result = cursor.fetchone()
-                if result['count'] > 0:
-                     flash(f"The new Order ID is already in use.", "warning")
-                     return redirect(url_for('orders'))
-
-            # 📍 SİHİRLİ DOKUNUŞ: Fiyatı yeniden HESAPLAMIYORUZ! 
-            # Check-out anında ekstralarla kaydedilmiş o kusursuz fiyatı veritabanından aynen alıp koruyoruz.
-            cursor.execute("SELECT sales_qty, sales_amount FROM orders WHERE order_id = %s", (update_order_id,))
-            existing_order = cursor.fetchone()
-            
-            total_qty = existing_order['sales_qty'] if existing_order else 0
-            total_amount = existing_order['sales_amount'] if existing_order else 0
-
-            # (Eğer bu bir restoran içi siparişse ve admin formdan özel fiyat girdiyse onu kullanırız)
-            if order_type != 'Delivery':
-                form_qty = request.form.get('sales_qty')
-                form_amount = request.form.get('sales_amount')
-                if form_qty and form_amount:
-                    total_qty = form_qty
-                    total_amount = form_amount
-
-            # Siparişi GÜNCELLE (Ama asla fiyatını ve içeriklerini ezme!)
             query = """
                 UPDATE orders 
-                SET order_id = %s, sales_qty = %s, sales_amount = %s, 
-                    restaurant_id = %s, order_status = %s,
-                    order_type = %s, table_no = %s, 
+                SET order_status = %s, order_type = %s, table_no = %s, 
                     customer_name = %s, customer_phone = %s, customer_address = %s, courier_id = %s
-                WHERE order_id = %s
+                WHERE order_id = %s AND restaurant_id = %s
             """
-            cursor.execute(query, (new_order_id, total_qty, total_amount, 
-                                   restaurant_id, order_status,
-                                   order_type, table_no, 
-                                   customer_name, customer_phone, customer_address, courier_id,
-                                   update_order_id))
+            cursor.execute(query, (order_status, order_type, table_no, customer_name, customer_phone, customer_address, courier_id, update_order_id, restaurant_id))
             
             connection.commit()
-            flash("Order updated successfully!", "success")
+            flash("Sipariş detayları başarıyla güncellendi!", "success")
 
         elif action == 'filter':
             order_id = request.form.get('order_id')
-            order_date = request.form.get('order_date')
-            sales_qty = request.form.get('sales_qty')
-            sales_amount = request.form.get('sales_amount')
-            restaurant_id = request.form.get('restaurant_id')
-            order_status = request.form.get('order_status')
-            table_no = request.form.get('table_no')
-            order_type = request.form.get('order_type')
-            customer_name = request.form.get('customer_name')
-            customer_phone = request.form.get('customer_phone')
-            courier_id = request.form.get('courier_id')
 
-            if not any([order_id, order_date, sales_qty, sales_amount, restaurant_id, 
-                        order_status, table_no, order_type, customer_name, customer_phone, courier_id]):
-                flash("Please provide at least one filter criteria.", "warning")
-                return redirect(url_for('orders'))
-
-            query = "SELECT * FROM orders WHERE 1=1"
+            query = """
+                SELECT o.*, r.restaurant_name 
+                FROM orders o
+                LEFT JOIN restaurants r ON o.restaurant_id = r.restaurant_id
+                WHERE 1=1
+            """
             params = []
             
             if role == 'user':
-                query += " AND restaurant_id = %s"
+                query += " AND o.restaurant_id = %s"
                 params.append(restaurant_id_session)
 
             if order_id:
-                query += " AND order_id = %s"
+                query += " AND o.order_id = %s"
                 params.append(order_id)
             
-            if order_date:
-                query += " AND order_date LIKE %s"
-                params.append(f"%{order_date}%")
-            
-            if sales_qty:
-                query += " AND sales_qty = %s"
-                params.append(sales_qty)
-            
-            if sales_amount:
-                query += " AND sales_amount = %s"
-                params.append(sales_amount)
-            
-            if restaurant_id:
-                if role == 'admin':
-                     query += " AND restaurant_id = %s"
-                     params.append(restaurant_id)
-
-            if order_status:
-                query += " AND order_status = %s"
-                params.append(order_status)
-            
-            if table_no:
-                query += " AND table_no = %s"
-                params.append(table_no)
-
-            if order_type:
-                query += " AND order_type = %s"
-                params.append(order_type)
-            
-            if customer_name:
-                query += " AND customer_name LIKE %s"
-                params.append(f"%{customer_name}%")
-            
-            if customer_phone:
-                query += " AND customer_phone LIKE %s"
-                params.append(f"%{customer_phone}%")
-            
-            if courier_id:
-                query += " AND courier_id = %s"
-                params.append(courier_id)
-
+            query += " ORDER BY o.order_id DESC"
             cursor.execute(query, params)
-            orders = cursor.fetchall()
+            orders_data = cursor.fetchall()
             
-            session['filtered_orders'] = orders
-            flash(f"Found {len(orders)} order(s) matching the criteria(s).", "success")
+            if orders_data:
+                flash(f"Arama sonucunda {len(orders_data)} sipariş bulundu.", "success")
+            else:
+                flash("Aradığınız sipariş bulunamadı.", "info")
 
+            cursor.execute('SELECT * FROM couriers WHERE restaurant_id = %s' if role == 'user' else 'SELECT * FROM couriers', (restaurant_id_session,) if role == 'user' else ())
+            couriers = cursor.fetchall()
+            
             if role == 'user':
-                cursor.execute('SELECT * FROM couriers WHERE restaurant_id = %s', (restaurant_id_session,))
-                couriers = cursor.fetchall()
-
-                query_foods = """
-                    SELECT f.food_id, f.item_name, m.price 
-                    FROM menus m 
-                    JOIN foods f ON m.food_id = f.food_id 
-                    WHERE m.restaurant_id = %s
-                """
-                cursor.execute(query_foods, (restaurant_id_session,))
-                foods = cursor.fetchall()
+                cursor.execute("SELECT f.food_id, f.item_name, m.price FROM menus m JOIN foods f ON m.food_id = f.food_id WHERE m.restaurant_id = %s", (restaurant_id_session,))
             else:
-                cursor.execute("SELECT * FROM couriers")
-                couriers = cursor.fetchall()
-                cursor.execute("SELECT * FROM foods") 
-                foods = cursor.fetchall()
-
-            return render_template('orders.html', orders=orders, foods=foods, couriers=couriers)
-
-        elif action == 'sort':
-            sort_by = request.form.get('sort_by')
-            sort_order = request.form.get('sort_order')
-
-            if not sort_by or sort_order not in ['ASC', 'DESC']:
-                flash("Invalid sort parameters.", "danger")
-                return redirect(url_for('orders'))
-
-            if 'filtered_orders' in session and session['filtered_orders']:
-                filtered_ids = [order['order_id'] for order in session['filtered_orders']]
-
-                query = f"SELECT * FROM orders WHERE order_id IN ({','.join(['%s'] * len(filtered_ids))}) ORDER BY {sort_by} {sort_order}"
-                cursor.execute(query, filtered_ids)
-                orders = cursor.fetchall()
-
-                flash("Filtered orders sorted successfully!", "success")
-            else:
-                query = "SELECT * FROM orders WHERE 1=1"
-                params = []
-                if role == 'user':
-                    query += " AND restaurant_id = %s"
-                    params.append(restaurant_id_session)
-
-                query += f" ORDER BY {sort_by} {sort_order}"
-                cursor.execute(query, params)
-                orders = cursor.fetchall()
-                flash("Orders sorted successfully!", "success")
-
-            return render_template('orders.html', orders=orders)
+                cursor.execute("SELECT f.food_id, f.item_name, m.price FROM menus m JOIN foods f ON m.food_id = f.food_id")
+            foods = cursor.fetchall()
+                
+            return render_template('orders.html', orders=orders_data, foods=foods, couriers=couriers)
 
         elif action == 'clear':
-            if 'filtered_orders' in session:
-                session.pop('filtered_orders', None)
-
-            flash("All filters, sorting, and selections have been cleared.", "success")
             return redirect(url_for('orders'))
+
     except Error as e:
-        flash(f"An error occurred: {e}", "danger")
+        flash(f"Bir hata oluştu: {e}", "danger")
+        connection.rollback()
     finally:
         if connection.is_connected():
             cursor.close()
@@ -486,7 +338,6 @@ def get_restaurant_details(restaurant_id):
             conn.close()
 
 def api_check_new_orders():
-    # Sadece giriş yapmış yetkili kişiler (admin veya restoran sahibi) burayı sorgulayabilir
     if 'logged_in' not in session:
         return jsonify({'new_orders': False})
         
@@ -494,27 +345,23 @@ def api_check_new_orders():
     if role not in ['admin', 'user']:
         return jsonify({'new_orders': False})
         
-    # HTML'den gelen, ekrandaki en son (en büyük) sipariş ID'sini al
     client_max_id = request.args.get('last_id', 0, type=int)
     
     connection = get_db_connection()
     if connection:
         try:
             cursor = connection.cursor(dictionary=True)
-            
-            # Rolüne göre veritabanındaki en son siparişin ID'sini bul
             if role == 'user':
                 restaurant_id = session.get('restaurant_id')
                 if not restaurant_id:
                     return jsonify({'new_orders': False})
                 cursor.execute("SELECT MAX(order_id) as max_id FROM orders WHERE restaurant_id = %s", (restaurant_id,))
-            else: # admin
+            else: 
                 cursor.execute("SELECT MAX(order_id) as max_id FROM orders")
                 
             result = cursor.fetchone()
             db_max_id = result['max_id'] if result and result['max_id'] else 0
             
-            # Eğer veritabanındaki son ID, ekrandaki son ID'den büyükse YENİ SİPARİŞ VARDIR!
             if db_max_id > client_max_id:
                 return jsonify({'new_orders': True})
                 

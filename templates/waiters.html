@@ -1,101 +1,215 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Waiters</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-</head>
-<body>
-    <nav>
-        <input type="hidden" id="current-user-role" value="{{ session['role'] }}">
-        <div class="logo navbar">
-            <a href="/"><img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo"></a>
-            <h1><a href="/">Food Delivery Management System</a> / <span style="margin-left: 10px; color: white">Waiters</span></h1>
-        </div>
-        <ul class="navbar">
-            <li><a href="/logout">Logout</a></li>
-        </ul>
-    </nav>
-    <div class="flash-container">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <div class="flash-messages">
-                    {% for category, message in messages %}
-                    <div class="flash-message {{ category }}">
-                        {{ message }}
-                        <button class="close-flash" onclick="this.parentElement.style.display='none';">&times;</button>
-                    </div>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        {% endwith %}
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Garson Yönetimi{% endblock %}
+{% block page_title %}🤵 Garson Yönetimi{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* 🎨 MODERN TABLO TASARIMI */
+    .modern-table-wrapper {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+        border: 1px solid #e5e7eb;
+    }
+
+    .modern-table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+    }
+
+    .modern-table th {
+        background: #f9fafb;
+        padding: 15px 20px;
+        color: #6b7280;
+        font-size: 13px;
+        text-transform: uppercase;
+        font-weight: 600;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .modern-table td {
+        padding: 15px 20px;
+        border-bottom: 1px solid #e5e7eb;
+        color: #1f2937;
+        font-size: 14px;
+        vertical-align: middle;
+    }
+
+    .modern-table tr:hover {
+        background: #f9fafb;
+    }
+
+    /* ⚙️ İŞLEM BUTONLARI */
+    .action-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 6px;
+        transition: 0.2s;
+        font-size: 16px;
+    }
+    .action-btn:hover { background: #e5e7eb; }
+
+    /* 🔝 ÜST ARAÇ ÇUBUĞU */
+    .toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .primary-btn {
+        background: #4f46e5;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .primary-btn:hover { background: #4338ca; }
+
+    /* FORM INPUTLARI */
+    .form-input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-family: inherit;
+        margin-top: 5px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="toolbar">
+    <div>
+        <h3 style="margin: 0; color: #111827;">Garson Listesi</h3>
+        <p style="margin: 5px 0 0 0; color: #6b7280; font-size: 14px;">Restoranınızın salon ekibini ve sisteme giriş yetkilerini yönetin.</p>
     </div>
-    <div class="search-bar">
-        <form id="waiter-form" class="courier-form" action="{{ url_for('waiter_action') }}" method="post">
-            <input type="hidden" id="selected-waiters" name="selected_waiters">
-            <input type="hidden" id="update-waiter-id" name="update_waiter_id">
-            
-            <input type="hidden" id="waiter-id" name="waiter_id">
-            <input type="hidden" id="waiter-restaurant-id" name="restaurant_id">
-            
-            <input type="text" id="waiter-name" name="name" placeholder="Name">
-            <input type="text" id="waiter-email" name="email" placeholder="Email">
+    
+    <div style="display: flex; gap: 10px;">
+        <form action="{{ url_for('waiter_action') }}" method="POST" style="display: flex; gap: 10px;">
+            <input type="text" name="name" placeholder="Garson Adı Ara..." class="form-input" style="margin: 0; padding: 8px 15px; width: 250px;">
+            <button type="submit" name="action" value="filter" class="action-btn" style="background-color: #3b82f6; color: white; border-radius: 6px; padding: 8px 15px; font-size: 14px;">Ara</button>
+            <button type="submit" name="action" value="clear" class="action-btn" style="background-color: #6b7280; color: white; border-radius: 6px; padding: 8px 15px; font-size: 14px;" onclick="document.querySelector('input[name=name]').value=''">Temizle</button>
         </form>
-        <button class="search-button" type="submit" name="action" value="filter" form="waiter-form">
-            <img class="button-img" src="{{ url_for('static', filename='images/search.png') }}">Search
-        </button>
-        <button class="clear-button" type="submit" name="action" value="clear" form="waiter-form">
-            <img class="button-img" src="{{ url_for('static', filename='images/clear.png') }}">Clear
+
+        <button class="primary-btn" onclick="openWaiterModal()">
+            <span>+</span> Yeni Garson Ekle
         </button>
     </div>
-    <div class="action-buttons">
-        <button class="add-button" type="submit" name="action" value="add" form="waiter-form">
-            <img class="button-img" src="{{ url_for('static', filename='images/add.png') }}">Add
-        </button>
-        <button class="delete-button" type="submit" name="action" value="delete" form="waiter-form">
-            <img class="button-img" src="{{ url_for('static', filename='images/delete.png') }}">Delete
-        </button>
-        <button class="update-button" type="submit" name="action" value="update" form="waiter-form">
-            <img class="button-img" src="{{ url_for('static', filename='images/update.png') }}">Update
-        </button>
-        <button class="filter-button" type="submit" name="action" value="filter" form="waiter-form">
-            <img class="button-img" src="{{ url_for('static', filename='images/filter.png') }}">Filter
-        </button>
-        <div class="sort-container">
-            <button class="sort-button" onclick="document.getElementById('sort-menu').classList.toggle('hidden')">
-                <img class="button-img" src="{{ url_for('static', filename='images/sort.png') }}">Sort
-            </button>
-            <div class="sort-menu hidden" id="sort-menu">
-                <form action="{{ url_for('waiter_action') }}" method="post">
-                    <select name="sort_by">
-                        <option value="name">Name</option>
-                    </select>
-                    <select name="sort_order">
-                        <option value="ASC">Ascending</option>
-                        <option value="DESC">Descending</option>
-                    </select>
-                    <button type="submit" name="action" value="sort">Apply</button>
-                </form>
-            </div>
+</div>
+
+<div class="modern-table-wrapper">
+    <table class="modern-table">
+        <thead>
+            <tr>
+                <th>Ad Soyad</th>
+                <th>Email Adresi</th>
+                {% if session['role'] == 'admin' %}
+                <th>Restoran</th>
+                {% endif %}
+                <th style="text-align: right;">İşlemler</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for waiter in waiters %}
+            <tr>
+                <td style="font-weight: 600; font-size: 14px; color: #111827;">
+                    {{ waiter['name'] }}
+                </td>
+                <td style="color: #4b5563;">
+                    {{ waiter['email'] }}
+                </td>
+                {% if session['role'] == 'admin' %}
+                <td>
+                    <span style="background-color: #e0e7ff; color: #4338ca; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700;">
+                        🏪 {{ waiter['restaurant_name'] or 'Bilinmiyor' }}
+                    </span>
+                </td>
+                {% endif %}
+                <td style="text-align: right;">
+                    <button class="action-btn" title="Düzenle" 
+                        data-id="{{ waiter['waiter_id'] }}" 
+                        data-restaurantid="{{ waiter['restaurant_id'] }}"
+                        data-name="{{ waiter['name'] }}" 
+                        data-email="{{ waiter['email'] }}" 
+                        onclick="openWaiterModalFromBtn(this)">✏️</button>
+                    
+                    <form action="{{ url_for('waiter_action') }}" method="POST" style="display:inline;">
+                        <input type="hidden" name="selected_waiters" value="{{ waiter['waiter_id'] }}">
+                        <input type="hidden" name="action" value="delete">
+                        <button type="submit" class="action-btn" title="Sil" onclick="return confirm('Bu garsonu silmek istediğinize emin misiniz?');">🗑️</button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="3" style="text-align: center; padding: 40px; color: #6b7280;">
+                    Sistemde kayıtlı garson bulunmamaktadır.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div id="waiterFormModal" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; backdrop-filter: blur(4px);">
+    <div style="background-color: #fff; padding: 25px; border-radius: 12px; width: 90%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f3f4f6; margin-bottom: 15px; padding-bottom: 10px;">
+            <h3 style="margin: 0; color: #111827;" id="modalTitle">Yeni Garson Ekle</h3>
+            <span style="font-size: 24px; cursor: pointer; color: #9ca3af;" onclick="document.getElementById('waiterFormModal').style.display='none'">&times;</span>
         </div>
-    </div>
-    <div class="list" id="waiter-list">
-    {% for waiter in waiters %}
-    <div class="table-card">
-        <input type="checkbox" id="waiter-{{ loop.index }}" name="selected_waiters" value="{{ waiter['waiter_id'] }}">
-        <label for="waiter-{{ loop.index }}">
-            <span class="waiter-id" style="display: none;">{{ waiter['waiter_id'] }}</span>
-            <span class="waiter-restaurant-id" style="display: none;">{{ waiter['restaurant_id'] }}</span>
-            <input type="hidden" class="waiter-password" value="{{ waiter['password'] }}">
+
+        <form id="waiter-form" action="{{ url_for('waiter_action') }}" method="POST">
+            <input type="hidden" name="action" id="modal-action" value="add">
+            <input type="hidden" name="update_waiter_id" id="update-waiter-id">
+            <input type="hidden" name="waiter_id" id="waiter-id">
             
-            <p><strong>Name:</strong> <span class="waiter-name">{{ waiter['name'] }}</span></p>
-            <p><strong>Email:</strong> <span class="waiter-email">{{ waiter['email'] }}</span></p>
-        </label>
+            {% if session['role'] == 'admin' %}
+            <div style="margin-bottom: 15px;">
+                <label style="font-size: 13px; font-weight: 600; color: #dc2626;">Restoran ID</label>
+                <input type="number" id="waiter-restaurant-id" name="restaurant_id" class="form-input" style="border-color: #fca5a5;" required>
+            </div>
+            {% else %}
+                <input type="hidden" id="waiter-restaurant-id" name="restaurant_id" value="{{ session.get('restaurant_id', '') }}">
+            {% endif %}
+
+            <div style="margin-bottom: 15px;">
+                <label style="font-size: 13px; font-weight: 600; color: #374151;">Ad Soyad</label>
+                <input type="text" id="waiter-name" name="name" class="form-input" required>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="font-size: 13px; font-weight: 600; color: #374151;">Email Adresi</label>
+                <input type="email" id="waiter-email" name="email" class="form-input" required>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="font-size: 13px; font-weight: 600; color: #374151;">Şifre</label>
+                <input type="password" id="waiter-password" name="password" class="form-input" placeholder="********">
+                <small id="password-help" style="color: #9ca3af; font-size: 11px; margin-top:4px; display: none;">Güncellemek istemiyorsanız boş bırakın.</small>
+            </div>
+
+            <div style="display: flex; gap: 10px; justify-content: flex-end; border-top: 1px solid #e5e7eb; padding-top: 15px;">
+                <button type="button" onclick="document.getElementById('waiterFormModal').style.display='none'" style="background: #f3f4f6; color: #4b5563; padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">İptal</button>
+                <button type="submit" id="modal-submit-btn" class="primary-btn">Kaydet</button>
+            </div>
+        </form>
     </div>
-    {% endfor %}
-    </div>
-    <script src="{{ url_for('static', filename='js/common.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/waiters.js') }}"></script>
-</body>
-</html>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/waiters.js') }}"></script>
+{% endblock %}

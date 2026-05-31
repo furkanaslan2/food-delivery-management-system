@@ -1,201 +1,37 @@
-document.addEventListener("DOMContentLoaded", function () {
-    const userCards = document.querySelectorAll('.table-card');
+function openUserModalFromBtn(btn) {
+    const id = btn.getAttribute('data-id');
+    const name = btn.getAttribute('data-name');
+    const email = btn.getAttribute('data-email');
 
-    let lastCheckedBox = null;
+    openUserModal(true, id, name, email);
+}
 
-    function updateInputs(checkbox) {
-        const card = checkbox.closest('.table-card');
-        const id = card.querySelector('.user-id').textContent.trim();
-        const name = card.querySelector('.name').textContent.trim();
-        const email = card.querySelector('.email').textContent.trim();
-
-        document.getElementById('user-id').value = id;
-        document.getElementById('name').value = name;
-        document.getElementById('email').value = email;
+function openUserModal(isUpdate = false, id = '', name = '', email = '') {
+    document.getElementById('userFormModal').style.display = 'flex';
+    const form = document.getElementById('user-form');
+    
+    if (isUpdate) {
+        document.getElementById('modalTitle').innerText = 'Kullanıcıyı/Profili Düzenle';
+        document.getElementById('modal-action').value = 'update';
+        document.getElementById('modal-submit-btn').innerText = 'Güncelle';
+        
         document.getElementById('update-user-id').value = id;
-
-        const currentUserRole = document.getElementById('current-user-role').value;
-        const idInput = document.getElementById('user-id');
-
-        if (currentUserRole === 'admin') {
-            idInput.readOnly = false;
-            idInput.style.backgroundColor = 'white';
-            idInput.style.cursor = 'text';
-        } else {
-            idInput.readOnly = true;
-            idInput.style.backgroundColor = '#e9ecef'; 
-            idInput.style.cursor = 'not-allowed';
-        }
-    }
-
-    function clearInputs() {
-        document.getElementById('user-id').value = '';
-        document.getElementById('name').value = '';
-        document.getElementById('email').value = '';
+        document.getElementById('user-name').value = name;
+        document.getElementById('user-email').value = email;
+        
+        // Şifre güncellenirken zorunlu değil
+        document.getElementById('user-password').required = false;
+        document.getElementById('password-help').style.display = 'block';
+    } else {
+        document.getElementById('modalTitle').innerText = 'Yeni Kullanıcı Ekle';
+        document.getElementById('modal-action').value = 'add';
+        document.getElementById('modal-submit-btn').innerText = 'Ekle';
+        
+        form.reset();
         document.getElementById('update-user-id').value = '';
-
-        const idInput = document.getElementById('user-id');
         
-        idInput.readOnly = false;           
-        idInput.style.backgroundColor = ''; 
-        idInput.style.cursor = 'text';
-    }
-
-    function handleCheckboxChange(event) {
-        
-        const selectedCheckboxes = document.querySelectorAll('#user-list input[type="checkbox"]:checked');
-
-        if (selectedCheckboxes.length === 0) {
-            clearInputs();
-        } 
-        else if (selectedCheckboxes.length === 1) {
-            updateInputs(selectedCheckboxes[0]);
-        } 
-        else {
-            clearInputs();
-        }
-    }
-
-    userCards.forEach(card => {
-        const checkbox = card.querySelector('input[type="checkbox"]');
-        checkbox.addEventListener('change', handleCheckboxChange);
-    });
-});
-
-let matchedCards = [];
-let currentMatchIndex = 0;
-
-function searchUser() {
-    const idInput = document.getElementById('user-id').value.trim().toLowerCase();
-    const nameInput = document.getElementById('name').value.trim().toLowerCase();
-    const emailInput = document.getElementById('email').value.trim().toLowerCase();
-    const cards = document.querySelectorAll('.table-card');
-    matchedCards = [];
-    currentMatchIndex = -1;
-
-    if (!idInput && !nameInput && !emailInput) {
-        alert("Please enter at least one search criterion.");
-        return;
-    }
-
-    cards.forEach(card => card.classList.remove('highlight'));
-
-    cards.forEach(card => {
-        const id = card.querySelector('.user-id').textContent.toLowerCase();
-        const name = card.querySelector('.name').textContent.toLowerCase();
-        const email = card.querySelector('.email').textContent.toLowerCase();
-
-        if (
-            (!idInput || id === idInput) &&
-            (!nameInput || name.includes(nameInput)) &&
-            (!emailInput || email === emailInput)
-        ) {
-            matchedCards.push(card);
-        }
-    });
-
-    if (matchedCards.length > 0) {
-        if (matchedCards.length === 1) {
-            document.getElementById('navigation').classList.add('hidden');
-        } else {
-            document.getElementById('navigation').classList.remove('hidden');
-        }
-        goToNextMatch();
-    } else {
-        document.getElementById('navigation').classList.add('hidden');
-        alert("No users found matching the criteria.");
+        // Yeni eklemede şifre zorunlu
+        document.getElementById('user-password').required = true;
+        document.getElementById('password-help').style.display = 'none';
     }
 }
-
-function goToNextMatch() {
-    if (currentMatchIndex >= 0 && currentMatchIndex < matchedCards.length) {
-        matchedCards[currentMatchIndex].classList.remove('highlight');
-    }
-
-    currentMatchIndex = (currentMatchIndex + 1) % matchedCards.length;
-    const nextCard = matchedCards[currentMatchIndex];
-
-    nextCard.classList.add('highlight');
-    nextCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-}
-
-function clearSearch() {
-    document.getElementById('user-id').value = "";
-    document.getElementById('name').value = "";
-    document.getElementById('email').value = "";
-
-    document.getElementById('clear-filter').value = "true";
-    document.getElementById('user-form').submit();
-
-    document.querySelectorAll('.table-card').forEach(card => card.classList.remove('highlight'));
-    document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => checkbox.checked = false);
-
-    matchedCards = [];
-    currentMatchIndex = 0;
-
-    document.getElementById('navigation').classList.add('hidden');
-}
-
-function collectSelected() {
-    const selectedUsers = [];
-    const checkboxes = document.querySelectorAll('#user-list input[type="checkbox"]:checked');
-
-    checkboxes.forEach(checkbox => {
-        selectedUsers.push(checkbox.value);
-    });
-
-    document.getElementById('selected-users').value = selectedUsers.join(',');
-}
-
-const scrollTopBtn = document.getElementById("scrollTopBtn");
-
-function checkScrollPosition() {
-    if (window.scrollY > 100) {
-        scrollTopBtn.classList.add("visible");
-    } else {
-        scrollTopBtn.classList.remove("visible");
-    }
-}
-
-window.addEventListener("load", checkScrollPosition);
-
-window.addEventListener("scroll", checkScrollPosition);
-
-scrollTopBtn.addEventListener("click", function() {
-    window.scrollTo({
-        top: 0,
-        behavior: "smooth"
-    });
-});
-
-function toggleSortMenu(event) {
-    const sortMenu = document.getElementById('sort-menu');
-    const overlay = document.getElementById('overlay');
-    const isHidden = sortMenu.style.display === 'none' || !sortMenu.style.display;
-
-    if (isHidden) {
-        sortMenu.style.display = 'block';
-        overlay.style.display = 'block';
-
-        const buttonRect = event.target.getBoundingClientRect();
-        sortMenu.style.top = `${buttonRect.top + window.scrollY}px`;
-        sortMenu.style.left = `${buttonRect.right + 10}px`;
-    } else {
-        sortMenu.style.display = 'none';
-        overlay.style.display = 'none';
-    }
-}
-
-document.getElementById('overlay').addEventListener('click', function () {
-    document.getElementById('sort-menu').style.display = 'none';
-    document.getElementById('overlay').style.display = 'none';
-});
-
-document.addEventListener("DOMContentLoaded", function () {
-    const flashMessages = document.querySelectorAll(".flash-message");
-    flashMessages.forEach((msg) => {
-        setTimeout(() => {
-            msg.style.display = "none";
-        }, 5000);
-    });
-});

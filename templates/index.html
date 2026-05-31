@@ -1,178 +1,264 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-    <style>
-        .desktop-spacer {
-            visibility: hidden; 
-            background: transparent !important; 
-            box-shadow: none !important; 
-            border: none !important; 
-            pointer-events: none; 
-        }
+{% extends 'dashboard_base.html' %}
 
-        @media screen and (max-width: 1024px) {
-            .desktop-spacer {
-                display: none;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div id="loading-overlay" class="d-none">
-        <div class="spinner-ring"></div>
-    </div>
-    <nav>
-        <div class="logo navbar">
-            <a href="/"><img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo"></a>
-            <h1><a href="/">Food Delivery Management System</a></h1>
-        </div>
-        <ul class="navbar">
-            
-            <li><a href="{{ url_for('view_profile') }}" style="margin-right: 15px; font-weight: 600;">⚙️ Ayarlarım</a></li>
+{% block title %}Ana Panel{% endblock %}
+{% block page_title %}🏠 Ana Panel (Dashboard){% endblock %}
 
-            <li class="dropdown">
-                <a href="" class="dropbtn">Statistics</a>
-                <div class="dropdown-content">
-                    {% if role == 'admin' %}
-                        <a href="">Total Users: <span style="font-size: 20px">{{ statistics['users'] }}</span></a>
-                        <a href="">Total Restaurants: <span style="font-size: 20px">{{ statistics['restaurants'] }}</span></a>
-                        <a href="">Total Menus: <span style="font-size: 20px">{{ statistics['menus'] }}</span></a>
-                        <a href="">Total Foods: <span style="font-size: 20px">{{ statistics['foods'] }}</span></a>
-                        <a href="">Total Orders: <span style="font-size: 20px">{{ statistics['orders'] }}</span></a>
-                        <a href="">Total Couriers: <span style="font-size: 20px">{{ statistics['couriers'] }}</span></a>
-                        <a href="">Total Waiters: <span style="font-size: 20px">{{ statistics['waiters'] }}</span></a>
-                    {% elif role == 'user' %}
-                        <a href="">Your Menus: <span style="font-size: 20px">{{ statistics['menus'] }}</span></a>
-                        <a href="">Your Foods: <span style="font-size: 20px">{{ statistics['foods'] }}</span></a>
-                        <a href="">Your Orders: <span style="font-size: 20px">{{ statistics['orders'] }}</span></a>
-                        <a href="">Your Couriers: <span style="font-size: 20px">{{ statistics['couriers'] }}</span></a>
-                        <a href="">Your Waiters: <span style="font-size: 20px">{{ statistics['waiters'] }}</span></a>
-                    {% endif %}
-                </div>
-            </li>
-            
-            <li><a href="/logout">Logout</a></li>
-        </ul>
-    </nav>
-    <div class="flash-container">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <div class="flash-messages">
-                    {% for category, message in messages %}
-                    <div class="flash-message {{ category }}">
-                        {{ message }}
-                        <button class="close-flash" onclick="this.parentElement.style.display='none';">&times;</button>
-                    </div>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        {% endwith %}
+{% block extra_css %}
+<style>
+    /* 📊 İSTATİSTİK KARTLARI */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 40px;
+    }
+    .stat-card {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        border: 1px solid #e5e7eb;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        transition: transform 0.2s;
+    }
+    .stat-card:hover { transform: translateY(-3px); }
+    .stat-icon {
+        width: 55px;
+        height: 55px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 26px;
+    }
+    .stat-info h3 { margin: 0; font-size: 26px; color: #111827; }
+    .stat-info p { margin: 0; font-size: 12px; color: #6b7280; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    /* ⚡ HIZLI ERİŞİM MENÜSÜ */
+    .quick-access-title { margin-bottom: 20px; color: #111827; font-size: 18px; font-weight: 700; }
+    
+    .quick-grid {
+        display: grid;
+        /* Kutuların minimum genişliğini 130'dan 105'e düşürdük ki 9'u birden tek satıra sığsın */
+        grid-template-columns: repeat(auto-fit, minmax(105px, 1fr));
+        gap: 10px; /* Kutular arası boşluğu biraz daralttık */
+    }
+    
+    .quick-card {
+        background: white;
+        padding: 15px 5px; /* İç boşluğu daralttık */
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        border: 1px solid #e5e7eb;
+        text-align: center;
+        text-decoration: none;
+        color: #374151;
+        font-weight: 600;
+        font-size: 13px; /* Yan yana sığmaları için yazı boyutunu optimize ettik */
+        transition: all 0.2s;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .quick-card:hover {
+        transform: translateY(-4px);
+        border-color: #4f46e5;
+        color: #4f46e5;
+        box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.1);
+    }
+    
+    .quick-card img { width: 40px; height: 40px; margin-bottom: 10px; }
+    .quick-card .emoji-icon { font-size: 36px; margin-bottom: 10px; display: block; line-height: 1; }
+
+    /* 📋 SON SİPARİŞLER TABLOSU */
+    .recent-orders-wrapper { margin-top: 40px; }
+    .status-badge { padding: 5px 12px; border-radius: 999px; font-size: 11px; font-weight: 700; display: inline-block; letter-spacing: 0.3px; }
+    .status-pending { background: #fef3c7; color: #d97706; }
+    .status-preparing { background: #e0f2fe; color: #0284c7; }
+    .status-on_the_way { background: #ede9fe; color: #7c3aed; }
+    .status-delivered { background: #dcfce3; color: #16a34a; }
+    .status-completed { background: #d1fae5; color: #059669; }
+    .status-canceled { background: #fee2e2; color: #dc2626; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="stats-grid">
+    {% if role == 'admin' %}
+    <div class="stat-card">
+        <div class="stat-icon" style="background: #e0e7ff; color: #4338ca;">👥</div>
+        <div class="stat-info">
+            <h3>{{ statistics['users'] }}</h3>
+            <p>Kullanıcılar</p>
+        </div>
     </div>
-    <div class="card-container" style="margin-top: 108px;">
-        <div class="card">
-            <a href="{{ url_for('users') }}">
-                <div class="container">
-                    <img src="{{ url_for('static', filename='images/user.png') }}" alt="user icon">
-                    <h4>{{ 'Profile' if session['role'] == 'user' else 'Users' }}</h4>
-                </div>
-            </a>
+    <div class="stat-card">
+        <div class="stat-icon" style="background: #dcfce3; color: #16a34a;">🏢</div>
+        <div class="stat-info">
+            <h3>{{ statistics['restaurants'] }}</h3>
+            <p>Restoranlar</p>
         </div>
-        <div class="card">
-            <a href="{{ url_for('restaurants') }}">
-                <div class="container">
-                    <img src="{{ url_for('static', filename='images/restaurant.png') }}" alt="restaurant icon">
-                    <h4>{{ 'Restaurant' if session['role'] == 'user' else 'Restaurants' }}</h4>
-                </div>
-            </a>
-        </div>
-        <div class="card">
-            <a href="{{ url_for('menus') }}">
-                <div class="container">
-                    <img src="{{ url_for('static', filename='images/menus.png') }}" alt="menu icon">
-                    <h4>{{ 'Menu' if session['role'] == 'user' else 'Menus' }}</h4>
-                </div>
-            </a>
-        </div>
-        <div class="card">
-            <a href="{{ url_for('foods') }}">
-                <div class="container">
-                    <img src="{{ url_for('static', filename='images/food.png') }}" alt="food icon">
-                    <h4>Foods</h4>
-                </div>
-            </a>
-        </div>
-        <div class="card">
-            <a href="{{ url_for('orders') }}">
-                <div class="container">
-                    <img src="{{ url_for('static', filename='images/order.png') }}" alt="order icon">
-                    <h4>Orders</h4>
-                </div>
-            </a>
-        </div>
-        <div class="card">
-            <a href="{{ url_for('couriers') }}">
-                <div class="container">
-                    <img src="{{ url_for('static', filename='images/courier.png') }}" alt="courier icon">
-                    <h4>Couriers</h4>
-                </div>
-            </a>
-        </div>
-        <div class="card">
-            <a href="{{ url_for('waiters') }}">
-                <div class="container">
-                    <img src="{{ url_for('static', filename='images/waiter.png') }}" alt="waiter icon">
-                    <h4>Waiters</h4>
-                </div>
-            </a>
-        </div>
-        {% if session['role'] == 'user' %}
-        <div class="card">
-            <a href="{{ url_for('restaurant_analytics') }}">
-                <div class="container">
-                    <img src="{{ url_for('static', filename='images/best-sellers.png') }}" alt="analytics icon">
-                    <h4>Best Sellers</h4>
-                </div>
-            </a>
-        </div>
-        <div class="card">
-            <a href="{{ url_for('restaurant_profile') }}">
-                <div class="container">
-                    <div style="font-size: 65px; margin-top: 10px; margin-bottom: 10px;">📸</div>
-                    <h4>Kapak ve Profil</h4>
-                </div>
-            </a>
-        </div>
-        {% endif %}
     </div>
-    <script src="{{ url_for('static', filename='js/common.js') }}"></script>
-    <script>
+    <div class="stat-card">
+        <div class="stat-icon" style="background: #fef3c7; color: #d97706;">📦</div>
+        <div class="stat-info">
+            <h3>{{ statistics['orders'] }}</h3>
+            <p>Tüm Siparişler</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon" style="background: #fce7f3; color: #be185d;">🏷️</div>
+        <div class="stat-info">
+            <h3>{{ statistics['foods'] }}</h3>
+            <p>Kategoriler</p>
+        </div>
+    </div>
+    {% elif role == 'user' %}
+    <div class="stat-card">
+        <div class="stat-icon" style="background: #e0e7ff; color: #4338ca;">🍽️</div>
+        <div class="stat-info">
+            <h3>{{ statistics['menus'] }}</h3>
+            <p>Aktif Menü</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon" style="background: #dcfce3; color: #16a34a;">📦</div>
+        <div class="stat-info">
+            <h3>{{ statistics['orders'] }}</h3>
+            <p>Siparişler</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon" style="background: #fef3c7; color: #d97706;">🛵</div>
+        <div class="stat-info">
+            <h3>{{ statistics['couriers'] }}</h3>
+            <p>Kuryelerim</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon" style="background: #fce7f3; color: #be185d;">🏷️</div>
+        <div class="stat-info">
+            <h3>{{ statistics['foods'] }}</h3>
+            <p>Kategoriler</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<h3 class="quick-access-title">⚡ Hızlı Erişim</h3>
+<div class="quick-grid">
+    <a href="{{ url_for('users') }}" class="quick-card">
+        <img src="{{ url_for('static', filename='images/user.png') }}" alt="user">
+        <span>{{ 'Profilim' if session['role'] == 'user' else 'Kullanıcılar' }}</span>
+    </a>
+    
+    <a href="{{ url_for('restaurants') }}" class="quick-card">
+        <img src="{{ url_for('static', filename='images/restaurant.png') }}" alt="restaurant">
+        <span>{{ 'Restoranım' if session['role'] == 'user' else 'Restoranlar' }}</span>
+    </a>
+    
+    <a href="{{ url_for('menus') }}" class="quick-card">
+        <img src="{{ url_for('static', filename='images/menus.png') }}" alt="menu">
+        <span>Menü Yönetimi</span>
+    </a>
+
+    <a href="{{ url_for('foods') }}" class="quick-card">
+        <img src="{{ url_for('static', filename='images/food.png') }}" alt="food">
+        <span>Kategoriler</span>
+    </a>
+    
+    <a href="{{ url_for('orders') }}" class="quick-card">
+        <img src="{{ url_for('static', filename='images/order.png') }}" alt="order">
+        <span>Siparişler</span>
+    </a>
+    
+    <a href="{{ url_for('couriers') }}" class="quick-card">
+        <img src="{{ url_for('static', filename='images/courier.png') }}" alt="courier">
+        <span>Kuryeler</span>
+    </a>
+    
+    <a href="{{ url_for('waiters') }}" class="quick-card">
+        <img src="{{ url_for('static', filename='images/waiter.png') }}" alt="waiter">
+        <span>Garsonlar</span>
+    </a>
+    
+    {% if session['role'] == 'user' %}
+    <a href="{{ url_for('restaurant_analytics') }}" class="quick-card">
+        <img src="{{ url_for('static', filename='images/best-sellers.png') }}" alt="analytics">
+        <span>İş Analizleri</span>
+    </a>
+    
+    <a href="{{ url_for('restaurant_profile') }}" class="quick-card">
+        <span class="emoji-icon">📸</span>
+        <span>Kapak ve Profil</span>
+    </a>
+    {% endif %}
+</div>
+
+<div class="recent-orders-wrapper">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h3 style="margin: 0; color: #111827; font-size: 18px; font-weight: 700;">📦 Son Gelen Siparişler</h3>
+        <a href="{{ url_for('orders') }}" style="color: #4f46e5; text-decoration: none; font-size: 13px; font-weight: 600;">Tümünü Gör →</a>
+    </div>
+    <div style="background: white; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #e5e7eb; overflow: hidden;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead>
+                <tr style="background: #f9fafb; border-bottom: 1px solid #e5e7eb;">
+                    <th style="padding: 12px 20px; font-size: 12px; color: #6b7280; text-transform: uppercase;">No</th>
+                    <th style="padding: 12px 20px; font-size: 12px; color: #6b7280; text-transform: uppercase;">Zaman</th>
+                    <th style="padding: 12px 20px; font-size: 12px; color: #6b7280; text-transform: uppercase;">Müşteri / Masa</th>
+                    <th style="padding: 12px 20px; font-size: 12px; color: #6b7280; text-transform: uppercase;">Tutar</th>
+                    <th style="padding: 12px 20px; font-size: 12px; color: #6b7280; text-transform: uppercase;">Durum</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in recent_orders %}
+                <tr style="border-bottom: 1px solid #e5e7eb;">
+                    <td style="padding: 15px 20px; font-weight: 600; color: #111827;">#{{ order.order_id }}</td>
+                    <td style="padding: 15px 20px; font-size: 13px; color: #4b5563;">{{ order.order_date.strftime('%H:%M') if order.order_date else '-' }}</td>
+                    <td style="padding: 15px 20px; font-size: 13px; color: #4b5563; font-weight: 500;">
+                        {% if order.order_type == 'Delivery' %}
+                            {{ order.customer_name or 'Paket Servis' }}
+                        {% else %}
+                            Masa: {{ order.table_no or '-' }}
+                        {% endif %}
+                    </td>
+                    <td style="padding: 15px 20px; font-weight: 700; color: #059669;">${{ order.sales_amount }}</td>
+                    <td style="padding: 15px 20px;">
+                        <span class="status-badge status-{{ order.order_status }}">
+                            {{ order.order_status | capitalize }}
+                        </span>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" style="padding: 30px; text-align: center; color: #6b7280; font-size: 14px;">Henüz hiç sipariş yok.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Sayfa geçişlerinde loader efekti için
     document.addEventListener("DOMContentLoaded", function() {
-        const loader = document.getElementById("loading-overlay");
-
-        const links = document.querySelectorAll("a");
-
+        const links = document.querySelectorAll(".quick-card");
         links.forEach(link => {
             link.addEventListener("click", function(event) {
                 const targetUrl = this.getAttribute("href");
-
-                if (!targetUrl || targetUrl === "#" || this.target === "_blank" || targetUrl.startsWith("javascript")) {
-                    return;
+                if (targetUrl && targetUrl !== "#") {
+                    document.body.style.opacity = '0.5';
+                    document.body.style.transition = 'opacity 0.2s';
                 }
-
-                loader.classList.remove("d-none");
             });
-        });
-
-        window.addEventListener("pageshow", function(event) {
-            if (event.persisted) {
-                loader.classList.add("d-none");
-            }
         });
     });
 </script>
-</body>
-</html>
+{% endblock %}

@@ -14,40 +14,46 @@ def menus():
     connection = get_db_connection()
     if connection is None:
         flash("Couldn't connect to the database!", "danger")
-        return render_template('menus.html', menus=[])
+        return render_template('menus.html', menus=[], foods=[]) # 🟢 foods=[] eklendi
 
     try:
         cursor = connection.cursor(dictionary=True)
         if role == 'admin':
             cursor.execute('''
-                SELECT m.menu_id, m.restaurant_id, m.food_id, m.cuisine, m.price, m.stock_quantity, m.image_url,
-                       f.item_name as food_name
+                SELECT m.menu_id, m.restaurant_id, m.food_id, m.custom_name, m.price, m.stock_quantity, m.image_url,
+                       f.item_name as food_name, f.category, r.restaurant_name
                 FROM menus m 
                 LEFT JOIN foods f ON m.food_id = f.food_id
+                LEFT JOIN restaurants r ON m.restaurant_id = r.restaurant_id
             ''')
+            menus = cursor.fetchall()
         elif role == 'user' and restaurant_id:
             cursor.execute('''
-                SELECT m.menu_id, m.restaurant_id, m.food_id, m.cuisine, m.price, m.stock_quantity, m.image_url,
-                       f.item_name as food_name
+                SELECT m.menu_id, m.restaurant_id, m.food_id, m.custom_name, m.price, m.stock_quantity, m.image_url,
+                       f.item_name as food_name, f.category
                 FROM menus m 
                 LEFT JOIN foods f ON m.food_id = f.food_id 
                 WHERE m.restaurant_id = %s
             ''', (restaurant_id,))
+            menus = cursor.fetchall()
         else:
             flash("Unauthorized access!", "danger")
             return redirect(url_for('index'))
 
-        menus_list = cursor.fetchall()
-        return render_template('menus.html', menus=menus_list)
+        cursor.execute("SELECT food_id, item_name, category FROM foods ORDER BY category ASC, item_name ASC")
+        foods = cursor.fetchall()
 
     except Error as e:
-        print(f"Database error: {str(e)}")
         flash(f"Query failed: {e}", "danger")
-        return render_template('menus.html', menus=[])
+        menus = []
+        foods = []
     finally:
         if connection.is_connected():
             cursor.close()
             connection.close()
+
+    # 🟢 DİKKAT: En son satırda HTML'e 'foods=foods' listesini de gönderiyoruz
+    return render_template('menus.html', menus=menus, foods=foods)
 
 def menus_action():
     if 'logged_in' not in session:
@@ -59,76 +65,81 @@ def menus_action():
 
     connection = get_db_connection()
     if connection is None:
-        flash("Couldn't connect to the database!", "danger")
+        flash("Veritabanına bağlanılamadı!", "danger")
         return redirect(url_for('menus'))
 
     try:
         cursor = connection.cursor(dictionary=True)
 
         if action == 'add':
-            food_name = request.form.get('name')
-            cuisine = request.form.get('cuisine')
+            food_id = request.form.get('food_id')
+            custom_name = request.form.get('custom_name')
             price = request.form.get('price')
-            stock_quantity = request.form.get('stock_quantity', 0)
+            stock_quantity = request.form.get('stock_quantity')
             restaurant_id = request.form.get('restaurant_id')
             menu_id = request.form.get('menu_id')
+            
+            image_file = request.files.get('menu_image') # YENİ GÖRSEL DEĞİŞKENİ
+            image_url = None
 
-            if not all([food_name, cuisine, price, restaurant_id, stock_quantity]):
-                flash("All fields are required except Menu ID.", "warning")
+            if not stock_quantity:
+                stock_quantity = 0
+
+            missing_fields = []
+            if not food_id: missing_fields.append('Ana Ürün Tipi (Kategori)')
+            if not custom_name: missing_fields.append('Menüdeki Özel Adı')
+            if not price: missing_fields.append('Fiyat')
+            if not restaurant_id: missing_fields.append('Restoran ID')
+
+            if missing_fields:
+                flash(f"Lütfen şu alanları doldurun: {', '.join(missing_fields)}", "warning")
                 return redirect(url_for('menus'))
 
             try:
+                # GÖRSEL YÜKLEME İŞLEMİ
+                if image_file and image_file.filename != '':
+                    filename = secure_filename(image_file.filename)
+                    upload_folder = os.path.join('static', 'images', 'menus')
+                    os.makedirs(upload_folder, exist_ok=True) 
+                    file_path = os.path.join(upload_folder, filename)
+                    image_file.save(file_path)
+                    image_url = filename
+
                 cursor.execute("SELECT COUNT(*) as count FROM restaurants WHERE restaurant_id = %s", (restaurant_id,))
-                result = cursor.fetchone()
-                if result['count'] == 0:
-                    flash('No restaurant found with that Restaurant ID!', 'danger')
+                if cursor.fetchone()['count'] == 0:
+                    flash('Geçersiz Restoran ID!', 'danger')
                     return redirect(url_for('menus'))
-
-                cursor.execute("""
-                    SELECT food_id FROM foods 
-                    WHERE item_name = %s
-                """, (food_name,))
-                food_result = cursor.fetchone()
-
-                if not food_result:
-                    cursor.execute("""
-                        INSERT INTO foods (item_name)
-                        VALUES (%s)
-                    """, (food_name,))
-                    food_id = cursor.lastrowid
-                else:
-                    food_id = food_result['food_id']
 
                 if menu_id:
                     cursor.execute("SELECT menu_id FROM menus WHERE menu_id = %s", (menu_id,))
                     if cursor.fetchone():
-                        flash("Menu ID already exists. Please use a different ID.", "warning")
+                        flash("Bu Menü ID zaten kullanılıyor. Lütfen farklı bir ID girin veya boş bırakın.", "warning")
                         return redirect(url_for('menus'))
                     
                     query = """
-                        INSERT INTO menus (menu_id, restaurant_id, food_id, cuisine, price, stock_quantity) 
-                        VALUES (%s, %s, %s, %s, %s, %s)
+                        INSERT INTO menus (menu_id, restaurant_id, food_id, custom_name, price, stock_quantity, image_url) 
+                        VALUES (%s, %s, %s, %s, %s, %s, %s)
                     """
-                    cursor.execute(query, (menu_id, restaurant_id, food_id, cuisine, price, stock_quantity))
+                    cursor.execute(query, (menu_id, restaurant_id, food_id, custom_name, price, stock_quantity, image_url))
                 else:
                     query = """
-                        INSERT INTO menus (restaurant_id, food_id, cuisine, price, stock_quantity) 
-                        VALUES (%s, %s, %s, %s, %s)
+                        INSERT INTO menus (restaurant_id, food_id, custom_name, price, stock_quantity, image_url) 
+                        VALUES (%s, %s, %s, %s, %s, %s)
                     """
-                    cursor.execute(query, (restaurant_id, food_id, cuisine, price, stock_quantity))
+                    cursor.execute(query, (restaurant_id, food_id, custom_name, price, stock_quantity, image_url))
 
                 connection.commit()
-                flash("Menu item added successfully!", "success")
+                flash("Menü başarıyla eklendi!", "success")
 
             except Error as e:
                 connection.rollback()
-                flash(f"Error adding menu item: {str(e)}", "danger")
+                flash(f"Menü eklenirken hata: {str(e)}", "danger")
 
         elif action == 'delete':
             selected_ids = request.form.get('selected_menu_items')
             
             if not selected_ids:
-                flash("No menu item(s) selected for deletion.", "warning")
+                flash("Silmek için hiçbir menü seçilmedi.", "warning")
                 return redirect(url_for('menus'))
 
             try:
@@ -152,86 +163,91 @@ def menus_action():
                 connection.commit()
                 
                 if cursor.rowcount > 0:
-                    flash(f"Successfully deleted {cursor.rowcount} menu item(s).", "success")
+                    flash(f"{cursor.rowcount} adet menü başarıyla silindi.", "success")
                 else:
-                    flash("No menu items were deleted. Please check your permissions.", "warning")
+                    flash("Menü silinemedi. Yetkinizi kontrol edin.", "warning")
                     
             except Error as e:
                 connection.rollback()
-                flash(f"Error deleting menu items: {str(e)}", "danger")
+                flash(f"Silme hatası: {str(e)}", "danger")
 
             return redirect(url_for('menus'))
 
         elif action == 'update':
             update_menu_id = request.form.get('update_menu_id')
             new_menu_id = request.form.get('menu_id')
-            food_name = request.form.get('name')
-            cuisine = request.form.get('cuisine')
+            food_id = request.form.get('food_id')
+            custom_name = request.form.get('custom_name')
             price = request.form.get('price')
             restaurant_id = request.form.get('restaurant_id')
-            stock_quantity = request.form.get('stock_quantity', 0)
+            stock_quantity = request.form.get('stock_quantity')
+            
+            image_file = request.files.get('menu_image') # YENİ GÖRSEL DEĞİŞKENİ
+
+            if not stock_quantity:
+                stock_quantity = 0
 
             if not update_menu_id:
-                flash("No menu item selected for update.", "warning")
+                flash("Güncellenecek menü seçilmedi.", "warning")
                 return redirect(url_for('menus'))
             
             if role == 'user' and (restaurant_id != str(restaurant_id_session) or new_menu_id != update_menu_id):
-                flash("Unauthorized action! You cannot change your Menu Item's ID or Restaurant ID.", "danger")
+                flash("Yetkisiz işlem! Menü ID veya Restoran ID'nizi değiştiremezsiniz.", "danger")
                 return redirect(url_for('menus'))
             
-            if not all([food_name, cuisine, price, restaurant_id]):
-                flash("All fields (Name, Cuisine, Price, Restaurant ID) are required for update.", "warning")
-                return redirect(url_for('menus'))
-            
-            if stock_quantity == "":
-                flash("Stock quantity cannot be empty.", "warning")
+            missing_fields = []
+            if not food_id: missing_fields.append('Ana Ürün Tipi (Kategori)')
+            if not custom_name: missing_fields.append('Menüdeki Özel Adı')
+            if not price: missing_fields.append('Fiyat')
+            if not restaurant_id: missing_fields.append('Restoran ID')
+
+            if missing_fields:
+                flash(f"Güncelleme için şu alanlar eksik: {', '.join(missing_fields)}", "warning")
                 return redirect(url_for('menus'))
 
             try:
-                cursor.execute("""
-                    SELECT food_id FROM foods 
-                    WHERE item_name = %s
-                """, (food_name,))
-                food_result = cursor.fetchone()
-                
-                if not food_result:
-                    cursor.execute("""
-                        INSERT INTO foods (item_name)
-                        VALUES (%s)
-                    """, (food_name,))
-                    food_id = cursor.lastrowid
-                else:
-                    food_id = food_result['food_id']
-
-                query = """
+                update_query = """
                     UPDATE menus 
-                    SET food_id = %s, cuisine = %s, price = %s, restaurant_id = %s, stock_quantity = %s 
-                    WHERE menu_id = %s
+                    SET food_id = %s, custom_name = %s, price = %s, restaurant_id = %s, stock_quantity = %s 
                 """
-                params = (food_id, cuisine, price, restaurant_id, stock_quantity, update_menu_id)
+                params = [food_id, custom_name, price, restaurant_id, stock_quantity]
+
+                # EĞER YENİ GÖRSEL YÜKLENDİYSE SORGUNUN SONUNA EKLE
+                if image_file and image_file.filename != '':
+                    filename = secure_filename(image_file.filename)
+                    upload_folder = os.path.join('static', 'images', 'menus')
+                    os.makedirs(upload_folder, exist_ok=True) 
+                    file_path = os.path.join(upload_folder, filename)
+                    image_file.save(file_path)
+                    
+                    update_query += ", image_url = %s"
+                    params.append(filename)
+
+                update_query += " WHERE menu_id = %s"
+                params.append(update_menu_id)
                 
-                cursor.execute(query, params)
+                cursor.execute(update_query, tuple(params))
                 connection.commit()
-                flash("Menu item updated successfully!", "success")
+                flash("Menü başarıyla güncellendi!", "success")
 
             except Error as e:
                 connection.rollback()
-                flash(f"Error updating menu item: {str(e)}", "danger")
+                flash(f"Güncelleme hatası: {str(e)}", "danger")
                 return redirect(url_for('menus'))
 
         elif action == 'filter':
             try:
                 menu_id = request.form.get('menu_id')
                 food_name = request.form.get('name')
-                cuisine = request.form.get('cuisine')
                 price = request.form.get('price')
                 restaurant_id = request.form.get('restaurant_id')
 
                 query = """
-                    SELECT m.menu_id, m.restaurant_id, m.cuisine, m.price,
-                           f.item_name as food_name
+                    SELECT m.menu_id, m.restaurant_id, m.food_id, m.custom_name, m.price, m.stock_quantity, m.image_url,
+                           f.item_name as food_name, f.category, r.restaurant_name
                     FROM menus m 
                     LEFT JOIN foods f ON m.food_id = f.food_id 
+                    LEFT JOIN restaurants r ON m.restaurant_id = r.restaurant_id
                     WHERE 1=1
                 """
                 params = []
@@ -244,11 +260,9 @@ def menus_action():
                     query += " AND m.menu_id = %s"
                     params.append(menu_id)
                 if food_name:
-                    query += " AND f.item_name LIKE %s"
+                    query += " AND (f.item_name LIKE %s OR m.custom_name LIKE %s)"
                     params.append(f"%{food_name}%")
-                if cuisine:
-                    query += " AND m.cuisine LIKE %s"
-                    params.append(f"%{cuisine}%")
+                    params.append(f"%{food_name}%")
                 if price:
                     query += " AND m.price = %s"
                     params.append(price)
@@ -260,14 +274,18 @@ def menus_action():
                 menus = cursor.fetchall()
                 
                 if menus:
-                    flash(f"Found {len(menus)} menu item(s) matching your criteria.", "success")
+                    flash(f"Kriterlerinize uygun {len(menus)} yemek bulundu.", "success")
                 else:
-                    flash("No menu items found matching your criteria.", "info")
+                    flash("Kriterlerinize uygun yemek bulunamadı.", "info")
+
+                # Form renderlanırken foods listesi de gerekli
+                cursor.execute("SELECT food_id, item_name FROM foods ORDER BY item_name ASC")
+                foods = cursor.fetchall()
                     
-                return render_template('menus.html', menus=menus)
+                return render_template('menus.html', menus=menus, foods=foods)
 
             except Error as e:
-                flash(f"Error during filtering: {str(e)}", "danger")
+                flash(f"Filtreleme hatası: {str(e)}", "danger")
                 return redirect(url_for('menus'))
 
         elif action == 'sort':
@@ -275,7 +293,7 @@ def menus_action():
             sort_order = request.form.get('sort_order')
 
             if not sort_by or sort_order not in ['ASC', 'DESC']:
-                flash("Invalid sort parameters.", "danger")
+                flash("Geçersiz sıralama parametreleri.", "danger")
                 return redirect(url_for('menus'))
 
             order_clause = ""
@@ -284,58 +302,39 @@ def menus_action():
             else:
                 order_clause = f"m.{sort_by} {sort_order}"
 
-            if 'filtered_menus' in session and session['filtered_menus']:
-                filtered_ids = [item['menus_id'] for item in session['filtered_menus']]
-
-                query = f"""
-                    SELECT m.*, f.item_name as food_name 
+            query = """
+                    SELECT m.menu_id, m.restaurant_id, m.food_id, m.custom_name, m.price, m.stock_quantity, m.image_url,
+                           f.item_name as food_name, f.category, r.restaurant_name
                     FROM menus m 
                     LEFT JOIN foods f ON m.food_id = f.food_id 
-                    WHERE m.menus_id IN ({','.join(['%s'] * len(filtered_ids))}) 
-                    ORDER BY {order_clause}
-                """
-                cursor.execute(query, filtered_ids)
-                menus = cursor.fetchall()
-
-                for item in menus:
-                    if item['food_name']:
-                        item['name'] = item['food_name']
-
-                flash("Filtered menus items sorted successfully!", "success")
-            else:
-                query = """
-                    SELECT m.*, f.item_name as food_name
-                    FROM menus m 
-                    LEFT JOIN foods f ON m.food_id = f.food_id 
+                    LEFT JOIN restaurants r ON m.restaurant_id = r.restaurant_id
                     WHERE 1=1
                 """
-                params = []
-                if role == 'user':
-                    query += " AND m.restaurant_id = %s"
-                    params.append(restaurant_id_session)
+            params = []
+            if role == 'user':
+                query += " AND m.restaurant_id = %s"
+                params.append(restaurant_id_session)
 
-                query += f" ORDER BY {order_clause}"
-                cursor.execute(query, params)
-                menus = cursor.fetchall()
+            query += f" ORDER BY {order_clause}"
+            cursor.execute(query, params)
+            menus = cursor.fetchall()
 
-                for item in menus:
-                    if item['food_name']:
-                        item['name'] = item['food_name']
+            flash("Menüler başarıyla sıralandı!", "success")
 
-                flash("Menus items sorted successfully!", "success")
+            cursor.execute("SELECT food_id, item_name FROM foods ORDER BY item_name ASC")
+            foods = cursor.fetchall()
 
-            return render_template('menus.html', menus=menus)
+            return render_template('menus.html', menus=menus, foods=foods)
 
         elif action == 'clear':
-            if 'filtered_menus' in session:
-                session.pop('filtered_menus', None)
-
             query = """
-                SELECT m.*, f.item_name as food_name
-                FROM menus m 
-                LEFT JOIN foods f ON m.food_id = f.food_id 
-                WHERE 1=1
-            """
+                    SELECT m.menu_id, m.restaurant_id, m.food_id, m.custom_name, m.price, m.stock_quantity, m.image_url,
+                           f.item_name as food_name, f.category, r.restaurant_name
+                    FROM menus m 
+                    LEFT JOIN foods f ON m.food_id = f.food_id 
+                    LEFT JOIN restaurants r ON m.restaurant_id = r.restaurant_id
+                    WHERE 1=1
+                """
             params = []
             if role == 'user':
                 query += " AND m.restaurant_id = %s"
@@ -344,15 +343,15 @@ def menus_action():
             cursor.execute(query, params)
             menus = cursor.fetchall()
 
-            for item in menus:
-                if item['food_name']:
-                    item['name'] = item['food_name']
+            flash("Tüm filtreler temizlendi.", "success")
 
-            flash("All filters, sorting, and selections have been cleared.", "success")
-            return render_template('menus.html', menus=menus)
+            cursor.execute("SELECT food_id, item_name FROM foods ORDER BY item_name ASC")
+            foods = cursor.fetchall()
+
+            return render_template('menus.html', menus=menus, foods=foods)
 
     except Error as e:
-        flash(f"An error occurred: {e}", "danger")
+        flash(f"Bir hata oluştu: {e}", "danger")
     finally:
         if connection.is_connected():
             cursor.close()

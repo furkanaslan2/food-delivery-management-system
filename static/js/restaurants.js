@@ -247,3 +247,45 @@ document.addEventListener("DOMContentLoaded", function () {
 
 // Add window unload event handler
 window.addEventListener('beforeunload', clearOnUnload);
+
+function openRestaurantModalFromBtn(btn) {
+    const id = btn.getAttribute('data-id');
+    const userid = btn.getAttribute('data-userid');
+    const name = btn.getAttribute('data-name');
+    const city = btn.getAttribute('data-city');
+    const address = btn.getAttribute('data-address');
+    const cuisine = btn.getAttribute('data-cuisine');
+    const tables = btn.getAttribute('data-tables');
+
+    openRestaurantModal(true, id, userid, name, city, address, cuisine, tables);
+}
+
+function openRestaurantModal(isUpdate = false, id = '', userid = '', name = '', city = '', address = '', cuisine = '', tables = '') {
+    document.getElementById('restaurantFormModal').style.display = 'flex';
+    const form = document.getElementById('restaurant-form');
+    
+    if (isUpdate) {
+        document.getElementById('modalTitle').innerText = 'Restoranı Düzenle';
+        document.getElementById('modal-action').value = 'update';
+        document.getElementById('modal-submit-btn').innerText = 'Güncelle';
+        
+        document.getElementById('update-restaurant-id').value = id;
+        document.getElementById('restaurant-id').value = id;
+        
+        if(document.getElementById('user-id')) document.getElementById('user-id').value = userid;
+        
+        document.getElementById('restaurant-name-input').value = name;
+        document.getElementById('restaurant-city').value = city;
+        document.getElementById('restaurant-address').value = address;
+        document.getElementById('restaurant-cuisine').value = cuisine;
+        document.getElementById('restaurant-table-count').value = tables;
+    } else {
+        document.getElementById('modalTitle').innerText = 'Yeni Restoran Ekle';
+        document.getElementById('modal-action').value = 'add';
+        document.getElementById('modal-submit-btn').innerText = 'Oluştur';
+        
+        form.reset();
+        document.getElementById('update-restaurant-id').value = '';
+        document.getElementById('restaurant-id').value = '';
+    }
+}

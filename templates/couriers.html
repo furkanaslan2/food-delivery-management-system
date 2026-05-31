@@ -1,106 +1,224 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Couriers</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-</head>
-<body>
-    <nav>
-        <input type="hidden" id="current-user-role" value="{{ session['role'] }}">
-        <div class="logo navbar">
-            <a href="/"><img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo"></a>
-            <h1><a href="/">Food Delivery Management System</a> / <span style="margin-left: 10px; color: white">Couriers</span></h1>
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Kurye Yönetimi{% endblock %}
+{% block page_title %}🛵 Kurye Yönetimi{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* 🎨 MODERN TABLO TASARIMI (menus.html ile Birebir Aynı) */
+    .modern-table-wrapper {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+        border: 1px solid #e5e7eb;
+    }
+
+    .modern-table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+    }
+
+    .modern-table th {
+        background: #f9fafb;
+        padding: 15px 20px;
+        color: #6b7280;
+        font-size: 13px;
+        text-transform: uppercase;
+        font-weight: 600;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .modern-table td {
+        padding: 15px 20px;
+        border-bottom: 1px solid #e5e7eb;
+        color: #1f2937;
+        font-size: 14px;
+        vertical-align: middle;
+    }
+
+    .modern-table tr:hover {
+        background: #f9fafb;
+    }
+
+    /* ⚙️ İŞLEM BUTONLARI */
+    .action-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 6px;
+        transition: 0.2s;
+        font-size: 16px;
+    }
+    .action-btn:hover { background: #e5e7eb; }
+
+    /* 🔝 ÜST ARAÇ ÇUBUĞU */
+    .toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .primary-btn {
+        background: #4f46e5;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .primary-btn:hover { background: #4338ca; }
+
+    /* FORM INPUTLARI */
+    .form-input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-family: inherit;
+        margin-top: 5px;
+    }
+
+    /* Kurye Özel Rozetleri */
+    .gender-badge {
+        background-color: #f3f4f6;
+        color: #4b5563;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="toolbar">
+    <div>
+        <h3 style="margin: 0; color: #111827;">Kurye Listesi</h3>
+        <p style="margin: 5px 0 0 0; color: #6b7280; font-size: 14px;">Restoranınızın teslimat ekibini yönetin.</p>
+    </div>
+    <button class="primary-btn" onclick="openCourierModal()">
+        <span>+</span> Yeni Kurye Ekle
+    </button>
+</div>
+
+<div class="modern-table-wrapper">
+    <table class="modern-table">
+        <thead>
+            <tr>
+                <th>Ad Soyad</th>
+                <th>Email</th>
+                {% if session['role'] == 'admin' %}
+                <th>Restoran</th>
+                {% endif %}
+                <th>Cinsiyet</th>
+                <th>Doğum Tarihi</th>
+                <th style="text-align: right;">İşlemler</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for courier in couriers %}
+            <tr>
+                <td style="font-weight: 600; font-size: 14px; color: #111827;">{{ courier['name'] }}</td>
+                <td>{{ courier['email'] }}</td>
+                {% if session['role'] == 'admin' %}
+                <td>
+                    <span style="background-color: #e0e7ff; color: #4338ca; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700;">
+                        🏪 {{ courier['restaurant_name'] or 'Bilinmiyor' }}
+                    </span>
+                </td>
+                {% endif %}
+                <td><span class="gender-badge">{{ courier['gender'] }}</span></td>
+                <td>{{ courier['birth_date'] }}</td>
+                <td style="text-align: right;">
+                    <button class="action-btn" title="Düzenle" 
+                        data-id="{{ courier['courier_id'] }}" 
+                        data-name="{{ courier['name'] }}" 
+                        data-email="{{ courier['email'] }}" 
+                        data-gender="{{ courier['gender'] }}" 
+                        data-birth="{{ courier['birth_date'] }}" 
+                        onclick="openCourierModalFromBtn(this)">✏️</button>
+                    
+                    <form action="{{ url_for('courier_action') }}" method="POST" style="display:inline;">
+                        <input type="hidden" name="selected_couriers" value="{{ courier['courier_id'] }}">
+                        <input type="hidden" name="action" value="delete">
+                        <button type="submit" class="action-btn" title="Sil" onclick="return confirm('Bu kuryeyi silmek istediğinize emin misiniz?');">🗑️</button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" style="text-align: center; padding: 40px; color: #6b7280;">
+                    Sistemde kayıtlı kurye bulunmamaktadır.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div id="courierFormModal" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; backdrop-filter: blur(4px);">
+    <div style="background-color: #fff; padding: 25px; border-radius: 12px; width: 90%; max-width: 450px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f3f4f6; margin-bottom: 15px; padding-bottom: 10px;">
+            <h3 style="margin: 0; color: #111827;" id="modalTitle">Yeni Kurye Ekle</h3>
+            <span style="font-size: 24px; cursor: pointer; color: #9ca3af;" onclick="document.getElementById('courierFormModal').style.display='none'">&times;</span>
         </div>
-        <ul class="navbar">
-            <li><a href="/logout">Logout</a></li>
-        </ul>
-    </nav>
-    <div class="flash-container">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <div class="flash-messages">
-                    {% for category, message in messages %}
-                    <div class="flash-message {{ category }}">
-                        {{ message }}
-                        <button class="close-flash" onclick="this.parentElement.style.display='none';">&times;</button>
-                    </div>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        {% endwith %}
-    </div>
-    <button id="scrollTopBtn"><img class="up-arrow" src="{{ url_for('static', filename='images/up-arrow.png') }}"></button>
-    <div class="search-bar">
-        <form id="courier-form" class="courier-form" action="{{ url_for('courier_action') }}" method="post">
-            <input type="hidden" id="courier-id" name="courier_id">
-            <input type="hidden" id="courier-restaurant-id" name="restaurant_id">
-            
-            <input type="text" id="courier-name" name="name" placeholder="Name">
 
-            <input type="email" id="courier-email" name="email" placeholder="Email Address">
-            <input type="password" id="courier-password" name="password" placeholder="Password">
+        <form id="courier-form" action="{{ url_for('courier_action') }}" method="POST">
+            <input type="hidden" name="action" id="modal-action" value="add">
+            <input type="hidden" name="update_courier_id" id="update-courier-id">
+            <input type="hidden" name="courier_id" id="courier-id">
+            <input type="hidden" name="restaurant_id" value="{{ session.get('restaurant_id', '') }}">
 
-            <select id="courier-gender" name="gender">
-                <option value="" hidden>Gender</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-            </select>
-            <input type="date" id="courier-birthdate" name="birth_date" placeholder="Birth Date">
-            <input type="hidden" id="selected-couriers" name="selected_couriers">
-            <input type="hidden" id="update-courier-id" name="update_courier_id">
-            <input type="hidden" id="clear-filter" name="clear_filter" value="false">
-        </form>
-        <button class="search-button" onclick="searchCourier()"><img class="button-img" src="{{ url_for('static', filename='images/search.png') }}" alt="search icon"></img>Search</button>
-        <button class="clear-button" type="submit" form="courier-form" name="action" value="clear" onclick="clearSearch()"><img class="button-img" src="{{ url_for('static', filename='images/clear.png') }}" alt="clear icon"></img>Clear</button>
-    </div>
-    <div class="action-buttons">
-        <button class="add-button" type="submit" name="action" value="add" form="courier-form"><img class="button-img" src="{{ url_for('static', filename='images/add.png') }}" alt="add icon"></img>Add</button>
-        <button class="delete-button" type="submit" name="action" value="delete" form="courier-form" onclick="collectSelected()"><img class="button-img" src="{{ url_for('static', filename='images/delete.png') }}" alt="delete icon"></img>Delete</button>
-        <button class="update-button" type="submit" name="action" value="update" form="courier-form"><img class="button-img" src="{{ url_for('static', filename='images/update.png') }}" alt="update icon"></img>Update</button>
-        <button class="filter-button" type="submit" name="action" value="filter" form="courier-form"><img class="button-img" src="{{ url_for('static', filename='images/filter.png') }}" alt="filter icon"></img>Filter</button>
-        <div class="sort-container">
-            <button class="sort-button" onclick="toggleSortMenu()"><img class="button-img" src="{{ url_for('static', filename='images/sort.png') }}" alt="sort icon"></img>Sort</button>
-            <div id="overlay" class="hidden"></div>
-            <div class="sort-menu hidden" id="sort-menu">
-                <h3>Sort By</h3>
-                <form id="sort-form" action="{{ url_for('courier_action') }}" method="post">
-                    <select name="sort_by" id="sort-by">
-                        <option value="name">Name</option>
-                        <option value="gender">Gender</option>
-                        <option value="birth_date">Birth Date</option>
-                    </select>
-                    <h3 id="second-h3">Order</h3>
-                    <select name="sort_order" id="sort-order">
-                        <option value="ASC">Ascending</option>
-                        <option value="DESC">Descending</option>
-                    </select>
-                    <button type="submit" name="action" value="sort">Apply</button>
-                </form>
+            <div style="margin-bottom: 15px;">
+                <label style="font-size: 13px; font-weight: 600; color: #374151;">Ad Soyad</label>
+                <input type="text" id="courier-name" name="name" class="form-input" required>
             </div>
-        </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="font-size: 13px; font-weight: 600; color: #374151;">Email Adresi</label>
+                <input type="email" id="courier-email" name="email" class="form-input" required>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="font-size: 13px; font-weight: 600; color: #374151;">Şifre</label>
+                <input type="password" id="courier-password" name="password" class="form-input" placeholder="********">
+                <small id="password-help" style="color: #9ca3af; font-size: 11px; margin-top:4px; display: none;">Güncellemek istemiyorsanız boş bırakın.</small>
+            </div>
+
+            <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+                <div style="flex: 1;">
+                    <label style="font-size: 13px; font-weight: 600; color: #374151;">Cinsiyet</label>
+                    <select id="courier-gender" name="gender" class="form-input" required>
+                        <option value="" hidden>Seçiniz</option>
+                        <option value="Male">Erkek</option>
+                        <option value="Female">Kadın</option>
+                    </select>
+                </div>
+                <div style="flex: 1;">
+                    <label style="font-size: 13px; font-weight: 600; color: #374151;">Doğum Tarihi</label>
+                    <input type="date" id="courier-birthdate" name="birth_date" class="form-input" required>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 25px; border-top: 1px solid #e5e7eb; padding-top: 15px;">
+                <button type="button" onclick="document.getElementById('courierFormModal').style.display='none'" style="background: #f3f4f6; color: #4b5563; padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">İptal</button>
+                <button type="submit" id="modal-submit-btn" class="primary-btn">Kaydet</button>
+            </div>
+        </form>
     </div>
-    <div id="navigation" class="hidden">
-        <button id="next-match-button" onclick="goToNextMatch()">Next Match</button>
-    </div>
-    <div class="list" id="courier-list">
-        {% for courier in couriers %}
-        <div class="table-card" id="courier-card-{{ courier['courier_id'] }}">
-            <input type="checkbox" id="courier-{{ loop.index }}" name="selected_couriers" value="{{ courier['courier_id'] }}">
-            <label for="courier-{{ loop.index }}">
-                <span class="courier-id" style="display: none;">{{ courier['courier_id'] }}</span>
-                <span class="courier-restaurant-id" style="display: none;">{{ courier['restaurant_id'] }}</span>
-                
-                <p><strong>Name:</strong> <span class="courier-name">{{ courier['name'] }}</span></p>
-                <p><strong>Email:</strong> <span class="courier-email">{{ courier['email'] }}</span></p>
-                <p><strong>Gender:</strong> <span class="courier-gender">{{ courier['gender'] }}</span></p>
-                <p><strong>Birth Date:</strong> <span class="courier-birthdate">{{ courier['birth_date'] }}</span></p>
-            </label>
-        </div>
-        {% endfor %}
-    </div>
-    <script src="{{ url_for('static', filename='js/common.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/couriers.js') }}"></script>
-</body>
-</html>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/couriers.js') }}"></script>
+{% endblock %}

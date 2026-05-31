@@ -1,324 +1,348 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>  
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Orders</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-    <style>
-        .sort-menu {
-            position: absolute !important; 
-        }
-        .modal {
-            display: none; 
-            position: fixed; 
-            z-index: 9999; 
-            left: 0; 
-            top: 0; 
-            width: 100%; 
-            height: 100%; 
-            background-color: rgba(0,0,0,0.5); 
-            justify-content: center; 
-            align-items: center;
-        }
-        .modal-content {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 10px;
-            width: 90%;
-            max-width: 600px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            animation: fadeIn 0.3s;
-        }
-        .modal-header {
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            border-bottom: 1px solid #ddd; 
-            margin-bottom: 15px; 
-            padding-bottom: 10px;
-        }
-        .close { font-size: 28px; font-weight: bold; cursor: pointer; color: #aaa; }
-        .close:hover { color: #000; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
-    </style>
-</head>
-<body>
-    <nav>
-        <input type="hidden" id="current-user-role" value="{{ session['role'] }}">
-        <div class="logo navbar">
-            <a href="/"><img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo"></a>
-            <h1><a href="/">Food Delivery Management System</a> / <span style="margin-left: 10px; color: white">Orders</span></h1>
-        </div>
-        <ul class="navbar">
-            <li><a href="/logout">Logout</a></li>
-        </ul>
-    </nav>
+{% extends 'dashboard_base.html' %}
 
-    <div id="new-order-alert" style="display: none; position: fixed; top: 90px; left: 50%; transform: translateX(-50%); background-color: #ef4444; color: white; padding: 12px 25px; border-radius: 30px; font-weight: 600; font-size: 15px; box-shadow: 0 10px 25px rgba(239, 68, 68, 0.4); cursor: pointer; z-index: 10000; transition: transform 0.2s;" onmouseover="this.style.transform='translateX(-50%) scale(1.05)'" onmouseout="this.style.transform='translateX(-50%) scale(1)'" onclick="window.location.reload();">
-        🔔 Yeni bir sipariş geldi! Görmek için tıklayın.
+{% block title %}Siparişler{% endblock %}
+{% block page_title %}📦 Sipariş Yönetimi{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* 🎨 MODERN TABLO TASARIMI */
+    .modern-table-wrapper {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+        border: 1px solid #e5e7eb;
+    }
+
+    .modern-table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+    }
+
+    .modern-table th {
+        background: #f9fafb;
+        padding: 15px 20px;
+        color: #6b7280;
+        font-size: 13px;
+        text-transform: uppercase;
+        font-weight: 600;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .modern-table td {
+        padding: 15px 20px;
+        border-bottom: 1px solid #e5e7eb;
+        color: #1f2937;
+        font-size: 14px;
+        vertical-align: middle;
+    }
+
+    .modern-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .modern-table tr:hover {
+        background: #f9fafb;
+    }
+
+    /* 🏷️ DURUM ROZETLERİ (BADGES) */
+    .status-badge {
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-block;
+    }
+    .status-pending { background: #fef3c7; color: #d97706; }
+    .status-preparing { background: #e0f2fe; color: #0284c7; }
+    .status-on_the_way { background: #ede9fe; color: #7c3aed; }
+    .status-delivered { background: #dcfce3; color: #16a34a; }
+    .status-completed { background: #d1fae5; color: #059669; }
+    .status-canceled { background: #fee2e2; color: #dc2626; }
+
+    .type-badge {
+        font-size: 12px;
+        font-weight: 700;
+        color: #4b5563;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    /* ⚙️ İŞLEM BUTONLARI */
+    .action-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 6px;
+        border-radius: 6px;
+        transition: 0.2s;
+        font-size: 16px;
+    }
+    .action-btn:hover { background: #f3f4f6; }
+    .btn-view { color: #3b82f6; }
+    .btn-edit { color: #f59e0b; }
+    .btn-delete { color: #ef4444; }
+
+    /* 🔝 ÜST ARAÇ ÇUBUĞU */
+    .toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .primary-btn {
+        background: #4f46e5;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .primary-btn:hover { background: #4338ca; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="new-order-alert" style="display: none; position: fixed; top: 30px; left: 50%; transform: translateX(-50%); background-color: #ef4444; color: white; padding: 12px 25px; border-radius: 30px; font-weight: 600; font-size: 15px; box-shadow: 0 10px 25px rgba(239, 68, 68, 0.4); cursor: pointer; z-index: 10000; transition: transform 0.2s;" onclick="window.location.reload();">
+    🔔 Yeni bir sipariş geldi! Görmek için tıklayın.
+</div>
+
+<div class="toolbar">
+    <div>
+        <h3 style="margin: 0; color: #111827;">Sipariş Listesi</h3>
+        <p style="margin: 5px 0 0 0; color: #6b7280; font-size: 14px;">Tüm siparişlerinizi buradan yönetin.</p>
     </div>
+    <div style="display: flex; gap: 10px;">
+        <form action="{{ url_for('order_action') }}" method="POST" style="display: flex; gap: 10px;">
+            <input type="number" name="order_id" placeholder="Sipariş No Ara..." class="form-input" style="margin: 0; padding: 8px 15px; width: 200px;">
+            <button type="submit" name="action" value="filter" class="action-btn" style="background-color: #3b82f6; color: white; border-radius: 6px; padding: 8px 15px; font-size: 14px;">Ara</button>
+            <button type="submit" name="action" value="clear" class="action-btn" style="background-color: #6b7280; color: white; border-radius: 6px; padding: 8px 15px; font-size: 14px;" onclick="document.querySelector('input[name=order_id]').value=''">Temizle</button>
+        </form>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            // 1. Ekrandaki en büyük Sipariş ID'sini bul
-            let maxOrderId = 0;
-            document.querySelectorAll('.order-id').forEach(el => {
-                let id = parseInt(el.textContent.trim());
-                if (!isNaN(id) && id > maxOrderId) {
-                    maxOrderId = id;
-                }
-            });
+        <button class="primary-btn" onclick="openOrderModal()"><span>+</span> Yeni Sipariş Ekle</button>
+    </div>
+</div>
 
-            // 2. Arka plandan gizlice yeni sipariş var mı diye sor
-            function checkForNewOrders() {
-                fetch(`/api/check_new_orders?last_id=${maxOrderId}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.new_orders) {
-                            // Yeni sipariş varsa Kırmızı Hapı süzülerek ekrana getir!
-                            document.getElementById('new-order-alert').style.display = 'block';
-                            
-                            // İsteğe bağlı: Zaten butonu gösterdik, bir daha sormasına gerek yok
-                            clearInterval(orderPolling); 
-                        }
-                    })
-                    .catch(err => console.error('API Hatası:', err));
-            }
-
-            // 3. Bu soruyu her 10 saniyede bir sessizce tekrarla
-            const orderPolling = setInterval(checkForNewOrders, 10000);
-        });
-    </script>
-
-    <div class="flash-container">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <div class="flash-messages">
-                    {% for category, message in messages %}
-                    <div class="flash-message {{ category }}">
-                        {{ message }}
-                        <button class="close-flash" onclick="this.parentElement.style.display='none';">&times;</button>
+<div class="modern-table-wrapper">
+    <table class="modern-table">
+        <thead>
+            <tr>
+                <th>Sipariş No</th>
+                <th>Tarih</th>
+                {% if session['role'] == 'admin' %}
+                <th>Restoran</th>
+                {% endif %}
+                <th>Tip</th>
+                <th>Müşteri / Masa</th>
+                <th>Tutar</th>
+                <th>Durum</th>
+                <th style="text-align: right;">İşlemler</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+            <tr>
+                <td><strong>#{{ order['order_id'] }}</strong></td>
+                <td>{{ order['order_date'].strftime('%Y-%m-%d %H:%M') }}</td>
+                {% if session['role'] == 'admin' %}
+                <td>
+                    <span style="background-color: #e0e7ff; color: #4338ca; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700;">
+                        🏪 {{ order['restaurant_name'] or 'Bilinmiyor' }}
+                    </span>
+                </td>
+                {% endif %}
+                <td>
+                    {% if order['order_type'] == 'Delivery' %}
+                        <span class="type-badge">🛵 Paket Servis</span>
+                    {% else %}
+                        <span class="type-badge">🍽️ Masaya Servis</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if order['order_type'] == 'Delivery' %}
+                        <div style="font-weight: 600;">{{ order['customer_name'] or '-' }}</div>
+                        <div style="font-size: 12px; color: #6b7280;">{{ order['customer_phone'] or '-' }}</div>
+                    {% else %}
+                        <div style="font-weight: 600;">Masa: {{ order['table_no'] }}</div>
+                    {% endif %}
+                </td>
+                <td style="font-weight: 700; color: #059669;">${{ order['sales_amount'] }}</td>
+                <td>
+                    <span class="status-badge status-{{ order['order_status'] }}">
+                        {{ order['order_status'] | capitalize }}
+                    </span>
+                </td>
+                <td style="text-align: right;">
+                    <button class="action-btn btn-view" title="Detayları Gör" onclick="showOrderDetails(event, '{{ order.order_id }}')">👁️</button>
+                    <button class="action-btn btn-edit" title="Düzenle" 
+                        data-id="{{ order['order_id'] }}"
+                        data-status="{{ order['order_status'] }}"
+                        data-date="{{ order['order_date'].strftime('%Y-%m-%d') }}"
+                        data-type="{{ order['order_type'] or '' }}"
+                        data-table="{{ order['table_no'] or '' }}"
+                        data-customer-name="{{ order['customer_name'] or '' }}"
+                        data-customer-phone="{{ order['customer_phone'] or '' }}"
+                        data-customer-address="{{ order['customer_address'] or '' }}"
+                        data-courier="{{ order['courier_id'] or '' }}"
+                        onclick="openOrderModal(true, this)">✏️</button>
+                    
+                    <form action="{{ url_for('order_action') }}" method="POST" style="display:inline;">
+                        <input type="hidden" name="selected_orders" value="{{ order['order_id'] }}">
+                        <input type="hidden" name="action" value="delete">
+                        <button type="submit" class="action-btn btn-delete" title="Sil" onclick="return confirm('Bu siparişi silmek istediğinize emin misiniz?');">🗑️</button>
+                    </form>
+                </td>
+            </tr>
+            <tr style="display:none;">
+                <td>
+                    <div class="table-card" id="order-card-{{ order['order_id'] }}">
+                        <input type="checkbox" id="order-{{ loop.index }}" name="selected_orders" value="{{ order['order_id'] }}">
+                        <label for="order-{{ loop.index }}">
+                            <span class="order-id">{{ order['order_id'] }}</span>
+                            <span class="order-restaurant-id">{{ order['restaurant_id'] }}</span>
+                            <span class="order-date">{{ order['order_date'].strftime('%Y-%m-%d %H:%M') }}</span>
+                            <span class="order-status">{{ order['order_status'] }}</span>
+                            <span class="order-sales-quantity">{{ order['sales_qty'] }}</span>
+                            <span class="order-sales-amount">${{ order['sales_amount'] }}</span>
+                            <span class="order-table-no">{{ order['table_no'] }}</span>
+                            <span class="order-type">{{ order['order_type'] or '' }}</span>
+                            <span class="customer-name">{{ order['customer_name'] or '' }}</span>
+                            <span class="customer-phone">{{ order['customer_phone'] or '' }}</span>
+                            <span class="customer-address">{{ order['customer_address'] or '' }}</span>
+                            <span class="courier-id">{{ order['courier_id'] or '' }}</span>
+                        </label>
                     </div>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        {% endwith %}
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="7" style="text-align: center; padding: 40px; color: #6b7280;">
+                    Henüz hiç sipariş bulunmuyor.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div id="detailModal" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; backdrop-filter: blur(4px);">
+    <div style="background-color: #fff; padding: 25px; border-radius: 12px; width: 90%; max-width: 600px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f3f4f6; margin-bottom: 15px; padding-bottom: 10px;">
+            <h3 style="margin: 0; color: #111827;">Sipariş Detayları</h3>
+            <span style="font-size: 24px; cursor: pointer; color: #9ca3af;" onclick="closeModal()">&times;</span>
+        </div>
+        <div>
+            <table style="width:100%; text-align:left; border-collapse: collapse;">
+                <thead>
+                    <tr style="background-color: #f9fafb; border-radius: 8px;">
+                        <th style="padding: 12px; font-size: 13px; color: #6b7280;">Ürün</th>
+                        <th style="padding: 12px; font-size: 13px; color: #6b7280;">Adet</th>
+                        <th style="padding: 12px; font-size: 13px; color: #6b7280;">Birim Fiyat</th>
+                        <th style="padding: 12px; font-size: 13px; color: #6b7280;">Toplam</th>
+                    </tr>
+                </thead>
+                <tbody id="modal-items"></tbody>
+            </table>
+            <p style="text-align:right; margin-top:15px; font-size: 18px; color: #111827;">
+                Genel Toplam: <strong id="grand-total" style="color: #059669;">$0.00</strong>
+            </p>
+        </div>
     </div>
-    <button id="scrollTopBtn"><img class="up-arrow" src="{{ url_for('static', filename='images/up-arrow.png') }}"></button>
-    
-    <div class="search-bar" style="display: flex; flex-direction: column; align-items: stretch; height: auto; margin-top: 80px; padding: 20px;">
-        <div style="display: flex; gap: 10px; align-items: flex-start; width: 100%;">
-            <form id="order-form" class="order-form" action="{{ url_for('order_action') }}" method="post">
-            <div class="compact-row" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center; width: 100%; margin-bottom: 15px;">
-                
-                <input type="hidden" id="order-id" name="order_id">
-                <input type="hidden" id="order-restaurant-id" name="restaurant_id">
-                <input type="hidden" id="add-order-restaurant-id" name="add_restaurant_id">
+</div>
 
-                <select id="order-status" name="order_status" 
-                        style="width: auto; min-width: 110px; height: 40px; margin: 0; padding: 0 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; vertical-align: middle; background-color: white;">
-                    <option value="" hidden>Status</option>
-                    <option value="pending">Pending</option>
-                    <option value="preparing">Preparing</option>
-                    <option value="on_the_way">On the Way</option>
-                    <option value="delivered">Delivered</option>
-                    <option value="completed">Completed</option>
-                    <option value="canceled">Canceled</option>
+<div id="orderFormModal" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; backdrop-filter: blur(4px);">
+    <div style="background-color: #fff; padding: 25px; border-radius: 12px; width: 90%; max-width: 650px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto;">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f3f4f6; margin-bottom: 15px; padding-bottom: 10px;">
+            <h3 style="margin: 0; color: #111827;" id="orderModalTitle">Yeni Sipariş Ekle</h3>
+            <span style="font-size: 24px; cursor: pointer; color: #9ca3af;" onclick="closeOrderModal()">&times;</span>
+        </div>
+
+        <form id="order-form" class="order-form" action="{{ url_for('order_action') }}" method="post">
+            <input type="hidden" id="order-id" name="order_id">
+            <input type="hidden" id="order-restaurant-id" name="restaurant_id">
+            <input type="hidden" id="add-order-restaurant-id" name="add_restaurant_id">
+
+            <div id="update-only-fields" style="display: none; gap: 10px; flex-wrap: wrap; margin-bottom: 15px;">
+                <select id="order-status" name="order_status" style="flex:1; padding:10px; border:1px solid #d1d5db; border-radius:6px; font-family:inherit;">
+                    <option value="" hidden>Durum (Status)</option>
+                    <option value="pending">Pending (Bekliyor)</option>
+                    <option value="preparing">Preparing (Hazırlanıyor)</option>
+                    <option value="on_the_way">On the Way (Yolda)</option>
+                    <option value="delivered">Delivered (Teslim Edildi)</option>
+                    <option value="completed">Completed (Tamamlandı)</option>
+                    <option value="canceled">Canceled (İptal)</option>
                 </select>
-                
-                <input type="date" id="order-date" name="order_date" placeholder="Date" 
-                       style="width: auto; height: 40px; margin: 0; padding: 0 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; vertical-align: middle;">
-
-                <input type="text" id="order-sales-quantity" name="sales_qty" placeholder="Quantity" 
-                       style="width: 80px; height: 40px; margin: 0; padding: 0 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; vertical-align: middle; background-color: white; cursor: text; text-align: center; font-weight: bold;">
-                
-                <input type="text" id="order-sales-amount" name="sales_amount" placeholder="Amount" 
-                       style="width: 80px; height: 40px; margin: 0; padding: 0 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; vertical-align: middle; background-color: white; cursor: text; text-align: center; font-weight: bold;">
+                <input type="date" id="order-date" name="order_date" style="flex:1; padding:10px; border:1px solid #d1d5db; border-radius:6px; font-family:inherit;">
             </div>
 
-            <div style="width: 100%; margin-bottom: 10px;"> 
-                <select id="order-type" name="order_type" onchange="toggleOrderFields()" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
-                    <option value="" hidden>Order Type</option> 
-                    <option value="Dine-in">🍽️ Dine-in</option>
-                    <option value="Delivery">🛵 Delivery</option>
-                </select>
+            <div style="display: none;">
+                <input type="text" id="order-sales-quantity" name="sales_qty">
+                <input type="text" id="order-sales-amount" name="sales_amount">
             </div>
 
-            <div id="dine-in-fields" style="display: none; width:100%;">
-                <input type="number" id="order-table-no" name="table_no" placeholder="Table No">
+            <select id="order-type" name="order_type" onchange="toggleOrderFields()" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; margin-bottom: 15px; font-family:inherit;">
+                <option value="" hidden>Sipariş Tipi Seçin</option> 
+                <option value="Dine-in">🍽️ Masaya Sipariş (Dine-in)</option>
+                <option value="Delivery">☎️ Paket Sipariş (Delivery)</option>
+            </select>
+
+            <div id="dine-in-fields" style="display: none; width:100%; margin-bottom: 15px;">
+                <input type="number" id="order-table-no" name="table_no" placeholder="Masa No (Örn: 5)" style="width: 100%; padding:10px; border:1px solid #d1d5db; border-radius:6px; font-family:inherit;">
             </div>
 
-            <div id="delivery-fields" style="display: none; width:100%; box-sizing: border-box; background: #f9f9f9; padding: 15px; border-radius: 5px; border: 1px solid #eee; margin-bottom: 10px;">
-                <input type="text" id="customer-name" name="customer_name" placeholder="Customer Name" 
-                       style="width: 100%; display: block; margin-bottom: 10px; height: 38px; padding: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
-                <input type="text" id="customer-phone" name="customer_phone" placeholder="Phone Number" 
-                       style="width: 100%; display: block; margin-bottom: 10px; height: 38px; padding: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
-                <input type="text" id="customer-address" name="customer_address" placeholder="Address" 
-                       style="width: 100%; display: block; margin-bottom: 10px; height: 38px; padding: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
+            <div id="delivery-fields" style="display: none; width:100%; background: #f9fafb; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb; margin-bottom: 15px;">
+                <input type="text" id="customer-name" name="customer_name" placeholder="Müşteri Adı Soyadı" style="width: 100%; margin-bottom: 10px; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-family:inherit;">
+                <input type="text" id="customer-phone" name="customer_phone" placeholder="Telefon Numarası" style="width: 100%; margin-bottom: 10px; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-family:inherit;">
+                <input type="text" id="customer-address" name="customer_address" placeholder="Teslimat Adresi" style="width: 100%; margin-bottom: 10px; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-family:inherit;">
                 
-                <select id="dynamic-courier-list" name="courier_id" 
-                        style="width: 100%; display: block; margin-bottom: 10px; height: 38px; padding: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
-                    <option value="">Select Courier...</option>
+                <select id="dynamic-courier-list" name="courier_id" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-family:inherit;">
+                    <option value="">Kurye Ata (Opsiyonel)...</option>
                     {% for courier in couriers %}
                         <option value="{{ courier.courier_id }}">{{ courier.name }} {{ courier.surname }}</option>
                     {% endfor %}
                 </select>
+            </div>
 
-                <div id="food-section">
-                    <hr style="margin: 15px 0 10px 0; border-top: 1px solid #ddd; width: 300px;">
-                    <label style="display:block; margin-bottom:5px;"><strong>Order Items:</strong></label>
-                    <div id="food-items-container">
-                        <div class="food-row" style="display: flex; gap: 5px; margin-bottom: 5px; width: 100%;">
-                            <select name="food_id" class="dynamic-food-list" style="flex: 2; height: 35px; padding: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
-                                <option value="">Select Food...</option>
-                                {% for food in foods %}
-                                    <option value="{{ food.food_id }}">{{ food.item_name }} (${{ food.price }})</option>
-                                {% endfor %}
-                            </select>
-                            <input type="number" name="quantity" placeholder="Qty" value="1" min="1" 
-                                style="flex: 0.8; height: 35px; padding: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
-                        </div>
+            <div id="food-section" style="width:100%; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 15px;">
+                <label style="display:block; margin-bottom: 10px; color:#374151; font-weight:600;">Sipariş Kalemleri (Yemekler):</label>
+                <div id="food-items-container">
+                    <div class="food-row" style="display: flex; gap: 5px; margin-bottom: 5px;">
+                        <select name="food_id" class="dynamic-food-list" style="flex: 2; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-family:inherit;">
+                            <option value="">Yemek Seç...</option>
+                            {% for food in foods %}
+                                <option value="{{ food.food_id }}">{{ food.item_name }} (${{ food.price }})</option>
+                            {% endfor %}
+                        </select>
+                        <input type="number" name="quantity" placeholder="Adet" value="1" min="1" style="flex: 0.8; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-family:inherit;">
                     </div>
-                    <button type="button" onclick="addFoodRow()" style="background: #17a2b8; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.9em; margin-top: 5px; width: 300px;">
-                        + Add Another Item
-                    </button>
                 </div>
+                <button type="button" onclick="addFoodRow()" style="background: #e0e7ff; color: #4338ca; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; margin-top: 5px; font-weight:600; width:100%;">+ Yeni Kalem Ekle</button>
             </div>
 
             <input type="hidden" id="selected-orders" name="selected_orders">
             <input type="hidden" id="update-order-id" name="update_order_id">
-            <input type="hidden" id="clear-filter" name="clear_filter" value="false">
+            
+            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; border-top: 1px solid #e5e7eb; padding-top: 15px;">
+                <button type="button" onclick="closeOrderModal()" style="background: #f3f4f6; color: #4b5563; padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">İptal</button>
+                
+                <button type="submit" name="action" value="add" id="modal-add-btn" style="background: #4f46e5; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Siparişi Oluştur</button>
+                
+                <button type="submit" name="action" value="update" id="modal-update-btn" style="background: #f59e0b; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; display: none;">Değişiklikleri Kaydet</button>
+            </div>
         </form>
-        </div>
     </div>
-    
-    <div class="action-buttons">
-        <button class="add-button" type="submit" name="action" value="add" form="order-form"><img class="button-img" src="{{ url_for('static', filename='images/add.png') }}" alt="add icon">Add</button>
-        <button class="delete-button" type="submit" name="action" value="delete" form="order-form" onclick="collectSelected()"><img class="button-img" src="{{ url_for('static', filename='images/delete.png') }}" alt="delete icon">Delete</button>
-        <button class="update-button" type="submit" name="action" value="update" form="order-form"><img class="button-img" src="{{ url_for('static', filename='images/update.png') }}" alt="update icon">Update</button>
-        <button class="filter-button" type="submit" name="action" value="filter" form="order-form"><img class="button-img" src="{{ url_for('static', filename='images/filter.png') }}" alt="filter icon">Filter</button>
-        <div class="sort-container">
-            <button class="sort-button" onclick="toggleSortMenu()"><img class="button-img" src="{{ url_for('static', filename='images/sort.png') }}" alt="sort icon">Sort</button>
-            <div id="overlay" class="hidden"></div>
-            <div class="sort-menu hidden" id="sort-menu">
-                <h3>Sort By</h3>
-                <form id="sort-form" action="{{ url_for('order_action') }}" method="post">
-                    <select name="sort_by" id="sort-by">
-                        <option value="order_status">Status</option>
-                        <option value="order_date">Order Date</option>
-                        <option value="sales_qty">Sales Quantity</option>
-                        <option value="sales_amount">Sales Amount</option>
-                    </select>
-                    <h3 id="second-h3">Order</h3>
-                    <select name="sort_order" id="sort-order">
-                        <option value="ASC">Ascending</option>
-                        <option value="DESC">Descending</option>
-                    </select>
-                    <button type="submit" name="action" value="sort">Apply</button>
-                </form>
-            </div>
-        </div>
-        <button class="search-button" onclick="searchOrder()" style="background-color: #007bff;"><img class="button-img" src="{{ url_for('static', filename='images/search.png') }}" alt="search icon">Search</button>
-        <button class="clear-button" type="submit" form="order-form" name="action" value="clear" onclick="clearSearch()"><img class="button-img" src="{{ url_for('static', filename='images/clear.png') }}" alt="clear icon">Clear</button>
-    </div>
-    
-    <div id="navigation" class="hidden">
-        <button id="next-match-button" onclick="goToNextMatch()">Next Match</button>
-    </div>
-    
-    <div class="list" id="order-list">
-        {% for order in orders %}
-        <div class="table-card" id="order-card-{{ order['order_id'] }}">
-            <input type="checkbox" id="order-{{ loop.index }}" name="selected_orders" value="{{ order['order_id'] }}">
-            <label for="order-{{ loop.index }}">
-                <span class="order-id" style="display: none;">{{ order['order_id'] }}</span>
-                <span class="order-restaurant-id" style="display: none;">{{ order['restaurant_id'] }}</span>
-                
-                <p><strong>Order Date:</strong> <span class="order-date">{{ order['order_date'].strftime('%Y-%m-%d %H:%M') }}</span></p>
-                <p><strong>Status:</strong> <span class="order-status">{{ order['order_status'] }}</span></p>
-                <p><strong>Sales Quantity:</strong> <span class="order-sales-quantity">{{ order['sales_qty'] }}</span></p>
-                <p><strong>Sales Amount:</strong> <span class="order-sales-amount">${{ order['sales_amount'] }}</span></p>
-                
-                <hr style="margin: 5px 0; border: 0; border-top: 1px solid #eee;">
+</div>
+{% endblock %}
 
-                {% if order['order_type'] == 'Delivery' %}
-                    <p style="color: #d63031;"><strong>🛵 Delivery</strong></p>
-                    <p><strong>Customer:</strong> {{ order['customer_name'] or '-' }}</p>
-                    <p><strong>Phone:</strong> {{ order['customer_phone'] or '-' }}</p>
-                    <p><strong>Address:</strong> <span style="font-size: 0.9em;">{{ order['customer_address'] or '-' }}</span></p>
-                    <p><strong>Courier:</strong> 
-                        {% set ns = namespace(found=false) %}
-                        {% for courier in couriers %}
-                            {% if courier.courier_id == order.courier_id %}
-                                {{ courier.name }} {{ courier.surname }}
-                                {% set ns.found = true %}
-                            {% endif %}
-                        {% endfor %}
-                        {% if not ns.found %} - {% endif %}
-                    </p>
-                    <span class="order-table-no hidden"></span>
-                    <div style="margin-top: 10px; font-size: 0.9em;">
-                        <strong>💳 Payment:</strong> 
-                        {% if order['payment_method'] == 'Online Payment' %}
-                            <span style="color: #059669; background: #dcfce3; padding: 2px 6px; border-radius: 4px; font-weight: 600;">🌐 Online Paid</span>
-                        {% else %}
-                            <span style="color: #b45309; background: #fef3c7; padding: 2px 6px; border-radius: 4px; font-weight: 600;">💰 {{ order['payment_method'] or 'Not Specified' }}</span>
-                        {% endif %}
-                    </div>
-
-                    {% if order['order_note'] %}
-                        <div style="margin-top: 8px; background-color: #fef2f2; border-left: 3px solid #ef4444; padding: 8px; border-radius: 4px; font-size: 0.85em; color: #7f1d1d; font-style: italic;">
-                            <strong>📌 Note:</strong> "{{ order['order_note'] }}"
-                        </div>
-                    {% endif %}
-                    {% else %}
-                    <p style="color: #0984e3;"><strong>🍽️ Dine-in</strong></p>
-                    <p><strong>Table No:</strong> <span class="order-table-no">{{ order['table_no'] }}</span></p>
-                    {% endif %}
-                
-                <div style="margin-top: 15px; text-align: center;">
-                    <button type="button" class="search-button" style="padding: 5px 15px; font-size: 0.9em; background-color: #6c5ce7; color: white; border: none; border-radius: 4px; cursor: pointer;" onclick="showOrderDetails(event, '{{ order.order_id }}')">
-                        View Details
-                    </button>
-                </div>
-
-                <span class="order-type hidden">{{ order['order_type'] or '' }}</span>
-                <span class="customer-name hidden">{{ order['customer_name'] or '' }}</span>
-                <span class="customer-phone hidden">{{ order['customer_phone'] or '' }}</span>
-                <span class="customer-address hidden">{{ order['customer_address'] or '' }}</span>
-                <span class="courier-id hidden">{{ order['courier_id'] or '' }}</span>
-            </label>
-        </div>
-        {% endfor %}
-    </div>
-
-    <div id="detailModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Order Details</h3>
-                <span class="close" onclick="closeModal()">&times;</span>
-            </div>
-            <div class="modal-body">
-                <table style="width:100%; text-align:left; border-collapse: collapse;">
-                    <thead>
-                        <tr style="background-color: #f2f2f2;">
-                            <th style="padding: 10px;">Item</th>
-                            <th style="padding: 10px;">Quantity</th>
-                            <th style="padding: 10px;">Price</th>
-                            <th style="padding: 10px;">Total</th>
-                        </tr>
-                    </thead>
-                    <tbody id="modal-items"></tbody>
-                </table>
-                <p style="text-align:right; margin-top:15px; font-weight:bold; font-size: 1.1em;">
-                    Grand Total: <span id="grand-total">0.00</span>
-                </p>
-            </div>
-        </div>
-    </div>
-
-    <script src="{{ url_for('static', filename='js/common.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/orders.js') }}"></script>
-</body>
-</html>
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/orders.js') }}"></script>
+{% endblock %}

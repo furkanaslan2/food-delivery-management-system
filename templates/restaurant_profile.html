@@ -1,77 +1,102 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Restoran Profili</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; margin: 0; padding: 40px 20px; color: #1f2937; }
-        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        h2 { margin-top: 0; margin-bottom: 25px; color: #111827; }
-        
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; color: #4b5563; font-size: 14px; }
-        .form-group input[type="text"] { width: 100%; padding: 10px 15px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 15px; box-sizing: border-box; outline: none; }
-        .form-group input[type="text"]:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
-        
-        /* Fotoğraf Alanı CSS */
-        .image-preview { width: 100%; height: 200px; background-color: #f9fafb; border: 2px dashed #d1d5db; border-radius: 8px; display: flex; justify-content: center; align-items: center; margin-bottom: 15px; overflow: hidden; position: relative; }
-        .image-preview img { width: 100%; height: 100%; object-fit: cover; }
-        .file-input-wrapper { position: relative; overflow: hidden; display: inline-block; }
-        .file-input-wrapper input[type=file] { font-size: 100px; position: absolute; left: 0; top: 0; opacity: 0; cursor: pointer; }
-        .btn-upload { background: #f3f4f6; border: 1px solid #d1d5db; padding: 8px 16px; border-radius: 6px; font-weight: 500; color: #374151; cursor: pointer; transition: all 0.2s; }
-        .btn-upload:hover { background: #e5e7eb; }
-        
-        .btn-submit { background: #10b981; color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; font-weight: 600; font-size: 16px; cursor: pointer; transition: background 0.2s; margin-top: 10px; }
-        .btn-submit:hover { background: #059669; }
-        .alert { padding: 12px; border-radius: 6px; margin-bottom: 20px; text-align: center; }
-        .alert-success { background: #d1fae5; color: #065f46; }
-    </style>
-</head>
-<body>
+{% extends 'dashboard_base.html' %}
 
-    <div class="container">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h2>⚙️ Restoran Ayarları</h2>
-            <a href="/" style="text-decoration: none; color: #6b7280; font-size: 14px;">← Panele Dön</a>
-        </div>
+{% block title %}Restoran Profili{% endblock %}
+{% block page_title %}📸 Restoran Ayarları ve Profil{% endblock %}
 
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    .profile-container { 
+        max-width: 750px; 
+        background: white; 
+        padding: 35px; 
+        border-radius: 12px; 
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        border: 1px solid #e5e7eb;
+    }
+    
+    .section-title { font-size: 16px; color: #111827; margin: 30px 0 15px 0; padding-bottom: 10px; border-bottom: 1px solid #e5e7eb; font-weight: 700; display: flex; align-items: center; gap: 8px;}
+    
+    .form-group { margin-bottom: 20px; }
+    .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #374151; font-size: 14px; }
+    .form-input { 
+        width: 100%; 
+        padding: 12px 15px; 
+        border: 1px solid #d1d5db; 
+        border-radius: 8px; 
+        font-size: 15px; 
+        box-sizing: border-box; 
+        outline: none; 
+        font-family: inherit;
+        transition: 0.2s;
+        background-color: white;
+    }
+    .form-input:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+    
+    /* Fotoğraf Alanı CSS */
+    .image-preview { 
+        width: 100%; 
+        height: 220px; 
+        background-color: #f9fafb; 
+        border: 2px dashed #d1d5db; 
+        border-radius: 12px; 
+        display: flex; 
+        justify-content: center; 
+        align-items: center; 
+        margin-bottom: 15px; 
+        overflow: hidden; 
+        position: relative; 
+    }
+    .image-preview img { width: 100%; height: 100%; object-fit: cover; }
+    
+    .file-input-wrapper { position: relative; overflow: hidden; display: inline-block; }
+    .file-input-wrapper input[type=file] { font-size: 100px; position: absolute; left: 0; top: 0; opacity: 0; cursor: pointer; }
+    
+    .btn-upload { background: #f3f4f6; border: 1px solid #d1d5db; padding: 10px 20px; border-radius: 8px; font-weight: 600; color: #374151; cursor: pointer; transition: all 0.2s; }
+    .btn-upload:hover { background: #e5e7eb; }
+    
+    .btn-submit { background: #10b981; color: white; border: none; padding: 16px; width: 100%; border-radius: 8px; font-weight: 700; font-size: 16px; cursor: pointer; transition: background 0.2s; margin-top: 20px; }
+    .btn-submit:hover { background: #059669; }
+</style>
+{% endblock %}
 
-        <form action="{{ url_for('restaurant_profile') }}" method="POST" enctype="multipart/form-data">
+{% block content %}
+<div class="profile-container">
+
+    <form action="{{ url_for('restaurant_profile') }}" method="POST" enctype="multipart/form-data">
+        
+        <h3 class="section-title">🖼️ Vitrin Bilgileri</h3>
+        
+        <div class="form-group">
+            <label>Mevcut Kapak Fotoğrafı</label>
+            <div class="image-preview">
+                {% if restaurant['image_url'] and restaurant['image_url'] != 'default_restaurant.jpg' %}
+                    <img src="{{ url_for('static', filename='images/restaurants/' + restaurant['image_url']) }}" alt="Restaurant Image">
+                {% else %}
+                    <div style="text-align: center;">
+                        <span style="font-size: 40px; display: block; margin-bottom: 10px;">🏪</span>
+                        <span style="color: #9ca3af; font-size: 14px; font-weight: 500;">Görsel Yüklenmemiş</span>
+                    </div>
+                {% endif %}
+            </div>
             
-            <div class="form-group">
-                <label>Mevcut Kapak Fotoğrafı</label>
-                <div class="image-preview">
-                    {% if restaurant['image_url'] and restaurant['image_url'] != 'default_restaurant.jpg' %}
-                        <img src="{{ url_for('static', filename='images/restaurants/' + restaurant['image_url']) }}" alt="Restaurant Image">
-                    {% else %}
-                        <span style="color: #9ca3af;">Görsel Yüklenmemiş 🏪</span>
-                    {% endif %}
-                </div>
-                
+            <div style="display: flex; justify-content: space-between; align-items: center;">
                 <div class="file-input-wrapper">
                     <button type="button" class="btn-upload">📷 Yeni Fotoğraf Seç</button>
                     <input type="file" name="restaurant_image" accept="image/*">
                 </div>
-                <small style="display:block; color: #6b7280; margin-top: 5px;">Sadece .jpg ve .png formatları desteklenir.</small>
+                <small style="color: #6b7280; font-weight: 500;">Sadece .jpg ve .png desteklenir.</small>
             </div>
+        </div>
 
-            <div class="form-group">
+        <div style="display: flex; gap: 15px;">
+            <div class="form-group" style="flex: 1;">
                 <label>Restoran Adı</label>
-                <input type="text" name="restaurant_name" value="{{ restaurant['restaurant_name'] }}" required>
+                <input type="text" name="restaurant_name" class="form-input" value="{{ restaurant['restaurant_name'] }}" required>
             </div>
-
-            <div class="form-group">
-                <label>Mutfak Türü</label>
-                <select name="cuisine" style="width: 100%; padding: 10px 15px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 15px; box-sizing: border-box; outline: none; background-color: white;" required>
+            <div class="form-group" style="flex: 1;">
+                <label>Mutfak Türü (Kategori)</label>
+                <select name="cuisine" class="form-input" style="cursor: pointer;" required>
                     <option value="Hamburger" {% if restaurant['cuisine'] == 'Hamburger' %}selected{% endif %}>Hamburger</option>
                     <option value="Döner" {% if restaurant['cuisine'] == 'Döner' %}selected{% endif %}>Döner</option>
                     <option value="Pizza" {% if restaurant['cuisine'] == 'Pizza' %}selected{% endif %}>Pizza</option>
@@ -100,34 +125,102 @@
                     <option value="Börek" {% if restaurant['cuisine'] == 'Börek' %}selected{% endif %}>Börek</option>
                 </select>
             </div>
+        </div>
 
-            <button type="submit" class="btn-submit">Değişiklikleri Kaydet</button>
-        </form>
-    </div>
-    <script>
-        // Dosya seçiciyi dinle
-        document.querySelector('input[name="restaurant_image"]').addEventListener('change', function(event) {
-            const file = event.target.files[0];
-            
-            if (file) {
-                // Sadece resim dosyası seçildiyse işlem yap
-                if (file.type.startsWith('image/')) {
-                    const reader = new FileReader();
-                    
-                    reader.onload = function(e) {
-                        // Önizleme kutusunu bul ve içindeki HTML'i yeni seçilen resimle değiştir
-                        const previewBox = document.querySelector('.image-preview');
-                        previewBox.innerHTML = `<img src="${e.target.result}" alt="Yeni Kapak Fotoğrafı" style="width: 100%; height: 100%; object-fit: cover;">`;
-                    }
-                    
-                    // Resmi bellekte oku ve ekrana bas
-                    reader.readAsDataURL(file);
-                } else {
-                    alert("Lütfen geçerli bir resim dosyası seçin (.jpg, .png)");
-                    this.value = ''; // Yanlış dosyayı temizle
-                }
+        <h3 class="section-title">🕒 Operasyon ve Sipariş Ayarları</h3>
+        
+        <div style="display: flex; gap: 15px;">
+            <div class="form-group" style="flex: 1;">
+                <label>Açılış Saati 🟢</label>
+                <input type="time" name="opening_time" class="form-input" value="{{ restaurant['opening_time'] or '09:00' }}" required>
+            </div>
+            <div class="form-group" style="flex: 1;">
+                <label>Kapanış Saati 🔴</label>
+                <input type="time" name="closing_time" class="form-input" value="{{ restaurant['closing_time'] or '23:00' }}" required>
+            </div>
+            <div class="form-group" style="flex: 1;">
+                <label>Minimum Sipariş ($)</label>
+                <input type="number" step="0.01" name="min_order_amount" class="form-input" value="{{ restaurant['min_order_amount'] or '0.00' }}" required>
+            </div>
+        </div>
+
+        <div style="background: #fee2e2; border: 1px solid #fca5a5; padding: 15px; border-radius: 8px; margin-bottom: 25px;">
+            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; color: #991b1b; font-weight: 700; font-size: 15px; margin-bottom: 0;">
+                <input type="checkbox" name="is_manually_closed" style="width: 20px; height: 20px;" {% if restaurant['is_manually_closed'] %}checked{% endif %}>
+                🚨 Dükkanı Acil Durum İçin Kapat
+            </label>
+            <p style="margin: 5px 0 0 30px; font-size: 13px; color: #b91c1c; font-weight: 500; line-height: 1.4;">
+                İşaretlerseniz, çalışma saatiniz içinde olsanız bile müşteriler dükkanınızı "ŞU AN KAPALI" olarak görür.
+            </p>
+        </div>
+
+        <h3 class="section-title">📍 Restoran Lokasyonu (Harita)</h3>
+        <p style="font-size: 13px; color: #6b7280; margin: 0 0 15px 0;">Harita üzerinden dükkanınızın tam konumunu işaretleyin. Bu, siparişlerin 10 KM sınırında çalışabilmesi için <b>zorunludur.</b></p>
+        
+        <div id="map" style="width: 100%; height: 300px; border-radius: 12px; border: 1px solid #cbd5e1; margin-bottom: 15px; z-index: 1;"></div>
+        
+        <input type="hidden" id="latitude" name="latitude" value="{{ restaurant['latitude'] or '' }}">
+        <input type="hidden" id="longitude" name="longitude" value="{{ restaurant['longitude'] or '' }}">
+
+        <button type="submit" class="btn-submit">Değişiklikleri Kaydet</button>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    // FOTOĞRAF YÜKLEME ÖNİZLEMESİ
+    document.querySelector('input[name="restaurant_image"]').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.querySelector('.image-preview').innerHTML = `<img src="${e.target.result}" alt="Yeni Kapak">`;
             }
-        });
-    </script>
-</body>
-</html>
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // HARİTA YÜKLEMESİ
+    document.addEventListener("DOMContentLoaded", function() {
+        let latInput = document.getElementById('latitude').value;
+        let lonInput = document.getElementById('longitude').value;
+        let initialLat = latInput ? parseFloat(latInput) : 41.0082;
+        let initialLon = lonInput ? parseFloat(lonInput) : 28.9784;
+        let isConfigured = latInput ? true : false;
+        
+        let map = L.map('map').setView([initialLat, initialLon], isConfigured ? 15 : 11);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        let marker = L.marker([initialLat, initialLon], {draggable: true}).addTo(map);
+
+        function syncCoordinates(lat, lon) {
+            document.getElementById('latitude').value = lat.toFixed(6);
+            document.getElementById('longitude').value = lon.toFixed(6);
+        }
+        if (!isConfigured) syncCoordinates(initialLat, initialLon);
+
+        marker.on('dragend', function(e) { let pos = marker.getLatLng(); syncCoordinates(pos.lat, pos.lng); });
+        map.on('click', function(e) { marker.setLatLng(e.latlng); syncCoordinates(e.latlng.lat, e.latlng.lng); });
+
+        let gpsControl = L.control({position: 'topleft'});
+        gpsControl.onAdd = function(mapObj) {
+            let btn = L.DomUtil.create('button', 'leaflet-bar leaflet-control');
+            btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-top:3px;"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><circle cx="12" cy="12" r="8"></circle></svg>';
+            btn.style.backgroundColor = 'white'; btn.style.width = '34px'; btn.style.height = '34px'; btn.style.cursor = 'pointer'; btn.style.display = 'flex'; btn.style.justifyContent = 'center'; btn.style.alignItems = 'center';
+            btn.onclick = function(e) {
+                e.preventDefault(); e.stopPropagation();
+                if(navigator.geolocation) {
+                    btn.style.opacity = '0.5'; 
+                    navigator.geolocation.getCurrentPosition(function(pos) {
+                        let lat = pos.coords.latitude; let lon = pos.coords.longitude;
+                        map.setView([lat, lon], 16); marker.setLatLng([lat, lon]); syncCoordinates(lat, lon); btn.style.opacity = '1';
+                    });
+                }
+            };
+            return btn;
+        };
+        gpsControl.addTo(map);
+    });
+</script>
+{% endblock %}

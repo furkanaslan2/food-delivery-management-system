@@ -1,96 +1,198 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Foods</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-</head>
-<body>
-    <nav>
-        <input type="hidden" id="current-user-role" value="{{ session['role'] }}">
-        <div class="logo navbar">
-            <a href="/"><img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo"></a>
-            <h1><a href="/">Food Delivery Management System</a> / <span style="margin-left: 10px; color: white">Foods</span></h1>
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Kategori Yönetimi{% endblock %}
+{% block page_title %}🏷️ Ana Kategori Yönetimi{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* 🎨 MODERN TABLO TASARIMI */
+    .modern-table-wrapper {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+        border: 1px solid #e5e7eb;
+    }
+
+    .modern-table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+    }
+
+    .modern-table th {
+        background: #f9fafb;
+        padding: 15px 20px;
+        color: #6b7280;
+        font-size: 13px;
+        text-transform: uppercase;
+        font-weight: 600;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .modern-table td {
+        padding: 15px 20px;
+        border-bottom: 1px solid #e5e7eb;
+        color: #1f2937;
+        font-size: 14px;
+        vertical-align: middle;
+    }
+
+    .modern-table tr:hover {
+        background: #f9fafb;
+    }
+
+    /* ⚙️ İŞLEM BUTONLARI */
+    .action-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 6px;
+        transition: 0.2s;
+        font-size: 16px;
+    }
+    .action-btn:hover { background: #e5e7eb; }
+
+    /* 🔝 ÜST ARAÇ ÇUBUĞU */
+    .toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .primary-btn {
+        background: #4f46e5;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .primary-btn:hover { background: #4338ca; }
+
+    /* FORM INPUTLARI */
+    .form-input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-family: inherit;
+        margin-top: 5px;
+    }
+    
+    .count-badge {
+        background: #e0f2fe;
+        color: #0284c7;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="toolbar">
+    <div>
+        <h3 style="margin: 0; color: #111827;">Ana Kategoriler (Master Data)</h3>
+        <p style="margin: 5px 0 0 0; color: #6b7280; font-size: 14px;">Restoranların menülerinde kullanabileceği temel yemek türlerini yönetin.</p>
+    </div>
+    
+    <div style="display: flex; gap: 10px;">
+        <form action="{{ url_for('food_action') }}" method="POST" style="display: flex; gap: 10px;">
+            <input type="text" name="name" placeholder="Kategori Ara..." class="form-input" style="margin: 0; padding: 8px 15px; width: 220px;">
+            <button type="submit" name="action" value="filter" class="action-btn" style="background-color: #3b82f6; color: white; border-radius: 6px; padding: 8px 15px; font-size: 14px;">Ara</button>
+            <button type="submit" name="action" value="clear" class="action-btn" style="background-color: #6b7280; color: white; border-radius: 6px; padding: 8px 15px; font-size: 14px;" onclick="document.querySelector('input[name=name]').value=''">Temizle</button>
+        </form>
+
+        {% if session['role'] == 'admin' %}
+        <button class="primary-btn" onclick="openFoodModal()"><span>+</span> Yeni Kategori Ekle</button>
+        {% endif %}
+    </div>
+</div>
+
+<div class="modern-table-wrapper">
+    <table class="modern-table">
+        <thead>
+            <tr>
+                <th>Kategori Adı</th>
+                <th>Kullanım Sıklığı</th>
+                {% if session['role'] == 'admin' %}
+                <th style="text-align: right;">İşlemler</th>
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in foods %}
+            <tr>
+                <td style="font-weight: 600; font-size: 15px; color: #111827; text-transform: capitalize;">
+                    {{ item['item_name'] }}
+                </td>
+                <td>
+                    <span class="count-badge">
+                        {{ item['menu_count'] }} Menüde Kullanılıyor
+                    </span>
+                </td>
+                {% if session['role'] == 'admin' %}
+                <td style="text-align: right;">
+                    <button class="action-btn" title="Düzenle" 
+                        data-id="{{ item['food_id'] }}" 
+                        data-name="{{ item['item_name'] }}" 
+                        onclick="openFoodModalFromBtn(this)">✏️</button>
+                    
+                    <form action="{{ url_for('food_action') }}" method="POST" style="display:inline;">
+                        <input type="hidden" name="selected_food_items" value="{{ item['food_id'] }}">
+                        <input type="hidden" name="action" value="delete">
+                        <button type="submit" class="action-btn" title="Sil" onclick="return confirm('UYARI: Bu ana kategoriyi silerseniz, bu kategoriye bağlı olan menülerdeki veriler de etkilenebilir. Emin misiniz?');">🗑️</button>
+                    </form>
+                </td>
+                {% endif %}
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="3" style="text-align: center; padding: 40px; color: #6b7280;">
+                    Sistemde kayıtlı kategori bulunmamaktadır.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div id="foodFormModal" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; backdrop-filter: blur(4px);">
+    <div style="background-color: #fff; padding: 25px; border-radius: 12px; width: 90%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f3f4f6; margin-bottom: 15px; padding-bottom: 10px;">
+            <h3 style="margin: 0; color: #111827;" id="modalTitle">Yeni Kategori Ekle</h3>
+            <span style="font-size: 24px; cursor: pointer; color: #9ca3af;" onclick="document.getElementById('foodFormModal').style.display='none'">&times;</span>
         </div>
-        <ul class="navbar">
-            <li><a href="/logout">Logout</a></li>
-        </ul>
-    </nav>
-    <div class="flash-container">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <div class="flash-messages">
-                    {% for category, message in messages %}
-                    <div class="flash-message {{ category }}">
-                        {{ message }}
-                        <button class="close-flash" onclick="this.parentElement.style.display='none';">&times;</button>
-                    </div>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        {% endwith %}
-    </div>
-    <button id="scrollTopBtn"><img class="up-arrow" src="{{ url_for('static', filename='images/up-arrow.png') }}"></button>
-    <div class="search-bar">
-        <form id="food-form" class="food-form" action="{{ url_for('food_action') }}" method="post">
-            <input type="hidden" id="selected-food-items" name="selected_food_items">
-            <input type="hidden" id="update-food-id" name="update_food_id">
-            <input type="hidden" id="form-action" name="action" value="">
-            
-            <input type="hidden" id="food-id" name="food_id">
-            
-            <input type="text" id="food-name" name="name" placeholder="Food Name">
-            </form>
-        <button class="search-button" onclick="searchFood()"><img class="button-img" src="{{ url_for('static', filename='images/search.png') }}" alt="search icon">Search</button>
-        <button class="clear-button" type="submit" form="food-form" name="action" value="clear" onclick="clearSearch()"><img class="button-img" src="{{ url_for('static', filename='images/clear.png') }}" alt="clear icon">Clear</button>
-    </div>
-    <div class="action-buttons">
-        <button class="add-button" type="submit" name="action" value="add" form="food-form"><img class="button-img" src="{{ url_for('static', filename='images/add.png') }}" alt="add icon">Add</button>
-        <button class="delete-button" type="submit" name="action" value="delete" form="food-form"><img class="button-img" src="{{ url_for('static', filename='images/delete.png') }}" alt="delete icon">Delete</button>
-        <button class="update-button" type="submit" name="action" value="update" form="food-form"><img class="button-img" src="{{ url_for('static', filename='images/update.png') }}" alt="update icon">Update</button>
-        <button type="submit" class="filter-button" name="action" value="filter" form="food-form">
-            <img class="button-img" src="{{ url_for('static', filename='images/filter.png') }}" alt="filter icon">Filter
-        </button>
-        <div class="sort-container">
-            <button class="sort-button">
-                <img class="button-img" src="{{ url_for('static', filename='images/sort.png') }}" alt="sort icon">Sort
-            </button>
-            <div id="overlay" class="hidden"></div>
-            <div class="sort-menu hidden" id="sort-menu">
-                <h3>Sort By</h3>
-                <form id="sort-form" action="{{ url_for('food_action') }}" method="post">
-                    <input type="hidden" name="action" value="sort">
-                    <select name="sort_by" id="sort-by">
-                        <option value="item_name">Name</option>
-                        </select>
-                    <h3 id="second-h3">Order</h3>
-                    <select name="sort_order" id="sort-order">
-                        <option value="ASC">Ascending</option>
-                        <option value="DESC">Descending</option>
-                    </select>
-                    <button type="submit">Apply</button>
-                </form>
+
+        <form id="food-form" action="{{ url_for('food_action') }}" method="POST">
+            <input type="hidden" name="action" id="modal-action" value="add">
+            <input type="hidden" name="update_food_id" id="update-food-id">
+            <input type="hidden" name="food_id" id="food-id">
+
+            <div style="margin-bottom: 20px;">
+                <label style="font-size: 13px; font-weight: 600; color: #374151;">Kategori Adı (Örn: Vegan, Meksika)</label>
+                <input type="text" id="food-name" name="name" class="form-input" required>
             </div>
-        </div>
+
+            <div style="display: flex; gap: 10px; justify-content: flex-end; border-top: 1px solid #e5e7eb; padding-top: 15px;">
+                <button type="button" onclick="document.getElementById('foodFormModal').style.display='none'" style="background: #f3f4f6; color: #4b5563; padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">İptal</button>
+                <button type="submit" id="modal-submit-btn" class="primary-btn">Kaydet</button>
+            </div>
+        </form>
     </div>
-    <div id="navigation" class="hidden">
-        <button id="next-match-button" onclick="goToNextMatch()">Next Match</button>
-    </div>
-    <div class="list" id="food-list">
-        {% for item in foods %}
-        <div class="table-card" id="food-card-{{ item['food_id'] }}">
-            <input type="checkbox" id="food-{{ loop.index }}" name="selected_food_items" value="{{ item['food_id'] }}">
-            <label for="food-{{ loop.index }}">
-                <span class="food-id" style="display: none;">{{ item['food_id'] }}</span>
-                
-                <p><strong>Name:</strong> <span class="food-name">{{ item['item_name'] }}</span></p>
-                <p><strong>Used in Menus:</strong> <span class="menu-count">{{ item['menu_count'] }}</span></p>
-            </label>
-        </div>
-        {% endfor %}
-    </div>
-    <script src="{{ url_for('static', filename='js/common.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/foods.js') }}"></script>
-</body>
-</html>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/foods.js') }}"></script>
+{% endblock %}
