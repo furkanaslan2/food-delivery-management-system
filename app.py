@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from index import index
 from auth import login, logout, register, customer_login, customer_register
 from users import users, user_action
-from restaurants import restaurants, restaurant_action, restaurant_analytics, restaurant_profile
+from restaurants import restaurants, restaurant_action, restaurant_analytics, restaurant_profile, restaurant_reviews, reply_review
 from couriers import couriers, courier_action, api_check_courier_orders
 from menus import menus, menus_action, manage_menu_options, upload_menu_image, manage_promos
 from orders import orders, order_action, get_order_details, get_restaurant_details, api_check_new_orders
@@ -88,6 +88,8 @@ app.add_url_rule('/api/reorder', view_func=api_reorder, methods=['POST'])
 app.add_url_rule('/api/restaurant_statuses', view_func=api_restaurant_statuses, methods=['POST'])
 app.add_url_rule('/api/update_courier_location', view_func=api_update_courier_location, methods=['POST'])
 app.add_url_rule('/api/get_courier_location', view_func=api_get_courier_location, methods=['POST'])
+app.add_url_rule('/restaurant/reviews', 'restaurant_reviews', restaurant_reviews, methods=['GET'])
+app.add_url_rule('/api/reply_review', 'reply_review', reply_review, methods=['POST'])
 
 
 

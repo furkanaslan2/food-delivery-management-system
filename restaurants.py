@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for, session, flash
+from flask import render_template, request, redirect, url_for, session, flash, jsonify
 from db import get_db_connection
 from mysql.connector import Error
 import json
@@ -321,3 +321,62 @@ def restaurant_profile():
                 connection.close()
 
     return render_template('restaurant_profile.html', restaurant=restaurant)
+
+def restaurant_reviews():
+    # Sadece restoran sahipleri (user) görebilir
+    if session.get('role') != 'user': 
+        return redirect(url_for('login'))
+        
+    restaurant_id = session.get('restaurant_id')
+    connection = get_db_connection()
+    reviews = []
+    
+    if connection:
+        try:
+            cursor = connection.cursor(dictionary=True)
+            # Yorumları, müşteri adını ve sipariş bilgilerini birleştirerek çekiyoruz
+            cursor.execute("""
+                SELECT r.*, c.name as customer_name, o.order_date, o.sales_amount 
+                FROM reviews r
+                JOIN customers c ON r.customer_id = c.customer_id
+                JOIN orders o ON r.order_id = o.order_id
+                WHERE r.restaurant_id = %s
+                ORDER BY r.created_at DESC
+            """, (restaurant_id,))
+            reviews = cursor.fetchall()
+        finally:
+            cursor.close()
+            connection.close()
+            
+    return render_template('restaurant_reviews.html', reviews=reviews)
+
+def reply_review():
+    if session.get('role') != 'user':
+        return jsonify({'success': False, 'message': 'Yetkisiz işlem.'}), 401
+
+    data = request.get_json()
+    order_id = data.get('order_id')
+    reply_text = data.get('reply_text')
+    restaurant_id = session.get('restaurant_id')
+
+    if not reply_text:
+        return jsonify({'success': False, 'message': 'Yanıt boş olamaz.'})
+
+    connection = get_db_connection()
+    if connection:
+        try:
+            cursor = connection.cursor()
+            cursor.execute("""
+                UPDATE reviews 
+                SET restaurant_reply = %s 
+                WHERE order_id = %s AND restaurant_id = %s
+            """, (reply_text, order_id, restaurant_id))
+            connection.commit()
+            return jsonify({'success': True, 'message': 'Yanıtınız başarıyla müşteriye iletildi!'})
+        except Exception as e:
+            return jsonify({'success': False, 'message': str(e)})
+        finally:
+            cursor.close()
+            connection.close()
+            
+    return jsonify({'success': False, 'message': 'Veritabanı hatası.'}), 500

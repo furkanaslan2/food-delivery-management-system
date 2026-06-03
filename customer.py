@@ -89,7 +89,7 @@ def view_restaurant(restaurant_id):
             active_promos = cursor.fetchall()
 
             cursor.execute("""
-                SELECT r.rating, r.comment, r.created_at, c.name AS customer_name 
+                SELECT r.rating, r.comment, r.restaurant_reply, r.created_at, c.name AS customer_name 
                 FROM reviews r
                 JOIN customers c ON r.customer_id = c.customer_id
                 WHERE r.restaurant_id = %s
@@ -477,9 +477,7 @@ def customer_orders():
                 
                 order['items'] = order_items_list
                 
-                cursor.execute("""
-                    SELECT rating, comment FROM reviews WHERE order_id = %s
-                """, (order['order_id'],))
+                cursor.execute("SELECT rating, comment, restaurant_reply FROM reviews WHERE order_id = %s", (order['order_id'],))
                 review_data = cursor.fetchone()
                 
                 if review_data:

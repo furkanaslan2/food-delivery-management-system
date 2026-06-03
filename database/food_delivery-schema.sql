@@ -151,7 +151,8 @@ CREATE TABLE reviews (
     restaurant_id INT NOT NULL,           
     customer_id INT NOT NULL,           
     rating INT NOT NULL CHECK (rating >= 1 AND rating <= 5), 
-    comment TEXT,                   
+    comment TEXT,    
+    restaurant_reply TEXT DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     
     FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE,

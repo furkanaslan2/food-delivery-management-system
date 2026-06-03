@@ -1,0 +1,88 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Müşteri Değerlendirmeleri{% endblock %}
+{% block page_title %}💬 Müşteri Değerlendirmeleri{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 0 auto;">
+    {% if reviews %}
+        {% for review in reviews %}
+        <div style="background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid #e5e7eb; margin-bottom: 20px; padding: 25px;">
+            
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+                <div>
+                    <h4 style="margin: 0 0 5px 0; color: #111827; font-size: 16px;">👤 {{ review.customer_name }}</h4>
+                    <span style="color: #6b7280; font-size: 13px;">Sipariş: #{{ review.order_id }} • {{ review.order_date.strftime('%d %b %Y') }}</span>
+                </div>
+                <div style="background: #fef3c7; color: #92400e; padding: 6px 12px; border-radius: 20px; font-weight: 700; font-size: 14px; display: flex; gap: 5px;">
+                    {% for i in range(review.rating) %}⭐{% endfor %} ({{ review.rating }}/5)
+                </div>
+            </div>
+
+            <div style="background: #f9fafb; padding: 15px; border-radius: 8px; border-left: 4px solid #d1d5db; margin-bottom: 20px;">
+                <p style="margin: 0; color: #4b5563; font-size: 15px; font-style: italic;">
+                    "{{ review.comment or 'Müşteri sadece puan verdi, yorum bırakmadı.' }}"
+                </p>
+            </div>
+
+            <div id="reply-container-{{ review.order_id }}">
+                {% if review.restaurant_reply %}
+                    <div style="background: #e0f2fe; padding: 15px; border-radius: 8px; border-left: 4px solid #0ea5e9;">
+                        <span style="font-size: 12px; font-weight: 700; color: #0284c7; text-transform: uppercase;">Restoranınızın Yanıtı:</span>
+                        <p style="margin: 5px 0 0 0; color: #0f172a; font-size: 15px;">{{ review.restaurant_reply }}</p>
+                    </div>
+                {% else %}
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="reply-input-{{ review.order_id }}" placeholder="Müşteriye kibar bir yanıt yazın..." style="flex: 1; padding: 10px 15px; border: 1px solid #d1d5db; border-radius: 6px; font-family: inherit; outline: none;">
+                        <button onclick="submitReply('{{ review.order_id }}')" style="background: #4f46e5; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#4338ca'" onmouseout="this.style.background='#4f46e5'">
+                            Yanıtla 🚀
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+
+        </div>
+        {% endfor %}
+    {% else %}
+        <div style="text-align: center; padding: 50px 20px; background: white; border-radius: 12px; border: 1px dashed #d1d5db;">
+            <div style="font-size: 40px; margin-bottom: 15px;">🌟</div>
+            <h3 style="margin: 0 0 10px 0; color: #374151;">Henüz Değerlendirme Yok</h3>
+            <p style="color: #6b7280; margin: 0;">Müşterileriniz siparişlerini değerlendirdikçe burada görünecek.</p>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+function submitReply(orderId) {
+    const replyInput = document.getElementById(`reply-input-${orderId}`);
+    const replyText = replyInput.value.trim();
+    
+    if (!replyText) {
+        alert("Lütfen bir yanıt yazın.");
+        return;
+    }
+
+    fetch('/api/reply_review', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order_id: orderId, reply_text: replyText })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            // Başarılı olursa ekranı anında güncelle (Sayfayı yenilemeden)
+            const container = document.getElementById(`reply-container-${orderId}`);
+            container.innerHTML = `
+                <div style="background: #e0f2fe; padding: 15px; border-radius: 8px; border-left: 4px solid #0ea5e9; animation: fadeIn 0.4s ease;">
+                    <span style="font-size: 12px; font-weight: 700; color: #0284c7; text-transform: uppercase;">Restoranınızın Yanıtı:</span>
+                    <p style="margin: 5px 0 0 0; color: #0f172a; font-size: 15px;">${replyText}</p>
+                </div>
+            `;
+        } else {
+            alert("Hata: " + data.message);
+        }
+    })
+    .catch(err => console.error("Hata:", err));
+}
+</script>
+{% endblock %}

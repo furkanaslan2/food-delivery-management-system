@@ -194,6 +194,7 @@
             {% if session.get('role') == 'user' %}
             <li><a href="{{ url_for('restaurant_analytics') }}">📊 İş Analizleri</a></li>
             <li><a href="{{ url_for('restaurant_profile') }}">📸 Kapak ve Profil</a></li>
+            <li><a href="{{ url_for('restaurant_reviews') }}">💬 Değerlendirmeler</a></li>
             {% endif %}
         </ul>
     </aside>
