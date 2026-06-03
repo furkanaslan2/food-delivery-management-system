@@ -163,7 +163,7 @@
             <div class="order-card">
                 <div style="display: flex; justify-content: space-between; align-items: start;">
                     <span class="status-badge status-{{ order.order_status }}">
-                        {{ '📦 Ready for Pickup' if order.order_status == 'preparing' else '🛵 On the Way' }}
+                        {{ '📦 Ready for Pickup' if order.order_status == 'ready' else '🛵 On the Way' }}
                     </span>
                     <span style="font-weight: 700; color: #059669; font-size: 18px;">${{ order.sales_amount }}</span>
                 </div>
@@ -202,7 +202,7 @@
                     <input type="hidden" name="order_id" value="{{ order.order_id }}">
                     <input type="hidden" name="courier_id" value="{{ courier_id }}">
                     
-                    {% if order.order_status == 'preparing' %}
+                    {% if order.order_status == 'ready' %}
                         <input type="hidden" name="new_status" value="on_the_way">
                         <button type="submit" class="action-btn btn-pickup">Paketi Aldım (Yola Çık)</button>
                     {% elif order.order_status == 'on_the_way' %}

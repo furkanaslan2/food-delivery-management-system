@@ -271,6 +271,23 @@ def order_action():
             foods = cursor.fetchall()
                 
             return render_template('orders.html', orders=orders_data, foods=foods, couriers=couriers)
+        
+        elif action == 'assign_courier':
+            assign_order_id = request.form.get('update_order_id')
+            courier_id = request.form.get('courier_id')
+            
+            if not courier_id:
+                flash("Lütfen yola çıkarmak için bir kurye seçin.", "warning")
+                return redirect(url_for('orders'))
+
+            cursor.execute("""
+                UPDATE orders 
+                SET order_status = 'ready', courier_id = %s 
+                WHERE order_id = %s
+            """, (courier_id, assign_order_id))
+            
+            connection.commit()
+            flash("Kurye başarıyla atandı ve sipariş yola çıktı! 🚀", "success")
 
         elif action == 'clear':
             return redirect(url_for('orders'))
@@ -376,3 +393,90 @@ def api_check_new_orders():
                 connection.close()
                 
     return jsonify({'new_orders': False})
+
+# ==========================================
+# 🧑‍🍳 MUTFAK EKRANI (KITCHEN DISPLAY SYSTEM)
+# ==========================================
+def kitchen_display():
+    if not session.get('logged_in') or session.get('role') != 'user':
+        return redirect(url_for('login'))
+
+    restaurant_id = session.get('restaurant_id')
+    connection = get_db_connection()
+    orders_data = []
+
+    if connection:
+        try:
+            cursor = connection.cursor(dictionary=True)
+            # SADECE pending (bekliyor) ve preparing (hazırlanıyor) olan siparişleri, ESKİDEN YENİYE sırala (İlk giren ilk çıkar)
+            cursor.execute("""
+                SELECT * FROM orders 
+                WHERE restaurant_id = %s AND order_status IN ('pending', 'preparing')
+                ORDER BY order_date ASC
+            """, (restaurant_id,))
+            orders_list = cursor.fetchall()
+
+            for order in orders_list:
+                # 📍 DÜZELTME: Şemana uygun olarak food_id ve custom_name üzerinden bağlantı kuruyoruz
+                cursor.execute("""
+                    SELECT oi.*, m.custom_name AS item_name 
+                    FROM order_items oi
+                    JOIN menus m ON oi.food_id = m.food_id
+                    WHERE oi.order_id = %s AND m.restaurant_id = %s
+                """, (order['order_id'], order['restaurant_id']))
+                items = cursor.fetchall()
+
+                # Ekstraları çekerken de menu_id yerine senin şemandaki food_id'yi kullanıyoruz
+                for item in items:
+                    cursor.execute("""
+                        SELECT moc.choice_name 
+                        FROM order_item_choices oic
+                        JOIN menu_option_choices moc ON oic.choice_id = moc.choice_id
+                        WHERE oic.order_id = %s AND oic.food_id = %s
+                    """, (order['order_id'], item['food_id']))
+                    choices = cursor.fetchall()
+                    
+                    if choices:
+                        names = [c['choice_name'] for c in choices]
+                        # Eğer custom_name veritabanında NULL ise ekranda "None" yazmasını engelliyoruz
+                        current_name = item['item_name'] if item['item_name'] else "İsimsiz Menü"
+                        item['item_name'] = f"{current_name} ({', '.join(names)})"
+                
+                order['items'] = items
+                orders_data.append(order)
+
+        finally:
+            cursor.close()
+            connection.close()
+
+    return render_template('kitchen.html', orders=orders_data)
+
+# ==========================================
+# 🧑‍🍳 MUTFAK EKRANI GÜVENLİ İŞLEM (API)
+# ==========================================
+def kitchen_order_action():
+    if session.get('role') != 'user':
+        return redirect(url_for('login'))
+
+    order_id = request.form.get('order_id')
+    new_status = request.form.get('order_status')
+    restaurant_id = session.get('restaurant_id')
+
+    connection = get_db_connection()
+    if connection:
+        try:
+            cursor = connection.cursor()
+            # 📍 MÜKEMMEL ÇÖZÜM: Sadece durumu (order_status) güncelliyoruz. 
+            # Müşteri bilgileri, kurye, adres vb. HİÇBİR ŞEYE dokunmuyoruz!
+            cursor.execute("""
+                UPDATE orders 
+                SET order_status = %s 
+                WHERE order_id = %s AND restaurant_id = %s
+            """, (new_status, order_id, restaurant_id))
+            connection.commit()
+        finally:
+            cursor.close()
+            connection.close()
+
+    # İşlem bitince Mutfak Ekranına geri dön
+    return redirect(url_for('kitchen_display'))

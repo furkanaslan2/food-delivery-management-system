@@ -29,11 +29,10 @@ def courier_dashboard(courier_id):
             if courier:
                 courier_name = courier['name']
             
-            # Kuryeye atanmış ve Aktif olan (Hazırlanıyor veya Yolda) siparişleri çek
             cursor.execute("""
-                SELECT order_id, order_date, customer_name, customer_phone, customer_address, sales_amount, order_status 
+                SELECT order_id, order_date, customer_name, customer_phone, customer_address, sales_amount, order_status, payment_method, order_note 
                 FROM orders 
-                WHERE courier_id = %s AND order_status IN ('preparing', 'on_the_way')
+                WHERE courier_id = %s AND order_status IN ('ready', 'on_the_way')
                 ORDER BY order_date DESC
             """, (courier_id,))
             active_orders = cursor.fetchall()

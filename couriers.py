@@ -202,7 +202,7 @@ def api_check_courier_orders():
             cursor.execute("""
                 SELECT COUNT(*) as active_count 
                 FROM orders 
-                WHERE courier_id = %s AND order_status IN ('preparing', 'on_the_way')
+                WHERE courier_id = %s AND order_status IN ('ready', 'on_the_way')
             """, (courier_id,))
             
             result = cursor.fetchone()

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mutfak Ekranı - KDS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body { margin: 0; padding: 20px; font-family: 'Inter', sans-serif; background-color: #111827; color: white; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #374151; }
+        
+        .grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        
+        .order-card { background: #1f2937; border-radius: 12px; border-top: 6px solid #fbbf24; overflow: hidden; display: flex; flex-direction: column; }
+        .order-card.preparing { border-top-color: #3b82f6; } /* Hazırlananlar mavi renk */
+        
+        .card-header { padding: 15px; background: rgba(0,0,0,0.2); display: flex; justify-content: space-between; align-items: center; }
+        .order-id { font-size: 24px; font-weight: 800; }
+        .order-time { font-size: 14px; color: #9ca3af; font-weight: 600; }
+        
+        .card-body { padding: 15px; flex: 1; }
+        .item-row { font-size: 18px; font-weight: 600; margin-bottom: 12px; display: flex; gap: 10px; line-height: 1.4; border-bottom: 1px solid #374151; padding-bottom: 10px; }
+        .item-qty { color: #fbbf24; }
+        
+        .card-footer { padding: 15px; display: flex; gap: 10px; }
+        .btn { flex: 1; border: none; padding: 15px; font-size: 18px; font-weight: 800; border-radius: 8px; cursor: pointer; transition: 0.2s; color: white; text-transform: uppercase; }
+        
+        .btn-start { background: #2563eb; }
+        .btn-start:active { background: #1d4ed8; transform: scale(0.95); }
+        
+        .btn-ready { background: #10b981; }
+        .btn-ready:active { background: #059669; transform: scale(0.95); }
+        
+        .exit-btn { background: #374151; color: white; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <h1 style="margin: 0;">🧑‍🍳 Mutfak Ekranı</h1>
+            <span style="background: #374151; padding: 5px 12px; border-radius: 20px; font-weight: 600;">{{ orders|length }} Bekleyen</span>
+        </div>
+        <a href="{{ url_for('orders') }}" class="exit-btn">⬅️ Panele Dön</a>
+    </div>
+
+    <div class="grid-container">
+        {% for order in orders %}
+        <div class="order-card {% if order.order_status == 'preparing' %}preparing{% endif %}">
+            
+            <div class="card-header">
+                <span class="order-id">#{{ order.order_id }}</span>
+                <span class="order-time">{{ order.order_date.strftime('%H:%M') }} 
+                    {% if order.order_type == 'Delivery' %} 🛵 Paket {% else %} 🍽️ Masa {{ order.table_no }} {% endif %}
+                </span>
+            </div>
+            
+            <div class="card-body">
+                {% for item in order['items'] %}
+                <div class="item-row">
+                    <span class="item-qty">{{ item['quantity'] }}x</span>
+                    <span>{{ item['item_name'] }}</span>
+                </div>
+                {% endfor %}
+                {% if order['order_note'] %}
+                    <div style="background: #ef4444; color: white; padding: 10px; border-radius: 6px; font-size: 14px; font-weight: 600;">
+                        📝 Not: {{ order['order_note'] }}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="card-footer">
+                <form action="{{ url_for('kitchen_order_action') }}" method="POST" style="width: 100%;">
+                    <input type="hidden" name="order_id" value="{{ order.order_id }}">
+                    
+                    {% if order.order_status == 'pending' %}
+                        <input type="hidden" name="order_status" value="preparing">
+                        <button type="submit" class="btn btn-start">▶️ Hazırlamaya Başla</button>
+                    
+                    {% elif order.order_status == 'preparing' %}
+                        <input type="hidden" name="order_status" value="ready">
+                        <button type="submit" class="btn btn-ready">✅ Sipariş Hazır</button>
+                    {% endif %}
+                </form>
+            </div>
+            
+        </div>
+        {% else %}
+        <div style="grid-column: 1 / -1; text-align: center; padding: 50px; color: #6b7280;">
+            <h2 style="font-size: 30px; margin-bottom: 10px;">🎉 Harika! Mutfak tertemiz.</h2>
+            <p>Şu an bekleyen veya hazırlanan hiçbir sipariş yok.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <script>
+        setTimeout(function() { window.location.reload(); }, 15000); // Her 15 saniyede bir sayfayı yeniler
+    </script>
+</body>
+</html>

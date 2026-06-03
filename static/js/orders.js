@@ -1,10 +1,17 @@
-// YENİ SİPARİŞ BİLDİRİMİ (API Polling)
+// ==========================================
+// 🔔 YENİ SİPARİŞ BİLDİRİMİ (Otomatik Kapanan)
+// ==========================================
 document.addEventListener("DOMContentLoaded", function() {
     let maxOrderId = 0;
-    document.querySelectorAll('.order-id').forEach(el => {
-        let id = parseInt(el.textContent.trim());
-        if (!isNaN(id) && id > maxOrderId) maxOrderId = id;
-    });
+    
+    // Sayfa ilk açıldığında en büyük ID'yi bul
+    function updateMaxId() {
+        document.querySelectorAll('.order-id').forEach(el => {
+            let id = parseInt(el.textContent.trim());
+            if (!isNaN(id) && id > maxOrderId) maxOrderId = id;
+        });
+    }
+    updateMaxId();
 
     function checkForNewOrders() {
         fetch(`/api/check_new_orders?last_id=${maxOrderId}`)
@@ -12,13 +19,25 @@ document.addEventListener("DOMContentLoaded", function() {
             .then(data => {
                 if (data.new_orders) {
                     const alertBox = document.getElementById('new-order-alert');
-                    if (alertBox) alertBox.style.display = 'block';
-                    clearInterval(orderPolling); 
+                    if (alertBox) {
+                        alertBox.style.display = 'block'; // Sesi ve kutuyu tetikle
+                        
+                        // 5 Saniye sonra uyarıyı otomatik gizle
+                        setTimeout(() => { 
+                            alertBox.style.display = 'none'; 
+                        }, 5000);
+                    }
+                    
+                    // 📍 DÜZELTME: Sistemi durdurmak (clearInterval) yerine, çıtayı yükseltiyoruz 
+                    // ki sonraki siparişleri de yakalamaya devam etsin.
+                    updateMaxId(); 
                 }
             })
             .catch(err => console.error('API Hatası:', err));
     }
-    const orderPolling = setInterval(checkForNewOrders, 10000);
+    
+    // Her 6 saniyede bir kontrol et
+    setInterval(checkForNewOrders, 6000);
 });
 
 // SİPARİŞ DETAYLARINI GETİRME (YENİ EKLENDİ)
@@ -215,3 +234,45 @@ document.addEventListener("DOMContentLoaded", function() {
         observer.observe(alertBox, { attributes: true, attributeFilter: ['style'] });
     }
 });
+
+// ==========================================
+// 🔄 SESSİZ TABLO GÜNCELLEME MOTORU (AJAX)
+// ==========================================
+function checkAndRefreshTable() {
+    // 1. Güvenlik Kilidi: Eğer ekranda bir işlem penceresi açıksa tabloyu GÜNCELLEME!
+    const orderModal = document.getElementById('orderFormModal');
+    const courierModal = document.getElementById('courierAssignModal');
+    const detailModal = document.getElementById('detailModal');
+
+    if (
+        (orderModal && orderModal.style.display !== 'none') ||
+        (courierModal && courierModal.style.display !== 'none') ||
+        (detailModal && detailModal.style.display !== 'none')
+    ) {
+        return; // Patron işlem yapıyor, güncellemeyi pas geç.
+    }
+
+    // 2. Arka planda sayfanın güncel halini sessizce indir
+    fetch(window.location.href)
+        .then(response => response.text())
+        .then(html => {
+            // 3. Gelen gizli HTML'i parçala
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+
+            // 4. Yeni tablonun içini al ve mevcut tabloyla değiştir
+            const newTbody = doc.getElementById('orders-table-body');
+            const currentTbody = document.getElementById('orders-table-body');
+
+            if (newTbody && currentTbody) {
+                // Sadece bir değişiklik varsa tabloyu güncelle (Gereksiz yorulmayı önler)
+                if (newTbody.innerHTML !== currentTbody.innerHTML) {
+                    currentTbody.innerHTML = newTbody.innerHTML;
+                }
+            }
+        })
+        .catch(err => console.error("Sessiz güncelleme hatası:", err));
+}
+
+// Motoru çalıştır: Her 5 saniyede bir (5000 milisaniye) sessizce kontrol et
+setInterval(checkAndRefreshTable, 5000);
