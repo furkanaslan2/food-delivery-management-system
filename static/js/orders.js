@@ -148,3 +148,70 @@ function addFoodRow() {
         container.appendChild(newRow);
     }
 }
+
+// ==========================================
+// 🔔 PROFESYONEL SESLİ BİLDİRİM MOTORU (HAFIZALI & FLAŞSIZ)
+// ==========================================
+let soundUnlocked = false;
+const orderSound = new Audio("https://cdn.pixabay.com/download/audio/2021/08/04/audio_0625c1539c.mp3?filename=ding-idea-40142.mp3");
+
+document.addEventListener("DOMContentLoaded", function() {
+    const overlay = document.getElementById('sound-unlock-overlay');
+    const startBtn = document.getElementById('start-system-btn');
+
+    // 1. Tarayıcı (Sekme) Hafızasını Kontrol Et
+    const isSystemAlreadyStarted = sessionStorage.getItem('systemStarted') === 'true';
+
+    // 📍 DÜZELTME: Eğer sistem BAŞLAMADIYSA ekranı görünür yap (FOUC Flaşlamasını önler)
+    if (!isSystemAlreadyStarted && overlay) {
+        overlay.style.display = 'flex'; // HTML'de gizli olan ekranı şimdi göster
+        
+        if (startBtn) {
+            startBtn.addEventListener('click', function() {
+                orderSound.play().then(() => {
+                    orderSound.pause();
+                    orderSound.currentTime = 0;
+                    soundUnlocked = true;
+                    
+                    sessionStorage.setItem('systemStarted', 'true');
+                    
+                    overlay.style.opacity = '0';
+                    overlay.style.transition = 'opacity 0.3s ease';
+                    setTimeout(() => overlay.style.display = 'none', 300);
+                    
+                    console.log("✅ Ses kilidi başarıyla açıldı, sistem hazır!");
+                }).catch(err => console.log('Ses kilidi açılamadı:', err));
+            });
+        }
+    } 
+    // 2. Sistem Zaten Başladıysa (Ekran HTML'de gizli kalmaya devam eder, flaşlama olmaz)
+    else if (isSystemAlreadyStarted) {
+        soundUnlocked = true; 
+        
+        document.body.addEventListener('click', function unlockSilently() {
+            orderSound.play().then(() => {
+                orderSound.pause();
+                orderSound.currentTime = 0;
+                document.body.removeEventListener('click', unlockSilently);
+            }).catch(e => console.log('Sessiz kilit açma bekliyor...'));
+        }, { once: true });
+    }
+
+    // 3. Yeni Sipariş İzleme (MutationObserver)
+    const alertBox = document.getElementById('new-order-alert');
+    if (alertBox) {
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.attributeName === "style") {
+                    const currentDisplay = window.getComputedStyle(alertBox).getPropertyValue('display');
+                    
+                    if (currentDisplay !== 'none' && soundUnlocked) {
+                        orderSound.currentTime = 0;
+                        orderSound.play().catch(e => console.log("Ses çalınamadı:", e));
+                    }
+                }
+            });
+        });
+        observer.observe(alertBox, { attributes: true, attributeFilter: ['style'] });
+    }
+});

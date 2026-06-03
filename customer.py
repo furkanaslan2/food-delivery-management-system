@@ -452,9 +452,11 @@ def customer_orders():
 
             for order in orders_list:
                 cursor.execute("""
-                    SELECT oi.*, f.item_name 
+                    SELECT oi.*, COALESCE(m.custom_name, f.item_name) AS item_name 
                     FROM order_items oi
+                    JOIN orders o ON oi.order_id = o.order_id
                     JOIN foods f ON oi.food_id = f.food_id
+                    LEFT JOIN menus m ON oi.food_id = m.food_id AND o.restaurant_id = m.restaurant_id
                     WHERE oi.order_id = %s
                 """, (order['order_id'],))
                 order_items_list = cursor.fetchall()
@@ -534,19 +536,21 @@ def submit_review():
                 new_rating = round(stats['avg_rating'], 1) if stats['avg_rating'] else 0
                 exact_count = stats['total_reviews']
                 
-                # --- YENİ KISIM: Senin ENUM yapına göre sayıyı metne dönüştürüyoruz ---
-                if exact_count >= 1000:
-                    new_rating_count = '1K+ ratings'
-                elif exact_count >= 500:
-                    new_rating_count = '500+ ratings'
-                elif exact_count >= 100:
-                    new_rating_count = '100+ ratings'
-                elif exact_count >= 50:
-                    new_rating_count = '50+ ratings'
-                elif exact_count >= 20:
-                    new_rating_count = '20+ ratings'
+                # --- 🧮 YENİ: DİNAMİK MATEMATİKSEL ALGORİTMA ---
+                if exact_count == 0:
+                    new_rating_count = 'Yeni'
+                elif exact_count < 10:
+                    # 10 yoruma kadar tam sayıyı göster (Örn: "5", "8")
+                    new_rating_count = str(exact_count)
                 else:
-                    new_rating_count = 'Too Few Ratings'
+                    # 10 ve üzeri için dinamik gruplama (10+, 20+, 100+, 400+ vb.)
+                    step = 10 ** (len(str(exact_count)) - 1)
+                    bucketed_value = (exact_count // step) * step
+                    
+                    if bucketed_value >= 1000:
+                        new_rating_count = f"{bucketed_value // 1000}K+"
+                    else:
+                        new_rating_count = f"{bucketed_value}+"
                 # ------------------------------------------------------------------------
                 
                 # 3. Restoranlar tablosunu GÜNCELLE (review_count yerine senin rating_count sütunun kullanılıyor)
@@ -665,19 +669,54 @@ def view_favorites():
         return redirect(url_for('customer_login'))
 
     customer_id = session.get('customer_id')
+    user_lat = session.get('latitude')
+    user_lon = session.get('longitude')
+    
     connection = get_db_connection()
     favorited_restaurants = []
 
     if connection:
         try:
             cursor = connection.cursor(dictionary=True)
-            # Müşterinin favori tablosundaki restoran id'leri ile restoran detaylarını birleştirip çekiyoruz
-            cursor.execute("""
-                SELECT r.* FROM restaurants r
-                JOIN favorite_restaurants fr ON r.restaurant_id = fr.restaurant_id
-                WHERE fr.customer_id = %s
-            """, (customer_id,))
+            
+            # 📍 1. EĞER KONUM VARSA MESAFE (DISTANCE) HESAPLAYARAK ÇEK
+            if user_lat and user_lon:
+                cursor.execute("""
+                    SELECT r.*, 
+                           ROUND((6371 * acos(cos(radians(%s)) * cos(radians(r.latitude)) * cos(radians(r.longitude) - radians(%s)) + sin(radians(%s)) * sin(radians(r.latitude)))), 1) AS distance
+                    FROM restaurants r
+                    JOIN favorite_restaurants fr ON r.restaurant_id = fr.restaurant_id
+                    WHERE fr.customer_id = %s
+                """, (user_lat, user_lon, user_lat, customer_id))
+            else:
+                # KONUM YOKSA MESAFESİZ ÇEK
+                cursor.execute("""
+                    SELECT r.*, 999 AS distance 
+                    FROM restaurants r
+                    JOIN favorite_restaurants fr ON r.restaurant_id = fr.restaurant_id
+                    WHERE fr.customer_id = %s
+                """, (customer_id,))
+                
             favorited_restaurants = cursor.fetchall()
+            
+            # 📍 2. RESTORANLARIN AÇIK/KAPALI (IS_OPEN) DURUMLARINI HESAPLA
+            now = datetime.now().time()
+            for r in favorited_restaurants:
+                is_open = True
+                if r.get('is_manually_closed'):
+                    is_open = False
+                elif r.get('opening_time') is not None and r.get('closing_time') is not None:
+                    op_td = r['opening_time']
+                    cl_td = r['closing_time']
+                    op_time = (datetime.min + op_td).time() if isinstance(op_td, timedelta) else op_td
+                    cl_time = (datetime.min + cl_td).time() if isinstance(cl_td, timedelta) else cl_td
+                    
+                    if op_time < cl_time:
+                        is_open = op_time <= now <= cl_time
+                    else:
+                        is_open = now >= op_time or now <= cl_time
+                        
+                r['is_open'] = is_open
             
         except Exception as e:
             print(f"Favoriler yüklenirken hata oluştu: {e}")

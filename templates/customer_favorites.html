@@ -47,6 +47,11 @@
         /* Sepet Bildirim Balonu */
         .cart-wrapper { position: relative; }
         .cart-badge { position: absolute; top: -8px; right: -10px; background-color: #ef4444; color: white; font-size: 12px; font-weight: bold; border-radius: 50%; display: flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        /* KAPALI RESTORAN EFEKTİ */
+        .closed-restaurant {
+            opacity: 0.65;
+            filter: grayscale(80%);
+        }
     </style>
 </head>
 <body>
@@ -83,25 +88,24 @@
 
         <div class="restaurant-grid">
             {% for restaurant in restaurants %}
-            <a id="rest-card-{{ restaurant['restaurant_id'] }}" href="{{ url_for('view_restaurant', restaurant_id=restaurant['restaurant_id']) }}" class="restaurant-card" style="position: relative;">
+            <a id="rest-card-{{ restaurant['restaurant_id'] }}" href="{{ url_for('view_restaurant', restaurant_id=restaurant['restaurant_id']) }}" class="restaurant-card {% if restaurant.get('is_open') == False %}closed-restaurant{% endif %}" style="position: relative;">
                 
                 <button class="main-page-fav-btn" data-id="{{ restaurant['restaurant_id'] }}" style="position: absolute; top: 15px; right: 15px; z-index: 10; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
                     <svg viewBox="0 0 24 24" class="heart-svg" fill="#ef4444" stroke="#ef4444" stroke-width="2" style="width:18px; height:18px; transition: all 0.2s;"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
                 </button>
                 
                 <div class="card-image" style="width: 100%; height: 180px; background-color: #f3f4f6; overflow: hidden; position: relative;">
-                    {% if restaurant['image_url'] and restaurant['image_url'] != 'default_restaurant.jpg' %}
-                        
-                        {% set card_img_path = url_for('static', filename='images/restaurants/' ~ restaurant['image_url']) %}
-                        
-                        <div class="restaurant-img" 
-                             style="width: 100%; height: 100%; 
-                                    background-image: url('{{ card_img_path }}'); 
-                                    background-size: cover; 
-                                    background-position: center; 
-                                    background-repeat: no-repeat;">
-                        </div>
                     
+                    <!-- 🚫 KAPALI ROZETİ EKLENDİ -->
+                    {% if restaurant.get('is_open') == False %}
+                    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 15; display: flex; align-items: center; justify-content: center;">
+                        <span style="background: #ef4444; color: white; padding: 8px 16px; border-radius: 8px; font-weight: 700; font-size: 16px; letter-spacing: 0.5px; box-shadow: 0 4px 6px rgba(0,0,0,0.2);">ŞU AN KAPALI</span>
+                    </div>
+                    {% endif %}
+
+                    {% if restaurant['image_url'] and restaurant['image_url'] != 'default_restaurant.jpg' %}
+                        {% set card_img_path = url_for('static', filename='images/restaurants/' ~ restaurant['image_url']) %}
+                        <div class="restaurant-img" style="width: 100%; height: 100%; background-image: url('{{ card_img_path }}'); background-size: cover; background-position: center; background-repeat: no-repeat;"></div>
                     {% else %}
                         <div style="font-size: 40px; display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;">
                             {% if restaurant['cuisine'] == 'Pizza' %} 🍕 
@@ -117,12 +121,23 @@
                         {{ restaurant['restaurant_name'] }}
                         <span class="rating-badge">⭐ {{ restaurant['rating'] }}</span>
                     </div>
-                    <div class="card-info">
-                        {{ restaurant['city'] }} • {{ restaurant['restaurant_address'] }}
-                    </div>
-                    <div class="card-footer">
+                    <div class="card-info">{{ restaurant['city'] }} • {{ restaurant['restaurant_address'] }}</div>
+                    
+                    <div class="card-footer" style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f3f4f6; padding-top: 12px; font-size: 13px; color: #4b5563;">
                         <span class="cuisine-tag">{{ restaurant['cuisine'] }}</span>
-                        <span>💸 Avg: ${{ restaurant['average_cost'] }}</span>
+                        
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            {% if restaurant.get('distance') and restaurant.get('distance') != 999 %}
+                                {% set travel_time = (restaurant['distance'] * 4) | round | int %}
+                                {% set min_time = 15 + travel_time %}
+                                {% set max_time = min_time + 10 %}
+                                
+                                <span style="color: #6b7280; font-weight: 600; display: flex; align-items: center; gap: 4px;">📍 {{ restaurant['distance'] }} km</span>
+                                <span style="background: #ecfdf5; color: #059669; padding: 4px 8px; border-radius: 6px; font-weight: 700; display: flex; align-items: center; gap: 4px;">🛵 {{ min_time }}-{{ max_time }} dk</span>
+                            {% else %}
+                                <span style="background: #ecfdf5; color: #059669; padding: 4px 8px; border-radius: 6px; font-weight: 700; display: flex; align-items: center; gap: 4px;">🛵 30-45 dk</span>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
             </a>

@@ -105,9 +105,18 @@
         <h3 style="margin: 0; color: #111827;">Kurye Listesi</h3>
         <p style="margin: 5px 0 0 0; color: #6b7280; font-size: 14px;">Restoranınızın teslimat ekibini yönetin.</p>
     </div>
-    <button class="primary-btn" onclick="openCourierModal()">
-        <span>+</span> Yeni Kurye Ekle
-    </button>
+    
+    <div style="display: flex; gap: 10px;">
+        <form action="{{ url_for('courier_action') }}" method="POST" style="display: flex; gap: 10px;">
+            <input type="text" name="name" placeholder="Kurye Adı Ara..." class="form-input" style="margin: 0; padding: 8px 15px; width: 250px;">
+            <button type="submit" name="action" value="filter" class="action-btn" style="background-color: #3b82f6; color: white; border-radius: 6px; padding: 8px 15px; font-size: 14px;">Ara</button>
+            <button type="submit" name="action" value="clear" class="action-btn" style="background-color: #6b7280; color: white; border-radius: 6px; padding: 8px 15px; font-size: 14px;" onclick="document.querySelector('input[name=name]').value=''">Temizle</button>
+        </form>
+
+        <button class="primary-btn" onclick="openCourierModal()">
+            <span>+</span> Yeni Kurye Ekle
+        </button>
+    </div>
 </div>
 
 <div class="modern-table-wrapper">

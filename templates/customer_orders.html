@@ -140,7 +140,7 @@
                 <div class="order-body">
                     {% for item in order['items'] %}
                     <div class="item-row">
-                        <span><span class="item-qty">{{ item['quantity'] }}x</span> {{ item['item_name'] }}</span>
+                        <span><span class="item-qty">{{ item['quantity'] }}x</span> {{ item['custom_name'] or item['item_name'] }}</span>
                         <span>${{ "%.2f"|format(item['unit_price'] * item['quantity']) }}</span>
                     </div>
                     {% else %}

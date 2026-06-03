@@ -330,13 +330,21 @@
                         <span class="rating-badge">⭐ {{ restaurant['rating'] }}</span>
                     </div>
                     <div class="card-info">{{ restaurant['city'] }} • {{ restaurant['restaurant_address'] }}</div>
-                    <div class="card-footer">
+                    <div class="card-footer" style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f3f4f6; padding-top: 12px; font-size: 13px; color: #4b5563;">
                         <span class="cuisine-tag">{{ restaurant['cuisine'] }}</span>
-                        {% if restaurant.get('distance') and restaurant.get('distance') != 999 %}
-                            <span style="color: #4f46e5; font-weight: 600;">📍 {{ restaurant['distance'] }} km</span>
-                        {% else %}
-                            <span>💸 Ort: ${{ restaurant['average_cost'] }}</span>
-                        {% endif %}
+                        
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            {% if restaurant.get('distance') and restaurant.get('distance') != 999 %}
+                                {% set travel_time = (restaurant['distance'] * 4) | round | int %}
+                                {% set min_time = 15 + travel_time %}
+                                {% set max_time = min_time + 10 %}
+                                
+                                <span style="color: #6b7280; font-weight: 600; display: flex; align-items: center; gap: 4px;">📍 {{ restaurant['distance'] }} km</span>
+                                <span style="background: #ecfdf5; color: #059669; padding: 4px 8px; border-radius: 6px; font-weight: 700; display: flex; align-items: center; gap: 4px;">🛵 {{ min_time }}-{{ max_time }} dk</span>
+                            {% else %}
+                                <span style="background: #ecfdf5; color: #059669; padding: 4px 8px; border-radius: 6px; font-weight: 700; display: flex; align-items: center; gap: 4px;">🛵 30-45 dk</span>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
             </a>

@@ -219,7 +219,7 @@
 </div>
 
 <div id="menuFormModal" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; backdrop-filter: blur(4px);">
-    <div style="background-color: #fff; padding: 25px; border-radius: 12px; width: 90%; max-width: 500px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+    <div style="background-color: #fff; padding: 25px; border-radius: 12px; width: 90%; max-width: 550px; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
         
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f3f4f6; margin-bottom: 15px; padding-bottom: 10px;">
             <h3 style="margin: 0; color: #111827;" id="menuModalTitle">Yeni Yemek Ekle</h3>
@@ -259,12 +259,13 @@
                     {% endfor %}
                 </select>
             </div>
+            
             <div style="margin-bottom: 15px;">
                 <label style="font-size: 13px; font-weight: 600; color: #374151;">Menüdeki Özel Adı (Havalı İsim)</label>
                 <input type="text" id="menu-custom-name" name="custom_name" class="form-input" placeholder="Örn: 🔥 Texas Smokehouse BBQ Burger" required>
             </div>
 
-            <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+            <div style="display: flex; gap: 15px; margin-bottom: 25px;">
                 <div style="flex: 1;">
                     <label style="font-size: 13px; font-weight: 600; color: #374151;">Fiyat ($)</label>
                     <input type="number" step="0.01" id="menu-price" name="price" class="form-input" placeholder="0.00" required>
@@ -275,7 +276,22 @@
                 </div>
             </div>
 
-            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 25px; border-top: 1px solid #e5e7eb; padding-top: 15px;">
+            <div style="border-top: 2px dashed #e5e7eb; padding-top: 20px; margin-bottom: 15px;" id="options-section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <div>
+                        <h4 style="margin: 0; color: #111827; font-size: 15px;">🛠️ Ek Seçenekler (Opsiyonlar)</h4>
+                        <p style="margin: 4px 0 0 0; font-size: 12px; color: #6b7280;">Müşterilerinize ekstra malzeme, boyut veya sos seçenekleri sunun.</p>
+                    </div>
+                    <button type="button" onclick="addOptionGroup()" style="background: #10b981; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; box-shadow: 0 2px 4px rgba(16,185,129,0.2); transition: 0.2s;" onmouseover="this.style.background='#059669'" onmouseout="this.style.background='#10b981'">
+                        + Grup Ekle
+                    </button>
+                </div>
+                
+                <div id="options-container" style="display: flex; flex-direction: column; gap: 15px; margin-top: 15px;">
+                    </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 25px; border-top: 1px solid #e5e7eb; padding-top: 15px; position: sticky; bottom: 0; background: white;">
                 <button type="button" onclick="closeMenuModal()" style="background: #f3f4f6; color: #4b5563; padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">İptal</button>
                 <button type="submit" name="action" value="add" id="modal-add-btn" class="primary-btn">Listeye Ekle</button>
                 <button type="submit" name="action" value="update" id="modal-update-btn" style="background: #f59e0b; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; display: none;">Değişiklikleri Kaydet</button>
@@ -325,5 +341,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{{ url_for('static', filename='js/menus.js') }}?v=2"></script>
+<script src="{{ url_for('static', filename='js/menus.js') }}?v=3"></script>
 {% endblock %}

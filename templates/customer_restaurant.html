@@ -9,20 +9,20 @@
         body { margin: 0; font-family: 'Inter', sans-serif; background-color: #f8f9fa; color: #111827; }
         
         /* Navbar */
-        .customer-nav { background: #ffffff; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; }
+        .customer-nav { background: #ffffff; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 1000; }
         .nav-brand { font-size: 22px; font-weight: 700; color: #4f46e5; text-decoration: none; display: flex; align-items: center; gap: 8px;}
         .nav-links { display: flex; gap: 20px; align-items: center; }
         .nav-links a { text-decoration: none; color: #4b5563; font-weight: 500; transition: color 0.2s; }
         .cart-btn { background: #4f46e5; color: white !important; padding: 8px 16px; border-radius: 20px; display: flex; align-items: center; gap: 5px; }
         
         /* Restoran Header (Kapak) */
-        .restaurant-header { background: #1f2937; color: white; padding: 50px 5%; text-align: center; transition: all 0.3s; }
+        .restaurant-header { transition: all 0.3s; }
         .restaurant-header h1 { margin: 0 0 10px 0; font-size: 32px; }
         .restaurant-header p { margin: 0; color: #9ca3af; font-size: 15px; }
         .rating { background: #fef08a; color: #854d0e; padding: 4px 10px; border-radius: 6px; font-size: 14px; font-weight: 600; display: inline-block; margin-top: 15px; }
         
         /* Menü İçeriği */
-        .container { max-width: 900px; margin: 40px auto; padding: 0 20px; }
+        .container { max-width: 900px; margin: 20px auto 100px auto; padding: 0 20px; }
         
         /* Yemek Listesi */
         .menu-list { display: flex; flex-direction: column; gap: 15px; }
@@ -40,149 +40,89 @@
         .add-btn:hover { background: #059669; }
 
         /* Kapalı Restoran CSS Kuralları */
-        .closed-menu-item {
-            opacity: 0.55;
-            filter: grayscale(100%);
-            pointer-events: none; /* Tıklamaları tamamen engeller */
-        }
-        
-        /* 📍 YENİ: KAPALI RESTORAN RESMİ/KAPAĞI İÇİN SOLUKLAŞTIRMA SINIFI (Editör Hatası Vermez) */
-        .closed-header {
-            opacity: 0.65;
-            filter: grayscale(80%);
-        }
-
-        .add-btn:disabled {
-            background-color: #9ca3af !important;
-            color: #f3f4f6 !important;
-            cursor: not-allowed !important;
-            transform: none !important;
-        }
-        .qty-input:disabled {
-            background-color: #f3f4f6;
-            color: #9ca3af;
-        }
+        .closed-menu-item { opacity: 0.55; filter: grayscale(100%); pointer-events: none; }
+        .closed-header { opacity: 0.65; filter: grayscale(80%); }
+        .add-btn:disabled { background-color: #9ca3af !important; color: #f3f4f6 !important; cursor: not-allowed !important; transform: none !important; }
+        .qty-input:disabled { background-color: #f3f4f6; color: #9ca3af; }
 
         /* Sepet Bildirim Balonu CSS'i */
         .cart-wrapper { position: relative; }
-        .cart-badge {
-            position: absolute;
-            top: -8px;
-            right: -10px;
-            background-color: #ef4444;
-            color: white;
-            font-size: 12px;
-            font-weight: bold;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 18px;
-            height: 18px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
+        .cart-badge { position: absolute; top: -8px; right: -10px; background-color: #ef4444; color: white; font-size: 12px; font-weight: bold; border-radius: 50%; display: flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
 
-        /* Yorumlar Modal Arka Planı */
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
-        
-        /* Yorumlar Modal İçeriği */
+        /* Modallar */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
         .modal-content { background: white; width: 90%; max-width: 600px; max-height: 80vh; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: slideUp 0.3s ease-out; }
-        
-        /* Modal Başlık ve Kapatma Butonu */
         .modal-header { padding: 20px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; background-color: #fff; }
         .modal-header h3 { margin: 0; font-size: 18px; color: #111827; font-weight: 700; }
         .close-btn { background: none; border: none; font-size: 28px; cursor: pointer; color: #9ca3af; transition: color 0.2s; line-height: 1; }
         .close-btn:hover { color: #111827; }
-        
-        /* Modal Gövdesi */
         .modal-body { padding: 20px; overflow-y: auto; background-color: #f8f9fa; }
-        
         @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-        /* Modern Açılır Menü (Dropdown) Stilleri */
+        /* Dropdown */
         .dropdown { position: relative; display: inline-block; }
-        
-        .dropdown-btn { 
-            background-color: #f3f4f6; color: #374151; padding: 8px 16px; 
-            font-size: 15px; font-weight: 600; border: none; border-radius: 20px; 
-            cursor: pointer; display: flex; align-items: center; gap: 8px; 
-            transition: background-color 0.2s; font-family: inherit;
-        }
+        .dropdown-btn { background-color: #f3f4f6; color: #374151; padding: 8px 16px; font-size: 15px; font-weight: 600; border: none; border-radius: 20px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background-color 0.2s; font-family: inherit; }
         .dropdown-btn:hover { background-color: #e5e7eb; }
-        
-        .dropdown-content { 
-            display: none; position: absolute; right: 0; top: 100%;
-            background-color: #ffffff; min-width: 180px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
-            border-radius: 12px; overflow: hidden; z-index: 1000; border: 1px solid #f3f4f6; 
-        }
-        
-        .dropdown-content a { 
-            color: #4b5563; padding: 12px 16px; text-decoration: none; display: flex; 
-            align-items: center; gap: 10px; font-size: 14px; font-weight: 500; 
-            transition: background-color 0.2s; 
-        }
+        .dropdown-content { display: none; position: absolute; right: 0; top: 100%; background-color: #ffffff; min-width: 180px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-radius: 12px; overflow: hidden; z-index: 1000; border: 1px solid #f3f4f6; }
+        .dropdown-content a { color: #4b5563; padding: 12px 16px; text-decoration: none; display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 500; transition: background-color 0.2s; }
         .dropdown-content a:hover { background-color: #f9fafb; color: #4f46e5; }
-        
         .dropdown:hover .dropdown-content { display: block; }
 
-        /* SEKMELER (TABS) CSS STİLLERİ */
-        .menu-tabs-container {
-            display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 25px; border-bottom: 2px solid #e5e7eb;
+        /* Favori Butonu */
+        .fav-btn-container { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 2px 8px rgba(0,0,0,0.06); padding: 0; }
+        .fav-btn-container:hover { transform: scale(1.08); border-color: #fca5a5; background-color: #fef2f2; }
+        .fav-btn-container:active { transform: scale(0.92); }
+        .heart-svg { width: 22px; height: 22px; transition: fill 0.2s ease, stroke 0.2s ease; }
+        @keyframes heartPop { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
+        .heart-animate { animation: heartPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+
+        /* 📍 YAPIŞKAN KATEGORİ ÇUBUĞU (Eski Tasarım + Scrollspy) */
+        .sticky-category-nav {
+            position: sticky;
+            top: 70px; /* Navbar'ın altında kalacak mesafe */
+            background: rgba(248, 249, 250, 0.95); /* Sayfa arka plan rengi */
+            backdrop-filter: blur(8px);
+            padding: 15px 0 10px 0;
+            margin-bottom: 25px;
+            z-index: 900;
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            border-bottom: 2px solid #e5e7eb;
             scrollbar-width: thin;
         }
-        .menu-tabs-container::-webkit-scrollbar { height: 4px; }
-        .menu-tabs-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .sticky-category-nav::-webkit-scrollbar { height: 4px; }
+        .sticky-category-nav::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         
-        .tab-btn {
-            background: #f3f4f6; border: none; padding: 10px 20px; font-size: 15px; font-weight: 600; color: #4b5563; cursor: pointer; border-radius: 20px; white-space: nowrap; transition: all 0.2s;
-        }
-        .tab-btn:hover { background: #e5e7eb; color: #111827; }
-        .tab-btn.active { background: #111827; color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        
-        .tab-content { display: none; animation: fadeIn 0.3s ease-in-out; }
-        .tab-content.active { display: block; }
-        
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* Modern & Minimalist Yuvarlak Favori Butonu */
-        .fav-btn-container {
-            background: #ffffff;
-            border: 1px solid #e5e7eb;
-            border-radius: 50%;
-            width: 44px;
-            height: 44px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .cat-link {
+            background: #f3f4f6;
+            border: none;
+            padding: 10px 20px;
+            font-size: 15px;
+            font-weight: 600;
+            color: #4b5563;
             cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-            padding: 0;
+            border-radius: 20px;
+            white-space: nowrap;
+            transition: all 0.2s;
+            text-decoration: none;
         }
-        .fav-btn-container:hover {
-            transform: scale(1.08);
-            border-color: #fca5a5;
-            background-color: #fef2f2;
+        .cat-link:hover { background: #e5e7eb; color: #111827; }
+        .cat-link.active { background: #111827; color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+
+        /* 📍 KAYDIRILABİLİR BÖLÜMLER İÇİN MARJİN */
+        .menu-section {
+            scroll-margin-top: 140px; /* Tıklandığında başlığın navbar altında kalmasını önler */
+            margin-bottom: 40px;
         }
-        .fav-btn-container:active {
-            transform: scale(0.92);
+        .menu-section h2 {
+            font-size: 22px; margin: 0 0 20px 0; color: #111827; padding-bottom: 10px; border-bottom: 2px solid #f3f4f6;
         }
-        .heart-svg {
-            width: 22px;
-            height: 22px;
-            transition: fill 0.2s ease, stroke 0.2s ease;
-        }
-        @keyframes heartPop {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.3); }
-            100% { transform: scale(1); }
-        }
-        .heart-animate { animation: heartPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
     </style>
 </head>
 <body>
 
-    <nav class="customer-nav">
+    <nav class="customer-nav" id="main-navbar">
         <a href="/" class="nav-brand">🍔 DeliveryApp</a>
         <div class="nav-links">
             {% if request.endpoint == 'index' %}
@@ -201,9 +141,7 @@
             </a>
 
             <div class="dropdown">
-                <button class="dropdown-btn">
-                    👤 Hesabım ▾
-                </button>
+                <button class="dropdown-btn">👤 Hesabım ▾</button>
                 <div class="dropdown-content">
                     <a href="{{ url_for('customer_orders') }}">📦 Siparişlerim</a>
                     <a href="{{ url_for('view_favorites') }}">❤️ Favorilerim</a>
@@ -252,7 +190,7 @@
     <div class="container">
 
         {% if active_promos %}
-        <div style="margin-bottom: 25px;">
+        <div style="margin-bottom: 30px;">
             <h3 style="font-size: 16px; margin: 0 0 10px 0; color: #374151;">🎟️ Fırsatları Kaçırma</h3>
             <div style="display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: none;">
                 {% for promo in active_promos %}
@@ -278,80 +216,68 @@
             </div>
         </div>
         {% endif %}
-
-        <div class="menu-tabs-container">
-            <button class="tab-btn active" onclick="openMenuTab(event, 'tab-popular')">🔥 Çok Satanlar</button>
+        
+        <div class="sticky-category-nav" id="categoryNav">
+            {% if popular_items %}
+                <a href="#cat-popular" class="cat-link active">🔥 Çok Satanlar</a>
+            {% endif %}
             
             {% for category in grouped_menus.keys() %}
-                <button class="tab-btn" onclick="openMenuTab(event, 'tab-{{ loop.index }}')">{{ category }}</button>
+                <a href="#cat-{{ loop.index }}" class="cat-link">{{ category }}</a>
             {% endfor %}
         </div>
 
-        <div id="tab-popular" class="tab-content active">
+        {% if popular_items %}
+        <div id="cat-popular" class="menu-section">
+            <h2>🔥 Çok Satanlar</h2>
             <div class="menu-list">
-                {% if popular_items %}
-                    {% for item in popular_items %}
-                    
-                    <div class="menu-item {% if restaurant.get('is_open') == False %}closed-menu-item{% endif %}">
-                        <div style="display: flex; gap: 15px; align-items: center; flex: 1;">
-                            {% if item.get('image_url') %}
-                                <img src="{{ url_for('static', filename='images/menus/' ~ item.get('image_url')) }}" style="width: 85px; height: 85px; object-fit: cover; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);" alt="{{ item.get('food_name') }}">
-                            {% endif %}
-                            
-                            <div class="item-info">
-                                <h3>{{ item['food_name'] if item['food_name'] else 'Nefis Yemek' }}</h3>
-                                <p class="price">${{ item['price'] }}</p>
-                            </div>
-                        </div>
-                        
-                        <form class="add-to-cart-form" action="{{ url_for('add_to_cart') }}" method="POST">
-                            <input type="hidden" name="menu_id" value="{{ item['menu_id'] }}">
-                            <input type="hidden" name="restaurant_id" value="{{ restaurant['restaurant_id'] }}">
-                            <input type="hidden" name="food_name" value="{{ item['food_name'] }}">
-                            <input type="hidden" name="price" value="{{ item['price'] }}">
-                            
-                            <input type="number" name="quantity" class="qty-input" value="1" min="1" max="{{ item['stock_quantity'] }}" {% if restaurant.get('is_open') == False %}disabled{% endif %}>
-                            
-                            <button type="submit" class="add-btn" {% if restaurant.get('is_open') == False %}disabled{% endif %}>
-                                + Ekle
-                            </button>
-                        </form>
-                    </div>
-                    {% endfor %}
-                {% else %}
-                    <p style="text-align: center; color: #6b7280; margin-top: 20px;">Bu restoran henüz menüye ürün eklemedi.</p>
-                {% endif %}
-            </div>
-        </div>
-
-        {% for category, items in grouped_menus.items() %}
-        <div id="tab-{{ loop.index }}" class="tab-content">
-            <div class="menu-list">
-                {% for item in items %}
-                
+                {% for item in popular_items %}
                 <div class="menu-item {% if restaurant.get('is_open') == False %}closed-menu-item{% endif %}">
                     <div style="display: flex; gap: 15px; align-items: center; flex: 1;">
-                            {% if item.get('image_url') %}
-                                <img src="{{ url_for('static', filename='images/menus/' ~ item.get('image_url')) }}" style="width: 85px; height: 85px; object-fit: cover; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);" alt="{{ item.get('food_name') }}">
-                            {% endif %}
-                            
-                            <div class="item-info">
-                                <h3>{{ item['food_name'] if item['food_name'] else 'Nefis Yemek' }}</h3>
-                                <p class="price">${{ item['price'] }}</p>
-                            </div>
+                        {% if item.get('image_url') %}
+                            <img src="{{ url_for('static', filename='images/menus/' ~ item.get('image_url')) }}" style="width: 85px; height: 85px; object-fit: cover; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);" alt="{{ item.get('food_name') }}">
+                        {% endif %}
+                        <div class="item-info">
+                            <h3>{{ item['custom_name'] or item['food_name'] }}</h3>
+                            <p class="price">${{ item['price'] }}</p>
+                        </div>
                     </div>
-                    
                     <form class="add-to-cart-form" action="{{ url_for('add_to_cart') }}" method="POST">
                         <input type="hidden" name="menu_id" value="{{ item['menu_id'] }}">
                         <input type="hidden" name="restaurant_id" value="{{ restaurant['restaurant_id'] }}">
-                        <input type="hidden" name="food_name" value="{{ item['food_name'] }}">
+                        <input type="hidden" name="food_name" value="{{ item['custom_name'] or item['food_name'] }}">
                         <input type="hidden" name="price" value="{{ item['price'] }}">
-                        
                         <input type="number" name="quantity" class="qty-input" value="1" min="1" max="{{ item['stock_quantity'] }}" {% if restaurant.get('is_open') == False %}disabled{% endif %}>
-                        
-                        <button type="submit" class="add-btn" {% if restaurant.get('is_open') == False %}disabled{% endif %}>
-                            + Ekle
-                        </button>
+                        <button type="submit" class="add-btn" {% if restaurant.get('is_open') == False %}disabled{% endif %}>+ Ekle</button>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% for category, items in grouped_menus.items() %}
+        <div id="cat-{{ loop.index }}" class="menu-section">
+            <h2>{{ category }}</h2>
+            <div class="menu-list">
+                {% for item in items %}
+                <div class="menu-item {% if restaurant.get('is_open') == False %}closed-menu-item{% endif %}">
+                    <div style="display: flex; gap: 15px; align-items: center; flex: 1;">
+                        {% if item.get('image_url') %}
+                            <img src="{{ url_for('static', filename='images/menus/' ~ item.get('image_url')) }}" style="width: 85px; height: 85px; object-fit: cover; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);" alt="{{ item.get('food_name') }}">
+                        {% endif %}
+                        <div class="item-info">
+                            <h3>{{ item['custom_name'] or item['food_name'] }}</h3>
+                            <p class="price">${{ item['price'] }}</p>
+                        </div>
+                    </div>
+                    <form class="add-to-cart-form" action="{{ url_for('add_to_cart') }}" method="POST">
+                        <input type="hidden" name="menu_id" value="{{ item['menu_id'] }}">
+                        <input type="hidden" name="restaurant_id" value="{{ restaurant['restaurant_id'] }}">
+                        <input type="hidden" name="food_name" value="{{ item['custom_name'] or item['food_name'] }}">
+                        <input type="hidden" name="price" value="{{ item['price'] }}">
+                        <input type="number" name="quantity" class="qty-input" value="1" min="1" max="{{ item['stock_quantity'] }}" {% if restaurant.get('is_open') == False %}disabled{% endif %}>
+                        <button type="submit" class="add-btn" {% if restaurant.get('is_open') == False %}disabled{% endif %}>+ Ekle</button>
                     </form>
                 </div>
                 {% endfor %}
@@ -360,18 +286,49 @@
         {% endfor %}
 
     </div> 
-    
+
     <script>
-        function openMenuTab(evt, tabName) {
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.remove('active');
+        document.addEventListener("DOMContentLoaded", function() {
+            const sections = document.querySelectorAll('.menu-section');
+            const navLinks = document.querySelectorAll('.cat-link');
+            
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href').substring(1);
+                    const targetSection = document.getElementById(targetId);
+                    
+                    if (targetSection) {
+                        const navHeight = document.getElementById('categoryNav').offsetHeight;
+                        const headerHeight = document.getElementById('main-navbar').offsetHeight;
+                        const targetPosition = targetSection.getBoundingClientRect().top + window.pageYOffset - navHeight - headerHeight - 10;
+                        
+                        window.scrollTo({ top: targetPosition, behavior: "smooth" });
+                    }
+                });
             });
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('active');
+
+            window.addEventListener('scroll', () => {
+                let current = '';
+                const navHeight = document.getElementById('categoryNav').offsetHeight;
+                const headerHeight = document.getElementById('main-navbar').offsetHeight;
+
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    if (pageYOffset >= (sectionTop - navHeight - headerHeight - 30)) {
+                        current = section.getAttribute('id');
+                    }
+                });
+
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href') === `#${current}`) {
+                        link.classList.add('active');
+                        link.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                    }
+                });
             });
-            document.getElementById(tabName).classList.add('active');
-            evt.currentTarget.classList.add('active');
-        }
+        });
     </script>
 
     <div id="reviewsModal" class="modal-overlay" onclick="if(event.target == this) this.style.display='none'">
@@ -452,15 +409,12 @@
                     const basePrice = parseFloat(formData.get('price'));
                     const foodName = formData.get('food_name');
                     
-                    // 1. Ürünün ekstra seçenekleri var mı arka planda hızlıca sor
                     fetch('/api/menu_options?menu_id=' + menuId)
                     .then(res => res.json())
                     .then(data => {
                         if (data.success && data.options && data.options.length > 0) {
-                            // 📍 Seçenek varsa pencereyi aç!
                             openCustomerOptionsModal(data.options, formData, basePrice, foodName, form);
                         } else {
-                            // 📍 Seçenek yoksa müşteriyi hiç bekletmeden direkt sepete at
                             executeCartAjax(formData, form);
                         }
                     })
@@ -478,12 +432,11 @@
             currentBasePrice = basePrice;
             
             document.getElementById('opt-food-name').innerText = foodName;
-            
             const container = document.getElementById('opt-dynamic-content');
             container.innerHTML = '';
             
             options.forEach(opt => {
-                let html = `<div style="margin-bottom: 20px;">
+                let html = `<div style="margin-bottom: 20px;" class="opt-group" data-is-required="${opt.is_required}" data-name="${opt.option_name}">
                     <h4 style="margin: 0 0 10px 0; font-size: 15px; color: #374151;">${opt.option_name} ${opt.is_required ? '<span style="color:#ef4444; font-size:12px; margin-left:5px;">(Zorunlu)</span>' : ''}</h4>
                     <div style="display: flex; flex-direction: column; gap: 8px;">`;
                 
@@ -524,28 +477,50 @@
 
         function submitOptionsToCart() {
             const form = document.getElementById('customer-options-form');
-            if(!form.checkValidity()) { form.reportValidity(); return; } // Zorunlu alan kontrolü
             
+            // 🛡️ YENİ GÜVENLİK KALKANI: Zorunlu Çoklu Seçim (Checkbox) Kontrolü
+            let isValid = true;
+            let errorMessage = "";
+            const groups = form.querySelectorAll('.opt-group');
+            
+            for (let group of groups) {
+                // Eğer grup zorunluysa ve içinde hiç işaretlenmiş input (checkbox/radio) yoksa:
+                if (group.getAttribute('data-is-required') === 'true' || group.getAttribute('data-is-required') === '1') {
+                    const checkedItems = group.querySelectorAll('input:checked');
+                    if (checkedItems.length === 0) {
+                        isValid = false;
+                        errorMessage = `Lütfen "${group.getAttribute('data-name')}" seçeneğinden en az birini işaretleyin.`;
+                        break; // İlk hatayı bulduğunda döngüyü durdur
+                    }
+                }
+            }
+            
+            if (!isValid) {
+                if (typeof showToast === "function") showToast(errorMessage, "error");
+                else alert(errorMessage);
+                return; // Hatayı göster ve sepete eklemeyi durdur!
+            }
+            
+            // Standart radyo butonu (tekli seçim) HTML kontrolü (Yedek)
+            if(!form.checkValidity()) { form.reportValidity(); return; } 
+            // -----------------------------------------------------------
+
             let selectedTexts = [];
             let totalExtra = 0;
             
-            // Olası çift tıklama/eski hafıza hatalarına karşı temizlik yapalım
             activeFormData.delete('choices');
             
             document.querySelectorAll('#customer-options-form input:checked').forEach(input => {
                 selectedTexts.push(input.value);
                 totalExtra += parseFloat(input.getAttribute('data-price'));
-                
-                // 📍 İŞTE SİHİRLİ SATIR: Seçilen her seçeneğin ID'sini Python'ın beklediği "choices" listesine ekliyoruz!
                 activeFormData.append('choices', input.getAttribute('data-id'));
             });
             
-            // Fiyatı ve ürün adını sepete yansıtılacak şekilde güncelliyoruz
             if(selectedTexts.length > 0) {
                 const currentName = activeFormData.get('food_name');
                 activeFormData.set('food_name', currentName + ' (' + selectedTexts.join(', ') + ')');
             }
-            activeFormData.set('price', currentBasePrice); // 📍 SADECE ANA FİYATI GÖNDERİYORUZ
+            activeFormData.set('price', currentBasePrice); 
             
             executeCartAjax(activeFormData, activeFormElement);
             closeCustomerOptionsModal();
@@ -575,12 +550,12 @@
                     badge.innerText = data.total_cart_qty;
                     
                     if (data.cart_cleared) {
-                                showToast("Yeni restoran seçildiği için sepet yenilendi.", "success");
-                            }
-                        } else {
-                            showToast(data.message || 'Sepete eklenirken bir hata oluştu.', 'error');
-                            if(data.message.includes('login')) setTimeout(() => { window.location.href = '/customer_login'; }, 1500);
-                        }
+                        showToast("Yeni restoran seçildiği için sepet yenilendi.", "success");
+                    }
+                } else {
+                    showToast(data.message || 'Sepete eklenirken bir hata oluştu.', 'error');
+                    if(data.message.includes('login')) setTimeout(() => { window.location.href = '/customer_login'; }, 1500);
+                }
             })
             .catch(error => console.error('AJAX Hatası:', error));
         }
@@ -635,7 +610,6 @@
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
             
-            // Başarılı (success) ise yeşil, Hatalı (error) ise kırmızı renk
             const bgColor = type === 'success' ? '#10b981' : '#ef4444';
             const icon = type === 'success' ? '✅' : '❌';
 
@@ -652,23 +626,13 @@
             toast.style.gap = '10px';
             toast.style.opacity = '0';
             toast.style.transform = 'translateX(100%)';
-            toast.style.transition = 'all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55)'; // Tatlı bir yaylanma efekti
+            toast.style.transition = 'all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55)'; 
             
             toast.innerHTML = `<span style="font-size: 18px;">${icon}</span> <span>${message}</span>`;
             container.appendChild(toast);
 
-            // Ekrana kayarak giriş animasyonu
-            setTimeout(() => {
-                toast.style.opacity = '1';
-                toast.style.transform = 'translateX(0)';
-            }, 10);
-
-            // 3 Saniye sonra ekrandan çıkış animasyonu
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transform = 'translateX(100%)';
-                setTimeout(() => toast.remove(), 400); // HTML'den tamamen sil
-            }, 3000);
+            setTimeout(() => { toast.style.opacity = '1'; toast.style.transform = 'translateX(0)'; }, 10);
+            setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateX(100%)'; setTimeout(() => toast.remove(), 400); }, 3000);
         }
     </script>
 
@@ -684,37 +648,20 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            // Gizli mesaj elemanlarını bul
             const flashElements = document.querySelectorAll('.flash-message-data');
-            
             flashElements.forEach((el, index) => {
-                // Alıştığımız gibi verileri güvenle .getAttribute ile çekiyoruz
                 let msgType = el.getAttribute('data-category');
                 let msgText = el.getAttribute('data-message');
-                
-                if (msgType === 'danger' || msgType === 'warning') {
-                    msgType = 'error';
-                }
-                
-                // Mesajlar üst üste binmesin diye aralarına çok ufak (150ms) bir gecikme süresi koyuyoruz
-                setTimeout(() => {
-                    if (typeof showToast === "function") {
-                        showToast(msgText, msgType);
-                    }
-                }, 100 + (index * 150)); 
+                if (msgType === 'danger' || msgType === 'warning') msgType = 'error';
+                setTimeout(() => { if (typeof showToast === "function") showToast(msgText, msgType); }, 100 + (index * 150)); 
             });
         });
     </script>
 
-    <div id="live-restaurant-data" 
-         data-is-open="{% if restaurant.get('is_open', True) %}true{% else %}false{% endif %}" 
-         data-restaurant-id="{{ restaurant['restaurant_id'] }}" 
-         style="display: none;">
-    </div>
+    <div id="live-restaurant-data" data-is-open="{% if restaurant.get('is_open', True) %}true{% else %}false{% endif %}" data-restaurant-id="{{ restaurant['restaurant_id'] }}" style="display: none;"></div>
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            // HTML içine gizlediğimiz Jinja verilerini güvenle okuyoruz
             const dataElement = document.getElementById('live-restaurant-data');
             if (!dataElement) return;
 
@@ -723,8 +670,7 @@
 
             setInterval(() => {
                 fetch('/api/restaurant_statuses', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
+                    method: 'POST', headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
                     body: JSON.stringify({ restaurant_ids: [currentRestaurantId] })
                 })
                 .then(res => res.json())
@@ -732,38 +678,27 @@
                     if (data.success && data.statuses && data.statuses[currentRestaurantId] !== undefined) {
                         const newStatus = data.statuses[currentRestaurantId];
                         
-                        // 🛑 Eğer restoran aniden KAPANDIYSA
                         if (newStatus === false && isRestaurantOpen) {
                             isRestaurantOpen = false;
-                            
                             document.querySelector('.restaurant-header').classList.add('closed-header');
                             document.querySelectorAll('.menu-item').forEach(item => item.classList.add('closed-menu-item'));
-                            
-                            // Tüm sepete ekle butonlarını ve adet kutularını KİLİTLE
                             document.querySelectorAll('.add-btn').forEach(btn => btn.disabled = true);
                             document.querySelectorAll('.qty-input').forEach(input => input.disabled = true);
-                            
                             if (typeof showToast === "function") showToast("Üzgünüz, restoran şu an kapandığı için yeni sipariş alamıyor.", "error");
                         } 
-                        // 🟢 Eğer restoran aniden AÇILDIYSA
                         else if (newStatus === true && !isRestaurantOpen) {
                             isRestaurantOpen = true;
-                            
                             document.querySelector('.restaurant-header').classList.remove('closed-header');
                             document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('closed-menu-item'));
-                            
-                            // Tüm butonların KİLİDİNİ AÇ
                             document.querySelectorAll('.add-btn').forEach(btn => btn.disabled = false);
                             document.querySelectorAll('.qty-input').forEach(input => input.disabled = false);
-                            
                             if (typeof showToast === "function") showToast("Harika! Restoran tekrar sipariş almaya başladı.", "success");
                         }
                     }
                 })
                 .catch(err => console.log('Canlı durum kontrolü hatası:', err));
-            }, 10000); // 10 Saniyede bir arka planda kontrol eder
+            }, 10000); 
         });
     </script>
-
 </body>
 </html>

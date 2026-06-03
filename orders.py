@@ -293,9 +293,12 @@ def get_order_details(order_id):
     cursor = conn.cursor(dictionary=True)
     
     query = """
-        SELECT f.food_id, f.item_name, oi.quantity, oi.unit_price, (oi.quantity * oi.unit_price) as subtotal
+        SELECT f.food_id, COALESCE(m.custom_name, f.item_name) AS item_name, 
+               oi.quantity, oi.unit_price, (oi.quantity * oi.unit_price) as subtotal
         FROM order_items oi
+        JOIN orders o ON oi.order_id = o.order_id
         JOIN foods f ON oi.food_id = f.food_id
+        LEFT JOIN menus m ON oi.food_id = m.food_id AND o.restaurant_id = m.restaurant_id
         WHERE oi.order_id = %s
     """
     cursor.execute(query, (order_id,))

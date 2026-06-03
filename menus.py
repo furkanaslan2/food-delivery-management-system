@@ -121,15 +121,52 @@ def menus_action():
                         VALUES (%s, %s, %s, %s, %s, %s, %s)
                     """
                     cursor.execute(query, (menu_id, restaurant_id, food_id, custom_name, price, stock_quantity, image_url))
+                    inserted_menu_id = menu_id # Yeni eklenen menünün ID'si
                 else:
                     query = """
                         INSERT INTO menus (restaurant_id, food_id, custom_name, price, stock_quantity, image_url) 
                         VALUES (%s, %s, %s, %s, %s, %s)
                     """
                     cursor.execute(query, (restaurant_id, food_id, custom_name, price, stock_quantity, image_url))
+                    inserted_menu_id = cursor.lastrowid # Otomatik atanan menünün ID'sini al
 
+                # 🛠️ YENİ EKLENEN: DİNAMİK OPSİYONLARI YAKALA VE VERİTABANINA KAYDET
+                option_names = request.form.getlist('option_names[]')
+                
+                for i, opt_name in enumerate(option_names):
+                    if not opt_name.strip():
+                        continue # Boş grup adlarını atla
+                        
+                    # Checkbox değerlerini al (İşaretliyse 1, değilse 0)
+                    is_required = 1 if request.form.get(f'is_required_{i}') else 0
+                    is_multiple = 1 if request.form.get(f'is_multiple_{i}') else 0
+                    
+                    # 1. Aşama: Opsiyon Grubunu Ekle (Örn: Ekstra Peynir)
+                    cursor.execute("""
+                        INSERT INTO menu_options (menu_id, option_name, is_required, is_multiple) 
+                        VALUES (%s, %s, %s, %s)
+                    """, (inserted_menu_id, opt_name, is_required, is_multiple))
+                    
+                    option_id = cursor.lastrowid # Oluşan grubun ID'sini al
+                    
+                    # 2. Aşama: Bu Gruba Ait Şıkları Ekle (Örn: Kaşar, Cheddar)
+                    choice_names = request.form.getlist(f'choice_names_{i}[]')
+                    additional_prices = request.form.getlist(f'additional_prices_{i}[]')
+                    
+                    for j, choice_name in enumerate(choice_names):
+                        if not choice_name.strip():
+                            continue
+                        
+                        add_price = additional_prices[j] if j < len(additional_prices) and additional_prices[j] else 0
+                        
+                        cursor.execute("""
+                            INSERT INTO menu_option_choices (option_id, choice_name, additional_price) 
+                            VALUES (%s, %s, %s)
+                        """, (option_id, choice_name, add_price))
+
+                # Tüm işlemler bittikten sonra veritabanına kaydet
                 connection.commit()
-                flash("Menü başarıyla eklendi!", "success")
+                flash("Menü ve seçenekler başarıyla eklendi!", "success")
 
             except Error as e:
                 connection.rollback()
@@ -227,6 +264,44 @@ def menus_action():
                 params.append(update_menu_id)
                 
                 cursor.execute(update_query, tuple(params))
+                # 🛠️ YENİ EKLENEN: DİNAMİK OPSİYONLARI GÜNCELLEME (Eskileri Sil, Yenileri Ekle)
+                # 1. Eski opsiyonları ve şıklarını temizle
+                cursor.execute("SELECT option_id FROM menu_options WHERE menu_id = %s", (update_menu_id,))
+                old_options = cursor.fetchall()
+                for old_opt in old_options:
+                    cursor.execute("DELETE FROM menu_option_choices WHERE option_id = %s", (old_opt['option_id'],))
+                cursor.execute("DELETE FROM menu_options WHERE menu_id = %s", (update_menu_id,))
+
+                # 2. Formdan gelen güncel opsiyonları ekle (Tıpkı Add işlemindeki gibi)
+                option_names = request.form.getlist('option_names[]')
+                
+                for i, opt_name in enumerate(option_names):
+                    if not opt_name.strip():
+                        continue 
+                        
+                    is_required = 1 if request.form.get(f'is_required_{i}') else 0
+                    is_multiple = 1 if request.form.get(f'is_multiple_{i}') else 0
+                    
+                    cursor.execute("""
+                        INSERT INTO menu_options (menu_id, option_name, is_required, is_multiple) 
+                        VALUES (%s, %s, %s, %s)
+                    """, (update_menu_id, opt_name, is_required, is_multiple))
+                    
+                    option_id = cursor.lastrowid
+                    
+                    choice_names = request.form.getlist(f'choice_names_{i}[]')
+                    additional_prices = request.form.getlist(f'additional_prices_{i}[]')
+                    
+                    for j, choice_name in enumerate(choice_names):
+                        if not choice_name.strip():
+                            continue
+                        
+                        add_price = additional_prices[j] if j < len(additional_prices) and additional_prices[j] else 0
+                        
+                        cursor.execute("""
+                            INSERT INTO menu_option_choices (option_id, choice_name, additional_price) 
+                            VALUES (%s, %s, %s)
+                        """, (option_id, choice_name, add_price))
                 connection.commit()
                 flash("Menü başarıyla güncellendi!", "success")
 

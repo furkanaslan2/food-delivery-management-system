@@ -23,7 +23,7 @@ CREATE TABLE restaurants (
     restaurant_name VARCHAR(100) NOT NULL,
     city VARCHAR(50) NOT NULL,
     rating DECIMAL(2,1),
-    rating_count ENUM('Too Few Ratings','20+ ratings','50+ ratings','100+ ratings','500+ ratings','1K+ ratings') NOT NULL,
+    rating_count VARCHAR(50) DEFAULT 'Yeni',
     cuisine ENUM('Hamburger', 'Döner', 'Pizza', 'Pide & Lahmacun', 'Çiğ Köfte', 'Tatlı', 'Sokak Lezzetleri', 'Köfte', 'Tavuk', 'Salata & Sağlık', 'Mantı & Makarna', 'Kebap', 'Tantuni', 'Ev Yemekleri', 'Tost & Sandviç', 'Kahve & İçecek', 'Pastane & Fırın', 'Çorba', 'Dünya Mutfağı & Cafe', 'Uzak Doğu', 'Balık & Deniz Ürünleri', 'Meze', 'Dondurma', 'Steak', 'Kahvaltı', 'Börek') NOT NULL,
     restaurant_address TEXT NOT NULL,
     latitude DECIMAL(10, 8) NULL,   

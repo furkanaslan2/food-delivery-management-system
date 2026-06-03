@@ -18,6 +18,9 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 });
 
+// 🛠️ DİNAMİK SEÇENEK YÖNETİMİ DEĞİŞKENLERİ
+let optionGroupIndex = 0;
+
 // ➕ YENİ YEMEK EKLEME MODALI
 function openMenuModal() {
     document.getElementById('menuFormModal').style.display = 'flex';
@@ -28,64 +31,167 @@ function openMenuModal() {
     // Formu temizle
     document.getElementById('menu-form').reset();
     
-    const updateId = document.getElementById('update-menu-id');
-    if(updateId) updateId.value = '';
-    
-    const menuId = document.getElementById('menu-id');
-    if(menuId) menuId.value = '';
-
-    // Görseli sıfırla
+    // Görsel önizlemeyi sıfırla
     const previewBox = document.getElementById('menu-image-preview');
-    if(previewBox) previewBox.innerHTML = '<span style="color: #9ca3af; font-size: 30px;">🍲</span>';
+    if(previewBox) {
+        previewBox.innerHTML = '<span style="color: #9ca3af; font-size: 30px;">🍲</span>';
+    }
+
+    // 🛠️ Opsiyon ekleme alanını göster ve formdaki eski kalıntıları temizle
+    const optionsContainer = document.getElementById('options-container');
+    if(optionsContainer) optionsContainer.innerHTML = '';
+    optionGroupIndex = 0;
+    const optionsSection = document.getElementById('options-section');
+    if(optionsSection) optionsSection.style.display = 'block';
 }
 
-// ✏️ MENÜ DÜZENLEME MODALI (Hatasız Veri Doldurma)
+// ✏️ YEMEK DÜZENLEME MODALI
 function openMenuModalFromBtn(btn) {
     document.getElementById('menuFormModal').style.display = 'flex';
-    document.getElementById('menuModalTitle').innerText = 'Menüyü Düzenle';
+    document.getElementById('menuModalTitle').innerText = 'Yemeği Düzenle';
     document.getElementById('modal-add-btn').style.display = 'none';
     document.getElementById('modal-update-btn').style.display = 'block';
 
-    // 🛡️ Korumalı Veri Doldurma (Eğer HTML'de o kutu yoksa kod çökmez, atlar)
-    const updateMenuId = document.getElementById('update-menu-id');
-    if(updateMenuId) updateMenuId.value = btn.getAttribute('data-id');
+    const menuId = btn.getAttribute('data-id');
+    const foodId = btn.getAttribute('data-food-id');
+    const customName = btn.getAttribute('data-custom-name');
+    const price = btn.getAttribute('data-price');
+    const stock = btn.getAttribute('data-stock');
+    const image = btn.getAttribute('data-image');
 
-    const menuId = document.getElementById('menu-id');
-    if(menuId) menuId.value = btn.getAttribute('data-id'); 
+    document.getElementById('update-menu-id').value = menuId;
+    document.getElementById('menu-id').value = menuId;  
+    document.getElementById('food-name').value = foodId;
+    document.getElementById('menu-custom-name').value = customName !== 'None' ? customName : '';
+    document.getElementById('menu-price').value = price;
+    document.getElementById('menu-stock').value = stock;
 
-    const foodName = document.getElementById('food-name');
-    if(foodName) foodName.value = btn.getAttribute('data-food-id');
-
-    const customName = document.getElementById('menu-custom-name');
-    if(customName) customName.value = btn.getAttribute('data-custom-name');
-
-    const menuPrice = document.getElementById('menu-price');
-    if(menuPrice) menuPrice.value = btn.getAttribute('data-price');
-
-    const menuStock = document.getElementById('menu-stock');
-    if(menuStock) menuStock.value = btn.getAttribute('data-stock');
-
-    // Mevcut resmi önizleme kutusuna ekle
-    const imageUrl = btn.getAttribute('data-image');
     const previewBox = document.getElementById('menu-image-preview');
-    if(previewBox) {
-        if (imageUrl && imageUrl !== 'None' && imageUrl !== '') {
-            previewBox.innerHTML = `<img src="/static/images/menus/${imageUrl}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">`;
-        } else {
-            previewBox.innerHTML = '<span style="color: #9ca3af; font-size: 30px;">🍲</span>';
-        }
+    if (image && image.trim() !== '') {
+        previewBox.innerHTML = `<img src="/static/images/menus/${image}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">`;
+    } else {
+        previewBox.innerHTML = '<span style="color: #9ca3af; font-size: 30px;">🍲</span>';
     }
+
+    // 🛠️ OPSİYONLARI VERİTABANINDAN ÇEKİP EKRANA ÇİZME KISMI
+    const optionsSection = document.getElementById('options-section');
+    if(optionsSection) optionsSection.style.display = 'block'; // Alanı tekrar görünür yap
+    
+    const optionsContainer = document.getElementById('options-container');
+    optionsContainer.innerHTML = '<div style="padding: 15px; text-align: center; color: #6b7280; font-weight: 600;">⏳ Mevcut seçenekler yükleniyor...</div>';
+    optionGroupIndex = 0; // İndeksi sıfırla
+
+    fetch('/api/menu_options?menu_id=' + menuId)
+        .then(res => res.json())
+        .then(data => {
+            optionsContainer.innerHTML = ''; // Yükleniyor yazısını temizle
+            if (data.success && data.options && data.options.length > 0) {
+                data.options.forEach(opt => {
+                    const groupId = optionGroupIndex++;
+                    const isReq = opt.is_required ? 'checked' : '';
+                    const isMult = opt.is_multiple ? 'checked' : '';
+                    
+                    const groupHTML = `
+                        <div class="option-group" id="group-${groupId}" style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 15px; position: relative; margin-bottom: 15px; animation: fadeIn 0.3s ease-out;">
+                            <button type="button" onclick="document.getElementById('group-${groupId}').remove()" style="position: absolute; top: 12px; right: 12px; background: #fee2e2; color: #dc2626; border: none; width: 26px; height: 26px; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; display: flex; align-items: center; justify-content: center; transition: 0.2s;" onmouseover="this.style.background='#fca5a5'" onmouseout="this.style.background='#fee2e2'">&times;</button>
+                            
+                            <div style="display: flex; gap: 15px; margin-bottom: 15px; padding-right: 30px;">
+                                <div style="flex: 2;">
+                                    <input type="text" name="option_names[]" value="${opt.option_name}" class="form-input" style="margin: 0; font-weight: 600;" required>
+                                </div>
+                                <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 8px; background: white; padding: 8px 12px; border-radius: 6px; border: 1px solid #e5e7eb;">
+                                    <label style="font-size: 12px; font-weight: 600; color: #374151; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                                        <input type="checkbox" name="is_required_${groupId}" value="1" style="transform: scale(1.2);" ${isReq}> Zorunlu Seçim
+                                    </label>
+                                    <label style="font-size: 12px; font-weight: 600; color: #374151; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                                        <input type="checkbox" name="is_multiple_${groupId}" value="1" style="transform: scale(1.2);" ${isMult}> Çoklu Seçim
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="choices-container" id="choices-${groupId}" style="display: flex; flex-direction: column; gap: 8px;">
+                                ${opt.choices.map(ch => `
+                                    <div style="display: flex; gap: 10px; align-items: center;">
+                                        <input type="text" name="choice_names_${groupId}[]" value="${ch.choice_name}" class="form-input" style="margin: 0; padding: 8px 12px; font-size: 13px;" required>
+                                        <input type="number" step="0.01" name="additional_prices_${groupId}[]" value="${ch.additional_price}" class="form-input" style="margin: 0; padding: 8px 12px; font-size: 13px; width: 120px;" required>
+                                        <button type="button" onclick="this.parentElement.remove()" style="background: none; border: none; color: #9ca3af; cursor: pointer; font-size: 18px; transition: 0.2s;" onmouseover="this.style.color='#dc2626'" onmouseout="this.style.color='#9ca3af'">&times;</button>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            
+                            <button type="button" onclick="addChoice(${groupId})" style="background: none; border: 1px dashed #d1d5db; color: #4b5563; padding: 8px 10px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 10px; transition: 0.2s;" onmouseover="this.style.borderColor='#4f46e5'; this.style.color='#4f46e5'" onmouseout="this.style.borderColor='#d1d5db'; this.style.color='#4b5563'">
+                                + Yeni Seçenek Ekle (Alt Kırılım)
+                            </button>
+                        </div>
+                    `;
+                    optionsContainer.insertAdjacentHTML('beforeend', groupHTML);
+                });
+            }
+        })
+        .catch(err => {
+            optionsContainer.innerHTML = '<div style="padding: 15px; text-align: center; color: #dc2626; font-weight: 600;">❌ Seçenekler yüklenemedi.</div>';
+            console.error("Seçenekler çekilirken hata:", err);
+        });
 }
 
-// ❌ MODALI KAPAT
 function closeMenuModal() {
     document.getElementById('menuFormModal').style.display = 'none';
 }
 
-// ==========================================
-// 🎟️ KUPON VE PROMOSYON İŞLEMLERİ 
-// ==========================================
+// 🛠️ OPSİYON GRUBU VE SEÇENEK EKLEME FONKSİYONLARI (HTML'den taşındı)
+function addOptionGroup() {
+    const container = document.getElementById('options-container');
+    const groupId = optionGroupIndex++;
+    
+    const groupHTML = `
+        <div class="option-group" id="group-${groupId}" style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 15px; position: relative; animation: fadeIn 0.3s ease-out;">
+            
+            <button type="button" onclick="document.getElementById('group-${groupId}').remove()" style="position: absolute; top: 12px; right: 12px; background: #fee2e2; color: #dc2626; border: none; width: 26px; height: 26px; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; display: flex; align-items: center; justify-content: center; transition: 0.2s;" onmouseover="this.style.background='#fca5a5'" onmouseout="this.style.background='#fee2e2'" title="Grubu Sil">&times;</button>
+            
+            <div style="display: flex; gap: 15px; margin-bottom: 15px; padding-right: 30px;">
+                <div style="flex: 2;">
+                    <input type="text" name="option_names[]" placeholder="Seçenek Grubu (Örn: Ekstra Malzemeler, Hamur Tipi)" class="form-input" style="margin: 0; font-weight: 600;" required>
+                </div>
+                <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 8px; background: white; padding: 8px 12px; border-radius: 6px; border: 1px solid #e5e7eb;">
+                    <label style="font-size: 12px; font-weight: 600; color: #374151; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                        <input type="checkbox" name="is_required_${groupId}" value="1" style="transform: scale(1.2);"> Zorunlu Seçim
+                    </label>
+                    <label style="font-size: 12px; font-weight: 600; color: #374151; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                        <input type="checkbox" name="is_multiple_${groupId}" value="1" style="transform: scale(1.2);"> Çoklu Seçim
+                    </label>
+                </div>
+            </div>
 
+            <div class="choices-container" id="choices-${groupId}" style="display: flex; flex-direction: column; gap: 8px;">
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="text" name="choice_names_${groupId}[]" placeholder="Seçenek Adı (Örn: Kaşar Peyniri)" class="form-input" style="margin: 0; padding: 8px 12px; font-size: 13px;" required>
+                    <input type="number" step="0.01" name="additional_prices_${groupId}[]" placeholder="+ Ücret (Ücretsizse boş bırakın)" class="form-input" style="margin: 0; padding: 8px 12px; font-size: 13px; width: 220px;">
+                    <button type="button" onclick="this.parentElement.remove()" style="background: none; border: none; color: #9ca3af; cursor: pointer; font-size: 18px; transition: 0.2s;" onmouseover="this.style.color='#dc2626'" onmouseout="this.style.color='#9ca3af'">&times;</button>
+                </div>
+            </div>
+            
+            <button type="button" onclick="addChoice(${groupId})" style="background: none; border: 1px dashed #d1d5db; color: #4b5563; padding: 8px 10px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 10px; transition: 0.2s;" onmouseover="this.style.borderColor='#4f46e5'; this.style.color='#4f46e5'" onmouseout="this.style.borderColor='#d1d5db'; this.style.color='#4b5563'">
+                + Yeni Seçenek Ekle
+            </button>
+        </div>
+    `;
+    
+    container.insertAdjacentHTML('beforeend', groupHTML);
+}
+
+function addChoice(groupId) {
+    const container = document.getElementById(`choices-${groupId}`);
+    const choiceHTML = `
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <input type="text" name="choice_names_${groupId}[]" placeholder="Seçenek Adı (Örn: Sucuk)" class="form-input" style="margin: 0; padding: 8px 12px; font-size: 13px;" required>
+            <input type="number" step="0.01" name="additional_prices_${groupId}[]" placeholder="+ Ücret (Ücretsizse boş bırakın)" class="form-input" style="margin: 0; padding: 8px 12px; font-size: 13px; width: 220px;">
+            <button type="button" onclick="this.parentElement.remove()" style="background: none; border: none; color: #9ca3af; cursor: pointer; font-size: 18px; transition: 0.2s;" onmouseover="this.style.color='#dc2626'" onmouseout="this.style.color='#9ca3af'">&times;</button>
+        </div>
+    `;
+    container.insertAdjacentHTML('beforeend', choiceHTML);
+}
+
+// 🎟️ KUPON VE PROMOSYON YÖNETİMİ
 function openPromoModal() {
     document.getElementById('promoModal').style.display = 'flex';
     loadPromos();
@@ -96,34 +202,35 @@ function closePromoModal() {
 }
 
 function loadPromos() {
+    const tbody = document.getElementById('promo-table-body');
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Yükleniyor...</td></tr>';
+
     fetch('/api/manage_promos')
     .then(res => res.json())
     .then(data => {
-        const tbody = document.getElementById('promo-table-body');
-        if(!tbody) return;
-        
-        tbody.innerHTML = '';
-        if(data.promos.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Aktif kupon yok.</td></tr>';
-            return;
+        // data.promos verisinin geldiğinden de emin oluyoruz
+        if(data.success && data.promos && data.promos.length > 0) {
+            tbody.innerHTML = data.promos.map(p => `
+                <tr>
+                    <td style="font-weight:700; color:#111827;">${p.code_name}</td>
+                    <td style="color:#059669; font-weight:600;">${p.discount_type === 'percentage' ? '%' + p.discount_value : '$' + p.discount_value}</td>
+                    <td>$${p.min_cart_amount}</td>
+                    <td>
+                        <button onclick="togglePromo(${p.promo_id}, ${p.is_active ? 0 : 1})" 
+                            style="background:${p.is_active ? '#dcfce3' : '#f3f4f6'}; color:${p.is_active ? '#16a34a' : '#6b7280'}; border:none; padding:4px 8px; border-radius:4px; font-weight:bold; font-size:11px; cursor:pointer;">
+                            ${p.is_active ? '✅ Aktif' : '❌ Pasif'}
+                        </button>
+                    </td>
+                    <td><button onclick="deletePromo(${p.promo_id})" style="background:none; border:none; color:#dc2626; font-size:16px; cursor:pointer;">🗑️</button></td>
+                </tr>
+            `).join('');
+        } else {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#6b7280;">Henüz aktif kuponunuz yok.</td></tr>';
         }
-        data.promos.forEach(p => {
-            const tr = document.createElement('tr');
-            const valStr = p.discount_type === 'percentage' ? `%${p.discount_value}` : `$${p.discount_value}`;
-            tr.innerHTML = `
-                <td><strong>${p.code_name}</strong></td>
-                <td><span style="background:#dcfce3; color:#16a34a; padding:2px 6px; border-radius:4px; font-weight:bold;">${valStr}</span></td>
-                <td>$${p.min_cart_amount}</td>
-                <td>
-                    <label style="display:flex; align-items:center; cursor:pointer;">
-                        <input type="checkbox" ${p.is_active ? 'checked' : ''} onchange="togglePromo(${p.promo_id})" style="margin-right:5px;">
-                        ${p.is_active ? 'Aktif' : 'Pasif'}
-                    </label>
-                </td>
-                <td><button onclick="deletePromo(${p.promo_id})" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:16px;">🗑️</button></td>
-            `;
-            tbody.appendChild(tr);
-        });
+    })
+    .catch(err => {
+        console.error('Kupon Yükleme Hatası:', err);
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#ef4444;">Kuponlar yüklenirken bir hata oluştu.</td></tr>';
     });
 }
 
@@ -157,9 +264,9 @@ function deletePromo(id) {
     }).then(res => res.json()).then(data => { if(data.success) loadPromos(); });
 }
 
-function togglePromo(id) {
+function togglePromo(id, newStatus) {
     fetch('/api/manage_promos', {
         method: 'POST', headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({action: 'toggle', promo_id: id})
+        body: JSON.stringify({action: 'toggle', promo_id: id, is_active: newStatus})
     }).then(res => res.json()).then(data => { if(data.success) loadPromos(); });
 }
