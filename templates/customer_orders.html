@@ -26,6 +26,7 @@
         .status-badge { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
         .status-pending { background: #fef3c7; color: #92400e; }
         .status-preparing { background: #e0f2fe; color: #0369a1; }
+        .status-ready { background: #e0e7ff; color: #4338ca; } 
         .status-completed { background: #dcfce3; color: #166534; }
         .status-delivered { background: #dcfce3; color: #166534; }
         .status-canceled { background: #fee2e2; color: #991b1b; }
@@ -128,13 +129,15 @@
 
         {% if orders %}
             {% for order in orders %}
-            <div class="order-card" data-order-id="{{ order['order_id'] }}" data-status="{{ order['order_status'] }}">
+            <div class="order-card" data-order-id="{{ order['order_id'] }}" data-status="{{ 'preparing' if order['order_status'] == 'ready' else order['order_status'] }}">
                 <div class="order-header">
                     <div>
                         <p class="restaurant-name">{{ order['restaurant_name'] }}</p>
                         <p class="order-date">Order #{{ order['order_id'] }} • {{ order['order_date'].strftime('%d %b %Y, %H:%M') }}</p>
                     </div>
-                    <span class="status-badge status-{{ order['order_status'] }}">{{ order['order_status'] }}</span>
+                    <span class="status-badge status-{{ 'preparing' if order['order_status'] == 'ready' else order['order_status'] }}">
+                        {{ 'preparing' if order['order_status'] == 'ready' else order['order_status'] }}
+                    </span>
                 </div>
                 
                 <div class="order-body">

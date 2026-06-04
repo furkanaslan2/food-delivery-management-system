@@ -196,7 +196,7 @@
                                 }
                                 if(trackBtn) trackBtn.style.display = 'none';
 
-                            } else if (data.order_status === 'preparing') {
+                            } else if (data.order_status === 'preparing' || data.order_status === 'ready') {
                                 title.innerText = 'Siparişiniz Hazırlanıyor';
                                 desc.innerText = 'Restoran siparişinizi onayladı ve şu an mutfakta hazırlıyor.';
                                 icon.innerText = '👨‍🍳';

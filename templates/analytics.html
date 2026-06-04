@@ -78,51 +78,51 @@
 {% block content %}
 <div class="summary-container">
     <div class="summary-card green">
-        <span class="summary-title">Toplam Ciro</span>
+        <span class="summary-title">Bugünkü Ciro</span>
         <h3 class="summary-value">${{ "%.2f"|format(total_revenue) }}</h3>
-        <span class="summary-subtext">Sadece teslim edilen siparişler</span>
+        <span class="summary-subtext">Bugün teslim edilen siparişler</span>
     </div>
     
     <div class="summary-card">
-        <span class="summary-title">Toplam Sipariş</span>
+        <span class="summary-title">Bugünkü Sipariş</span>
         <h3 class="summary-value">{{ total_orders }}</h3>
-        <span class="summary-subtext">Başarıyla tamamlananlar</span>
+        <span class="summary-subtext">Bugün tamamlananlar</span>
     </div>
 
     <div class="summary-card orange">
-        <span class="summary-title">Sipariş Dağılımı</span>
+        <span class="summary-title">Bugünkü Dağılım</span>
         <h3 class="summary-value" style="font-size: 18px;">
             🛵 {{ delivery_count }} Paket <br> 
             🍽️ {{ dinein_count }} Masa
         </h3>
-        <span class="summary-subtext">Operasyonel özet</span>
+        <span class="summary-subtext">Bugünün operasyon özeti</span>
     </div>
 
     <div class="summary-card purple">
-        <span class="summary-title">Restoran Puanı</span>
+        <span class="summary-title">Genel Restoran Puanı</span>
         <h3 class="summary-value">⭐ {{ restaurant_rating }}</h3>
-        <span class="summary-subtext">{{ rating_enum }}</span>
+        <span class="summary-subtext">{{ rating_enum }} Değerlendirme</span>
     </div>
 </div>
 
 <div class="dashboard-container">
     <div class="chart-card full-width">
-        <h2>En Çok Satan 10 Ürün (Adet Bazında)</h2>
-        <canvas id="barChart"></canvas>
+        <h2>📈 Son 7 Günlük Ciro Trendi</h2>
+        <canvas id="lineChart"></canvas>
     </div>
 
     <div class="chart-card">
-        <h2>Satış Dağılımı Oranları</h2>
+        <h2>🍽️ Masa / 🛵 Paket Oranı (Son 30 Gün)</h2>
         <canvas id="doughnutChart"></canvas>
     </div>
 
     <div class="chart-card">
-        <h2>Kategorik Performans (Polar)</h2>
-        <canvas id="polarChart"></canvas>
+        <h2>🔥 En Çok Satan 5 Lezzet (Son 30 Gün)</h2>
+        <canvas id="barChart"></canvas>
     </div>
 
     <div class="chart-card full-width">
-        <h2>Performans Sıralaması (Yatay Bakış)</h2>
+        <h2>🚀 Kurye Teslimat Şampiyonları (Son 30 Gün)</h2>
         <canvas id="horizontalBarChart"></canvas>
     </div>
 </div>
@@ -131,112 +131,91 @@
 {% block extra_js %}
 <script id="analytics-data" type="application/json">
     {
-        "labels": {{ labels | tojson }},
-        "data": {{ data | tojson }}
+        "top_item_labels": {{ top_item_labels | tojson }},
+        "top_item_data": {{ top_item_data | tojson }},
+        "trend_labels": {{ trend_labels | tojson }},
+        "trend_data": {{ trend_data | tojson }},
+        "courier_labels": {{ courier_labels | tojson }},
+        "courier_data": {{ courier_data | tojson }},
+        "chart_delivery_count": {{ chart_delivery_count | tojson }},
+        "chart_dinein_count": {{ chart_dinein_count | tojson }}
     }
 </script>
 
 <script>
-    // Veriyi gizli kutudan çekip okuyoruz
     const rawData = document.getElementById('analytics-data').textContent;
-    const analyticsData = JSON.parse(rawData);
+    const db = JSON.parse(rawData);
 
-    const labels = analyticsData.labels;
-    const data = analyticsData.data;
-
-    const backgroundColors = [
-        'rgba(255, 99, 132, 0.7)',    
-        'rgba(54, 162, 235, 0.7)',    
-        'rgba(255, 206, 86, 0.7)',    
-        'rgba(75, 192, 192, 0.7)',    
-        'rgba(153, 102, 255, 0.7)',   
-        'rgba(255, 159, 64, 0.7)',    
-        'rgba(199, 199, 199, 0.7)',   
-        'rgba(83, 102, 255, 0.7)',    
-        'rgba(40, 159, 64, 0.7)',      
-        'rgba(210, 99, 132, 0.7)'      
+    // Modern Renk Paleti
+    const primaryColor = 'rgba(79, 70, 229, 0.8)';   
+    const successColor = 'rgba(16, 185, 129, 0.8)';  
+    const warningColor = 'rgba(245, 158, 11, 0.8)';  
+    const multiColors = [
+        'rgba(99, 102, 241, 0.8)', 'rgba(236, 72, 153, 0.8)', 
+        'rgba(16, 185, 129, 0.8)', 'rgba(245, 158, 11, 0.8)', 'rgba(139, 92, 246, 0.8)'
     ];
 
-    const borderColors = backgroundColors.map(color => color.replace('0.7', '1'));
-
-    // 1. Dikey Bar Chart
-    new Chart(document.getElementById('barChart'), {
-        type: 'bar',
+    // 📈 1. Çizgi Grafik: Son 7 Günlük Ciro
+    new Chart(document.getElementById('lineChart'), {
+        type: 'line',
         data: {
-            labels: labels,
+            labels: db.trend_labels,
             datasets: [{
-                label: 'Satılan Adet',
-                data: data,
-                backgroundColor: backgroundColors,
-                borderColor: borderColors,
-                borderWidth: 1,
-                borderRadius: 5 
+                label: 'Günlük Ciro ($)',
+                data: db.trend_data,
+                borderColor: primaryColor,
+                backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4
             }]
         },
-        options: {
-            responsive: true,
-            scales: { y: { beginAtZero: true } },
-            plugins: { legend: { display: false } } 
-        }
+        options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
     });
 
-    // 2. Doughnut Chart
+    // 🍩 2. Doughnut Grafik: Paket vs Masa Oranı (Son 30 Gün)
     new Chart(document.getElementById('doughnutChart'), {
         type: 'doughnut',
         data: {
-            labels: labels,
+            labels: ['🛵 Paket Servis', '🍽️ Masaya Servis'],
             datasets: [{
-                data: data,
-                backgroundColor: backgroundColors,
-                borderColor: 'white',
+                data: [db.chart_delivery_count, db.chart_dinein_count],
+                backgroundColor: [successColor, warningColor],
                 borderWidth: 2,
-                hoverOffset: 15
+                hoverOffset: 10
             }]
         },
-        options: {
-            responsive: true,
-            plugins: { legend: { position: 'right' } }
-        }
+        options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
     });
 
-    // 3. Polar Area Chart
-    new Chart(document.getElementById('polarChart'), {
-        type: 'polarArea',
+    // 🔥 3. Dikey Bar Grafik: En Çok Satanlar (Son 30 Gün)
+    new Chart(document.getElementById('barChart'), {
+        type: 'bar',
         data: {
-            labels: labels,
+            labels: db.top_item_labels,
             datasets: [{
-                data: data,
-                backgroundColor: backgroundColors,
-                borderWidth: 1
+                label: 'Satılan Adet',
+                data: db.top_item_data,
+                backgroundColor: multiColors,
+                borderRadius: 6 
             }]
         },
-        options: {
-            responsive: true,
-            scales: { r: { ticks: { display: false } } },
-            plugins: { legend: { position: 'bottom' } }
-        }
+        options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
     });
 
-    // 4. Yatay Bar Chart
+    // 🚀 4. Yatay Bar Grafik: Kurye Performansı (Son 30 Gün)
     new Chart(document.getElementById('horizontalBarChart'), {
         type: 'bar',
         data: {
-            labels: labels,
+            labels: db.courier_labels,
             datasets: [{
-                label: 'Satılan Adet',
-                data: data,
-                backgroundColor: 'rgba(54, 162, 235, 0.6)', 
-                borderColor: 'rgba(54, 162, 235, 1)',
-                borderWidth: 1,
-                borderRadius: 10
+                label: 'Teslim Edilen Paket',
+                data: db.courier_data,
+                backgroundColor: primaryColor,
+                borderRadius: 6
             }]
         },
-        options: {
-            indexAxis: 'y', 
-            responsive: true,
-            scales: { x: { beginAtZero: true } },
-            plugins: { legend: { display: false } }
-        }
+        options: { indexAxis: 'y', responsive: true, plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true } } }
     });
 </script>
 {% endblock %}
