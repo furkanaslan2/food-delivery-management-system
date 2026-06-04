@@ -1,0 +1,53 @@
+/* 🔔 MODERN TOAST BİLDİRİMLERİ (SİTE GENELİ) */
+.flash-container {
+    position: fixed !important;
+    bottom: 30px !important;
+    right: 30px !important;
+    z-index: 999999 !important;
+    pointer-events: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+}
+
+.flash-message {
+    pointer-events: auto !important;
+    color: #ffffff !important; 
+    background: #1f2937 !important; 
+    padding: 16px 24px !important;
+    border-radius: 12px !important;
+    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3), 0 8px 10px -6px rgba(0,0,0,0.2) !important;
+    
+    display: flex;
+    
+    align-items: center !important;
+    justify-content: space-between !important;
+    min-width: 300px !important;
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    animation: slideUpToast 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
+}
+
+/* 🟢🔴 Durumlara Göre Dinamik Arka Plan Renkleri (TAM DOLGU) */
+.flash-message.success { background-color: #10b981 !important; } /* Zümrüt Yeşili */
+.flash-message.danger, .flash-message.error { background-color: #ef4444 !important; } /* Kırmızı */
+.flash-message.warning { background-color: #f59e0b !important; } /* Turuncu */
+.flash-message.info { background-color: #3b82f6 !important; } /* Mavi */
+
+.close-flash {
+    background: none !important;
+    border: none !important;
+    font-size: 24px !important;
+    line-height: 1 !important;
+    color: rgba(255, 255, 255, 0.7) !important; /* Yarı saydam beyaz çarpı */
+    cursor: pointer !important;
+    margin-left: 20px !important;
+    padding: 0 !important;
+    transition: color 0.2s !important;
+}
+.close-flash:hover { color: #ffffff !important; }
+
+@keyframes slideUpToast {
+    from { transform: translateY(50px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}

@@ -222,7 +222,7 @@
                         <form action="{{ url_for('order_action') }}" method="POST" style="margin:0;">
                             <input type="hidden" name="selected_orders" value="{{ order['order_id'] }}">
                             <input type="hidden" name="action" value="delete">
-                            <button type="submit" class="action-btn btn-delete" title="Sil" onclick="return confirm('Bu siparişi silmek istediğinize emin misiniz?');">🗑️</button>
+                            <button type="button" class="action-btn btn-delete" title="Sil" onclick="confirmFormSubmit(event, this.closest('form'), 'Bu siparişi silmek istediğinize emin misiniz?');">🗑️</button>
                         </form>
 
                     </div>

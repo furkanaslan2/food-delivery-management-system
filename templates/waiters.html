@@ -148,7 +148,7 @@
                     <form action="{{ url_for('waiter_action') }}" method="POST" style="display:inline;">
                         <input type="hidden" name="selected_waiters" value="{{ waiter['waiter_id'] }}">
                         <input type="hidden" name="action" value="delete">
-                        <button type="submit" class="action-btn" title="Sil" onclick="return confirm('Bu garsonu silmek istediğinize emin misiniz?');">🗑️</button>
+                        <button type="button" class="action-btn" title="Sil" onclick="confirmFormSubmit(event, this.closest('form'), 'Bu garsonu silmek istediğinize emin misiniz?');">🗑️</button>
                     </form>
                 </td>
             </tr>

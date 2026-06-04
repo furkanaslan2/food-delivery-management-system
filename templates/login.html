@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Restaurant Management</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/flash.css') }}">
     
     <style>
         /* Genel Sayfa Ayarları */
@@ -137,14 +138,6 @@
     <div class="modern-auth-container">
         <h2>System Login</h2>
         <p class="subtitle">Welcome back! Please enter your details.</p>
-        
-        {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-            {% for category, message in messages %}
-              <div class="alert alert-{{ category }}">{{ message }}</div>
-            {% endfor %}
-          {% endif %}
-        {% endwith %}
 
         <form action="{{ url_for('login') }}" method="POST">
             <div class="form-group">
@@ -174,5 +167,18 @@
         </div>
     </div>
 
+    <div class="flash-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="flash-message {{ category }}">
+                    {{ message }}
+                    <button class="close-flash" onclick="this.parentElement.style.display='none';">&times;</button>
+                </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+    <script src="{{ url_for('static', filename='js/common.js') }}"></script>
 </body>
 </html>

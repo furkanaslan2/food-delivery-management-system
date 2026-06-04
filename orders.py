@@ -22,6 +22,7 @@ def orders():
                 SELECT o.*, r.restaurant_name 
                 FROM orders o
                 LEFT JOIN restaurants r ON o.restaurant_id = r.restaurant_id
+                WHERE o.order_status != 'awaiting_payment'
                 ORDER BY o.order_id DESC
             ''')
             orders_data = cursor.fetchall()
@@ -29,7 +30,7 @@ def orders():
             couriers = cursor.fetchall()
             foods = []
         elif role == 'user' and restaurant_id:
-            cursor.execute('SELECT * FROM orders WHERE restaurant_id = %s ORDER BY order_id DESC', (restaurant_id,))
+            cursor.execute("SELECT * FROM orders WHERE restaurant_id = %s AND order_status != 'awaiting_payment' ORDER BY order_id DESC", (restaurant_id,))
             orders_data = cursor.fetchall()
             cursor.execute('SELECT * FROM couriers WHERE restaurant_id = %s', (restaurant_id,))
             couriers = cursor.fetchall()
@@ -240,7 +241,7 @@ def order_action():
                 SELECT o.*, r.restaurant_name 
                 FROM orders o
                 LEFT JOIN restaurants r ON o.restaurant_id = r.restaurant_id
-                WHERE 1=1
+                WHERE o.order_status != 'awaiting_payment'
             """
             params = []
             
@@ -375,9 +376,9 @@ def api_check_new_orders():
                 restaurant_id = session.get('restaurant_id')
                 if not restaurant_id:
                     return jsonify({'new_orders': False})
-                cursor.execute("SELECT MAX(order_id) as max_id FROM orders WHERE restaurant_id = %s", (restaurant_id,))
+                cursor.execute("SELECT MAX(order_id) as max_id FROM orders WHERE restaurant_id = %s AND order_status != 'awaiting_payment'", (restaurant_id,))
             else: 
-                cursor.execute("SELECT MAX(order_id) as max_id FROM orders")
+                cursor.execute("SELECT MAX(order_id) as max_id FROM orders WHERE order_status != 'awaiting_payment'")
                 
             result = cursor.fetchone()
             db_max_id = result['max_id'] if result and result['max_id'] else 0

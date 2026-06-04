@@ -203,7 +203,7 @@
                     <form action="{{ url_for('menus_action') }}" method="POST" style="display:inline;">
                         <input type="hidden" name="selected_menu_items" value="{{ menu['menu_id'] }}">
                         <input type="hidden" name="action" value="delete">
-                        <button type="submit" class="action-btn" title="Sil" onclick="return confirm('Bu yemeği menüden silmek istediğinize emin misiniz?');">🗑️</button>
+                        <button type="button" class="action-btn" title="Sil" onclick="confirmFormSubmit(event, this.closest('form'), 'Bu yemeği menüden silmek istediğinize emin misiniz?');">🗑️</button>
                     </form>
                 </td>
             </tr>

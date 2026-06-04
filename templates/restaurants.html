@@ -176,7 +176,7 @@
                     <form action="{{ url_for('restaurant_action') }}" method="POST" style="display:inline;">
                         <input type="hidden" name="selected_restaurants" value="{{ restaurant['restaurant_id'] }}">
                         <input type="hidden" name="action" value="delete">
-                        <button type="submit" class="action-btn" title="Sil" onclick="return confirm('Bu restoranı tamamen silmek istediğinize emin misiniz?');">🗑️</button>
+                        <button type="button" class="action-btn" title="Sil" onclick="confirmFormSubmit(event, this.closest('form'), 'Bu restoranı tamamen silmek istediğinize emin misiniz?');">🗑️</button>
                     </form>
                     {% endif %}
                 </td>

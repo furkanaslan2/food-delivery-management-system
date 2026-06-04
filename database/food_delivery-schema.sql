@@ -88,7 +88,7 @@ CREATE TABLE orders (
     restaurant_id INT,
     courier_id INT, 
     customer_id INT,
-    order_status ENUM('pending', 'preparing', 'ready', 'on_the_way', 'delivered', 'completed', 'canceled') NOT NULL DEFAULT 'pending',
+    order_status VARCHAR(50) DEFAULT 'pending',
     
     order_type ENUM('Dine-in', 'Delivery') NOT NULL DEFAULT 'Dine-in',
     table_no INT,               

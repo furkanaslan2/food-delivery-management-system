@@ -380,10 +380,13 @@ def checkout():
                         sales_amount, order_type, customer_id, customer_name, customer_phone, customer_address,
                         order_note, payment_method, applied_promo_code
                     )
-                    VALUES (%s, 'pending', NOW(), %s, %s, 'Delivery', %s, %s, %s, %s, %s, %s, %s)
+                    VALUES (%s, %s, NOW(), %s, %s, 'Delivery', %s, %s, %s, %s, %s, %s, %s)
                 """
+                
+                initial_status = 'awaiting_payment' if payment_method == 'Online Payment' else 'pending'
+
                 cursor.execute(insert_order_query, (
-                    restaurant_id, total_qty, total_amount, customer_id, customer_name, phone, address, order_note, payment_method, applied_promo_code
+                    restaurant_id, initial_status, total_qty, total_amount, customer_id, customer_name, phone, address, order_note, payment_method, applied_promo_code
                 ))
                 
                 new_order_id = cursor.lastrowid 
@@ -412,6 +415,7 @@ def checkout():
                 connection.commit()
                 
                 if payment_method == 'Online Payment':
+                    session['current_order_id'] = new_order_id 
                     return redirect(url_for('checkout_payment')) 
                 else:
                     session.pop('cart', None) 

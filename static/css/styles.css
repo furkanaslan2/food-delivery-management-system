@@ -101,64 +101,6 @@ nav .logo img {
     color: #cccccc;
 }
 
-.flash-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: fixed;
-    top: 10px;
-    z-index: 999;
-    width: 300px;
-    max-width: 100%;
-}
-
-.flash-message {
-    padding: 15px;
-    border-radius: 5px;
-    font-size: 14px;
-    color: #fff;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    position: relative;
-    animation: slideIn 0.5s ease-out;
-}
-
-.flash-message.success {
-    background-color: #4caf50;
-}
-
-.flash-message.danger {
-    background-color: #f44336;
-}
-
-.flash-message.warning {
-    background-color: #ff9800;
-}
-
-.flash-message.info {
-    background-color: #2196f3;
-}
-
-.flash-message .close-flash {
-    position: absolute;
-    top: -26px;
-    right: -7px;
-    background: none;
-    border: none;
-    color: white;
-    cursor: pointer;
-}
-
-@keyframes slideIn {
-    from {
-        transform: translateY(-20px);
-        opacity: 0;
-    }
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
-}
-
 .card-container {
     display: grid;
     grid-template-columns: repeat(3, 1fr);

@@ -1,46 +1,4 @@
-// ==========================================
-// 🔔 YENİ SİPARİŞ BİLDİRİMİ (Otomatik Kapanan)
-// ==========================================
-document.addEventListener("DOMContentLoaded", function() {
-    let maxOrderId = 0;
-    
-    // Sayfa ilk açıldığında en büyük ID'yi bul
-    function updateMaxId() {
-        document.querySelectorAll('.order-id').forEach(el => {
-            let id = parseInt(el.textContent.trim());
-            if (!isNaN(id) && id > maxOrderId) maxOrderId = id;
-        });
-    }
-    updateMaxId();
-
-    function checkForNewOrders() {
-        fetch(`/api/check_new_orders?last_id=${maxOrderId}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.new_orders) {
-                    const alertBox = document.getElementById('new-order-alert');
-                    if (alertBox) {
-                        alertBox.style.display = 'block'; // Sesi ve kutuyu tetikle
-                        
-                        // 5 Saniye sonra uyarıyı otomatik gizle
-                        setTimeout(() => { 
-                            alertBox.style.display = 'none'; 
-                        }, 5000);
-                    }
-                    
-                    // 📍 DÜZELTME: Sistemi durdurmak (clearInterval) yerine, çıtayı yükseltiyoruz 
-                    // ki sonraki siparişleri de yakalamaya devam etsin.
-                    updateMaxId(); 
-                }
-            })
-            .catch(err => console.error('API Hatası:', err));
-    }
-    
-    // Her 6 saniyede bir kontrol et
-    setInterval(checkForNewOrders, 6000);
-});
-
-// SİPARİŞ DETAYLARINI GETİRME (YENİ EKLENDİ)
+// SİPARİŞ DETAYLARINI GETİRME
 function showOrderDetails(event, orderId) {
     event.preventDefault();
     
@@ -112,7 +70,7 @@ function openOrderModal(isUpdate = false, btn = null) {
         document.getElementById('customer-address').value = btn.getAttribute('data-customer-address');
         document.getElementById('dynamic-courier-list').value = btn.getAttribute('data-courier');
         
-        // İlgili kutuları otomatik aç (Dine-in ise masa numarası kutusunu, Delivery ise adres kutularını getirir)
+        // İlgili kutuları otomatik aç
         toggleOrderFields();
         
     } else {
@@ -181,9 +139,9 @@ document.addEventListener("DOMContentLoaded", function() {
     // 1. Tarayıcı (Sekme) Hafızasını Kontrol Et
     const isSystemAlreadyStarted = sessionStorage.getItem('systemStarted') === 'true';
 
-    // 📍 DÜZELTME: Eğer sistem BAŞLAMADIYSA ekranı görünür yap (FOUC Flaşlamasını önler)
+    // Eğer sistem BAŞLAMADIYSA ekranı görünür yap
     if (!isSystemAlreadyStarted && overlay) {
-        overlay.style.display = 'flex'; // HTML'de gizli olan ekranı şimdi göster
+        overlay.style.display = 'flex'; 
         
         if (startBtn) {
             startBtn.addEventListener('click', function() {
@@ -203,7 +161,7 @@ document.addEventListener("DOMContentLoaded", function() {
             });
         }
     } 
-    // 2. Sistem Zaten Başladıysa (Ekran HTML'de gizli kalmaya devam eder, flaşlama olmaz)
+    // Sistem Zaten Başladıysa
     else if (isSystemAlreadyStarted) {
         soundUnlocked = true; 
         
@@ -216,7 +174,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }, { once: true });
     }
 
-    // 3. Yeni Sipariş İzleme (MutationObserver)
+    // Yeni Sipariş İzleme (MutationObserver)
     const alertBox = document.getElementById('new-order-alert');
     if (alertBox) {
         const observer = new MutationObserver(function(mutations) {
@@ -236,43 +194,69 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 // ==========================================
-// 🔄 SESSİZ TABLO GÜNCELLEME MOTORU (AJAX)
+// 🚀 SESSİZ TABLO GÜNCELLEME & BİLDİRİM MOTORU (BİRLEŞTİRİLDİ)
 // ==========================================
-function checkAndRefreshTable() {
-    // 1. Güvenlik Kilidi: Eğer ekranda bir işlem penceresi açıksa tabloyu GÜNCELLEME!
-    const orderModal = document.getElementById('orderFormModal');
-    const courierModal = document.getElementById('courierAssignModal');
-    const detailModal = document.getElementById('detailModal');
+document.addEventListener("DOMContentLoaded", function() {
+    let maxOrderId = 0;
+    
+    // Tablodaki en büyük sipariş ID'sini bulur
+    function updateMaxId() {
+        document.querySelectorAll('.order-id').forEach(el => {
+            let id = parseInt(el.textContent.trim());
+            if (!isNaN(id) && id > maxOrderId) maxOrderId = id;
+        });
+    }
+    
+    // İlk açılışta eski siparişleri kaydet ki onlar için ötmesin
+    updateMaxId(); 
 
-    if (
-        (orderModal && orderModal.style.display !== 'none') ||
-        (courierModal && courierModal.style.display !== 'none') ||
-        (detailModal && detailModal.style.display !== 'none')
-    ) {
-        return; // Patron işlem yapıyor, güncellemeyi pas geç.
+    function checkAndRefreshTable() {
+        // 1. Patron işlem yapıyor mu kontrolü (Modallar açıksa tabloyu oynatma)
+        const orderModal = document.getElementById('orderFormModal');
+        const courierModal = document.getElementById('courierAssignModal');
+        const detailModal = document.getElementById('detailModal');
+
+        if (
+            (orderModal && orderModal.style.display !== 'none') ||
+            (courierModal && courierModal.style.display !== 'none') ||
+            (detailModal && detailModal.style.display !== 'none')
+        ) {
+            return; 
+        }
+
+        // 2. Arka planda tabloyu yenile
+        fetch(window.location.href)
+            .then(response => response.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+
+                const newTbody = doc.getElementById('orders-table-body');
+                const currentTbody = document.getElementById('orders-table-body');
+
+                if (newTbody && currentTbody) {
+                    // Eğer tabloda bir değişiklik (yeni sipariş/durum değişimi) varsa:
+                    if (newTbody.innerHTML !== currentTbody.innerHTML) {
+                        currentTbody.innerHTML = newTbody.innerHTML;
+                        
+                        // 📍 SİHİRLİ DOKUNUŞ: Tablo güncellendi! Yeni sipariş var mı bak:
+                        let oldMax = maxOrderId;
+                        updateMaxId(); 
+                        
+                        // Eğer yeni eklenen satırın ID'si eskisinden büyükse BİLDİRİMİ VER!
+                        if (maxOrderId > oldMax) {
+                            const alertBox = document.getElementById('new-order-alert');
+                            if (alertBox) {
+                                alertBox.style.display = 'block'; 
+                                setTimeout(() => { alertBox.style.display = 'none'; }, 5000);
+                            }
+                        }
+                    }
+                }
+            })
+            .catch(err => console.error("Sessiz güncelleme hatası:", err));
     }
 
-    // 2. Arka planda sayfanın güncel halini sessizce indir
-    fetch(window.location.href)
-        .then(response => response.text())
-        .then(html => {
-            // 3. Gelen gizli HTML'i parçala
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, 'text/html');
-
-            // 4. Yeni tablonun içini al ve mevcut tabloyla değiştir
-            const newTbody = doc.getElementById('orders-table-body');
-            const currentTbody = document.getElementById('orders-table-body');
-
-            if (newTbody && currentTbody) {
-                // Sadece bir değişiklik varsa tabloyu güncelle (Gereksiz yorulmayı önler)
-                if (newTbody.innerHTML !== currentTbody.innerHTML) {
-                    currentTbody.innerHTML = newTbody.innerHTML;
-                }
-            }
-        })
-        .catch(err => console.error("Sessiz güncelleme hatası:", err));
-}
-
-// Motoru çalıştır: Her 5 saniyede bir (5000 milisaniye) sessizce kontrol et
-setInterval(checkAndRefreshTable, 5000);
+    // Tek bir motor her 5 saniyede bir her işi kusursuz senkronize yapar!
+    setInterval(checkAndRefreshTable, 5000);
+});

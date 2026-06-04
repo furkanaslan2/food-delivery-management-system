@@ -90,3 +90,46 @@ document.addEventListener("DOMContentLoaded", function () {
     
     updateSelectAllState();
 });
+
+// ==========================================
+// 🛡️ SİTE GENELİ ÖZEL ONAY (CONFIRM) MOTORU
+// ==========================================
+window.showCustomConfirm = function(message, onConfirm) {
+    const modal = document.getElementById('global-confirm-modal');
+    const msgEl = document.getElementById('global-confirm-message');
+    const btnOk = document.getElementById('global-confirm-ok');
+    const btnCancel = document.getElementById('global-confirm-cancel');
+
+    if (!modal) return window.confirm(message); // Eğer HTML unutulursa varsayılanı kullan (Güvenlik)
+
+    msgEl.innerText = message;
+    modal.style.display = 'flex';
+
+    // Önceki buton dinleyicilerini temizlemek için butonları kopyalayıp yeniliyoruz
+    const newBtnOk = btnOk.cloneNode(true);
+    btnOk.parentNode.replaceChild(newBtnOk, btnOk);
+    
+    const newBtnCancel = btnCancel.cloneNode(true);
+    btnCancel.parentNode.replaceChild(newBtnCancel, btnCancel);
+
+    // İptal Butonu
+    newBtnCancel.addEventListener('click', function() {
+        modal.style.display = 'none';
+    });
+
+    // Onay (Evet) Butonu
+    newBtnOk.addEventListener('click', function() {
+        modal.style.display = 'none';
+        if (onConfirm) onConfirm(); // İşlemi çalıştır!
+    });
+};
+
+// Form Silme İşlemleri İçin Kısa Yol Fonksiyonu
+window.confirmFormSubmit = function(event, formElement, message) {
+    event.preventDefault(); // Tıklanır tıklanmaz sayfanın yenilenmesini durdur
+    
+    // Özel modalı çağır, kullanıcı "Evet" derse formu kod ile gönder (submit)
+    window.showCustomConfirm(message, function() {
+        formElement.submit(); 
+    });
+};

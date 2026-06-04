@@ -1,10 +1,15 @@
+import os
+from dotenv import load_dotenv
 import iyzipay
 
-# Iyzico Test (Sandbox) Ortamı Ayarları
+# .env dosyasındaki gizli verileri yükle
+load_dotenv()
+
+# Iyzico Ayarları (Şifreler artık güvende ve .env dosyasından okunuyor)
 options = {
-    'api_key': 'sandbox-gTdVJFYxWfHqVbCE0AlG8IGHVkW1APFN',
-    'secret_key': 'sandbox-GZzdesydtXCDQg2LdXk5EQX6Dp0pNeDK',
-    'base_url': 'sandbox-api.iyzipay.com'
+    'api_key': os.getenv('IYZICO_API_KEY'),
+    'secret_key': os.getenv('IYZICO_SECRET_KEY'),
+    'base_url': os.getenv('IYZICO_BASE_URL')
 }
 
 # Iyzico'nun form özelliklerini ayarladığımız obje
