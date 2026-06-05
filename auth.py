@@ -1,11 +1,24 @@
-from flask import render_template, request, redirect, url_for, session, flash
-from werkzeug.security import check_password_hash, generate_password_hash # ŞİFRELEME İÇİN EKLENDİ
+from flask import render_template, request, redirect, url_for, session, flash, make_response
+from werkzeug.security import check_password_hash, generate_password_hash 
 from db import get_db_connection
 from mysql.connector import Error
+from functools import wraps
 
+def nocache(view):
+    @wraps(view)
+    def no_cache_wrapped(*args, **kwargs):
+        # Fonksiyonu çalıştır ve sonucunu al
+        response = make_response(view(*args, **kwargs))
+        # Kalkan ayarlarını ekle
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '-1'
+        return response
+    return no_cache_wrapped
+
+@nocache
 def login():
     if request.method == 'POST':
-        role = request.form['role']
         email = request.form['email']
         password = request.form['password']
 
@@ -17,56 +30,60 @@ def login():
         try:
             cursor = connection.cursor(dictionary=True)
             
-            if role == 'admin':
-                # Sadece emaili arıyoruz
-                cursor.execute('SELECT * FROM admins WHERE email = %s', (email,))
-                admin = cursor.fetchone()
+            # 🕵️‍♂️ 1. KONTROL: Bu kişi bir ADMIN mi?
+            cursor.execute('SELECT * FROM admins WHERE email = %s', (email,))
+            admin = cursor.fetchone()
+            if admin and check_password_hash(admin['password'], password):
+                session['logged_in'] = True
+                session['role'] = 'admin'
+                flash("Admin login successful!", "success")
+                return redirect(url_for('index'))
 
-                # Şifreyi check_password_hash ile doğruluyoruz
-                if admin and check_password_hash(admin['password'], password):
+            # 🕵️‍♂️ 2. KONTROL: Bu kişi bir RESTORAN SAHİBİ mi?
+            cursor.execute('SELECT * FROM users WHERE email = %s', (email,))
+            user = cursor.fetchone()
+            if user and check_password_hash(user['password'], password):
+                session['user_id'] = user['user_id']
+                cursor.execute('SELECT * FROM restaurants WHERE user_id = %s', (session['user_id'],))
+                restaurant = cursor.fetchone()
+
+                if restaurant:
                     session['logged_in'] = True
-                    session['role'] = 'admin'
-                    flash("Admin login successful!", "success")
+                    session['role'] = 'user'
+                    session['restaurant_id'] = restaurant['restaurant_id']
+                    flash("Restaurant Owner login successful!", "success")
                     return redirect(url_for('index'))
                 else:
-                    flash('Invalid email or password', 'danger')
-
-            elif role == 'user':
-                cursor.execute('SELECT * FROM users WHERE email = %s', (email,))
-                user = cursor.fetchone()
-
-                if user and check_password_hash(user['password'], password):
-                    session['user_id'] = user['user_id']
-                    cursor.execute('SELECT * FROM restaurants WHERE user_id = %s', (session['user_id'],))
-                    restaurant = cursor.fetchone()
-
-                    if restaurant:
-                        session['logged_in'] = True
-                        session['role'] = 'user'
-                        session['restaurant_id'] = restaurant['restaurant_id']
-                        flash("Restaurant Owner login successful!", "success")
-                        return redirect(url_for('index'))
-                    else:
-                        flash("Invalid email or password.", "danger")
-                else:
-                    flash("Invalid email or password.", "danger")
+                    flash("Hesabınıza bağlı bir restoran bulunamadı.", "danger")
+                    return redirect(url_for('login'))
                     
-            elif role == 'waiter':
-                cursor.execute('SELECT * FROM waiters WHERE email = %s', (email,))
-                waiter = cursor.fetchone()
+            # 🕵️‍♂️ 3. KONTROL: Bu kişi bir GARSON mu?
+            cursor.execute('SELECT * FROM waiters WHERE email = %s', (email,))
+            waiter = cursor.fetchone()
+            if waiter and check_password_hash(waiter['password'], password):
+                session['logged_in'] = True
+                session['role'] = 'waiter'
+                session['waiter_id'] = waiter['waiter_id']
+                session['restaurant_id'] = waiter['restaurant_id']
+                flash("Waiter login successful!", "success")
+                return redirect(url_for('waiter_dashboard'))
 
-                if waiter and check_password_hash(waiter['password'], password):
-                    session['logged_in'] = True
-                    session['role'] = 'waiter'
-                    session['waiter_id'] = waiter['waiter_id']
-                    session['restaurant_id'] = waiter['restaurant_id']
-                    flash("Waiter login successful!", "success")
-                    return redirect(url_for('waiter_dashboard'))
-                else:
-                    flash("Invalid email or password.", "danger")
+            # 🕵️‍♂️ 4. KONTROL: Bu kişi bir KURYE mi?
+            cursor.execute('SELECT * FROM couriers WHERE email = %s', (email,))
+            courier = cursor.fetchone()
+            if courier and check_password_hash(courier['password'], password):
+                session['logged_in'] = True
+                session['role'] = 'courier'
+                session['courier_id'] = courier['courier_id']
+                flash("Courier login successful!", "success")
+                return redirect(url_for('courier_dashboard', courier_id=courier['courier_id']))
+
+            flash("Invalid email or password.", "danger")
+            return redirect(url_for('login')) 
 
         except Error as e:
             flash(f"Query failed: {e}", "danger")
+            return redirect(url_for('login')) 
         finally:
             if connection.is_connected():
                 cursor.close()
@@ -78,21 +95,19 @@ def logout():
     # 1. Oturumu temizlemeden önce kullanıcının rolünü hafızaya alıyoruz
     role = session.get('role')
     
-    # 2. Artık güvenle TÜM oturum verilerini silebiliriz (sepet, id'ler, lokasyon vb. her şey sıfırlanır)
+    # 2. Artık güvenle TÜM oturum verilerini silebiliriz
     session.clear()
     
-    # 3. Flash mesajını session temizlendikten SONRA eklemeliyiz (çünkü flash da arka planda session kullanır)
     flash('You have been logged out!', 'success')
     
-    # 4. Öğrendiğimiz role göre kişiyi kendi giriş kapısına yönlendiriyoruz
+    # 3. Yönlendirme Mantığı (Kuryeyi de genel portala gönderiyoruz)
     if role == 'customer':
         return redirect(url_for('customer_login')) 
-    elif role == 'courier':
-        return redirect(url_for('courier_login'))
     else:
-        # Garson, Restoran Sahibi (user), Admin veya role atanmamışsa ana login'e gönder
+        # Garson, Kurye, Restoran Sahibi, Admin -> Hepsi Personel Portalına (login) döner!
         return redirect(url_for('login'))
 
+@nocache
 def register():
     if request.method == 'POST':
         name = request.form['name']
@@ -147,6 +162,7 @@ def register():
         except Error as e:
             connection.rollback() 
             flash(f"Registration failed: {e}", "danger")
+            return redirect(url_for('register'))
         finally:
             if connection.is_connected():
                 cursor.close()
@@ -154,6 +170,7 @@ def register():
 
     return render_template('register.html')
 
+@nocache
 def customer_register():
     if request.method == 'POST':
         name = request.form['name']
@@ -181,6 +198,7 @@ def customer_register():
         except Error as e:
             connection.rollback()
             flash("Registration failed: Email might be already in use.", "danger")
+            return redirect(url_for('customer_register')) 
         finally:
             if connection.is_connected():
                 cursor.close()
@@ -188,7 +206,7 @@ def customer_register():
 
     return render_template('customer_register.html')
 
-
+@nocache
 def customer_login():
     if request.method == 'POST':
         email = request.form['email']
@@ -203,15 +221,17 @@ def customer_login():
                 
                 if customer and check_password_hash(customer['password'], password):
                     session['logged_in'] = True
-                    session['role'] = 'customer' # Müşteriyi B2B panelden ayırmak için
+                    session['role'] = 'customer' 
                     session['customer_id'] = customer['customer_id']
                     
                     flash("Login successful! Welcome to the marketplace.", "success")
-                    return redirect(url_for('index')) # Vitrin sayfası yapılınca oraya yönlendireceğiz
+                    return redirect(url_for('index')) 
                 else:
                     flash("Invalid email or password.", "danger")
+                    return redirect(url_for('customer_login')) 
             except Error as e:
                 flash(f"Login failed: {e}", "danger")
+                return redirect(url_for('customer_login')) 
             finally:
                 if connection.is_connected():
                     cursor.close()

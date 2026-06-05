@@ -836,47 +836,6 @@
         });
     </script>
 
-    <div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 99999; display: flex; flex-direction: column; gap: 10px;"></div>
-
-    <script>
-        function showToast(message, type = 'success') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            
-            const bgColor = type === 'success' ? '#10b981' : '#ef4444';
-            const icon = type === 'success' ? '✅' : '❌';
-
-            toast.style.background = bgColor;
-            toast.style.color = 'white';
-            toast.style.padding = '14px 24px';
-            toast.style.borderRadius = '8px';
-            toast.style.boxShadow = '0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)';
-            toast.style.fontFamily = "'Inter', sans-serif";
-            toast.style.fontSize = '14px';
-            toast.style.fontWeight = '600';
-            toast.style.display = 'flex';
-            toast.style.alignItems = 'center';
-            toast.style.gap = '10px';
-            toast.style.opacity = '0';
-            toast.style.transform = 'translateX(100%)';
-            toast.style.transition = 'all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
-            
-            toast.innerHTML = `<span style="font-size: 18px;">${icon}</span> <span>${message}</span>`;
-            container.appendChild(toast);
-
-            setTimeout(() => {
-                toast.style.opacity = '1';
-                toast.style.transform = 'translateX(0)';
-            }, 10);
-
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transform = 'translateX(100%)';
-                setTimeout(() => toast.remove(), 400);
-            }, 3000);
-        }
-    </script>
-
     <button onclick="toggleChat()" style="position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #4f46e5, #ec4899); color: white; border: none; font-size: 28px; box-shadow: 0 10px 25px rgba(79, 70, 229, 0.4); cursor: pointer; z-index: 9999; display: flex; justify-content: center; align-items: center; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
         🤖
     </button>
@@ -965,34 +924,6 @@
             chatContainer.appendChild(msgDiv);
             chatContainer.scrollTop = chatContainer.scrollHeight; 
         }
-    </script>
-
-    <div id="flash-messages-container" style="display: none;">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <span class="flash-message-data" data-category="{{ category }}" data-message="{{ message }}"></span>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-    </div>
-
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const flashElements = document.querySelectorAll('.flash-message-data');
-            flashElements.forEach((el, index) => {
-                let msgType = el.getAttribute('data-category');
-                let msgText = el.getAttribute('data-message');
-                
-                if (msgType === 'danger' || msgType === 'warning') msgType = 'error';
-                
-                setTimeout(() => {
-                    if (typeof showToast === "function") {
-                        showToast(msgText, msgType);
-                    }
-                }, 100 + (index * 150)); 
-            });
-        });
     </script>
 
     <script>

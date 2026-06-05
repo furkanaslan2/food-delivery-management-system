@@ -140,14 +140,6 @@
         <p class="subtitle">Welcome back! Please enter your details.</p>
 
         <form action="{{ url_for('login') }}" method="POST">
-            <div class="form-group">
-                <label for="role">Select Role</label>
-                <select name="role" id="role" required>
-                    <option value="user">Restaurant Owner (User)</option>
-                    <option value="waiter">Waiter</option>
-                    <option value="admin">Admin</option>
-                </select>
-            </div>
 
             <div class="form-group">
                 <label for="email">Email Address</label>

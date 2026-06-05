@@ -12,7 +12,7 @@ from orders import orders, order_action, get_order_details, get_restaurant_detai
 from foods import foods, food_action
 from waiters import waiter_dashboard, waiter_create_order, waiters, waiter_action, waiter_close_bill, waiter_receipt
 from customer import view_restaurant, add_to_cart, view_cart, checkout, customer_orders, set_location, remove_from_cart, increase_cart_item, decrease_cart_item, submit_review, get_active_order_status, toggle_favorite, view_favorites, get_addresses, add_address, select_address, update_address, cancel_order, apply_promo, ask_ai, api_reorder,api_restaurant_statuses, api_get_courier_location
-from courier_panel import courier_dashboard, update_delivery_status, courier_login, courier_logout, api_update_courier_location
+from courier_panel import courier_dashboard, update_delivery_status, api_update_courier_location
 from payment_handler import checkout_payment, payment_callback
 from profile_settings import view_profile, update_profile
 
@@ -64,8 +64,6 @@ app.add_url_rule('/payment_callback', 'payment_callback', payment_callback, meth
 app.add_url_rule('/remove_from_cart/<int:menu_id>', view_func=remove_from_cart, methods=['POST'])
 app.add_url_rule('/increase_item/<int:menu_id>', view_func=increase_cart_item, methods=['POST'])
 app.add_url_rule('/decrease_item/<int:menu_id>', view_func=decrease_cart_item, methods=['POST'])
-app.add_url_rule('/courier_login', view_func=courier_login, methods=['GET', 'POST'])
-app.add_url_rule('/courier_logout', view_func=courier_logout)
 app.add_url_rule('/submit_review', view_func=submit_review, methods=['POST'])
 app.add_url_rule('/profile', endpoint='view_profile', view_func=view_profile, methods=['GET'])
 app.add_url_rule('/profile/update', endpoint='update_profile', view_func=update_profile, methods=['POST'])
