@@ -1,0 +1,43 @@
+{% extends 'dashboard_base.html' %}
+{% block title %}İş Ortağı Başvuruları{% endblock %}
+{% block page_title %}📥 İş Ortağı (Restoran) Başvuruları{% endblock %}
+
+{% block content %}
+<div style="background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e5e7eb;">
+    <p style="color: #6b7280; font-size: 14px; margin-bottom: 20px;">Platformunuza katılmak isteyen restoran sahiplerinin başvuruları burada listelenir. Onayladığınız an sistem otomatik olarak onlara bir profil ve şifre oluşturur.</p>
+
+    <table style="width: 100%; border-collapse: collapse; text-align: left;">
+        <thead>
+            <tr style="background: #f9fafb; border-bottom: 2px solid #e5e7eb;">
+                <th style="padding: 15px; font-size: 13px; color: #4b5563;">Restoran Adı</th>
+                <th style="padding: 15px; font-size: 13px; color: #4b5563;">Yetkili Kişi</th>
+                <th style="padding: 15px; font-size: 13px; color: #4b5563;">İletişim</th>
+                <th style="padding: 15px; font-size: 13px; color: #4b5563;">Başvuru Zamanı</th>
+                <th style="padding: 15px; font-size: 13px; color: #4b5563; text-align: right;">Aksiyon</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for app in applications %}
+            <tr style="border-bottom: 1px solid #e5e7eb;">
+                <td style="padding: 15px; font-weight: 600; color: #111827;">{{ app.restaurant_name }}</td>
+                <td style="padding: 15px; font-size: 14px; color: #4b5563;">{{ app.contact_name }}</td>
+                <td style="padding: 15px; font-size: 13px; color: #4b5563;">
+                    <div>📧 {{ app.email }}</div>
+                    <div style="margin-top: 4px;">📱 {{ app.phone }}</div>
+                </td>
+                <td style="padding: 15px; font-size: 13px; color: #6b7280;">{{ app.applied_at.strftime('%d.%m.%Y - %H:%M') if app.applied_at else '-' }}</td>
+                <td style="padding: 15px; text-align: right;">
+                    <form action="{{ url_for('approve_application', app_id=app.application_id) }}" method="POST" style="display:inline;">
+                        <button type="submit" style="background: #10b981; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#059669'" onmouseout="this.style.background='#10b981'">✅ Onayla & Hesap Aç</button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" style="padding: 30px; text-align: center; color: #6b7280;">Henüz bekleyen yeni bir iş ortağı başvurusu yok.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

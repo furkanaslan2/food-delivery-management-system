@@ -15,6 +15,7 @@ from customer import view_restaurant, add_to_cart, view_cart, checkout, customer
 from courier_panel import courier_dashboard, update_delivery_status, api_update_courier_location
 from payment_handler import checkout_payment, payment_callback
 from profile_settings import view_profile, update_profile
+from admin_routes import partner_applications, approve_application
 
 load_dotenv()
 
@@ -90,6 +91,8 @@ app.add_url_rule('/restaurant/reviews', 'restaurant_reviews', restaurant_reviews
 app.add_url_rule('/api/reply_review', 'reply_review', reply_review, methods=['POST'])
 app.add_url_rule('/kitchen', 'kitchen_display', kitchen_display)
 app.add_url_rule('/kitchen/action', 'kitchen_order_action', kitchen_order_action, methods=['POST'])
+app.add_url_rule('/applications', 'partner_applications', partner_applications)
+app.add_url_rule('/approve_application/<int:app_id>', 'approve_application', approve_application, methods=['POST'])
 
 
 

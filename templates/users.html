@@ -1,7 +1,7 @@
 {% extends 'dashboard_base.html' %}
 
 {% block title %}{{ 'Profilim' if session['role'] == 'user' else 'Kullanıcı Yönetimi' }}{% endblock %}
-{% block page_title %}👤 {{ 'Profilim' if session['role'] == 'user' else 'Kullanıcı Yönetimi' }}{% endblock %}
+{% block page_title %}<img src="{{ url_for('static', filename='images/icons/circle-user.svg') }}" class="title-icon">{{ 'Profilim' if session['role'] == 'user' else 'Kullanıcı Yönetimi' }}{% endblock %}
 
 {% block extra_css %}
 <style>

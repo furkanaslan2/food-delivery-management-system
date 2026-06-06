@@ -1,7 +1,7 @@
 {% extends 'dashboard_base.html' %}
 
 {% block title %}Restoran Yönetimi{% endblock %}
-{% block page_title %}🏢 {% if session['role'] == 'user' %}Restoranım{% else %}Restoran Yönetimi{% endif %}{% endblock %}
+{% block page_title %}<img src="{{ url_for('static', filename='images/icons/restaurant-sign.svg') }}" class="title-icon">{% if session['role'] == 'user' %}Restoranım{% else %}Restoran Yönetimi{% endif %}{% endblock %}
 
 {% block extra_css %}
 <style>

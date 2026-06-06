@@ -87,6 +87,22 @@
             color: white;
         }
 
+        /* 🎨 YAN MENÜ İKONLARI İÇİN SİHİRLİ FİLTRE */
+        .sidebar-icon {
+            width: 20px;
+            height: 20px;
+            object-fit: contain;
+            /* Siyah ikonu sol menüye uygun açık gri yapar (#9ca3af rengine benzer) */
+            filter: brightness(0) invert(0.7); 
+            transition: all 0.2s;
+        }
+
+        /* Menünün üstüne gelindiğinde veya o sayfadaysak ikon tam beyaz olsun */
+        .sidebar-menu a:hover .sidebar-icon,
+        .sidebar-menu a[href="{{ request.path }}"] .sidebar-icon {
+            filter: brightness(0) invert(1);
+        }
+
         /* 👉 SAĞ TARAF (ANA İÇERİK) */
         .main-wrapper {
             flex: 1 !important;
@@ -117,6 +133,16 @@
             font-weight: 600;
             color: #111827;
             margin: 0;
+            display: flex;         
+            align-items: center;   
+            gap: 10px;             
+        }
+
+        .title-icon {
+            width: 24px;
+            height: 24px;
+            object-fit: contain;
+            opacity: 0.8; 
         }
 
         .topbar-right {
@@ -171,32 +197,32 @@
 <body class="dashboard-body">
 
     <aside class="sidebar">
-        <div class="sidebar-header">
-            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" style="width: 36px; height: 36px; object-fit: contain;">
-            <div style="display: flex; flex-direction: column;">
-                <span style="font-size: 14px; font-weight: 700; line-height: 1.2;">Food Delivery</span>
-                <span style="font-size: 10px; color: #9ca3af; font-weight: 500;">Management System</span>
-            </div>
+        <div class="sidebar-header" style="display: flex; align-items: center; justify-content: flex-start; padding-left: 20px; height: 75px;">
+            <img src="{{ url_for('static', filename='images/icons/logo.svg') }}" alt="Lezzet Kapında" style="width: 200px; height: auto; object-fit: contain; margin-top: 20px;">
         </div>
         
         <ul class="sidebar-menu">
-            <li><a href="{{ url_for('index') }}">🏠 Ana Panel</a></li>
-            <li><a href="{{ url_for('orders') }}">📦 Siparişler</a></li>
-            <li><a href="{{ url_for('menus') }}">🍽️ Menü Yönetimi</a></li>
-            <li><a href="{{ url_for('foods') }}">🏷️ Kategoriler</a></li>
-            <li><a href="{{ url_for('couriers') }}">🛵 Kuryeler</a></li>
-            <li><a href="{{ url_for('waiters') }}">👨‍🍳 Garsonlar</a></li>
+            <li><a href="{{ url_for('index') }}"><img src="{{ url_for('static', filename='images/icons/home.svg') }}" class="sidebar-icon"> Ana Panel</a></li>
+            <li><a href="{{ url_for('orders') }}"><img src="{{ url_for('static', filename='images/icons/cart-shopping-fast.svg') }}" class="sidebar-icon"> Siparişler</a></li>
+            <li><a href="{{ url_for('menus') }}"><img src="{{ url_for('static', filename='images/icons/menu-food.svg') }}" class="sidebar-icon"> Menü Yönetimi</a></li>
+            <li><a href="{{ url_for('foods') }}"><img src="{{ url_for('static', filename='images/icons/food-categories.svg') }}" class="sidebar-icon"> Kategoriler</a></li>
+            <li><a href="{{ url_for('couriers') }}"><img src="{{ url_for('static', filename='images/icons/delivery-bike.svg') }}" class="sidebar-icon"> Kuryeler</a></li>
+            <li><a href="{{ url_for('waiters') }}"><img src="{{ url_for('static', filename='images/icons/holding-hand-dinner.svg') }}" class="sidebar-icon"> Garsonlar</a></li>
             
             <li style="margin-top: 25px; padding-left: 14px; margin-bottom: 5px; font-size: 11px; color: #6b7280; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Yönetim & Ayarlar</li>
             
-            <li><a href="{{ url_for('users') }}">👤 {{ 'Profilim' if session.get('role') == 'user' else 'Kullanıcı Yönetimi' }}</a></li>
-            <li><a href="{{ url_for('restaurants') }}">🏢 {{ 'Restoranım' if session.get('role') == 'user' else 'Restoran Yönetimi' }}</a></li>
+            <li><a href="{{ url_for('users') }}"><img src="{{ url_for('static', filename='images/icons/circle-user.svg') }}" class="sidebar-icon"> {{ 'Profilim' if session.get('role') == 'user' else 'Kullanıcı Yönetimi' }}</a></li>
+            <li><a href="{{ url_for('restaurants') }}"><img src="{{ url_for('static', filename='images/icons/restaurant-sign.svg') }}" class="sidebar-icon"> {{ 'Restoranım' if session.get('role') == 'user' else 'Restoran Yönetimi' }}</a></li>
             
+            {% if session.get('role') == 'admin' %}
+            <li><a href="{{ url_for('partner_applications') }}"><img src="{{ url_for('static', filename='images/icons/inbox-in.svg') }}" class="sidebar-icon"> İş Ortağı Başvuruları</a></li>
+            {% endif %}
+
             {% if session.get('role') == 'user' %}
-            <li><a href="{{ url_for('restaurant_analytics') }}">📊 İş Analizleri</a></li>
-            <li><a href="{{ url_for('restaurant_profile') }}">⚙️ Restoran Ayarları</a></li>
-            <li><a href="{{ url_for('restaurant_reviews') }}">💬 Değerlendirmeler</a></li>
-            <li><a href="{{ url_for('kitchen_display') }}">🍳 Mutfak Ekranı</a></li>
+            <li><a href="{{ url_for('restaurant_analytics') }}"><img src="{{ url_for('static', filename='images/icons/chart-histogram.svg') }}" class="sidebar-icon"> İş Analizleri</a></li>
+            <li><a href="{{ url_for('restaurant_profile') }}"><img src="{{ url_for('static', filename='images/icons/settings.svg') }}" class="sidebar-icon"> Restoran Ayarları</a></li>
+            <li><a href="{{ url_for('restaurant_reviews') }}"><img src="{{ url_for('static', filename='images/icons/feedback-review.svg') }}" class="sidebar-icon"> Değerlendirmeler</a></li>
+            <li><a href="{{ url_for('kitchen_display') }}"><img src="{{ url_for('static', filename='images/icons/hat-chef.svg') }}" class="sidebar-icon"> Mutfak Ekranı</a></li>
             {% endif %}
         </ul>
     </aside>
@@ -208,7 +234,8 @@
             <div class="topbar-right">
                 
                 <div class="user-profile">
-                    👤 {{ session.get('role', 'Yetkili') | capitalize }}
+                    <img src="{{ url_for('static', filename='images/icons/circle-user.svg') }}" style="width: 16px; height: 16px; object-fit: contain; opacity: 0.7;">
+                    {{ session.get('role', 'Yetkili') | capitalize }}
                 </div>
                 
                 <a href="/logout" class="logout-btn">

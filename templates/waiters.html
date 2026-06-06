@@ -1,7 +1,10 @@
 {% extends 'dashboard_base.html' %}
 
 {% block title %}Garson Yönetimi{% endblock %}
-{% block page_title %}🤵 Garson Yönetimi{% endblock %}
+{% block page_title %}
+    <img src="{{ url_for('static', filename='images/icons/holding-hand-dinner.svg') }}" class="title-icon"> 
+    Garson Yönetimi
+{% endblock %}
 
 {% block extra_css %}
 <style>

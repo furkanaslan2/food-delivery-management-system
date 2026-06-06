@@ -1,7 +1,10 @@
 {% extends 'dashboard_base.html' %}
 
 {% block title %}Müşteri Değerlendirmeleri{% endblock %}
-{% block page_title %}💬 Müşteri Değerlendirmeleri{% endblock %}
+{% block page_title %}
+    <img src="{{ url_for('static', filename='images/icons/feedback-review.svg') }}" class="title-icon"> 
+    Müşteri Değerlendirmeleri
+{% endblock %}
 
 {% block content %}
 <div style="max-width: 900px; margin: 0 auto;">

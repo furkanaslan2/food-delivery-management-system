@@ -1,7 +1,10 @@
 {% extends 'dashboard_base.html' %}
 
 {% block title %}Siparişler{% endblock %}
-{% block page_title %}📦 Sipariş Yönetimi{% endblock %}
+{% block page_title %}
+    <img src="{{ url_for('static', filename='images/icons/cart-shopping-fast.svg') }}" class="title-icon"> 
+    Sipariş Yönetimi
+{% endblock %}
 
 {% block extra_css %}
 <style>

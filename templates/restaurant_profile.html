@@ -1,7 +1,10 @@
 {% extends 'dashboard_base.html' %}
 
 {% block title %}Restoran Profili{% endblock %}
-{% block page_title %}📸 Restoran Ayarları ve Profil{% endblock %}
+{% block page_title %}
+    <img src="{{ url_for('static', filename='images/icons/settings.svg') }}" class="title-icon"> 
+    Restoran Ayarları
+{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />

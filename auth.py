@@ -110,64 +110,45 @@ def logout():
 @nocache
 def register():
     if request.method == 'POST':
-        name = request.form['name']
+        # Yeni HTML formundan gelen başvuru bilgilerini yakalıyoruz
+        restaurant_name = request.form['restaurant_name']
+        contact_name = request.form['name']
+        phone = request.form['phone']
         email = request.form['email']
-        restaurant_name = request.form['restaurant_name'] 
-        password = request.form['password']
-        
-        hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
 
         connection = get_db_connection()
         if connection is None:
-            flash("Couldn't connect to the database!", "danger")
-            return render_template('register.html')
+            flash("Veritabanına bağlanılamadı!", "danger")
+            return redirect(url_for('register'))
 
         try:
             cursor = connection.cursor()
             
-            # 1. ADIM: Kullanıcıyı (Restoran Sahibini) users tablosuna kaydet
+            # ADIM 1: Gelen verileri geçici "Başvuru Havuzuna" (restaurant_applications) kaydediyoruz
+            # Durumu otomatik olarak 'pending' (beklemede) oluyor.
             cursor.execute(
-                'INSERT INTO users (name, email, password) VALUES (%s, %s, %s)', 
-                (name, email, hashed_password)
+                '''INSERT INTO restaurant_applications 
+                   (restaurant_name, contact_name, email, phone, status) 
+                   VALUES (%s, %s, %s, %s, 'pending')''',
+                (restaurant_name, contact_name, email, phone)
             )
             
-            # Veritabanının bu yeni kullanıcıya verdiği otomatik ID'yi yakala
-            new_user_id = cursor.lastrowid 
-            
-            # 2. ADIM: Yakalanan ID ve Varsayılan (Default) Değerlerle Restoranı Kur
-            # Puanları 0, metinleri "Not Specified" (Belirtilmedi) olarak atıyoruz.
-            # 2. ADIM: Yakalanan ID ve Veritabanı Kurallarına Uygun (Default) Değerlerle Restoranı Kur
-            cursor.execute('''
-                INSERT INTO restaurants 
-                (user_id, restaurant_name, city, rating, rating_count, average_cost, cuisine, restaurant_address, table_count) 
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-            ''', (
-                new_user_id, 
-                restaurant_name, 
-                'Not Specified',     # city
-                0.0,                 # rating (Sayısal Decimal)
-                'Too Few Ratings',   # rating_count (ENUM listesinden seçildi)
-                1,                   # average_cost (Kural: 0'dan büyük olmalı, 1 yaptık)
-                'Not Specified',     # cuisine
-                'Not Specified',     # restaurant_address
-                10                   # table_count (Varsayılan 10 masa)
-            ))
-            
-            # Her iki işlemi de tek seferde onayla
             connection.commit()
             
-            flash("Account and Restaurant created successfully! Please login.", "success")
+            # Başarılı başvuru sonrası anında sisteme almıyoruz, login'e yönlendirip bilgi veriyoruz
+            flash("Başvurunuz başarıyla alındı! Ekibimiz en kısa sürede sizinle iletişime geçecektir. 🤝", "success")
             return redirect(url_for('login'))
             
         except Error as e:
             connection.rollback() 
-            flash(f"Registration failed: {e}", "danger")
+            flash(f"Başvuru sırasında bir hata oluştu: {e}", "danger")
             return redirect(url_for('register'))
         finally:
             if connection.is_connected():
                 cursor.close()
                 connection.close()
 
+    # Eğer GET isteğiyle (linke tıklayarak) geldiyse sadece başvuru formunu göster
     return render_template('register.html')
 
 @nocache

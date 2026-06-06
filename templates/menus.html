@@ -1,7 +1,10 @@
 {% extends 'dashboard_base.html' %}
 
 {% block title %}Menü Yönetimi{% endblock %}
-{% block page_title %}🍽️ Menü Yönetimi{% endblock %}
+{% block page_title %}
+    <img src="{{ url_for('static', filename='images/icons/home.svg') }}" class="title-icon"> 
+    Menü Yönetimi
+{% endblock %}
 
 {% block extra_css %}
 <style>

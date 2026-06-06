@@ -14,7 +14,7 @@ def calculate_distance(lat1, lon1, lat2, lon2):
 
 def index():
     if 'logged_in' not in session:
-        return redirect(url_for('login'))
+        return redirect(url_for('customer_login'))
 
     role = session.get('role')
 

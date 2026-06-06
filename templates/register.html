@@ -3,130 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register - Restaurant Management</title>
+    <title>Partner Application - Restaurant Management</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/flash.css') }}">
     
     <style>
         /* Genel Sayfa Ayarları */
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6; /* Modern yumuşak gri */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-
-        /* Beyaz Kayıt Kartı */
-        .modern-auth-container {
-            background: #ffffff;
-            width: 100%;
-            max-width: 420px;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05); /* Soft gölge */
-            box-sizing: border-box;
-        }
-
-        /* Başlıklar */
-        .modern-auth-container h2 {
-            margin-top: 0;
-            margin-bottom: 8px;
-            font-size: 26px;
-            color: #111827;
-            text-align: center;
-            font-weight: 600;
-        }
-
-        .subtitle {
-            text-align: center;
-            color: #6b7280;
-            font-size: 14px;
-            margin-bottom: 30px;
-        }
-
-        /* Form Elemanları */
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 13px;
-            color: #374151;
-            margin-bottom: 6px;
-            font-weight: 500;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 12px 14px;
-            font-size: 14px;
-            border: 1px solid #d1d5db;
-            border-radius: 8px;
-            box-sizing: border-box;
-            transition: all 0.2s ease;
-            font-family: inherit;
-        }
-
-        /* Input'a Tıklanınca (Focus) */
-        .form-group input:focus {
-            outline: none;
-            border-color: #4f46e5;
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-        }
-
-        /* Kayıt Butonu */
-        .submit-btn {
-            width: 100%;
-            padding: 12px;
-            background-color: #4f46e5; /* Modern İndigo */
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 15px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background-color 0.2s ease;
-            margin-top: 10px;
-            font-family: inherit;
-        }
-
-        .submit-btn:hover {
-            background-color: #4338ca;
-        }
-
-        /* Alt Link Kısmı */
-        .bottom-text {
-            margin-top: 25px;
-            text-align: center;
-            font-size: 13.5px;
-            color: #6b7280;
-        }
-
-        .bottom-text a {
-            color: #4f46e5;
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.2s;
-        }
-
-        .bottom-text a:hover {
-            color: #3730a3;
-            text-decoration: underline;
-        }
-
-        /* Uyarı Mesajları (Flash) */
-        .alert {
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-            font-size: 13px;
-            text-align: center;
-        }
+        body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; background-color: #f3f4f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .modern-auth-container { background: #ffffff; width: 100%; max-width: 420px; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05); box-sizing: border-box; }
+        .modern-auth-container h2 { margin-top: 0; margin-bottom: 8px; font-size: 26px; color: #111827; text-align: center; font-weight: 600; }
+        .subtitle { text-align: center; color: #6b7280; font-size: 14px; margin-bottom: 30px; line-height: 1.5; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-size: 13px; color: #374151; margin-bottom: 6px; font-weight: 500; }
+        .form-group input { width: 100%; padding: 12px 14px; font-size: 14px; border: 1px solid #d1d5db; border-radius: 8px; box-sizing: border-box; transition: all 0.2s ease; font-family: inherit; }
+        .form-group input:focus { outline: none; border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+        .submit-btn { width: 100%; padding: 12px; background-color: #111827; color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 500; cursor: pointer; transition: background-color 0.2s ease; margin-top: 10px; font-family: inherit; }
+        .submit-btn:hover { background-color: #374151; }
+        .bottom-text { margin-top: 25px; text-align: center; font-size: 13.5px; color: #6b7280; }
+        .bottom-text a { color: #4f46e5; text-decoration: none; font-weight: 500; transition: color 0.2s; }
+        .bottom-text a:hover { color: #3730a3; text-decoration: underline; }
+        .alert { padding: 12px; border-radius: 6px; margin-bottom: 20px; font-size: 13px; text-align: center; }
         .alert-danger { background-color: #fee2e2; color: #991b1b; }
         .alert-success { background-color: #d1fae5; color: #065f46; }
         .alert-warning { background-color: #fef3c7; color: #92400e; }
@@ -135,35 +31,35 @@
 <body>
 
     <div class="modern-auth-container">
-        <h2>Create an Account</h2>
-        <p class="subtitle">Start managing your restaurant today.</p>
+        <h2>Become a Partner 🤝</h2>
+        <p class="subtitle">Leave your details below and our team will contact you to set up your restaurant.</p>
 
         <form action="{{ url_for('register') }}" method="POST">
-            <div class="form-group">
-                <label for="name">Full Name</label>
-                <input type="text" name="name" id="name" placeholder="John Doe" required>
-            </div>
-
-            <div class="form-group">
-                <label for="email">Email Address</label>
-                <input type="email" name="email" id="email" placeholder="john@example.com" required>
-            </div>
-
             <div class="form-group">
                 <label for="restaurant_name">Restaurant Name</label>
                 <input type="text" name="restaurant_name" id="restaurant_name" placeholder="E.g. The Golden Fork" required>
             </div>
 
             <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" name="password" id="password" placeholder="••••••••" required>
+                <label for="name">Authorized Person (Full Name)</label>
+                <input type="text" name="name" id="name" placeholder="John Doe" required>
             </div>
 
-            <button type="submit" class="submit-btn">Register & Create</button>
+            <div class="form-group">
+                <label for="phone">Phone Number</label>
+                <input type="tel" name="phone" id="phone" placeholder="+1 (555) 000-0000" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" name="email" id="email" placeholder="contact@restaurant.com" required>
+            </div>
+
+            <button type="submit" class="submit-btn">Submit Application</button>
         </form>
         
         <div class="bottom-text">
-            Already have an account? <a href="{{ url_for('login') }}">Login here</a>
+            Already a partner? <a href="{{ url_for('login') }}">Login to Portal</a>
         </div>
     </div>
 

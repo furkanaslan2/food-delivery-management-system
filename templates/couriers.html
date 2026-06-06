@@ -1,7 +1,10 @@
 {% extends 'dashboard_base.html' %}
 
 {% block title %}Kurye Yönetimi{% endblock %}
-{% block page_title %}🛵 Kurye Yönetimi{% endblock %}
+{% block page_title %}
+    <img src="{{ url_for('static', filename='images/icons/delivery-bike.svg') }}" class="title-icon"> 
+    Kurye Yönetimi
+{% endblock %}
 
 {% block extra_css %}
 <style>

@@ -1,7 +1,10 @@
 {% extends 'dashboard_base.html' %}
 
 {% block title %}Analizler ve Çok Satanlar{% endblock %}
-{% block page_title %}📊 İşletme Analizleri{% endblock %}
+{% block page_title %}
+    <img src="{{ url_for('static', filename='images/icons/chart-histogram.svg') }}" class="title-icon"> 
+    İşletme Analizleri
+{% endblock %}
 
 {% block extra_css %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

@@ -1,7 +1,10 @@
 {% extends 'dashboard_base.html' %}
 
 {% block title %}Kategori Yönetimi{% endblock %}
-{% block page_title %}🏷️ Ana Kategori Yönetimi{% endblock %}
+{% block page_title %}
+    <img src="{{ url_for('static', filename='images/icons/food-categories.svg') }}" class="title-icon"> 
+    Ana Kategori Yönetimi
+{% endblock %}
 
 {% block extra_css %}
 <style>

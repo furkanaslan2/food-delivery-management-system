@@ -1,7 +1,10 @@
 {% extends 'dashboard_base.html' %}
 
 {% block title %}Ana Panel{% endblock %}
-{% block page_title %}🏠 Ana Panel (Dashboard){% endblock %}
+{% block page_title %}
+    <img src="{{ url_for('static', filename='images/icons/home.svg') }}" class="title-icon"> 
+    Ana Panel
+{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -36,19 +39,44 @@
     .stat-info h3 { margin: 0; font-size: 26px; color: #111827; }
     .stat-info p { margin: 0; font-size: 12px; color: #6b7280; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
 
-    /* ⚡ HIZLI ERİŞİM MENÜSÜ */
+    .stat-icon-box {
+        width: 56px;
+        height: 56px;
+        border-radius: 16px; 
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .stat-img {
+        width: 28px;
+        height: 28px;
+        object-fit: contain;
+        opacity: 0.85;
+    }
+
+    .bg-blue   { background-color: #e0e7ff; } 
+    .bg-green  { background-color: #d1fae5; } 
+    .bg-orange { background-color: #ffedd5; } 
+    .bg-purple { background-color: #f3e8ff; } 
+    .bg-pink   { background-color: #fce7f3; } 
+
     .quick-access-title { margin-bottom: 20px; color: #111827; font-size: 18px; font-weight: 700; }
     
     .quick-grid {
-        display: grid;
-        /* Kutuların minimum genişliğini 130'dan 105'e düşürdük ki 9'u birden tek satıra sığsın */
-        grid-template-columns: repeat(auto-fit, minmax(105px, 1fr));
-        gap: 10px; /* Kutular arası boşluğu biraz daralttık */
+        display: flex; 
+        gap: 10px;
+        width: 100%;
+        overflow-x: auto; 
+        padding-bottom: 5px; 
     }
     
     .quick-card {
+        flex: 1; 
+        min-width: 80px; 
         background: white;
-        padding: 15px 5px; /* İç boşluğu daralttık */
+        padding: 12px 5px;
         border-radius: 12px;
         box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
         border: 1px solid #e5e7eb;
@@ -56,12 +84,12 @@
         text-decoration: none;
         color: #374151;
         font-weight: 600;
-        font-size: 13px; /* Yan yana sığmaları için yazı boyutunu optimize ettik */
+        font-size: 11px; 
         transition: all 0.2s;
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: center;
+        justify-content: flex-start; 
     }
     
     .quick-card:hover {
@@ -71,7 +99,11 @@
         box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.1);
     }
     
-    .quick-card img { width: 40px; height: 40px; margin-bottom: 10px; }
+    .quick-card img { 
+        width: 32px; 
+        height: 32px; 
+        margin-bottom: 8px; 
+    }
     .quick-card .emoji-icon { font-size: 36px; margin-bottom: 10px; display: block; line-height: 1; }
 
     /* 📋 SON SİPARİŞLER TABLOSU */
@@ -90,28 +122,36 @@
 <div class="stats-grid">
     {% if role == 'admin' %}
     <div class="stat-card">
-        <div class="stat-icon" style="background: #e0e7ff; color: #4338ca;">👥</div>
+        <div class="stat-icon-box bg-blue">
+            <img src="{{ url_for('static', filename='images/icons/circle-user.svg') }}" class="stat-img">
+        </div>
         <div class="stat-info">
             <h3>{{ statistics['users'] }}</h3>
             <p>Kullanıcılar</p>
         </div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon" style="background: #dcfce3; color: #16a34a;">🏢</div>
+        <div class="stat-icon-box bg-purple">
+            <img src="{{ url_for('static', filename='images/icons/restaurant-sign.svg') }}" class="stat-img">
+        </div>
         <div class="stat-info">
             <h3>{{ statistics['restaurants'] }}</h3>
             <p>Restoranlar</p>
         </div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon" style="background: #fef3c7; color: #d97706;">📦</div>
+        <div class="stat-icon-box bg-green">
+            <img src="{{ url_for('static', filename='images/icons/cart-shopping-fast.svg') }}" class="stat-img">
+        </div>
         <div class="stat-info">
             <h3>{{ statistics['orders'] }}</h3>
             <p>Tüm Siparişler</p>
         </div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon" style="background: #fce7f3; color: #be185d;">🏷️</div>
+        <div class="stat-icon-box bg-pink">
+            <img src="{{ url_for('static', filename='images/icons/food-categories.svg') }}" class="stat-img">
+        </div>
         <div class="stat-info">
             <h3>{{ statistics['foods'] }}</h3>
             <p>Kategoriler</p>
@@ -119,28 +159,36 @@
     </div>
     {% elif role == 'user' %}
     <div class="stat-card">
-        <div class="stat-icon" style="background: #e0e7ff; color: #4338ca;">🍽️</div>
+        <div class="stat-icon-box bg-pink">
+            <img src="{{ url_for('static', filename='images/icons/holding-hand-dinner.svg') }}" class="stat-img">
+        </div>
         <div class="stat-info">
             <h3>{{ statistics['menus'] }}</h3>
             <p>Aktif Menü</p>
         </div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon" style="background: #dcfce3; color: #16a34a;">📦</div>
+        <div class="stat-icon-box bg-green">
+            <img src="{{ url_for('static', filename='images/icons/cart-shopping-fast.svg') }}" class="stat-img">
+        </div>
         <div class="stat-info">
             <h3>{{ statistics['orders'] }}</h3>
             <p>Siparişler</p>
         </div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon" style="background: #fef3c7; color: #d97706;">🛵</div>
+        <div class="stat-icon-box bg-orange">
+            <img src="{{ url_for('static', filename='images/icons/delivery-bike.svg') }}" class="stat-img">
+        </div>
         <div class="stat-info">
             <h3>{{ statistics['couriers'] }}</h3>
             <p>Kuryeler</p>
         </div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon" style="background: #fce7f3; color: #be185d;">🤵</div>
+        <div class="stat-icon-box bg-purple">
+            <img src="{{ url_for('static', filename='images/icons/holding-hand-dinner.svg') }}" class="stat-img">
+        </div>
         <div class="stat-info">
             <h3>{{ statistics['waiters'] }}</h3>
             <p>Garsonlar</p>
@@ -152,49 +200,66 @@
 <h3 class="quick-access-title">⚡ Hızlı Erişim</h3>
 <div class="quick-grid">
     <a href="{{ url_for('users') }}" class="quick-card">
-        <img src="{{ url_for('static', filename='images/user.png') }}" alt="user">
+        <img src="{{ url_for('static', filename='images/icons/circle-user.svg') }}" alt="user">
         <span>{{ 'Profilim' if session['role'] == 'user' else 'Kullanıcılar' }}</span>
     </a>
     
     <a href="{{ url_for('restaurants') }}" class="quick-card">
-        <img src="{{ url_for('static', filename='images/restaurant.png') }}" alt="restaurant">
+        <img src="{{ url_for('static', filename='images/icons/restaurant-sign.svg') }}" alt="restaurant">
         <span>{{ 'Restoranım' if session['role'] == 'user' else 'Restoranlar' }}</span>
     </a>
+
+    {% if session['role'] == 'admin' %}
+    <a href="{{ url_for('partner_applications') }}" class="quick-card">
+        <img src="{{ url_for('static', filename='images/icons/inbox-in.svg') }}" alt="application">
+        <span>Başvurular</span>
+    </a>
+    {% endif %}
     
     <a href="{{ url_for('menus') }}" class="quick-card">
-        <img src="{{ url_for('static', filename='images/menus.png') }}" alt="menu">
+        <img src="{{ url_for('static', filename='images/icons/menu-food.svg') }}" alt="menu">
         <span>Menü Yönetimi</span>
     </a>
 
     <a href="{{ url_for('foods') }}" class="quick-card">
-        <img src="{{ url_for('static', filename='images/food.png') }}" alt="food">
+        <img src="{{ url_for('static', filename='images/icons/food-categories.svg') }}" alt="food">
         <span>Kategoriler</span>
     </a>
     
     <a href="{{ url_for('orders') }}" class="quick-card">
-        <img src="{{ url_for('static', filename='images/order.png') }}" alt="order">
+        <img src="{{ url_for('static', filename='images/icons/cart-shopping-fast.svg') }}" alt="order">
         <span>Siparişler</span>
     </a>
     
     <a href="{{ url_for('couriers') }}" class="quick-card">
-        <img src="{{ url_for('static', filename='images/courier.png') }}" alt="courier">
+        <img src="{{ url_for('static', filename='images/icons/delivery-bike.svg') }}" alt="courier">
         <span>Kuryeler</span>
     </a>
     
     <a href="{{ url_for('waiters') }}" class="quick-card">
-        <img src="{{ url_for('static', filename='images/waiter.png') }}" alt="waiter">
+        <img src="{{ url_for('static', filename='images/icons/holding-hand-dinner.svg') }}" alt="waiter">
         <span>Garsonlar</span>
     </a>
     
     {% if session['role'] == 'user' %}
     <a href="{{ url_for('restaurant_analytics') }}" class="quick-card">
-        <img src="{{ url_for('static', filename='images/best-sellers.png') }}" alt="analytics">
+        <img src="{{ url_for('static', filename='images/icons/chart-histogram.svg') }}" alt="analytics">
         <span>İş Analizleri</span>
     </a>
     
     <a href="{{ url_for('restaurant_profile') }}" class="quick-card">
-        <span class="emoji-icon">📸</span>
+        <img src="{{ url_for('static', filename='images/icons/settings.svg') }}" alt="profile">
         <span>Kapak ve Profil</span>
+    </a>
+
+    <a href="{{ url_for('restaurant_reviews') }}" class="quick-card">
+        <img src="{{ url_for('static', filename='images/icons/feedback-review.svg') }}" alt="review">
+        <span>Yorumlar</span>
+    </a>
+
+    <a href="{{ url_for('kitchen_display') }}" class="quick-card">
+        <img src="{{ url_for('static', filename='images/icons/hat-chef.svg') }}" alt="kitchen">
+        <span>Mutfak Ekranı</span>
     </a>
     {% endif %}
 </div>
