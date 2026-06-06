@@ -3,102 +3,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Siparişlerim</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Siparişlerim | Lezzet Kapında</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/flash.css') }}">
     <style>
         body { margin: 0; font-family: 'Inter', sans-serif; background-color: #f8f9fa; color: #111827; }
         
-        .customer-nav { background: #ffffff; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        .nav-brand { font-size: 22px; font-weight: 700; color: #4f46e5; text-decoration: none; }
-        .nav-links { display: flex; gap: 20px; align-items: center; }
-        .nav-links a { text-decoration: none; color: #4b5563; font-weight: 500; transition: color 0.2s; }
+        /* 🌟 LEZZET KAPINDA: MARKA NAVBAR TASARIMI (DARK MODE) */
+        .customer-nav { 
+            background: #111827; 
+            padding: 0 5%; 
+            height: 75px; 
+            box-sizing: border-box;
+            display: flex; justify-content: space-between; align-items: center; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15); position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #374151; 
+        }
+        .nav-brand { display: flex; align-items: center; text-decoration: none; }
         
-        .container { max-width: 800px; margin: 40px auto; padding: 0 20px; }
-        .section-title { font-size: 24px; font-weight: 600; margin-bottom: 25px; color: #1f2937; }
+        .nav-brand img { 
+            width: 100px; 
+            max-height: 70px; 
+            object-fit: contain; 
+            transform: scale(3); 
+            transform-origin: left center;
+            margin-top: 20px;
+        } 
         
-        /* Sipariş Kartları */
-        .order-card { background: white; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; overflow: hidden; border: 1px solid #f3f4f6; }
-        .order-header { background: #f9fafb; padding: 15px 20px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; }
-        .restaurant-name { font-weight: 600; font-size: 16px; margin: 0; }
-        .order-date { font-size: 13px; color: #6b7280; margin: 4px 0 0 0; }
+        .nav-links { display: flex; gap: 15px; align-items: center; }
+        .nav-links a { text-decoration: none; color: #d1d5db; font-weight: 500; transition: color 0.2s; }
+        .nav-links a:hover { color: #ffffff; }
+        
+        .cart-btn { background: #4f46e5; color: white !important; padding: 10px 20px; border-radius: 20px; display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; transition: background 0.2s; border: 1px solid #4338ca; }
+        .cart-btn:hover { background: #4338ca; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3); }
+
+        .dropdown { position: relative; display: inline-block; }
+
+        .dropdown::after { content: ''; position: absolute; top: 100%; left: 0; width: 100%; height: 15px; background: transparent; display: none; }
+        .dropdown:hover::after { display: block; }
+
+        .dropdown-btn { background-color: #1f2937; color: #f3f4f6; padding: 10px 18px; font-size: 14px; font-weight: 600; border: 1px solid #374151; border-radius: 20px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s; font-family: inherit; }
+        .dropdown-btn:hover { background-color: #374151; border-color: #4b5563; color: white; }
+        .dropdown-content { display: none; position: absolute; right: 0; top: 100%; background-color: #ffffff; min-width: 200px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); border-radius: 12px; overflow: hidden; z-index: 1000; border: 1px solid #e5e7eb; margin-top: 10px; }
+        .dropdown-content a { color: #374151; padding: 12px 18px; text-decoration: none; display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; transition: background-color 0.2s; }
+        .dropdown-content a:hover { background-color: #f3f4f6; color: #4f46e5; }
+        .dropdown:hover .dropdown-content { display: block; }
+
+        .cart-wrapper { position: relative; }
+        .cart-badge { position: absolute; top: -6px; right: -6px; background-color: #ef4444; color: white; font-size: 12px; font-weight: 800; border-radius: 50%; display: flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); border: 2px solid #111827; }
+
+        /* İçerik Alanı */
+        .container { max-width: 850px; margin: 40px auto; padding: 0 20px; }
+        .section-title { font-size: 24px; font-weight: 800; margin-bottom: 25px; color: #111827; display: flex; align-items: center; gap: 10px; }
+        
+        /* 🌟 MODERNİZE EDİLMİŞ SİPARİŞ KARTLARI */
+        .order-card { background: white; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03); margin-bottom: 25px; overflow: hidden; border: 1px solid #f3f4f6; transition: all 0.3s ease; }
+        .order-card:hover { box-shadow: 0 10px 20px -5px rgba(0,0,0,0.08); transform: translateY(-3px); border-color: #e5e7eb; }
+        
+        .order-header { background: #f9fafb; padding: 18px 24px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; }
+        .restaurant-name { font-weight: 800; font-size: 18px; margin: 0; color: #111827; }
+        .order-date { font-size: 14px; color: #6b7280; margin: 6px 0 0 0; font-weight: 500; }
         
         /* Durum Rozetleri (Status Badges) */
-        .status-badge { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-        .status-pending { background: #fef3c7; color: #92400e; }
-        .status-preparing { background: #e0f2fe; color: #0369a1; }
-        .status-ready { background: #e0e7ff; color: #4338ca; } 
-        .status-completed { background: #dcfce3; color: #166534; }
-        .status-delivered { background: #dcfce3; color: #166534; }
-        .status-canceled { background: #fee2e2; color: #991b1b; }
+        .status-badge { padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .status-pending { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+        .status-preparing { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+        .status-ready { background: #e0e7ff; color: #4338ca; border: 1px solid #c7d2fe; } 
+        .status-completed { background: #dcfce3; color: #166534; border: 1px solid #bbf7d0; }
+        .status-delivered { background: #dcfce3; color: #166534; border: 1px solid #bbf7d0; }
+        .status-canceled { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
         
-        .order-body { padding: 20px; }
-        .item-row { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 10px; color: #374151; }
+        .order-body { padding: 24px; }
+        .item-row { display: flex; justify-content: space-between; font-size: 15px; margin-bottom: 12px; color: #374151; font-weight: 500; align-items: center; }
         .item-row:last-child { margin-bottom: 0; }
-        .item-qty { font-weight: 600; color: #4b5563; margin-right: 10px; }
+        .item-qty { font-weight: 700; color: #374151; margin-right: 12px; background: #f3f4f6; padding: 4px 10px; border-radius: 8px; font-size: 13px; }
         
-        .order-footer { padding: 15px 20px; border-top: 1px dashed #e5e7eb; display: flex; justify-content: space-between; align-items: center; font-weight: 600; }
-        .total-price { font-size: 18px; color: #059669; }
+        .order-footer { padding: 20px 24px; background: #ffffff; border-top: 1px dashed #e5e7eb; display: flex; justify-content: space-between; align-items: center; font-weight: 600; }
+        .total-price { font-size: 20px; font-weight: 800; color: #059669; }
         
-        .empty-state { text-align: center; padding: 50px 20px; color: #6b7280; }
-
-        /* Sepet Bildirim Balonu CSS'i */
-        .cart-wrapper { position: relative; }
-        .cart-badge {
-            position: absolute;
-            top: -8px;
-            right: -10px;
-            background-color: #ef4444;
-            color: white;
-            font-size: 12px;
-            font-weight: bold;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 18px;
-            height: 18px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-        .cart-btn { background: #4f46e5; color: white !important; padding: 8px 16px; border-radius: 20px; display: flex; align-items: center; gap: 5px; }
-
-        /* Modern Açılır Menü (Dropdown) Stilleri */
-        .dropdown { position: relative; display: inline-block; }
+        .empty-state { text-align: center; padding: 60px 20px; color: #6b7280; background: white; border-radius: 16px; border: 1px dashed #d1d5db; }
         
-        .dropdown-btn { 
-            background-color: #f3f4f6; color: #374151; padding: 8px 16px; 
-            font-size: 15px; font-weight: 600; border: none; border-radius: 20px; 
-            cursor: pointer; display: flex; align-items: center; gap: 8px; 
-            transition: background-color 0.2s; font-family: inherit;
-        }
-        .dropdown-btn:hover { background-color: #e5e7eb; }
-        
-        .dropdown-content { 
-            display: none; position: absolute; right: 0; top: 100%;
-            background-color: #ffffff; min-width: 180px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
-            border-radius: 12px; overflow: hidden; z-index: 1000; border: 1px solid #f3f4f6; 
-        }
-        
-        .dropdown-content a { 
-            color: #4b5563; padding: 12px 16px; text-decoration: none; display: flex; 
-            align-items: center; gap: 10px; font-size: 14px; font-weight: 500; 
-            transition: background-color 0.2s; 
-        }
-        .dropdown-content a:hover { background-color: #f9fafb; color: #4f46e5; }
-        
-        /* Üzerine gelince menüyü göster */
-        .dropdown:hover .dropdown-content { display: block; }
+        /* Buton Hover Efektleri */
+        .action-btn { font-family: inherit; font-weight: 700; font-size: 14px; padding: 10px 18px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .action-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
     </style>
 </head>
 <body>
 
     <nav class="customer-nav">
-        <a href="/" class="nav-brand">🍔 DeliveryApp</a>
+        <a href="/" class="nav-brand">
+            <img src="{{ url_for('static', filename='images/icons/logo.svg') }}" alt="Lezzet Kapında">
+        </a>
         <div class="nav-links">
-            {% if request.endpoint == 'index' %}
-            <span>📍 {{ session.get('customer_city', 'Select Location') }}</span>
-            {% endif %}
-
             <a href="{{ url_for('view_cart') }}" class="cart-btn cart-wrapper" style="text-decoration: none;">
                 🛒 Sepet
                 {% set cart_qty = namespace(total=0) %}
@@ -126,7 +121,7 @@
     </nav>
 
     <div class="container">
-        <h2 class="section-title">Siparişlerim</h2>
+        <h2 class="section-title">📦 Sipariş Geçmişim</h2>
 
         {% if orders %}
             {% for order in orders %}
@@ -134,7 +129,7 @@
                 <div class="order-header">
                     <div>
                         <p class="restaurant-name">{{ order['restaurant_name'] }}</p>
-                        <p class="order-date">Order #{{ order['order_id'] }} • {{ order['order_date'].strftime('%d %b %Y, %H:%M') }}</p>
+                        <p class="order-date">Sipariş #{{ order['order_id'] }} • {{ order['order_date'].strftime('%d %b %Y, %H:%M') }}</p>
                     </div>
                     <span class="status-badge status-{{ 'preparing' if order['order_status'] == 'ready' else order['order_status'] }}">
                         {{ 'preparing' if order['order_status'] == 'ready' else order['order_status'] }}
@@ -144,78 +139,79 @@
                 <div class="order-body">
                     {% for item in order['items'] %}
                     <div class="item-row">
-                        <span><span class="item-qty">{{ item['quantity'] }}x</span> {{ item['custom_name'] or item['item_name'] }}</span>
-                        <span>${{ "%.2f"|format(item['unit_price'] * item['quantity']) }}</span>
+                        <div style="display: flex; align-items: center;">
+                            <span class="item-qty">{{ item['quantity'] }}x</span> 
+                            <span>{{ item['custom_name'] or item['item_name'] }}</span>
+                        </div>
+                        <span style="font-weight: 700;">${{ "%.2f"|format(item['unit_price'] * item['quantity']) }}</span>
                     </div>
                     {% else %}
-                        <div class="item-row"><span style="color:#9ca3af; font-style:italic;">Order details not found.</span></div>
+                        <div class="item-row"><span style="color:#9ca3af; font-style:italic;">Sipariş detayı bulunamadı.</span></div>
                     {% endfor %}
                 </div>
                 
                 <div class="order-footer">
-                    <span>Total Amount</span>
-                    <div style="display: flex; align-items: center; gap: 15px;">
+                    <span style="color: #6b7280; font-weight: 600; font-size: 15px;">Toplam Tutar</span>
+                    <div style="display: flex; align-items: center; gap: 20px;">
                         
                         {% if order['order_status'] == 'pending' %}
-                            <button class="cancel-order-btn" data-id="{{ order['order_id'] }}" style="background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; padding: 6px 12px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 13px; font-family: inherit; transition: 0.2s;" onmouseover="this.style.background='#fecaca'" onmouseout="this.style.background='#fee2e2'">
+                            <button class="action-btn cancel-order-btn" data-id="{{ order['order_id'] }}" style="background: #fee2e2; color: #991b1b; border: 1px solid #fecaca;" onmouseover="this.style.background='#fecaca'" onmouseout="this.style.background='#fee2e2'">
                                 ✖ Siparişi İptal Et
                             </button>
                             
                         {% elif order['order_status'] in ['delivered', 'completed', 'canceled'] %}
-                            <button class="reorder-btn" data-id="{{ order['order_id'] }}" style="background: #e0e7ff; color: #4338ca; border: 1px solid #c7d2fe; padding: 6px 12px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 13px; font-family: inherit; transition: 0.2s; display: flex; align-items: center; gap: 5px;" onmouseover="this.style.background='#c7d2fe'" onmouseout="this.style.background='#e0e7ff'">
+                            <button class="action-btn reorder-btn" data-id="{{ order['order_id'] }}" style="background: #4f46e5; color: white; border: 1px solid #4338ca;" onmouseover="this.style.background='#4338ca'" onmouseout="this.style.background='#4f46e5'">
                                 🔄 Tekrar Sipariş Ver
                             </button>
                         {% endif %}
                         <span class="total-price">${{ "%.2f"|format(order['sales_amount']) }}</span>
                     </div>
                 </div>
+
                 {% if order['order_status'] == 'delivered' %}
                     {% if order['review'] %}
-                        <div style="padding: 15px 20px; background-color: #f0fdf4; border-top: 1px solid #e5e7eb;">
-                            <h4 style="margin-top: 0; margin-bottom: 5px; font-size: 14px; color: #166534;">Değerlendirmeniz:</h4>
-                            <p style="margin: 0; font-size: 14px; color: #374151;">
-                                <strong>Puan:</strong> 
+                        <div style="padding: 20px 24px; background-color: #f8fafc; border-top: 1px solid #e5e7eb;">
+                            <h4 style="margin-top: 0; margin-bottom: 8px; font-size: 15px; color: #111827; font-weight: 700;">Yaptığınız Değerlendirme:</h4>
+                            <p style="margin: 0; font-size: 14px; color: #4b5563;">
                                 {% for i in range(order['review']['rating']) %}⭐{% endfor %} 
-                                ({{ order['review']['rating'] }}/5)
+                                <strong style="margin-left: 5px;">({{ order['review']['rating'] }}/5)</strong>
                             </p>
                             {% if order['review']['comment'] %}
-                                <p style="margin: 5px 0 0 0; font-size: 13px; color: #6b7280; font-style: italic;">
+                                <p style="margin: 10px 0 0 0; font-size: 14px; color: #374151; font-style: italic; background: white; padding: 12px; border-radius: 8px; border: 1px solid #e5e7eb; border-left: 3px solid #fbbf24;">
                                     "{{ order['review']['comment'] }}"
                                 </p>
                             {% endif %}
                             
                             {% if order['review']['restaurant_reply'] %}
-                             <div style="margin-top: 12px; padding: 10px 15px; background-color: #e0f2fe; border-left: 3px solid #0284c7; border-radius: 6px;">
-                                 <span style="font-size: 11px; font-weight: 700; color: #0284c7; text-transform: uppercase;">Restoranın Yanıtı:</span>
-                                 <p style="margin: 5px 0 0 0; font-size: 13px; color: #0f172a; font-weight: 500;">
+                             <div style="margin-top: 15px; padding: 15px; background-color: #eff6ff; border-left: 4px solid #3b82f6; border-radius: 8px;">
+                                 <span style="font-size: 12px; font-weight: 800; color: #1d4ed8; text-transform: uppercase;">Restoranın Yanıtı:</span>
+                                 <p style="margin: 6px 0 0 0; font-size: 14px; color: #1e293b; font-weight: 500; line-height: 1.5;">
                                      "{{ order['review']['restaurant_reply'] }}"
                                  </p>
                              </div>
                          {% endif %}
                         </div>
                     {% else %}
-                        <div style="padding: 15px 20px; background-color: #f9fafb; border-top: 1px solid #e5e7eb;">
-                            <h4 style="margin-top: 0; margin-bottom: 10px; font-size: 14px; color: #374151;">Siparişi Değerlendir ⭐</h4>
+                        <div style="padding: 20px 24px; background-color: #f9fafb; border-top: 1px solid #e5e7eb;">
+                            <h4 style="margin-top: 0; margin-bottom: 15px; font-size: 16px; font-weight: 800; color: #111827;">Siparişi Değerlendir ⭐</h4>
                             
-                            <form action="{{ url_for('submit_review') }}" method="POST" style="display: flex; flex-direction: column; gap: 10px;">
+                            <form action="{{ url_for('submit_review') }}" method="POST" style="display: flex; flex-direction: column; gap: 12px;">
                                 <input type="hidden" name="order_id" value="{{ order['order_id'] }}">
                                 <input type="hidden" name="restaurant_id" value="{{ order['restaurant_id'] }}">
                                 
-                                <div style="display: flex; align-items: center; gap: 10px;">
-                                    <select name="rating" required style="padding: 8px; border-radius: 6px; border: 1px solid #d1d5db; outline: none;">
-                                        <option value="" hidden>Puan Ver</option>
-                                        <option value="5">⭐⭐⭐⭐⭐ (5 - Mükemmel)</option>
-                                        <option value="4">⭐⭐⭐⭐ (4 - Çok İyi)</option>
-                                        <option value="3">⭐⭐⭐ (3 - Ortalama)</option>
-                                        <option value="2">⭐⭐ (2 - Kötü)</option>
-                                        <option value="1">⭐ (1 - Berbat)</option>
-                                    </select>
-                                </div>
+                                <select name="rating" required style="padding: 12px; border-radius: 10px; border: 1px solid #d1d5db; outline: none; font-family: inherit; font-weight: 600; width: 100%; max-width: 300px; cursor: pointer;">
+                                    <option value="" hidden>Puan Verin</option>
+                                    <option value="5">⭐⭐⭐⭐⭐ (5 - Mükemmel)</option>
+                                    <option value="4">⭐⭐⭐⭐ (4 - Çok İyi)</option>
+                                    <option value="3">⭐⭐⭐ (3 - Ortalama)</option>
+                                    <option value="2">⭐⭐ (2 - Kötü)</option>
+                                    <option value="1">⭐ (1 - Berbat)</option>
+                                </select>
                                 
-                                <textarea name="comment" placeholder="Yemek ve teslimat hakkında ne düşünüyorsunuz? (Opsiyonel)" style="padding: 8px; border-radius: 6px; border: 1px solid #d1d5db; resize: vertical; min-height: 50px; font-family: inherit; outline: none;"></textarea>
+                                <textarea name="comment" placeholder="Yemek ve teslimat hakkında ne düşünüyorsunuz? (Opsiyonel)" style="padding: 12px; border-radius: 10px; border: 1px solid #d1d5db; resize: vertical; min-height: 70px; font-family: inherit; font-size: 14px; outline: none; transition: border-color 0.2s;"></textarea>
                                 
-                                <button type="submit" style="background-color: #fbbf24; color: #92400e; font-weight: 600; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; align-self: flex-start; transition: background-color 0.2s;">
-                                    Gönder
+                                <button type="submit" style="background-color: #111827; color: white; font-weight: 700; padding: 12px 24px; border: none; border-radius: 10px; cursor: pointer; align-self: flex-start; transition: all 0.2s; font-family: inherit; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" onmouseover="this.style.background='#374151'; this.style.transform='translateY(-2px)';" onmouseout="this.style.background='#111827'; this.style.transform='translateY(0)';">
+                                    Yorumu Gönder
                                 </button>
                             </form>
                         </div>
@@ -225,33 +221,36 @@
             {% endfor %}
         {% else %}
             <div class="empty-state">
-                <h3>Henüz sipariş vermemişsiniz! 🛒</h3>
-                <p>İlk siparişinizi verdiğinizde burada gözükecek</p>
-                <a href="/" style="display:inline-block; margin-top:15px; padding:10px 20px; background:#4f46e5; color:white; text-decoration:none; border-radius:6px; font-weight:500;">Keşfetmeye başla</a>
+                <div style="font-size: 60px; margin-bottom: 15px;">🛒</div>
+                <h3 style="margin: 0 0 10px 0; color: #111827;">Henüz sipariş vermemişsiniz!</h3>
+                <p style="margin: 0;">İlk lezzet yolculuğunuzu başlattığınızda siparişleriniz burada gözükecek.</p>
+                <a href="/" style="display:inline-block; margin-top:20px; padding:12px 25px; background:#4f46e5; color:white; text-decoration:none; border-radius:10px; font-weight:600; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);">Hemen Keşfetmeye Başla</a>
             </div>
         {% endif %}
     </div>
 
-    <div id="cancelConfirmModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10000; justify-content:center; align-items:center; backdrop-filter:blur(4px);">
-        <div style="background:white; width:90%; max-width:400px; border-radius:16px; padding:25px; box-shadow:0 10px 25px rgba(0,0,0,0.2); text-align:center;">
-            <div style="font-size:40px; margin-bottom:10px;">⚠️</div>
-            <h3 style="margin:0 0 10px 0; color:#111827; font-size:18px;">Siparişi İptal Et</h3>
-            <p style="margin:0 0 20px 0; color:#4b5563; font-size:15px;">Bu siparişi iptal etmek istediğinize emin misiniz?</p>
-            <div style="display:flex; justify-content:center; gap:10px;">
-                <button id="btn-cancel-no" style="flex:1; background:#f3f4f6; color:#374151; border:none; padding:12px; border-radius:8px; font-weight:600; cursor:pointer; font-family:inherit; transition:0.2s;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">Vazgeç</button>
-                <button id="btn-cancel-yes" style="flex:1; background:#ef4444; color:white; border:none; padding:12px; border-radius:8px; font-weight:600; cursor:pointer; font-family:inherit; transition:0.2s;" onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='#ef4444'">Evet, İptal Et</button>
+    <div id="cancelConfirmModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(17,24,39,0.7); z-index:10000; justify-content:center; align-items:center; backdrop-filter:blur(4px);">
+        <div style="background:white; width:90%; max-width:400px; border-radius:16px; padding:30px; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1); text-align:center; animation: slideUp 0.3s ease-out;">
+            <div style="font-size:48px; margin-bottom:15px;">⚠️</div>
+            <h3 style="margin:0 0 10px 0; color:#111827; font-size:20px; font-weight:800;">Siparişi İptal Et</h3>
+            <p style="margin:0 0 25px 0; color:#4b5563; font-size:15px; font-weight:500;">Bu siparişi iptal etmek istediğinize emin misiniz?</p>
+            <div style="display:flex; justify-content:center; gap:12px;">
+                <button id="btn-cancel-no" style="flex:1; background:#f3f4f6; color:#374151; border:none; padding:14px; border-radius:10px; font-weight:700; cursor:pointer; font-family:inherit; transition:0.2s;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">Vazgeç</button>
+                <button id="btn-cancel-yes" style="flex:1; background:#ef4444; color:white; border:none; padding:14px; border-radius:10px; font-weight:700; cursor:pointer; font-family:inherit; transition:0.2s;" onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='#ef4444'">Evet, İptal Et</button>
             </div>
         </div>
     </div>
 
-    <div id="customAlertModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10001; justify-content:center; align-items:center; backdrop-filter:blur(4px);">
-        <div style="background:white; width:90%; max-width:400px; border-radius:16px; padding:25px; box-shadow:0 10px 25px rgba(0,0,0,0.2); text-align:center;">
-            <div id="customAlertIcon" style="font-size:40px; margin-bottom:10px;">ℹ️</div>
-            <h3 id="customAlertTitle" style="margin:0 0 10px 0; color:#111827; font-size:18px;">Bilgi</h3>
-            <p id="customAlertMessage" style="margin:0 0 20px 0; color:#4b5563; font-size:15px;">Mesaj buraya gelecek</p>
-            <button id="btn-alert-ok" style="background:#4f46e5; color:white; border:none; padding:12px; border-radius:8px; font-weight:600; cursor:pointer; width:100%; font-family:inherit; transition:0.2s;" onmouseover="this.style.background='#4338ca'" onmouseout="this.style.background='#4f46e5'">Tamam</button>
+    <div id="customAlertModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(17,24,39,0.7); z-index:10001; justify-content:center; align-items:center; backdrop-filter:blur(4px);">
+        <div style="background:white; width:90%; max-width:400px; border-radius:16px; padding:30px; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1); text-align:center; animation: slideUp 0.3s ease-out;">
+            <div id="customAlertIcon" style="font-size:48px; margin-bottom:15px;">ℹ️</div>
+            <h3 id="customAlertTitle" style="margin:0 0 10px 0; color:#111827; font-size:20px; font-weight:800;">Bilgi</h3>
+            <p id="customAlertMessage" style="margin:0 0 25px 0; color:#4b5563; font-size:15px; font-weight:500;">Mesaj buraya gelecek</p>
+            <button id="btn-alert-ok" style="background:#4f46e5; color:white; border:none; padding:14px; border-radius:10px; font-weight:700; cursor:pointer; width:100%; font-family:inherit; transition:0.2s;" onmouseover="this.style.background='#4338ca'" onmouseout="this.style.background='#4f46e5'">Tamam</button>
         </div>
     </div>
+    
+    <style>@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }</style>
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {
@@ -279,8 +278,7 @@
                 };
             }
 
-            // --- 📍 YENİ 1: DİNAMİK BUTON DİNLEYİCİLERİ (EVENT DELEGATION) ---
-            // Sayfaya sonradan gelen butonların da tıklandığında çalışmasını sağlar
+            // --- 📍 DİNAMİK BUTON DİNLEYİCİLERİ ---
             document.addEventListener('click', function(e) {
                 
                 // 1. İptal Butonuna tıklandıysa
@@ -311,7 +309,7 @@
                 }
             });
 
-            // Vazgeç butonu (İptal Modal'ı için)
+            // Vazgeç butonu
             btnNo.addEventListener('click', function() {
                 confirmModal.style.display = 'none';
                 currentOrderIdToCancel = null;
@@ -335,40 +333,30 @@
                 .catch(error => showCustomAlert("Bağlantı Hatası", "Lütfen tekrar deneyin.", false, false));
             });
 
-            // --- 🚀 YENİ 2: CANLI SİPARİŞ TAKİP MOTORU (AJAX SILENT POLLING) ---
+            // --- 🚀 CANLI SİPARİŞ TAKİP MOTORU ---
             setInterval(() => {
-                // Her 5 saniyede bir arka planda sayfayı sessizce indir
                 fetch(window.location.href, {
                     headers: { 'X-Requested-With': 'XMLHttpRequest' }
                 })
                 .then(response => response.text())
                 .then(html => {
-                    // Gelen HTML'i sanal bir ekranda (DOM) ayrıştır
                     const parser = new DOMParser();
                     const newDoc = parser.parseFromString(html, 'text/html');
-                    
                     const newCards = newDoc.querySelectorAll('.order-card');
                     
                     newCards.forEach(newCard => {
                         const orderId = newCard.getAttribute('data-order-id');
                         const newStatus = newCard.getAttribute('data-status');
-                        
-                        // Ekrandaki mevcut sipariş kartını bul
                         const currentCard = document.querySelector(`.order-card[data-order-id="${orderId}"]`);
                         
-                        // Eğer sipariş durumu EKRANDAKİYLE YENİ GELEN arasında FARKLIYSA
                         if (currentCard && currentCard.getAttribute('data-status') !== newStatus) {
-                            
-                            // Sadece o siparişin kartını yeni gelen güncel HTML ile değiştir!
                             currentCard.innerHTML = newCard.innerHTML;
                             currentCard.setAttribute('data-status', newStatus);
                             
-                            // Kullanıcının dikkatini çekmek için tatlı bir parlama efekti yap
                             currentCard.style.transition = 'box-shadow 0.4s ease';
                             currentCard.style.boxShadow = '0 0 25px rgba(16, 185, 129, 0.6)';
-                            setTimeout(() => { currentCard.style.boxShadow = '0 2px 5px rgba(0,0,0,0.05)'; }, 2000);
+                            setTimeout(() => { currentCard.style.boxShadow = '0 4px 6px -1px rgba(0,0,0,0.03)'; }, 2000);
                             
-                            // Duruma göre bildirim çıkart!
                             if(newStatus === 'preparing') showCustomAlert("Harika Haber!", "#" + orderId + " numaralı siparişiniz hazırlanmaya başlandı! 👨‍🍳", true);
                             else if(newStatus === 'on_the_way') showCustomAlert("Yolda!", "#" + orderId + " numaralı siparişiniz yola çıktı! 🛵", 'info');
                             else if(newStatus === 'delivered') showCustomAlert("Teslim Edildi!", "#" + orderId + " numaralı siparişiniz teslim edildi. Afiyet olsun! 🍔", true);
@@ -377,7 +365,7 @@
                     });
                 })
                 .catch(err => console.log('Oto-güncelleme hatası:', err));
-            }, 5000); // 5000 milisaniye (5 saniyede bir kontrol et)
+            }, 5000); 
 
         });
     </script>

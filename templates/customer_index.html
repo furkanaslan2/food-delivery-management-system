@@ -3,84 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Online Yemek Siparişi</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Online Yemek Siparişi - Lezzet Kapında</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/flash.css') }}">
     <style>
+        /* 🌟 GENEL AYARLAR */
         body { margin: 0; font-family: 'Inter', sans-serif; background-color: #f8f9fa; color: #111827; }
-        .customer-nav { background: #ffffff; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; }
-        .nav-brand { font-size: 22px; font-weight: 700; color: #4f46e5; text-decoration: none; display: flex; align-items: center; gap: 8px;}
-        .nav-links { display: flex; gap: 20px; align-items: center; }
-        .nav-links a { text-decoration: none; color: #4b5563; font-weight: 500; transition: color 0.2s; }
-        .nav-links a:hover { color: #4f46e5; }
-        .cart-btn { background: #4f46e5; color: white !important; padding: 8px 16px; border-radius: 20px; display: flex; align-items: center; gap: 5px; }
-        .hero-section { background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%); padding: 60px 5%; color: white; text-align: center; }
-        .hero-section h1 { font-size: 36px; margin: 0 0 15px 0; }
-        .hero-section p { font-size: 18px; color: #e0e7ff; margin-bottom: 30px; }
-        .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
-        .section-title { font-size: 24px; font-weight: 600; margin-bottom: 25px; color: #1f2937; }
-        .restaurant-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
-        .restaurant-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: transform 0.2s ease, box-shadow 0.2s ease; text-decoration: none; color: inherit; display: block; }
-        .restaurant-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
-        .restaurant-img { transition: transform 0.3s ease; }
-        .restaurant-card:hover .restaurant-img { transform: scale(1.08); }
-        .card-content { padding: 16px; }
-        .card-title { font-size: 18px; font-weight: 600; margin: 0 0 8px 0; display: flex; justify-content: space-between; align-items: center; }
-        .rating-badge { background: #fef08a; color: #854d0e; padding: 4px 8px; border-radius: 6px; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 4px; }
-        .card-info { color: #6b7280; font-size: 14px; margin-bottom: 12px; }
-        .card-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f3f4f6; padding-top: 12px; font-size: 13px; color: #4b5563; }
-        .cuisine-tag { background: #f3f4f6; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; color: #374151; }
-        .cart-wrapper { position: relative; }
-        .cart-badge { position: absolute; top: -8px; right: -10px; background-color: #ef4444; color: white; font-size: 12px; font-weight: bold; border-radius: 50%; display: flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        
+        /* 🌟 LEZZET KAPINDA: MARKA NAVBAR TASARIMI (DARK MODE) */
+        .customer-nav { 
+            background: #111827; 
+            padding: 0 5%; 
+            height: 75px; 
+            box-sizing: border-box;
+            display: flex; justify-content: space-between; align-items: center; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15); position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #374151; 
+        }
+        .nav-brand { display: flex; align-items: center; text-decoration: none; }
+        
+        .nav-brand img { 
+            width: 100px; 
+            max-height: 70px; 
+            object-fit: contain; 
+            transform: scale(3); 
+            transform-origin: left center;
+            margin-top: 20px;
+        }
+        
+        .nav-links { display: flex; gap: 15px; align-items: center; }
+        .nav-links a { text-decoration: none; color: #d1d5db; font-weight: 500; transition: color 0.2s; }
+        .nav-links a:hover { color: #ffffff; }
+        
+        .nav-address-btn { background: #1f2937; border: 1px solid #374151; padding: 10px 18px; border-radius: 20px; font-family: inherit; font-size: 14px; font-weight: 600; color: #f3f4f6; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s; }
+        .nav-address-btn:hover { background: #374151; border-color: #4b5563; color: white; }
+        
+        .cart-btn { background: #4f46e5; color: white !important; padding: 10px 20px; border-radius: 20px; display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; transition: background 0.2s; border: 1px solid #4338ca; }
+        .cart-btn:hover { background: #4338ca; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3); }
+        
         .dropdown { position: relative; display: inline-block; }
-        .dropdown-btn { background-color: #f3f4f6; color: #374151; padding: 8px 16px; font-size: 15px; font-weight: 600; border: none; border-radius: 20px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background-color 0.2s; font-family: inherit; }
-        .dropdown-btn:hover { background-color: #e5e7eb; }
-        .dropdown-content { display: none; position: absolute; right: 0; top: 100%; background-color: #ffffff; min-width: 180px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-radius: 12px; overflow: hidden; z-index: 1000; border: 1px solid #f3f4f6; }
-        .dropdown-content a { color: #4b5563; padding: 12px 16px; text-decoration: none; display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 500; transition: background-color 0.2s; }
-        .dropdown-content a:hover { background-color: #f9fafb; color: #4f46e5; }
-        .dropdown:hover .dropdown-content { display: block; }
-        /* KAPALI RESTORAN EFEKTİ */
-        .closed-restaurant {
-            opacity: 0.65;
-            filter: grayscale(80%);
-        }
-        /* 📍 GÜNCELLENEN: KATEGORİ ETİKETLERİ (ÇOKLU SATIR TASARIMI) */
-        .category-filters {
-            display: flex;
-            flex-wrap: wrap; /* 💥 Sihirli Dokunuş: Ekrana sığmayan butonları otomatik alt satıra atar */
-            gap: 10px;
-            margin-bottom: 25px;
-        }
 
-        .cat-btn {
-            background: #f3f4f6;
-            color: #374151;
-            border: none;
-            padding: 8px 18px;
-            border-radius: 20px;
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer;
-            white-space: nowrap; /* Metnin kendi içinde alt satıra inmesini engeller */
-            transition: all 0.2s;
-        }
-        .cat-btn:hover {
-            background: #e5e7eb;
-        }
-        .cat-btn.active {
-            background: #111827 !important;
-            color: white !important;
-        }
+        .dropdown::after { content: ''; position: absolute; top: 100%; left: 0; width: 100%; height: 15px; background: transparent; display: none; }
+        .dropdown:hover::after { display: block; }
+        .dropdown-btn { background-color: #1f2937; color: #f3f4f6; padding: 10px 18px; font-size: 14px; font-weight: 600; border: 1px solid #374151; border-radius: 20px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s; font-family: inherit; }
+        .dropdown-btn:hover { background-color: #374151; border-color: #4b5563; color: white; }
+        
+        .dropdown-content { display: none; position: absolute; right: 0; top: 100%; background-color: #ffffff; min-width: 200px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); border-radius: 12px; overflow: hidden; z-index: 1000; border: 1px solid #e5e7eb; margin-top: 10px; }
+        .dropdown-content a { color: #374151; padding: 12px 18px; text-decoration: none; display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; transition: background-color 0.2s; }
+        .dropdown-content a:hover { background-color: #f3f4f6; color: #4f46e5; }
+        .dropdown:hover .dropdown-content { display: block; }
+
+        .cart-wrapper { position: relative; }
+        .cart-badge { position: absolute; top: -6px; right: -6px; background-color: #ef4444; color: white; font-size: 12px; font-weight: 800; border-radius: 50%; display: flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); border: 2px solid #111827; }
+
+        /* 🌟 KAHRAMAN ALANI (HERO SECTION) */
+        .hero-section { background: linear-gradient(135deg, #111827 0%, #312e81 100%); padding: 70px 5%; color: white; text-align: center; border-bottom: 1px solid #374151; }
+        .hero-section h1 { font-size: 42px; font-weight: 800; margin: 0 0 15px 0; letter-spacing: -1px; }
+        .hero-section p { font-size: 18px; color: #d1d5db; margin-bottom: 0; font-weight: 400; }
+
+        /* 🌟 İÇERİK ALANI & FİLTRELER */
+        .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
+        .section-title { font-size: 24px; font-weight: 700; margin-bottom: 25px; color: #111827; display: flex; align-items: center; gap: 10px; }
+        
+        .category-filters { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 30px; }
+        .cat-btn { background: #ffffff; color: #4b5563; border: 1px solid #e5e7eb; padding: 10px 20px; border-radius: 30px; font-weight: 600; font-size: 14px; cursor: pointer; white-space: nowrap; transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .cat-btn:hover { border-color: #d1d5db; background: #f9fafb; transform: translateY(-2px); }
+        .cat-btn.active { background: #111827 !important; color: white !important; border-color: #111827 !important; box-shadow: 0 4px 10px rgba(17, 24, 39, 0.2); }
+
+        .search-container { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #e5e7eb; margin-bottom: 40px; }
+        .search-form { display: flex; gap: 15px; width: 100%; align-items: center; flex-wrap: wrap; }
+        .search-input, .search-select { padding: 14px 20px; border: 1px solid #d1d5db; border-radius: 12px; font-size: 15px; outline: none; font-family: inherit; transition: border-color 0.2s, box-shadow 0.2s; }
+        .search-input:focus, .search-select:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+        
+        /* 🌟 RESTORAN KARTLARI */
+        .restaurant-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; }
+        .restaurant-card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #f3f4f6; transition: transform 0.2s ease, box-shadow 0.2s ease; text-decoration: none; color: inherit; display: block; position: relative; }
+        .restaurant-card:hover { transform: translateY(-6px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); border-color: #e5e7eb; }
+        .card-image { width: 100%; height: 180px; background-color: #f3f4f6; overflow: hidden; position: relative; }
+        .restaurant-img { width: 100%; height: 100%; background-size: cover; background-position: center; background-repeat: no-repeat; transition: transform 0.5s ease; }
+        .restaurant-card:hover .restaurant-img { transform: scale(1.08); }
+        
+        .card-content { padding: 20px; }
+        .card-title { font-size: 18px; font-weight: 700; margin: 0 0 8px 0; display: flex; justify-content: space-between; align-items: flex-start; color: #111827; }
+        .rating-badge { background: #fef08a; color: #854d0e; padding: 4px 8px; border-radius: 8px; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 4px; border: 1px solid #fde047; }
+        .card-info { color: #6b7280; font-size: 14px; margin-bottom: 15px; font-weight: 500; }
+        .card-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f3f4f6; padding-top: 15px; font-size: 13px; }
+        .cuisine-tag { background: #f3f4f6; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; color: #4b5563; }
+        
+        /* KAPALI RESTORAN EFEKTİ */
+        .closed-restaurant { opacity: 0.7; filter: grayscale(70%); }
     </style>
 </head>
 <body>
 
+    <!-- 🌟 KUSURSUZ NAVBAR (DARK MODE) -->
     <nav class="customer-nav">
-        <a href="/" class="nav-brand">🍔 DeliveryApp</a>
+        <a href="/" class="nav-brand">
+            <!-- Jilet gibi SVG Logomuz -->
+            <img src="{{ url_for('static', filename='images/icons/logo.svg') }}" alt="Lezzet Kapında">
+        </a>
+        
         <div class="nav-links">
-            
             {% if request.endpoint == 'index' %}
-            <button onclick="openAddressModal()" style="background: #f3f4f6; border: 1px solid #e5e7eb; padding: 8px 16px; border-radius: 20px; font-family: inherit; font-weight: 600; color: #374151; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background 0.2s;">
+            <button class="nav-address-btn" onclick="openAddressModal()">
                 📍 <span id="navbar-address-text">{{ session.get('customer_city') or 'Teslimat Adresi Seçin' }}</span> ▾
             </button>
             {% endif %}
@@ -109,14 +133,16 @@
         </div>
     </nav>
 
+    <!-- 🌟 MODERNİZE EDİLMİŞ HERO (KARŞILAMA) ALANI -->
     <div class="hero-section">
         <h1>Bugün canınız ne çekiyor?</h1>
-        <p>Çevrenizdeki en iyi restoranları ve yemekleri keşfedin.</p>
+        <p>Çevrenizdeki en iyi restoranları ve gurme lezzetleri keşfedin.</p>
     </div>
 
     <div class="container">
 
-        <div id="live-order-banner" style="display: none; max-width: 100%; margin: 0 auto 30px auto; background: white; border-radius: 16px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.06); border: 1px solid #f3f4f6; position: relative; overflow: hidden;">
+        <!-- 🌟 CANLI SİPARİŞ TAKİP BANNERI (KORUNDU) -->
+        <div id="live-order-banner" style="display: none; max-width: 100%; margin: 0 auto 40px auto; background: white; border-radius: 16px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.06); border: 1px solid #e5e7eb; position: relative; overflow: hidden;">
             <div id="tracker-accent" style="position: absolute; left: 0; top: 0; bottom: 0; width: 6px; background-color: #f59e0b; transition: background-color 0.3s;"></div>
 
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
@@ -154,7 +180,6 @@
 
         <script>
             function checkOrderStatus() {
-                // Sonuna getTime() ekleyerek tarayıcının tembellik yapıp eski veriyi (cache) getirmesini engelliyoruz
                 fetch('/api/active_order_status?t=' + new Date().getTime())
                     .then(response => response.json())
                     .then(data => {
@@ -171,8 +196,6 @@
                         const step3 = document.getElementById('step-3');
                         
                         if (data.has_active_order) {
-                            
-                            // 📍 YENİ EKLENEN KURAL: Sipariş teslim edildiyse veya iptal edildiyse, takip çubuğunu artık gizle ve işlemi kes.
                             if (data.order_status === 'delivered' || data.order_status === 'canceled') {
                                 banner.style.display = 'none';
                                 return; 
@@ -191,10 +214,7 @@
                                 step2.style.background = '#e5e7eb';
                                 step3.style.background = '#e5e7eb';
 
-                                if(cancelBtn) { 
-                                    cancelBtn.style.display = 'block'; 
-                                    cancelBtn.setAttribute('data-id', data.order_id); 
-                                }
+                                if(cancelBtn) { cancelBtn.style.display = 'block'; cancelBtn.setAttribute('data-id', data.order_id); }
                                 if(trackBtn) trackBtn.style.display = 'none';
 
                             } else if (data.order_status === 'preparing' || data.order_status === 'ready') {
@@ -235,14 +255,13 @@
                     })
                     .catch(err => console.error('Sipariş API hatası:', err));
             }
-            // Sayfa yüklendiğinde ve her 5 saniyede bir kontrol et
             document.addEventListener('DOMContentLoaded', () => { checkOrderStatus(); setInterval(checkOrderStatus, 5000); });
         </script>
 
-        <h2 class="section-title">Yakınınızdaki Popüler Restoranlar</h2>
+        <h2 class="section-title">🍽️ Popüler Kategoriler</h2>
 
         <div class="category-filters">
-            <button class="cat-btn active" data-filter="all">🍽️ Tümü</button>
+            <button class="cat-btn active" data-filter="all">Tümü</button>
             <button class="cat-btn" data-filter="hamburger">🍔 Hamburger</button>
             <button class="cat-btn" data-filter="döner">🥙 Döner</button>
             <button class="cat-btn" data-filter="pizza">🍕 Pizza</button>
@@ -271,30 +290,29 @@
             <button class="cat-btn" data-filter="börek">🥟 Börek</button>
         </div>
 
-        <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 30px; display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
-        <form action="{{ url_for('index') }}" method="GET" style="display: flex; gap: 15px; width: 100%; align-items: center;">
-            <div style="flex: 2; min-width: 200px;">
-                <input type="text" name="search" placeholder="🔍 Restoran, mutfak veya bir yemek arayın (Örn: Lahmacun, Künefe)..." value="{{ request.args.get('search', '') }}" 
-                       style="width: 100%; padding: 12px 15px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 15px; outline: none; box-sizing: border-box;">
-            </div>
-            <div style="flex: 1; min-width: 150px;">
-                <select name="min_rating" style="width: 100%; padding: 12px 15px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 15px; outline: none; background: white; box-sizing: border-box;">
-                    <option value="0" {% if request.args.get('min_rating') == '0' %}selected{% endif %}>⭐ Tüm Puanlar</option>
-                    <option value="4" {% if request.args.get('min_rating') == '4' %}selected{% endif %}>🌟 4+ Yıldız ve Üzeri</option>
-                    <option value="4.5" {% if request.args.get('min_rating') == '4.5' %}selected{% endif %}>🔥 4.5+ Yıldız (Süper)</option>
-                </select>
-            </div>
-            <div>
-                <button type="submit" style="background: #3b82f6; color: white; border: none; padding: 12px 25px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 15px;">Ara</button>
-                <a href="{{ url_for('index') }}" style="text-decoration: none; color: #6b7280; padding: 12px 15px; font-weight: 500; font-size: 14px;">Temizle</a>
-            </div>
-        </form>
+        <div class="search-container">
+            <form action="{{ url_for('index') }}" method="GET" class="search-form">
+                <div style="flex: 2; min-width: 250px;">
+                    <input type="text" name="search" class="search-input" placeholder="🔍 Restoran, mutfak veya bir yemek arayın (Örn: Lahmacun)..." value="{{ request.args.get('search', '') }}" style="width: 100%; box-sizing: border-box;">
+                </div>
+                <div style="flex: 1; min-width: 200px;">
+                    <select name="min_rating" class="search-select" style="width: 100%; background: white; box-sizing: border-box;">
+                        <option value="0" {% if request.args.get('min_rating') == '0' %}selected{% endif %}>⭐ Tüm Puanlar</option>
+                        <option value="4" {% if request.args.get('min_rating') == '4' %}selected{% endif %}>🌟 4+ Yıldız ve Üzeri</option>
+                        <option value="4.5" {% if request.args.get('min_rating') == '4.5' %}selected{% endif %}>🔥 4.5+ Yıldız (Süper)</option>
+                    </select>
+                </div>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <button type="submit" style="background: #4f46e5; color: white; border: none; padding: 14px 25px; border-radius: 12px; font-weight: 600; cursor: pointer; font-size: 15px; font-family: inherit; transition: 0.2s;">Ara</button>
+                    <a href="{{ url_for('index') }}" style="text-decoration: none; color: #6b7280; padding: 14px 15px; font-weight: 600; font-size: 14px; transition: 0.2s;">Temizle</a>
+                </div>
+            </form>
         </div>
         
         <div class="restaurant-grid">
             {% for restaurant in restaurants %}
             
-            <a href="{{ url_for('view_restaurant', restaurant_id=restaurant.get('restaurant_id')) }}" class="restaurant-card filterable-card {% if restaurant.get('is_open') == False %}closed-restaurant{% endif %}" data-category="{{ restaurant.get('cuisine') }}" data-rest-id="{{ restaurant['restaurant_id'] }}" style="position: relative;">
+            <a href="{{ url_for('view_restaurant', restaurant_id=restaurant.get('restaurant_id')) }}" class="restaurant-card filterable-card {% if restaurant.get('is_open') == False %}closed-restaurant{% endif %}" data-category="{{ restaurant.get('cuisine') }}" data-rest-id="{{ restaurant['restaurant_id'] }}">
                 
                 <button class="main-page-fav-btn" data-id="{{ restaurant['restaurant_id'] }}" style="position: absolute; top: 15px; right: 15px; z-index: 10; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
                     {% if restaurant['restaurant_id'] in favorited_restaurant_ids %}
@@ -304,19 +322,19 @@
                     {% endif %}
                 </button>
                 
-                <div class="card-image" style="width: 100%; height: 180px; background-color: #f3f4f6; overflow: hidden; position: relative;">
+                <div class="card-image">
                     
                     {% if restaurant.get('is_open') == False %}
-                    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 15; display: flex; align-items: center; justify-content: center;">
-                        <span style="background: #ef4444; color: white; padding: 8px 16px; border-radius: 8px; font-weight: 700; font-size: 16px; letter-spacing: 0.5px; box-shadow: 0 4px 6px rgba(0,0,0,0.2);">ŞU AN KAPALI</span>
+                    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 15; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(2px);">
+                        <span style="background: #ef4444; color: white; padding: 8px 16px; border-radius: 8px; font-weight: 800; font-size: 14px; letter-spacing: 0.5px; box-shadow: 0 4px 6px rgba(0,0,0,0.2);">ŞU AN KAPALI</span>
                     </div>
                     {% endif %}
 
                     {% if restaurant['image_url'] and restaurant['image_url'] != 'default_restaurant.jpg' %}
                         {% set card_img_path = url_for('static', filename='images/restaurants/' ~ restaurant['image_url']) %}
-                        <div class="restaurant-img" style="width: 100%; height: 100%; background-image: url('{{ card_img_path }}'); background-size: cover; background-position: center; background-repeat: no-repeat;"></div>
+                        <div class="restaurant-img" style="background-image: url('{{ card_img_path }}');"></div>
                     {% else %}
-                        <div style="font-size: 40px; display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;">
+                        <div style="font-size: 50px; display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;">
                             {% if restaurant['cuisine'] == 'Pizza' %} 🍕 
                             {% elif restaurant['cuisine'] == 'Burger' %} 🍔
                             {% elif restaurant['cuisine'] == 'Sushi' %} 🍣
@@ -331,7 +349,7 @@
                         <span class="rating-badge">⭐ {{ restaurant['rating'] }}</span>
                     </div>
                     <div class="card-info">{{ restaurant['city'] }} • {{ restaurant['restaurant_address'] }}</div>
-                    <div class="card-footer" style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f3f4f6; padding-top: 12px; font-size: 13px; color: #4b5563;">
+                    <div class="card-footer">
                         <span class="cuisine-tag">{{ restaurant['cuisine'] }}</span>
                         
                         <div style="display: flex; align-items: center; gap: 10px;">
@@ -341,20 +359,22 @@
                                 {% set max_time = min_time + 10 %}
                                 
                                 <span style="color: #6b7280; font-weight: 600; display: flex; align-items: center; gap: 4px;">📍 {{ restaurant['distance'] }} km</span>
-                                <span style="background: #ecfdf5; color: #059669; padding: 4px 8px; border-radius: 6px; font-weight: 700; display: flex; align-items: center; gap: 4px;">🛵 {{ min_time }}-{{ max_time }} dk</span>
+                                <span style="background: #ecfdf5; color: #059669; padding: 4px 8px; border-radius: 8px; font-weight: 700; display: flex; align-items: center; gap: 4px;">🛵 {{ min_time }}-{{ max_time }} dk</span>
                             {% else %}
-                                <span style="background: #ecfdf5; color: #059669; padding: 4px 8px; border-radius: 6px; font-weight: 700; display: flex; align-items: center; gap: 4px;">🛵 30-45 dk</span>
+                                <span style="background: #ecfdf5; color: #059669; padding: 4px 8px; border-radius: 8px; font-weight: 700; display: flex; align-items: center; gap: 4px;">🛵 30-45 dk</span>
                             {% endif %}
                         </div>
                     </div>
                 </div>
             </a>
             {% else %}
-                <p style="grid-column: 1 / -1; text-align: center; color: #6b7280; font-size: 16px;">Çevrenizde henüz uygun bir restoran bulunmuyor. 😢</p>
+                <p style="grid-column: 1 / -1; text-align: center; color: #6b7280; font-size: 16px; padding: 40px; background: white; border-radius: 16px; border: 1px dashed #d1d5db;">Çevrenizde henüz uygun bir restoran bulunmuyor. 😢</p>
             {% endfor %}
         </div>
     </div>
 
+    <!-- 🌟 MODALLAR VE SCRİPTLER (AŞAĞIDAKİ TÜM KODLAR KORUNDU) -->
+    
     <div id="location-data" data-has-location="{{ 'true' if session.get('latitude') else 'false' }}" style="display:none;"></div>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
@@ -395,7 +415,7 @@
                 <button onclick="closeAddressModal()" style="background:none; border:none; font-size:24px; cursor:pointer; color:#9ca3af;">&times;</button>
             </div>
             <div id="addresses-container" style="max-height:250px; overflow-y:auto; display:flex; flex-direction:column; gap:10px;"></div>
-            <button onclick="openNewAddressModal()" style="background:#4f46e5; color:white; border:none; padding:12px; border-radius:8px; font-weight:600; cursor:pointer; width:100%; text-align:center; margin-top:10px;">+ Yeni Adres Ekle</button>
+            <button onclick="openNewAddressModal()" style="background:#4f46e5; color:white; border:none; padding:12px; border-radius:12px; font-weight:600; cursor:pointer; width:100%; text-align:center; margin-top:10px; font-family: inherit;">+ Yeni Adres Ekle</button>
         </div>
     </div>
 
@@ -406,7 +426,7 @@
                 <button onclick="document.getElementById('addressMapModal').style.display='none'" style="background:none; border:none; font-size:24px; cursor:pointer;">&times;</button>
             </div>
             <div id="address-picker-map" style="width:100%; height:300px; border-radius:12px; border:1px solid #ddd; position:relative;"></div>
-            <button onclick="confirmMapLocation()" style="background:#10b981; color:white; border:none; padding:12px; border-radius:8px; font-weight:600; cursor:pointer; width:100%;">Bu Konumu Kullan</button>
+            <button onclick="confirmMapLocation()" style="background:#10b981; color:white; border:none; padding:12px; border-radius:12px; font-weight:600; cursor:pointer; width:100%; font-family: inherit;">Bu Konumu Kullan</button>
         </div>
     </div>
 
@@ -489,7 +509,7 @@
             </div>
 
             <input type="hidden" id="addr-lat"><input type="hidden" id="addr-lon">
-            <button id="form-submit-btn" onclick="submitAddressForm()" style="background:#4f46e5; color:white; border:none; padding:12px; border-radius:8px; font-weight:600; cursor:pointer; width:100%;">Adresi Kaydet ve Kullan</button>
+            <button id="form-submit-btn" onclick="submitAddressForm()" style="background:#4f46e5; color:white; border:none; padding:12px; border-radius:12px; font-weight:600; cursor:pointer; width:100%; font-family: inherit;">Adresi Kaydet ve Kullan</button>
         </div>
     </div>
 
@@ -501,18 +521,11 @@
         let globalAddresses = []; 
         let editingAddressId = null;
 
-        function openAddressModal() {
-            document.getElementById('addressListModal').style.display = 'flex';
-            fetchActiveAddresses();
-        }
-        function closeAddressModal() {
-            document.getElementById('addressListModal').style.display = 'none';
-        }
+        function openAddressModal() { document.getElementById('addressListModal').style.display = 'flex'; fetchActiveAddresses(); }
+        function closeAddressModal() { document.getElementById('addressListModal').style.display = 'none'; }
 
         function fetchActiveAddresses() {
-            fetch('/api/get_addresses')
-            .then(res => res.json())
-            .then(data => {
+            fetch('/api/get_addresses').then(res => res.json()).then(data => {
                 if(data.success) {
                     globalAddresses = data.addresses; 
                     const container = document.getElementById('addresses-container');
@@ -541,48 +554,24 @@
             });
         }
 
-        function selectActiveAddress(id) {
-            fetch('/api/select_address', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({address_id: id})
-            }).then(res => res.json()).then(data => { if(data.success) location.reload(); });
-        }
+        function selectActiveAddress(id) { fetch('/api/select_address', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({address_id: id}) }).then(res => res.json()).then(data => { if(data.success) location.reload(); }); }
 
         function addGpsButtonToMap() {
             if(gpsControl) return; 
-            
             gpsControl = L.control({position: 'topleft'});
             gpsControl.onAdd = function(map) {
                 let btn = L.DomUtil.create('button', 'leaflet-bar leaflet-control');
                 btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-top:3px;"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><circle cx="12" cy="12" r="8"></circle></svg>';
-                btn.style.backgroundColor = 'white';
-                btn.style.width = '34px';
-                btn.style.height = '34px';
-                btn.style.cursor = 'pointer';
-                btn.style.display = 'flex';
-                btn.style.justifyContent = 'center';
-                btn.style.alignItems = 'center';
-                btn.title = "Mevcut Konumumu Bul";
-                
+                btn.style.backgroundColor = 'white'; btn.style.width = '34px'; btn.style.height = '34px'; btn.style.cursor = 'pointer'; btn.style.display = 'flex'; btn.style.justifyContent = 'center'; btn.style.alignItems = 'center'; btn.title = "Mevcut Konumumu Bul";
                 btn.onclick = function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
+                    e.preventDefault(); e.stopPropagation();
                     if(navigator.geolocation) {
                         btn.style.opacity = '0.5'; 
                         navigator.geolocation.getCurrentPosition(function(pos) {
-                            let lat = pos.coords.latitude; 
-                            let lon = pos.coords.longitude;
-                            pickerMap.setView([lat, lon], 16);
-                            pickerMarker.setLatLng([lat, lon]);
-                            btn.style.opacity = '1';
-                        }, function() {
-                            showToast("Konum alınamadı. Lütfen tarayıcı izinlerinizi kontrol edin.", "error");
-                            btn.style.opacity = '1';
-                        });
-                    } else {
-                        showToast("Tarayıcınız konum özelliğini desteklemiyor.", "error");
-                    }
+                            let lat = pos.coords.latitude; let lon = pos.coords.longitude;
+                            pickerMap.setView([lat, lon], 16); pickerMarker.setLatLng([lat, lon]); btn.style.opacity = '1';
+                        }, function() { showToast("Konum alınamadı. Lütfen tarayıcı izinlerinizi kontrol edin.", "error"); btn.style.opacity = '1'; });
+                    } else { showToast("Tarayıcınız konum özelliğini desteklemiyor.", "error"); }
                 };
                 return btn;
             };
@@ -595,10 +584,7 @@
             document.getElementById('form-modal-title').innerText = "Yeni Adres Ekle";
             document.getElementById('form-submit-btn').innerText = "Adresi Kaydet ve Kullan";
             document.querySelectorAll('#addressFormModal input[type="text"], #addressFormModal input[type="tel"], #addressFormModal textarea').forEach(el => el.value = '');
-            
-            closeAddressModal();
-            document.getElementById('addressMapModal').style.display = 'flex';
-            
+            closeAddressModal(); document.getElementById('addressMapModal').style.display = 'flex';
             setTimeout(() => {
                 if (!pickerMap) {
                     pickerMap = L.map('address-picker-map').setView([41.0082, 28.9784], 12);
@@ -606,15 +592,11 @@
                     pickerMarker = L.marker([41.0082, 28.9784], {draggable: true}).addTo(pickerMap);
                     pickerMap.on('click', function(e) { pickerMarker.setLatLng(e.latlng); });
                     addGpsButtonToMap(); 
-                } else {
-                    pickerMap.invalidateSize();
-                }
-                
+                } else { pickerMap.invalidateSize(); }
                 if(navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition(function(pos) {
                         let lat = pos.coords.latitude; let lon = pos.coords.longitude;
-                        pickerMap.setView([lat, lon], 16);
-                        pickerMarker.setLatLng([lat, lon]);
+                        pickerMap.setView([lat, lon], 16); pickerMarker.setLatLng([lat, lon]);
                     });
                 }
             }, 200);
@@ -622,33 +604,15 @@
 
         function startEditingAddress(event, id) {
             event.stopPropagation(); 
-            
             editingAddressId = id; 
             const addr = globalAddresses.find(a => a.address_id === id);
             if(!addr) return;
-
             document.getElementById('map-modal-title').innerText = "Konumu Güncelleyin";
             document.getElementById('form-modal-title').innerText = "Adresi Düzenle";
             document.getElementById('form-submit-btn').innerText = "Değişiklikleri Kaydet";
-
-            document.getElementById('addr-title').value = addr.title;
-            document.getElementById('addr-city').value = addr.city;
-            document.getElementById('addr-district').value = addr.district;
-            document.getElementById('addr-neighborhood').value = addr.neighborhood;
-            document.getElementById('addr-street').value = addr.street;
-            document.getElementById('addr-building').value = addr.building_no;
-            document.getElementById('addr-floor').value = addr.floor_no || '';
-            document.getElementById('addr-apt').value = addr.apt_no || '';
-            document.getElementById('addr-directions').value = addr.directions || '';
-            document.getElementById('addr-cname').value = addr.contact_name || '';
-            document.getElementById('addr-cphone').value = addr.contact_phone || '';
-
-            selectedLat = addr.latitude;
-            selectedLon = addr.longitude;
-
-            closeAddressModal();
-            document.getElementById('addressMapModal').style.display = 'flex';
-
+            document.getElementById('addr-title').value = addr.title; document.getElementById('addr-city').value = addr.city; document.getElementById('addr-district').value = addr.district; document.getElementById('addr-neighborhood').value = addr.neighborhood; document.getElementById('addr-street').value = addr.street; document.getElementById('addr-building').value = addr.building_no; document.getElementById('addr-floor').value = addr.floor_no || ''; document.getElementById('addr-apt').value = addr.apt_no || ''; document.getElementById('addr-directions').value = addr.directions || ''; document.getElementById('addr-cname').value = addr.contact_name || ''; document.getElementById('addr-cphone').value = addr.contact_phone || '';
+            selectedLat = addr.latitude; selectedLon = addr.longitude;
+            closeAddressModal(); document.getElementById('addressMapModal').style.display = 'flex';
             setTimeout(() => {
                 if (!pickerMap) {
                     pickerMap = L.map('address-picker-map').setView([selectedLat, selectedLon], 16);
@@ -657,66 +621,28 @@
                     pickerMap.on('click', function(e) { pickerMarker.setLatLng(e.latlng); });
                     addGpsButtonToMap(); 
                 } else {
-                    pickerMap.setView([selectedLat, selectedLon], 16);
-                    pickerMarker.setLatLng([selectedLat, selectedLon]);
-                    pickerMap.invalidateSize();
+                    pickerMap.setView([selectedLat, selectedLon], 16); pickerMarker.setLatLng([selectedLat, selectedLon]); pickerMap.invalidateSize();
                 }
             }, 200);
         }
 
         function confirmMapLocation() {
-            let pos = pickerMarker.getLatLng();
-            selectedLat = pos.lat;
-            selectedLon = pos.lng;
-            
-            document.getElementById('addressMapModal').style.display = 'none';
-            document.getElementById('addressFormModal').style.display = 'flex';
-            
-            document.getElementById('addr-lat').value = selectedLat;
-            document.getElementById('addr-lon').value = selectedLon;
+            let pos = pickerMarker.getLatLng(); selectedLat = pos.lat; selectedLon = pos.lng;
+            document.getElementById('addressMapModal').style.display = 'none'; document.getElementById('addressFormModal').style.display = 'flex';
+            document.getElementById('addr-lat').value = selectedLat; document.getElementById('addr-lon').value = selectedLon;
         }
 
         function submitAddressForm() {
             const payload = {
-                title: document.getElementById('addr-title').value,
-                city: document.getElementById('addr-city').value,
-                district: document.getElementById('addr-district').value,
-                neighborhood: document.getElementById('addr-neighborhood').value,
-                street: document.getElementById('addr-street').value,
-                building_no: document.getElementById('addr-building').value,
-                floor_no: document.getElementById('addr-floor').value,
-                apt_no: document.getElementById('addr-apt').value,
-                directions: document.getElementById('addr-directions').value,
-                contact_name: document.getElementById('addr-cname').value,
-                contact_phone: document.getElementById('addr-cphone').value,
-                latitude: selectedLat,
-                longitude: selectedLon
+                title: document.getElementById('addr-title').value, city: document.getElementById('addr-city').value, district: document.getElementById('addr-district').value, neighborhood: document.getElementById('addr-neighborhood').value, street: document.getElementById('addr-street').value, building_no: document.getElementById('addr-building').value, floor_no: document.getElementById('addr-floor').value, apt_no: document.getElementById('addr-apt').value, directions: document.getElementById('addr-directions').value, contact_name: document.getElementById('addr-cname').value, contact_phone: document.getElementById('addr-cphone').value, latitude: selectedLat, longitude: selectedLon
             };
-
             if(!payload.title || !payload.city || !payload.district || !payload.neighborhood || !payload.street || !payload.building_no || !payload.contact_name || !payload.contact_phone) {
-                showToast("Lütfen zorunlu (*) alanları doldurun.", "error");
-                return;
+                showToast("Lütfen zorunlu (*) alanları doldurun.", "error"); return;
             }
-
             let apiEndpoint = '/api/add_address';
-            if(editingAddressId !== null) {
-                payload.address_id = editingAddressId;
-                apiEndpoint = '/api/update_address';
-            }
-
-            fetch(apiEndpoint, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(payload)
-            })
-            .then(res => res.json())
-            .then(data => {
-                if(data.success) {
-                    location.reload(); 
-                } else {
-                    showToast("Hata: " + data.message, "error");
-                }
-            });
+            if(editingAddressId !== null) { payload.address_id = editingAddressId; apiEndpoint = '/api/update_address'; }
+            fetch(apiEndpoint, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) })
+            .then(res => res.json()).then(data => { if(data.success) { location.reload(); } else { showToast("Hata: " + data.message, "error"); } });
         }
     </script>
 
@@ -747,60 +673,32 @@
             const confirmModal = document.getElementById('cancelConfirmModal');
             const btnYes = document.getElementById('btn-cancel-yes');
             const btnNo = document.getElementById('btn-cancel-no');
-
             const alertModal = document.getElementById('customAlertModal');
             const alertTitle = document.getElementById('customAlertTitle');
             const alertMessage = document.getElementById('customAlertMessage');
             const alertIcon = document.getElementById('customAlertIcon');
             const btnAlertOk = document.getElementById('btn-alert-ok');
-
             let currentOrderIdToCancel = null;
 
             function showCustomAlert(title, message, isSuccess, reloadOnClose = false) {
-                alertTitle.innerText = title;
-                alertMessage.innerText = message;
-                alertIcon.innerText = isSuccess ? '✅' : '❌';
-                alertModal.style.display = 'flex';
-                btnAlertOk.onclick = function() {
-                    alertModal.style.display = 'none';
-                    if(reloadOnClose) window.location.reload();
-                };
+                alertTitle.innerText = title; alertMessage.innerText = message; alertIcon.innerText = isSuccess ? '✅' : '❌'; alertModal.style.display = 'flex';
+                btnAlertOk.onclick = function() { alertModal.style.display = 'none'; if(reloadOnClose) window.location.reload(); };
             }
 
             if (liveCancelBtn) {
                 liveCancelBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    currentOrderIdToCancel = this.getAttribute('data-id');
-                    confirmModal.style.display = 'flex'; 
+                    e.preventDefault(); currentOrderIdToCancel = this.getAttribute('data-id'); confirmModal.style.display = 'flex'; 
                 });
             }
 
-            btnNo.addEventListener('click', function() {
-                confirmModal.style.display = 'none';
-                currentOrderIdToCancel = null;
-            });
+            btnNo.addEventListener('click', function() { confirmModal.style.display = 'none'; currentOrderIdToCancel = null; });
 
             btnYes.addEventListener('click', function() {
-                confirmModal.style.display = 'none'; 
-                if (!currentOrderIdToCancel) return;
-
-                fetch('/api/cancel_order', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-                    body: JSON.stringify({ order_id: currentOrderIdToCancel })
-                })
+                confirmModal.style.display = 'none'; if (!currentOrderIdToCancel) return;
+                fetch('/api/cancel_order', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, body: JSON.stringify({ order_id: currentOrderIdToCancel }) })
                 .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        showCustomAlert("Başarılı!", data.message, true, true);
-                    } else {
-                        showCustomAlert("İptal Edilemedi", data.message, false, false);
-                    }
-                })
-                .catch(error => {
-                    console.error('İptal işlemi hatası:', error);
-                    showCustomAlert("Bağlantı Hatası", "Bir hata oluştu.", false, false);
-                });
+                .then(data => { if (data.success) { showCustomAlert("Başarılı!", data.message, true, true); } else { showCustomAlert("İptal Edilemedi", data.message, false, false); } })
+                .catch(error => { console.error('İptal işlemi hatası:', error); showCustomAlert("Bağlantı Hatası", "Bir hata oluştu.", false, false); });
             });
         });
     </script>
@@ -808,28 +706,13 @@
         document.addEventListener("DOMContentLoaded", function() {
             const catBtns = document.querySelectorAll('.cat-btn');
             const cards = document.querySelectorAll('.filterable-card');
-
             catBtns.forEach(btn => {
                 btn.addEventListener('click', () => {
-                    // 1. Tüm butonlardan 'active' sınıfını sök (Siyah rengi sıfırla)
-                    catBtns.forEach(b => b.classList.remove('active'));
-                    
-                    // 2. Sadece Tıklanan butona 'active' sınıfını ekle (Siyah yap)
-                    btn.classList.add('active');
-
-                    // 3. Butonun içindeki filtre kelimesini al (Örn: "burger")
+                    catBtns.forEach(b => b.classList.remove('active')); btn.classList.add('active');
                     const filterValue = btn.getAttribute('data-filter').toLowerCase();
-
-                    // 4. Kartları gizle veya göster
                     cards.forEach(card => {
                         const category = (card.getAttribute('data-category') || '').toLowerCase();
-                        
-                        // Eğer 'Tümü' seçildiyse VEYA restoranın kategorisi butondaki kelimeyi içeriyorsa göster
-                        if (filterValue === 'all' || category.includes(filterValue)) {
-                            card.style.display = 'block';
-                        } else {
-                            card.style.display = 'none';
-                        }
+                        if (filterValue === 'all' || category.includes(filterValue)) { card.style.display = 'block'; } else { card.style.display = 'none'; }
                     });
                 });
             });
@@ -841,7 +724,6 @@
     </button>
 
     <div id="ai-chat-window" style="display: none; position: fixed; bottom: 100px; right: 30px; width: 350px; height: 500px; background: white; border-radius: 16px; box-shadow: 0 15px 35px rgba(0,0,0,0.15); z-index: 9998; flex-direction: column; overflow: hidden; border: 1px solid #e5e7eb; font-family: 'Inter', sans-serif;">
-        
         <div style="background: linear-gradient(135deg, #4f46e5, #ec4899); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;">
             <div style="display: flex; align-items: center; gap: 10px;">
                 <span style="font-size: 24px;">🤖</span>
@@ -852,13 +734,11 @@
             </div>
             <button onclick="toggleChat()" style="background: none; border: none; color: white; font-size: 20px; cursor: pointer;">&times;</button>
         </div>
-
         <div id="chat-messages" style="flex: 1; padding: 20px; overflow-y: auto; background: #f9fafb; display: flex; flex-direction: column; gap: 15px;">
             <div style="align-self: flex-start; background: white; padding: 12px 16px; border-radius: 16px 16px 16px 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); font-size: 14px; color: #374151; max-width: 85%; border: 1px solid #f3f4f6; line-height: 1.5;">
                 Merhaba! Ben Gurme Asistan. 🧑‍🍳<br>Bugün canın ne çekiyor? Sana en uygun restoranları ve yemekleri hemen bulabilirim!
             </div>
         </div>
-
         <div style="padding: 15px; background: white; border-top: 1px solid #e5e7eb; display: flex; gap: 10px;">
             <input type="text" id="chat-input" placeholder="Örn: Tatlı krizim tuttu..." style="flex: 1; padding: 10px 15px; border: 1px solid #d1d5db; border-radius: 20px; font-size: 14px; outline: none; font-family: inherit;" onkeypress="if(event.key === 'Enter') sendChatMessage()">
             <button onclick="sendChatMessage()" style="background: #4f46e5; color: white; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.2s;">
@@ -868,61 +748,28 @@
     </div>
 
     <script>
-        function toggleChat() {
-            const chatWindow = document.getElementById('ai-chat-window');
-            chatWindow.style.display = chatWindow.style.display === 'none' ? 'flex' : 'none';
-        }
-
+        function toggleChat() { const chatWindow = document.getElementById('ai-chat-window'); chatWindow.style.display = chatWindow.style.display === 'none' ? 'flex' : 'none'; }
         function sendChatMessage() {
-            const input = document.getElementById('chat-input');
-            const message = input.value.trim();
-            if (!message) return;
-
-            addMessageToChat(message, 'user');
-            input.value = '';
-
-            const typingId = 'typing-' + Date.now();
-            addMessageToChat("Düşünüyor... 💭", 'ai', typingId);
-
-            fetch('/api/ask_ai', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ message: message })
-            })
+            const input = document.getElementById('chat-input'); const message = input.value.trim(); if (!message) return;
+            addMessageToChat(message, 'user'); input.value = '';
+            const typingId = 'typing-' + Date.now(); addMessageToChat("Düşünüyor... 💭", 'ai', typingId);
+            fetch('/api/ask_ai', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ message: message }) })
             .then(res => res.json())
             .then(data => {
                 document.getElementById(typingId).remove();
-                
                 if (data.success) {
-                    // Markdown tipi formatları biraz daha HTML'e uygun hale getirelim
-                    let formattedText = data.response.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-                    formattedText = formattedText.replace(/\n/g, '<br>');
-                    addMessageToChat(formattedText, 'ai');
-                } else {
-                    addMessageToChat(data.response || "Bir hata oluştu. 😔", 'ai');
-                }
-            })
-            .catch(err => {
-                document.getElementById(typingId).remove();
-                addMessageToChat("Bağlantı hatası oluştu.", 'ai');
-            });
+                    let formattedText = data.response.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'); formattedText = formattedText.replace(/\n/g, '<br>'); addMessageToChat(formattedText, 'ai');
+                } else { addMessageToChat(data.response || "Bir hata oluştu. 😔", 'ai'); }
+            }).catch(err => { document.getElementById(typingId).remove(); addMessageToChat("Bağlantı hatası oluştu.", 'ai'); });
         }
-
         function addMessageToChat(text, sender, id = null) {
-            const chatContainer = document.getElementById('chat-messages');
-            const msgDiv = document.createElement('div');
-            if(id) msgDiv.id = id;
-
+            const chatContainer = document.getElementById('chat-messages'); const msgDiv = document.createElement('div'); if(id) msgDiv.id = id;
             if (sender === 'user') {
-                msgDiv.style = "align-self: flex-end; background: #4f46e5; color: white; padding: 12px 16px; border-radius: 16px 16px 4px 16px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); font-size: 14px; max-width: 85%; word-wrap: break-word; line-height: 1.5;";
-                msgDiv.innerText = text;
+                msgDiv.style = "align-self: flex-end; background: #4f46e5; color: white; padding: 12px 16px; border-radius: 16px 16px 4px 16px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); font-size: 14px; max-width: 85%; word-wrap: break-word; line-height: 1.5;"; msgDiv.innerText = text;
             } else if (sender === 'ai') {
-                msgDiv.style = "align-self: flex-start; background: white; color: #374151; padding: 12px 16px; border-radius: 16px 16px 16px 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); font-size: 14px; max-width: 85%; border: 1px solid #f3f4f6; line-height: 1.5;";
-                msgDiv.innerHTML = text; // Gemini'den gelen formatlı metin için innerHTML
+                msgDiv.style = "align-self: flex-start; background: white; color: #374151; padding: 12px 16px; border-radius: 16px 16px 16px 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); font-size: 14px; max-width: 85%; border: 1px solid #f3f4f6; line-height: 1.5;"; msgDiv.innerHTML = text;
             }
-
-            chatContainer.appendChild(msgDiv);
-            chatContainer.scrollTop = chatContainer.scrollHeight; 
+            chatContainer.appendChild(msgDiv); chatContainer.scrollTop = chatContainer.scrollHeight; 
         }
     </script>
 
@@ -931,181 +778,77 @@
             setInterval(() => {
                 const restaurantCards = document.querySelectorAll('.restaurant-card[data-rest-id]');
                 const restaurantIds = Array.from(restaurantCards).map(card => card.getAttribute('data-rest-id'));
-                
                 if (restaurantIds.length === 0) return;
-
-                fetch('/api/restaurant_statuses', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
-                    body: JSON.stringify({ restaurant_ids: restaurantIds })
-                })
+                fetch('/api/restaurant_statuses', { method: 'POST', headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'}, body: JSON.stringify({ restaurant_ids: restaurantIds }) })
                 .then(res => res.json())
                 .then(data => {
                     if (data.success && data.statuses) {
                         restaurantCards.forEach(card => {
-                            const restId = card.getAttribute('data-rest-id');
-                            const isOpen = data.statuses[restId];
-                            const isCurrentlyClosedInUI = card.classList.contains('closed-restaurant');
-                            const imgContainer = card.querySelector('.card-image');
-
-                            // 🛑 Restoran yeni KAPANIRSA
+                            const restId = card.getAttribute('data-rest-id'); const isOpen = data.statuses[restId]; const isCurrentlyClosedInUI = card.classList.contains('closed-restaurant'); const imgContainer = card.querySelector('.card-image');
                             if (isOpen === false && !isCurrentlyClosedInUI) {
                                 card.classList.add('closed-restaurant');
-                                
-                                const badgeHtml = `<div class="live-closed-badge" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 15; display: flex; align-items: center; justify-content: center;">
-                                    <span style="background: #ef4444; color: white; padding: 8px 16px; border-radius: 8px; font-weight: 700; font-size: 16px; letter-spacing: 0.5px; box-shadow: 0 4px 6px rgba(0,0,0,0.2);">ŞU AN KAPALI</span>
+                                const badgeHtml = `<div class="live-closed-badge" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 15; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(2px);">
+                                    <span style="background: #ef4444; color: white; padding: 8px 16px; border-radius: 8px; font-weight: 800; font-size: 14px; letter-spacing: 0.5px; box-shadow: 0 4px 6px rgba(0,0,0,0.2);">ŞU AN KAPALI</span>
                                 </div>`;
                                 imgContainer.insertAdjacentHTML('beforeend', badgeHtml);
-                            } 
-                            // 🟢 Restoran yeni AÇILIRSA
-                            else if (isOpen === true && isCurrentlyClosedInUI) {
+                            } else if (isOpen === true && isCurrentlyClosedInUI) {
                                 card.classList.remove('closed-restaurant');
-                                
-                                // Yeni eklenen veya eskiden Jinja ile gelen kapalı rozetlerini sil
-                                const liveBadge = imgContainer.querySelector('.live-closed-badge');
-                                if (liveBadge) liveBadge.remove();
-                                
-                                Array.from(imgContainer.children).forEach(child => {
-                                    if (child.innerText && child.innerText.includes('KAPALI')) child.remove();
-                                });
+                                const liveBadge = imgContainer.querySelector('.live-closed-badge'); if (liveBadge) liveBadge.remove();
+                                Array.from(imgContainer.children).forEach(child => { if (child.innerText && child.innerText.includes('KAPALI')) child.remove(); });
                             }
                         });
                     }
-                })
-                .catch(err => console.log('Ana sayfa restoran tarama hatası:', err));
-            }, 15000); // Sistemi yormamak için her 15 saniyede bir toplu kontrol eder
+                }).catch(err => console.log('Ana sayfa restoran tarama hatası:', err));
+            }, 15000); 
         });
     </script>
 
     <script>
-        let trackingMap = null;
-        let courierMarker = null;
-        let restMarker = null;
-        let custMarker = null;
-        let trackingInterval = null;
-        let currentTrackOrderId = null;
-
-        // 🛵 1. Teslimat Motoru İkonu (Gerçekçi)
-        const motorIcon = L.divIcon({
-            html: '<div style="font-size: 40px; line-height: 1; filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.4));">🛵</div>',
-            className: '', // Leaflet'in varsayılan beyaz arka planını kaldırır
-            iconSize: [40, 40], 
-            iconAnchor: [20, 20], 
-            popupAnchor: [0, -20]
-        });
-
-        // 🏪 2. Restoran (Dükkan) İkonu
-        const restIcon = L.icon({
-            iconUrl: 'https://cdn-icons-png.flaticon.com/512/3448/3448609.png', 
-            iconSize: [38, 38], iconAnchor: [19, 38], popupAnchor: [0, -38]
-        });
-
-        // 🏠 3. Müşteri (Ev) İkonu
-        const homeIcon = L.icon({
-            iconUrl: 'https://cdn-icons-png.flaticon.com/512/2558/2558062.png', 
-            iconSize: [38, 38], iconAnchor: [19, 38], popupAnchor: [0, -38]
-        });
+        let trackingMap = null; let courierMarker = null; let restMarker = null; let custMarker = null; let trackingInterval = null; let currentTrackOrderId = null;
+        const motorIcon = L.divIcon({ html: '<div style="font-size: 40px; line-height: 1; filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.4));">🛵</div>', className: '', iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -20] });
+        const restIcon = L.icon({ iconUrl: 'https://cdn-icons-png.flaticon.com/512/3448/3448609.png', iconSize: [38, 38], iconAnchor: [19, 38], popupAnchor: [0, -38] });
+        const homeIcon = L.icon({ iconUrl: 'https://cdn-icons-png.flaticon.com/512/2558/2558062.png', iconSize: [38, 38], iconAnchor: [19, 38], popupAnchor: [0, -38] });
 
         function openTrackModal(orderId) {
-            currentTrackOrderId = orderId;
-            document.getElementById('courierTrackModal').style.display = 'flex';
-            
+            currentTrackOrderId = orderId; document.getElementById('courierTrackModal').style.display = 'flex';
             setTimeout(() => {
                 if (!trackingMap) {
                     trackingMap = L.map('live-tracking-map').setView([41.0082, 28.9784], 15);
-                    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-                        attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
-                    }).addTo(trackingMap);
+                    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: '&copy; OpenStreetMap contributors &copy; CARTO' }).addTo(trackingMap);
                 }
-                trackingMap.invalidateSize(); 
-                
-                fetchCourierLocation();
-                trackingInterval = setInterval(fetchCourierLocation, 5000);
+                trackingMap.invalidateSize(); fetchCourierLocation(); trackingInterval = setInterval(fetchCourierLocation, 5000);
             }, 200);
         }
 
-        function closeTrackModal() {
-            document.getElementById('courierTrackModal').style.display = 'none';
-            if (trackingInterval) clearInterval(trackingInterval);
-        }
+        function closeTrackModal() { document.getElementById('courierTrackModal').style.display = 'none'; if (trackingInterval) clearInterval(trackingInterval); }
 
         function fetchCourierLocation() {
             if (!currentTrackOrderId) return;
-
-            fetch('/api/get_courier_location', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
-                body: JSON.stringify({ order_id: currentTrackOrderId })
-            })
+            fetch('/api/get_courier_location', { method: 'POST', headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'}, body: JSON.stringify({ order_id: currentTrackOrderId }) })
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
                     const courierLatLng = new L.LatLng(data.lat, data.lon);
-
-                    // 1. Restoran İkonunu Haritaya Koy (Eğer Yoksa)
-                    if (!restMarker && data.rest_lat && data.rest_lon) {
-                        restMarker = L.marker([data.rest_lat, data.rest_lon], {icon: restIcon}).addTo(trackingMap);
-                        restMarker.bindPopup(`<b>${data.rest_name}</b><br>Siparişi Hazırlayan`);
-                    }
-
-                    // 2. Müşteri Ev İkonunu Haritaya Koy (Eğer Yoksa)
-                    if (!custMarker && data.cust_lat && data.cust_lon) {
-                        custMarker = L.marker([data.cust_lat, data.cust_lon], {icon: homeIcon}).addTo(trackingMap);
-                        custMarker.bindPopup(`<b>Teslimat Adresiniz</b>`);
-                    }
-
-                    // 3. Kurye Motorunu Haritaya Koy ve Kaydır
+                    if (!restMarker && data.rest_lat && data.rest_lon) { restMarker = L.marker([data.rest_lat, data.rest_lon], {icon: restIcon}).addTo(trackingMap); restMarker.bindPopup(`<b>${data.rest_name}</b><br>Siparişi Hazırlayan`); }
+                    if (!custMarker && data.cust_lat && data.cust_lon) { custMarker = L.marker([data.cust_lat, data.cust_lon], {icon: homeIcon}).addTo(trackingMap); custMarker.bindPopup(`<b>Teslimat Adresiniz</b>`); }
                     if (!courierMarker) {
-                        courierMarker = L.marker(courierLatLng, {icon: motorIcon}).addTo(trackingMap);
-                        courierMarker.bindPopup(`<b>${data.name}</b><br>Size doğru geliyor!`).openPopup();
-                        
-                        // 📍 SİHİR: Haritayı bu 3 ikonun hepsini ekrana sığdıracak şekilde otomatik uzaklaştır/yakınlaştır
-                        const group = new L.featureGroup([restMarker, custMarker, courierMarker].filter(Boolean));
-                        trackingMap.fitBounds(group.getBounds(), {padding: [40, 40]});
-                        
-                    } else {
-                        // Motor zaten varsa sadece pürüzsüzce kaydır
-                        courierMarker.setLatLng(courierLatLng);
-                        trackingMap.panTo(courierLatLng);
-                    }
+                        courierMarker = L.marker(courierLatLng, {icon: motorIcon}).addTo(trackingMap); courierMarker.bindPopup(`<b>${data.name}</b><br>Size doğru geliyor!`).openPopup();
+                        const group = new L.featureGroup([restMarker, custMarker, courierMarker].filter(Boolean)); trackingMap.fitBounds(group.getBounds(), {padding: [40, 40]});
+                    } else { courierMarker.setLatLng(courierLatLng); trackingMap.panTo(courierLatLng); }
 
-                    if (data.success) {
-                    // ... (Mevcut harita ikonlarını çizen kodlar burada duracak) ...
-
-                    // 🟢 YENİ: Sipariş Teslim Edildiyse Barı Doldur ve Haritayı Kapat!
                     if (data.order_status === 'delivered') {
-                        // Kurye takibini (interval) durdur
                         clearInterval(trackingInterval);
-                        
-                        // İlerleme çubuğunu %100 yap
                         document.getElementById('modal-progress-line').style.width = '100%';
-                        
-                        // Adım 2 (Yolda) animasyonunu kapat
                         document.getElementById('modal-step-2').style.animation = 'none';
                         document.getElementById('modal-step-2').style.boxShadow = 'none';
                         document.getElementById('modal-text-2').style.color = '#374151';
-                        
-                        // Adım 3 (Teslim Edildi) butonunu yeşil yap
-                        const step3 = document.getElementById('modal-step-3');
-                        step3.style.background = '#10b981';
-                        step3.style.color = 'white';
-                        step3.style.borderColor = '#10b981';
-                        step3.innerHTML = '✓';
+                        const step3 = document.getElementById('modal-step-3'); step3.style.background = '#10b981'; step3.style.color = 'white'; step3.style.borderColor = '#10b981'; step3.innerHTML = '✓';
                         document.getElementById('modal-text-3').style.color = '#10b981';
-
-                        // Başlık metnini değiştir
                         document.getElementById('track-modal-title').innerText = '🎉 Sipariş Teslim Edildi! Afiyet olsun.';
-
-                        // 3 saniye sonra modalı ve sayfayı yenileyip ana ekrana döndür
-                        setTimeout(() => {
-                            closeTrackModal();
-                            window.location.reload();
-                        }, 4000);
+                        setTimeout(() => { closeTrackModal(); window.location.reload(); }, 4000);
                     }
                 }
-                }
-            })
-            .catch(err => console.error("Takip Hatası:", err));
+            }).catch(err => console.error("Takip Hatası:", err));
         }
     </script>
 

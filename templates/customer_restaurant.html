@@ -3,131 +3,166 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ restaurant['restaurant_name'] }} - Menu</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>{{ restaurant['restaurant_name'] }} - Menü | Lezzet Kapında</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/flash.css') }}">
     <style>
         body { margin: 0; font-family: 'Inter', sans-serif; background-color: #f8f9fa; color: #111827; }
         
-        /* Navbar */
-        .customer-nav { background: #ffffff; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 1000; }
-        .nav-brand { font-size: 22px; font-weight: 700; color: #4f46e5; text-decoration: none; display: flex; align-items: center; gap: 8px;}
-        .nav-links { display: flex; gap: 20px; align-items: center; }
-        .nav-links a { text-decoration: none; color: #4b5563; font-weight: 500; transition: color 0.2s; }
-        .cart-btn { background: #4f46e5; color: white !important; padding: 8px 16px; border-radius: 20px; display: flex; align-items: center; gap: 5px; }
+        /* 🌟 LEZZET KAPINDA: MARKA NAVBAR TASARIMI (DARK MODE) */
+        .customer-nav { 
+            background: #111827; 
+            padding: 0 5%; 
+            height: 75px; 
+            box-sizing: border-box;
+            display: flex; justify-content: space-between; align-items: center; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15); position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #374151; 
+        }
+        .nav-brand { display: flex; align-items: center; text-decoration: none; }
         
+        .nav-brand img { 
+            width: 100px; 
+            max-height: 70px; 
+            object-fit: contain; 
+            transform: scale(3); 
+            transform-origin: left center;
+            margin-top: 20px;
+        } 
+        
+        .nav-links { display: flex; gap: 15px; align-items: center; }
+        .nav-links a { text-decoration: none; color: #d1d5db; font-weight: 500; transition: color 0.2s; }
+        .nav-links a:hover { color: #ffffff; }
+        
+        .nav-address-btn { background: #1f2937; border: 1px solid #374151; padding: 10px 18px; border-radius: 20px; font-family: inherit; font-size: 14px; font-weight: 600; color: #f3f4f6; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s; }
+        .nav-address-btn:hover { background: #374151; border-color: #4b5563; color: white; }
+        
+        .cart-btn { background: #4f46e5; color: white !important; padding: 10px 20px; border-radius: 20px; display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; transition: background 0.2s; border: 1px solid #4338ca; }
+        .cart-btn:hover { background: #4338ca; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3); }
+        
+        /* Dropdown (Hesabım Menüsü) */
+        .dropdown { position: relative; display: inline-block; }
+
+        .dropdown::after { content: ''; position: absolute; top: 100%; left: 0; width: 100%; height: 15px; background: transparent; display: none; }
+        .dropdown:hover::after { display: block; }
+
+        .dropdown-btn { background-color: #1f2937; color: #f3f4f6; padding: 10px 18px; font-size: 14px; font-weight: 600; border: 1px solid #374151; border-radius: 20px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s; font-family: inherit; }
+        .dropdown-btn:hover { background-color: #374151; border-color: #4b5563; color: white; }
+        .dropdown-content { display: none; position: absolute; right: 0; top: 100%; background-color: #ffffff; min-width: 200px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); border-radius: 12px; overflow: hidden; z-index: 1000; border: 1px solid #e5e7eb; margin-top: 10px; }
+        .dropdown-content a { color: #374151; padding: 12px 18px; text-decoration: none; display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; transition: background-color 0.2s; }
+        .dropdown-content a:hover { background-color: #f3f4f6; color: #4f46e5; }
+        .dropdown:hover .dropdown-content { display: block; }
+
+        /* Sepet Bildirim Balonu */
+        .cart-wrapper { position: relative; }
+        .cart-badge { position: absolute; top: -6px; right: -6px; background-color: #ef4444; color: white; font-size: 12px; font-weight: 800; border-radius: 50%; display: flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); border: 2px solid #111827; }
+
         /* Restoran Header (Kapak) */
         .restaurant-header { transition: all 0.3s; }
-        .restaurant-header h1 { margin: 0 0 10px 0; font-size: 32px; }
-        .restaurant-header p { margin: 0; color: #9ca3af; font-size: 15px; }
-        .rating { background: #fef08a; color: #854d0e; padding: 4px 10px; border-radius: 6px; font-size: 14px; font-weight: 600; display: inline-block; margin-top: 15px; }
+        .restaurant-header h1 { margin: 0 0 10px 0; font-size: 36px; font-weight: 800; letter-spacing: -0.5px; }
+        .restaurant-header p { margin: 0; color: #d1d5db; font-size: 16px; font-weight: 500; }
+        .rating { background: #fef08a; color: #854d0e; padding: 6px 12px; border-radius: 8px; font-size: 14px; font-weight: 700; display: inline-block; margin-top: 15px; border: 1px solid #fde047; }
         
         /* Menü İçeriği */
-        .container { max-width: 900px; margin: 20px auto 100px auto; padding: 0 20px; }
+        .container { max-width: 900px; margin: 30px auto 100px auto; padding: 0 20px; }
         
         /* Yemek Listesi */
         .menu-list { display: flex; flex-direction: column; gap: 15px; }
-        .menu-item { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); display: flex; justify-content: space-between; align-items: center; border: 1px solid #f3f4f6; transition: border-color 0.2s; }
-        .menu-item:hover { border-color: #d1d5db; }
+        .menu-item { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03); display: flex; justify-content: space-between; align-items: center; border: 1px solid #f3f4f6; transition: all 0.2s; }
+        .menu-item:hover { border-color: #d1d5db; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); transform: translateY(-2px); }
         
-        .item-info h3 { margin: 0 0 5px 0; font-size: 18px; color: #111827; }
+        .item-info h3 { margin: 0 0 6px 0; font-size: 18px; font-weight: 700; color: #111827; }
         .item-info .type { font-size: 13px; color: #6b7280; margin-bottom: 8px; display: inline-block; background: #f3f4f6; padding: 2px 8px; border-radius: 4px; }
-        .item-info .price { font-size: 16px; font-weight: 600; color: #059669; margin: 0; }
+        .item-info .price { font-size: 16px; font-weight: 700; color: #059669; margin: 0; }
         
         /* Sepete Ekle Butonu Formu */
         .add-to-cart-form { display: flex; align-items: center; gap: 10px; }
-        .qty-input { width: 50px; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; text-align: center; font-family: inherit; }
-        .add-btn { background: #10b981; color: white; border: none; padding: 10px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.2s; font-family: inherit; }
-        .add-btn:hover { background: #059669; }
+        .qty-input { width: 45px; padding: 10px 8px; border: 1px solid #d1d5db; border-radius: 8px; text-align: center; font-family: inherit; font-weight: 600; outline: none; transition: border-color 0.2s; }
+        .qty-input:focus { border-color: #4f46e5; }
+        .add-btn { background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.2s; font-family: inherit; box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2); }
+        .add-btn:hover { background: #059669; box-shadow: 0 4px 6px rgba(16, 185, 129, 0.3); transform: translateY(-1px); }
 
         /* Kapalı Restoran CSS Kuralları */
         .closed-menu-item { opacity: 0.55; filter: grayscale(100%); pointer-events: none; }
         .closed-header { opacity: 0.65; filter: grayscale(80%); }
-        .add-btn:disabled { background-color: #9ca3af !important; color: #f3f4f6 !important; cursor: not-allowed !important; transform: none !important; }
+        .add-btn:disabled { background-color: #9ca3af !important; color: #f3f4f6 !important; cursor: not-allowed !important; box-shadow: none !important; transform: none !important; }
         .qty-input:disabled { background-color: #f3f4f6; color: #9ca3af; }
 
-        /* Sepet Bildirim Balonu CSS'i */
-        .cart-wrapper { position: relative; }
-        .cart-badge { position: absolute; top: -8px; right: -10px; background-color: #ef4444; color: white; font-size: 12px; font-weight: bold; border-radius: 50%; display: flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-
         /* Modallar */
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
-        .modal-content { background: white; width: 90%; max-width: 600px; max-height: 80vh; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: slideUp 0.3s ease-out; }
-        .modal-header { padding: 20px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; background-color: #fff; }
-        .modal-header h3 { margin: 0; font-size: 18px; color: #111827; font-weight: 700; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 24, 39, 0.7); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
+        .modal-content { background: white; width: 90%; max-width: 600px; max-height: 80vh; border-radius: 16px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        .modal-header { padding: 20px 25px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; background-color: #fff; }
+        .modal-header h3 { margin: 0; font-size: 20px; color: #111827; font-weight: 800; }
         .close-btn { background: none; border: none; font-size: 28px; cursor: pointer; color: #9ca3af; transition: color 0.2s; line-height: 1; }
         .close-btn:hover { color: #111827; }
-        .modal-body { padding: 20px; overflow-y: auto; background-color: #f8f9fa; }
-        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
-        /* Dropdown */
-        .dropdown { position: relative; display: inline-block; }
-        .dropdown-btn { background-color: #f3f4f6; color: #374151; padding: 8px 16px; font-size: 15px; font-weight: 600; border: none; border-radius: 20px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background-color 0.2s; font-family: inherit; }
-        .dropdown-btn:hover { background-color: #e5e7eb; }
-        .dropdown-content { display: none; position: absolute; right: 0; top: 100%; background-color: #ffffff; min-width: 180px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-radius: 12px; overflow: hidden; z-index: 1000; border: 1px solid #f3f4f6; }
-        .dropdown-content a { color: #4b5563; padding: 12px 16px; text-decoration: none; display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 500; transition: background-color 0.2s; }
-        .dropdown-content a:hover { background-color: #f9fafb; color: #4f46e5; }
-        .dropdown:hover .dropdown-content { display: block; }
+        .modal-body { padding: 25px; overflow-y: auto; background-color: #f8f9fa; }
+        @keyframes slideUp { from { transform: translateY(30px) scale(0.95); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
 
         /* Favori Butonu */
-        .fav-btn-container { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 2px 8px rgba(0,0,0,0.06); padding: 0; }
+        .fav-btn-container { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 50%; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 4px 6px rgba(0,0,0,0.1); padding: 0; }
         .fav-btn-container:hover { transform: scale(1.08); border-color: #fca5a5; background-color: #fef2f2; }
         .fav-btn-container:active { transform: scale(0.92); }
-        .heart-svg { width: 22px; height: 22px; transition: fill 0.2s ease, stroke 0.2s ease; }
+        .heart-svg { width: 24px; height: 24px; transition: fill 0.2s ease, stroke 0.2s ease; }
         @keyframes heartPop { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
         .heart-animate { animation: heartPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 
-        /* 📍 YAPIŞKAN KATEGORİ ÇUBUĞU (Eski Tasarım + Scrollspy) */
+        /* 📍 YAPIŞKAN KATEGORİ ÇUBUĞU (Scrollspy) */
         .sticky-category-nav {
             position: sticky;
-            top: 70px; /* Navbar'ın altında kalacak mesafe */
-            background: rgba(248, 249, 250, 0.95); /* Sayfa arka plan rengi */
-            backdrop-filter: blur(8px);
-            padding: 15px 0 10px 0;
-            margin-bottom: 25px;
+            top: 70px; /* Navbar (70px) yüksekliğine göre hizalandı */
+            background: rgba(248, 249, 250, 0.95);
+            backdrop-filter: blur(12px);
+            padding: 15px 0 15px 0;
+            margin-bottom: 30px;
             z-index: 900;
             display: flex;
-            gap: 10px;
+            gap: 12px;
             overflow-x: auto;
-            border-bottom: 2px solid #e5e7eb;
-            scrollbar-width: thin;
+            border-bottom: 1px solid #e5e7eb;
+            scrollbar-width: none; /* Firefox için scrollbar gizleme */
         }
-        .sticky-category-nav::-webkit-scrollbar { height: 4px; }
-        .sticky-category-nav::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .sticky-category-nav::-webkit-scrollbar { display: none; } /* Chrome/Safari için scrollbar gizleme */
         
         .cat-link {
-            background: #f3f4f6;
-            border: none;
-            padding: 10px 20px;
-            font-size: 15px;
-            font-weight: 600;
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            padding: 10px 22px;
+            font-size: 14px;
+            font-weight: 700;
             color: #4b5563;
             cursor: pointer;
-            border-radius: 20px;
+            border-radius: 30px;
             white-space: nowrap;
             transition: all 0.2s;
             text-decoration: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
         }
-        .cat-link:hover { background: #e5e7eb; color: #111827; }
-        .cat-link.active { background: #111827; color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .cat-link:hover { border-color: #d1d5db; background: #f9fafb; transform: translateY(-1px); }
+        .cat-link.active { background: #111827; color: white; border-color: #111827; box-shadow: 0 4px 10px rgba(17, 24, 39, 0.2); }
 
         /* 📍 KAYDIRILABİLİR BÖLÜMLER İÇİN MARJİN */
         .menu-section {
-            scroll-margin-top: 140px; /* Tıklandığında başlığın navbar altında kalmasını önler */
-            margin-bottom: 40px;
+            scroll-margin-top: 150px; /* Tıklandığında başlığın 70px'lik navbar altında kalmasını önler */
+            margin-bottom: 45px;
         }
         .menu-section h2 {
-            font-size: 22px; margin: 0 0 20px 0; color: #111827; padding-bottom: 10px; border-bottom: 2px solid #f3f4f6;
+            font-size: 24px; font-weight: 800; margin: 0 0 20px 0; color: #111827; padding-bottom: 10px; border-bottom: 2px solid #e5e7eb;
         }
     </style>
 </head>
 <body>
 
+    <!-- 🌟 KUSURSUZ NAVBAR (DARK MODE) -->
     <nav class="customer-nav" id="main-navbar">
-        <a href="/" class="nav-brand">🍔 DeliveryApp</a>
+        <a href="/" class="nav-brand">
+            <!-- Jilet gibi SVG Logomuz -->
+            <img src="{{ url_for('static', filename='images/icons/logo.svg') }}" alt="Lezzet Kapında">
+        </a>
+        
         <div class="nav-links">
             {% if request.endpoint == 'index' %}
-            <span>📍 {{ session.get('customer_city', 'Konum Seçin') }}</span>
+            <button class="nav-address-btn" onclick="openAddressModal()">
+                📍 <span id="navbar-address-text">{{ session.get('customer_city') or 'Teslimat Adresi Seçin' }}</span> ▾
+            </button>
             {% endif %}
 
             <a href="{{ url_for('view_cart') }}" class="cart-btn cart-wrapper" style="text-decoration: none;">
@@ -156,15 +191,16 @@
 
     {% set bg_image = url_for('static', filename='images/restaurants/' ~ restaurant['image_url']) %}
     
+    <!-- 🌟 RESTORAN KAPAK (HERO) ALANI -->
     <div class="restaurant-header {% if restaurant.get('is_open') == False %}closed-header{% endif %}" 
          {% if restaurant['image_url'] and restaurant['image_url'] != 'default_restaurant.jpg' %}
-            style="background: linear-gradient(rgba(31, 41, 55, 0.7), rgba(31, 41, 55, 0.8)), url('{{ bg_image }}') center/cover; color: white; padding: 60px 5%; text-align: center; border-bottom: 4px solid #10b981;"
+            style="background: linear-gradient(rgba(17, 24, 39, 0.75), rgba(17, 24, 39, 0.9)), url('{{ bg_image }}') center/cover; color: white; padding: 70px 5%; text-align: center; border-bottom: 5px solid #4f46e5;"
          {% else %}
-            style="background: #1f2937; color: white; padding: 50px 5%; text-align: center;"
+            style="background: linear-gradient(135deg, #1f2937, #111827); color: white; padding: 70px 5%; text-align: center; border-bottom: 5px solid #4f46e5;"
          {% endif %}>
         
-        <div style="display: flex; justify-content: center; align-items: center; gap: 15px; margin-bottom: 10px;">
-            <h1 style="margin: 0; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">{{ restaurant['restaurant_name'] }}</h1>
+        <div style="display: flex; justify-content: center; align-items: center; gap: 15px; margin-bottom: 12px;">
+            <h1 style="margin: 0; text-shadow: 0 4px 6px rgba(0,0,0,0.5);">{{ restaurant['restaurant_name'] }}</h1>
             
             <button id="fav-btn" class="fav-btn-container" data-id="{{ restaurant['restaurant_id'] }}">
                 {% if is_favorited %}
@@ -175,41 +211,42 @@
             </button>
         </div>
         
-        <p style="text-shadow: 0 1px 3px rgba(0,0,0,0.5);">{{ restaurant['cuisine'] }} • {{ restaurant['restaurant_address'] }}</p>
+        <p style="text-shadow: 0 2px 4px rgba(0,0,0,0.5);">{{ restaurant['cuisine'] }} • {{ restaurant['restaurant_address'] }}</p>
         
         {% if restaurant.get('is_open') == False %}
-            <div style="background-color: #ef4444; color: white; padding: 6px 16px; border-radius: 20px; font-weight: 700; font-size: 14px; display: inline-block; margin-top: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+            <div style="background-color: #ef4444; color: white; padding: 8px 20px; border-radius: 30px; font-weight: 800; font-size: 15px; display: inline-block; margin-top: 20px; box-shadow: 0 4px 10px rgba(239,68,68,0.4);">
                 ŞU AN KAPALI - SİPARİŞ ALINMIYOR
             </div>
         {% endif %}
 
-        <div class="rating" onclick="document.getElementById('reviewsModal').style.display='flex'" style="cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.3);" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+        <div class="rating" onclick="document.getElementById('reviewsModal').style.display='flex'" style="cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.3);" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
             ⭐ {{ restaurant['rating'] }} ({{ restaurant['rating_count'] }}) - Yorumları Gör
         </div>
     </div>
 
     <div class="container">
 
+        <!-- KUPONLAR -->
         {% if active_promos %}
-        <div style="margin-bottom: 30px;">
-            <h3 style="font-size: 16px; margin: 0 0 10px 0; color: #374151;">🎟️ Fırsatları Kaçırma</h3>
-            <div style="display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: none;">
+        <div style="margin-bottom: 35px;">
+            <h3 style="font-size: 18px; font-weight: 800; margin: 0 0 15px 0; color: #111827;">🎟️ Fırsatları Kaçırma</h3>
+            <div style="display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none;">
                 {% for promo in active_promos %}
                 <div onclick="navigator.clipboard.writeText('{{ promo.code_name }}'); showToast('Kupon kodu kopyalandı: {{ promo.code_name }}', 'success');" 
-                     style="background: linear-gradient(135deg, #ec4899, #f43f5e); color: white; padding: 12px 16px; border-radius: 8px; min-width: max-content; box-shadow: 0 4px 6px rgba(236,72,153,0.2); border: 2px dashed rgba(255,255,255,0.4); cursor: pointer; transition: transform 0.2s;"
-                     onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'"
+                     style="background: linear-gradient(135deg, #4f46e5, #ec4899); color: white; padding: 15px 20px; border-radius: 12px; min-width: max-content; box-shadow: 0 4px 10px rgba(79,70,229,0.25); border: 2px dashed rgba(255,255,255,0.4); cursor: pointer; transition: transform 0.2s;"
+                     onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'"
                      title="Kodu kopyalamak için tıkla!">
-                    <div style="font-weight: 800; font-size: 16px; letter-spacing: 1px; text-shadow: 0 1px 2px rgba(0,0,0,0.2);">
+                    <div style="font-weight: 800; font-size: 18px; letter-spacing: 1px; text-shadow: 0 2px 4px rgba(0,0,0,0.2);">
                         {{ promo.code_name }}
                     </div>
-                    <div style="font-size: 13px; font-weight: 500; margin-top: 4px; opacity: 0.95;">
+                    <div style="font-size: 14px; font-weight: 600; margin-top: 4px; opacity: 0.95;">
                         {% if promo.discount_type == 'percentage' %}
                             %{{ promo.discount_value|int }} İndirim
                         {% else %}
                             ${{ promo.discount_value|int }} İndirim
                         {% endif %}
                     </div>
-                    <div style="font-size: 11px; opacity: 0.8; margin-top: 2px;">
+                    <div style="font-size: 12px; font-weight: 500; opacity: 0.85; margin-top: 4px;">
                         {% if promo.min_cart_amount > 0 %}Min. Sepet: ${{ promo.min_cart_amount }}{% else %}Alt limitsiz{% endif %}
                     </div>
                 </div>
@@ -218,6 +255,7 @@
         </div>
         {% endif %}
         
+        <!-- YAPIŞKAN KATEGORİ ÇUBUĞU -->
         <div class="sticky-category-nav" id="categoryNav">
             {% if popular_items %}
                 <a href="#cat-popular" class="cat-link active">🔥 Çok Satanlar</a>
@@ -228,15 +266,16 @@
             {% endfor %}
         </div>
 
+        <!-- ÇOK SATANLAR BÖLÜMÜ -->
         {% if popular_items %}
         <div id="cat-popular" class="menu-section">
             <h2>🔥 Çok Satanlar</h2>
             <div class="menu-list">
                 {% for item in popular_items %}
                 <div class="menu-item {% if restaurant.get('is_open') == False %}closed-menu-item{% endif %}">
-                    <div style="display: flex; gap: 15px; align-items: center; flex: 1;">
+                    <div style="display: flex; gap: 20px; align-items: center; flex: 1;">
                         {% if item.get('image_url') %}
-                            <img src="{{ url_for('static', filename='images/menus/' ~ item.get('image_url')) }}" style="width: 85px; height: 85px; object-fit: cover; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);" alt="{{ item.get('food_name') }}">
+                            <img src="{{ url_for('static', filename='images/menus/' ~ item.get('image_url')) }}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);" alt="{{ item.get('food_name') }}">
                         {% endif %}
                         <div class="item-info">
                             <h3>{{ item['custom_name'] or item['food_name'] }}</h3>
@@ -257,15 +296,16 @@
         </div>
         {% endif %}
 
+        <!-- DİĞER KATEGORİLER -->
         {% for category, items in grouped_menus.items() %}
         <div id="cat-{{ loop.index }}" class="menu-section">
             <h2>{{ category }}</h2>
             <div class="menu-list">
                 {% for item in items %}
                 <div class="menu-item {% if restaurant.get('is_open') == False %}closed-menu-item{% endif %}">
-                    <div style="display: flex; gap: 15px; align-items: center; flex: 1;">
+                    <div style="display: flex; gap: 20px; align-items: center; flex: 1;">
                         {% if item.get('image_url') %}
-                            <img src="{{ url_for('static', filename='images/menus/' ~ item.get('image_url')) }}" style="width: 85px; height: 85px; object-fit: cover; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);" alt="{{ item.get('food_name') }}">
+                            <img src="{{ url_for('static', filename='images/menus/' ~ item.get('image_url')) }}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);" alt="{{ item.get('food_name') }}">
                         {% endif %}
                         <div class="item-info">
                             <h3>{{ item['custom_name'] or item['food_name'] }}</h3>
@@ -288,6 +328,7 @@
 
     </div> 
 
+    <!-- SCRIPTLER VE MODALLAR (Orijinal Kodları Aynen Korundu) -->
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             const sections = document.querySelectorAll('.menu-section');
@@ -342,25 +383,25 @@
                 {% if reviews %}
                     <div style="display: grid; grid-template-columns: 1fr; gap: 15px;">
                     {% for review in reviews %}
-                        <div style="background-color: #ffffff; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid #f3f4f6;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                                <span style="font-weight: 600; color: #374151; font-size: 16px;">👤 {{ review.customer_name }}</span>
-                                <span style="color: #9ca3af; font-size: 13px;">{{ review.created_at.strftime('%d %b %Y') }}</span>
+                        <div style="background-color: #ffffff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); border: 1px solid #f3f4f6;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                <span style="font-weight: 700; color: #111827; font-size: 16px;">👤 {{ review.customer_name }}</span>
+                                <span style="color: #9ca3af; font-size: 13px; font-weight: 500;">{{ review.created_at.strftime('%d %b %Y') }}</span>
                             </div>
-                            <div style="margin-bottom: 12px; font-size: 14px;">
+                            <div style="margin-bottom: 15px; font-size: 14px;">
                                 {% for i in range(review.rating) %}⭐{% endfor %}
-                                <span style="color: #6b7280; font-size: 13px; margin-left: 5px;">({{ review.rating }})</span>
+                                <span style="color: #6b7280; font-size: 13px; margin-left: 5px; font-weight: 600;">({{ review.rating }})</span>
                             </div>
                             {% if review.comment %}
-                                <p style="margin: 0; color: #4b5563; font-size: 15px; line-height: 1.6; font-style: italic; background-color: #f9fafb; padding: 12px; border-radius: 8px; border-left: 3px solid #fbbf24;">
+                                <p style="margin: 0; color: #374151; font-size: 15px; line-height: 1.6; font-style: italic; background-color: #f9fafb; padding: 15px; border-radius: 8px; border-left: 4px solid #f59e0b;">
                                     "{{ review.comment }}"
                                 </p>
                             {% endif %}
 
                             {% if review.restaurant_reply %}
-                                <div style="margin-top: 12px; background-color: #e0f2fe; padding: 12px; border-radius: 8px; border-left: 3px solid #0284c7;">
-                                    <span style="font-size: 11px; font-weight: 700; color: #0284c7; text-transform: uppercase;">Restoranın Yanıtı:</span>
-                                    <p style="margin: 4px 0 0 0; color: #0f172a; font-size: 14px; font-weight: 500;">
+                                <div style="margin-top: 15px; background-color: #eff6ff; padding: 15px; border-radius: 8px; border-left: 4px solid #3b82f6;">
+                                    <span style="font-size: 12px; font-weight: 800; color: #1d4ed8; text-transform: uppercase;">Restoranın Yanıtı:</span>
+                                    <p style="margin: 6px 0 0 0; color: #1e293b; font-size: 14px; font-weight: 500; line-height: 1.5;">
                                         "{{ review.restaurant_reply }}"
                                     </p>
                                 </div>
@@ -369,8 +410,8 @@
                     {% endfor %}
                     </div>
                 {% else %}
-                    <div style="background-color: #ffffff; padding: 30px; border-radius: 12px; text-align: center; border: 1px dashed #d1d5db;">
-                        <p style="color: #6b7280; font-size: 16px; margin: 0;">
+                    <div style="background-color: #ffffff; padding: 40px; border-radius: 12px; text-align: center; border: 2px dashed #e5e7eb;">
+                        <p style="color: #6b7280; font-size: 16px; margin: 0; font-weight: 500;">
                             🍽️ Bu restoran için henüz bir değerlendirme yapılmamış.
                         </p>
                     </div>
@@ -387,12 +428,12 @@
             </div>
             <div class="modal-body" style="padding: 0; flex: 1; overflow-y: auto;">
                 <form id="customer-options-form">
-                    <div id="opt-dynamic-content" style="padding: 20px;"></div>
+                    <div id="opt-dynamic-content" style="padding: 25px;"></div>
                 </form>
             </div>
-            <div style="padding: 15px 20px; border-top: 1px solid #e5e7eb; background: #f9fafb; display: flex; justify-content: space-between; align-items: center;">
-                <div style="font-size: 18px; font-weight: 700; color: #111827;">Total: $<span id="opt-total-price">0.00</span></div>
-                <button type="button" onclick="submitOptionsToCart()" style="background: #10b981; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 15px; box-shadow: 0 4px 6px rgba(16,185,129,0.2);" onmouseover="this.style.background='#059669'" onmouseout="this.style.background='#10b981'">
+            <div style="padding: 20px 25px; border-top: 1px solid #e5e7eb; background: #f9fafb; display: flex; justify-content: space-between; align-items: center;">
+                <div style="font-size: 20px; font-weight: 800; color: #111827;">Total: $<span id="opt-total-price">0.00</span></div>
+                <button type="button" onclick="submitOptionsToCart()" style="background: #10b981; color: white; border: none; padding: 14px 28px; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 16px; box-shadow: 0 4px 10px rgba(16,185,129,0.25);" onmouseover="this.style.background='#059669'" onmouseout="this.style.background='#10b981'">
                     🛒 Sepete Ekle
                 </button>
             </div>
@@ -446,21 +487,21 @@
             container.innerHTML = '';
             
             options.forEach(opt => {
-                let html = `<div style="margin-bottom: 20px;" class="opt-group" data-is-required="${opt.is_required}" data-name="${opt.option_name}">
-                    <h4 style="margin: 0 0 10px 0; font-size: 15px; color: #374151;">${opt.option_name} ${opt.is_required ? '<span style="color:#ef4444; font-size:12px; margin-left:5px;">(Zorunlu)</span>' : ''}</h4>
-                    <div style="display: flex; flex-direction: column; gap: 8px;">`;
+                let html = `<div style="margin-bottom: 25px;" class="opt-group" data-is-required="${opt.is_required}" data-name="${opt.option_name}">
+                    <h4 style="margin: 0 0 12px 0; font-size: 16px; font-weight: 700; color: #111827;">${opt.option_name} ${opt.is_required ? '<span style="color:#ef4444; font-size:12px; font-weight: 600; margin-left:5px;">(Zorunlu)</span>' : ''}</h4>
+                    <div style="display: flex; flex-direction: column; gap: 10px;">`;
                 
                 const inputType = opt.is_multiple ? 'checkbox' : 'radio';
                 const reqAttr = opt.is_required && !opt.is_multiple ? 'required' : '';
                 
                 opt.choices.forEach(ch => {
                     html += `
-                        <label style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; transition: 0.2s;" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='transparent'">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <input type="${inputType}" name="opt_${opt.option_id}" value="${ch.choice_name}" data-id="${ch.choice_id}" data-price="${ch.additional_price}" onchange="calculateModalPrice()" ${reqAttr} style="transform: scale(1.2); cursor: pointer;">
-                                <span style="font-size: 14px; font-weight: 500; color: #111827;">${ch.choice_name}</span>
+                        <label style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: 14px 16px; border: 1px solid #e5e7eb; border-radius: 10px; background: white; transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.02);" onmouseover="this.style.borderColor='#4f46e5'" onmouseout="this.style.borderColor='#e5e7eb'">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <input type="${inputType}" name="opt_${opt.option_id}" value="${ch.choice_name}" data-id="${ch.choice_id}" data-price="${ch.additional_price}" onchange="calculateModalPrice()" ${reqAttr} style="transform: scale(1.3); cursor: pointer; accent-color: #4f46e5;">
+                                <span style="font-size: 15px; font-weight: 600; color: #374151;">${ch.choice_name}</span>
                             </div>
-                            ${ch.additional_price > 0 ? `<span style="color: #059669; font-weight: 600; font-size: 13px;">+$${ch.additional_price}</span>` : ''}
+                            ${ch.additional_price > 0 ? `<span style="color: #059669; font-weight: 700; font-size: 14px; background: #ecfdf5; padding: 4px 8px; border-radius: 6px;">+$${ch.additional_price}</span>` : ''}
                         </label>
                     `;
                 });
@@ -488,19 +529,17 @@
         function submitOptionsToCart() {
             const form = document.getElementById('customer-options-form');
             
-            // 🛡️ YENİ GÜVENLİK KALKANI: Zorunlu Çoklu Seçim (Checkbox) Kontrolü
             let isValid = true;
             let errorMessage = "";
             const groups = form.querySelectorAll('.opt-group');
             
             for (let group of groups) {
-                // Eğer grup zorunluysa ve içinde hiç işaretlenmiş input (checkbox/radio) yoksa:
                 if (group.getAttribute('data-is-required') === 'true' || group.getAttribute('data-is-required') === '1') {
                     const checkedItems = group.querySelectorAll('input:checked');
                     if (checkedItems.length === 0) {
                         isValid = false;
                         errorMessage = `Lütfen "${group.getAttribute('data-name')}" seçeneğinden en az birini işaretleyin.`;
-                        break; // İlk hatayı bulduğunda döngüyü durdur
+                        break; 
                     }
                 }
             }
@@ -508,12 +547,10 @@
             if (!isValid) {
                 if (typeof showToast === "function") showToast(errorMessage, "error");
                 else alert(errorMessage);
-                return; // Hatayı göster ve sepete eklemeyi durdur!
+                return; 
             }
             
-            // Standart radyo butonu (tekli seçim) HTML kontrolü (Yedek)
             if(!form.checkValidity()) { form.reportValidity(); return; } 
-            // -----------------------------------------------------------
 
             let selectedTexts = [];
             let totalExtra = 0;
@@ -552,7 +589,7 @@
                     btn.style.backgroundColor = '#059669'; 
                     btn.style.transform = 'scale(1.05)';
                     
-                    setTimeout(() => { btn.innerHTML = originalText; btn.style.backgroundColor = ''; btn.style.transform = 'scale(1)'; }, 1500);
+                    setTimeout(() => { btn.innerHTML = originalText; btn.style.backgroundColor = '#10b981'; btn.style.transform = 'scale(1)'; }, 1500);
                     
                     const cartBtn = document.querySelector('.cart-btn');
                     let badge = document.querySelector('.cart-badge');
@@ -626,11 +663,11 @@
             toast.style.background = bgColor;
             toast.style.color = 'white';
             toast.style.padding = '14px 24px';
-            toast.style.borderRadius = '8px';
+            toast.style.borderRadius = '10px';
             toast.style.boxShadow = '0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)';
             toast.style.fontFamily = "'Inter', sans-serif";
             toast.style.fontSize = '14px';
-            toast.style.fontWeight = '600';
+            toast.style.fontWeight = '700';
             toast.style.display = 'flex';
             toast.style.alignItems = 'center';
             toast.style.gap = '10px';

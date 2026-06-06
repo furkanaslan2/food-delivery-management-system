@@ -3,69 +3,150 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Customer Registration</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <title>Kayıt Ol | Lezzet Kapında</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/flash.css') }}">
     <style>
-        body { margin: 0; font-family: 'Inter', sans-serif; background-color: #f3f4f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; box-sizing: border-box; }
-        .modern-auth-container { background: #ffffff; width: 100%; max-width: 450px; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05); box-sizing: border-box; }
-        .modern-auth-container h2 { margin-top: 0; margin-bottom: 8px; font-size: 26px; color: #111827; text-align: center; font-weight: 600; }
-        .subtitle { text-align: center; color: #6b7280; font-size: 14px; margin-bottom: 30px; }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; font-size: 13px; color: #374151; margin-bottom: 6px; font-weight: 500; }
-        .form-group input, .form-group textarea { width: 100%; padding: 10px 14px; font-size: 14px; border: 1px solid #d1d5db; border-radius: 8px; box-sizing: border-box; transition: all 0.2s ease; font-family: inherit; }
-        .form-group input:focus, .form-group textarea:focus { outline: none; border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
-        .submit-btn { width: 100%; padding: 12px; background-color: #4f46e5; color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 500; cursor: pointer; transition: background-color 0.2s ease; margin-top: 10px; font-family: inherit; }
-        .submit-btn:hover { background-color: #4338ca; }
-        .bottom-text { margin-top: 25px; text-align: center; font-size: 13.5px; color: #6b7280; }
-        .bottom-text a { color: #4f46e5; text-decoration: none; font-weight: 500; transition: color 0.2s; }
-        .bottom-text a:hover { color: #3730a3; text-decoration: underline; }
-        .alert { padding: 12px; border-radius: 6px; margin-bottom: 20px; font-size: 13px; text-align: center; }
-        .alert-danger { background-color: #fee2e2; color: #991b1b; }
-        .alert-success { background-color: #d1fae5; color: #065f46; }
+        body { 
+            margin: 0; 
+            font-family: 'Inter', sans-serif; 
+            background: linear-gradient(135deg, #111827 0%, #312e81 100%); 
+            display: flex; 
+            flex-direction: column;
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            padding: 20px; 
+            box-sizing: border-box;
+        }
+        
+        .brand-logo { 
+            margin-top: -9vh; 
+            margin-bottom: -80px; 
+            text-align: center; 
+            position: relative; 
+            z-index: 10; 
+        }
+        .brand-logo img { width: 260px; height: auto; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); }
+
+        .auth-card { 
+            background: #ffffff; 
+            width: 100%; 
+            max-width: 450px; 
+            padding: 40px; 
+            border-radius: 20px; 
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4); 
+            box-sizing: border-box; 
+            animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        .auth-card h2 { margin: 0 0 8px 0; font-size: 26px; color: #111827; text-align: center; font-weight: 800; letter-spacing: -0.5px; }
+        .subtitle { text-align: center; color: #6b7280; font-size: 15px; margin: 0 0 30px 0; font-weight: 500; }
+        
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-size: 14px; color: #374151; margin-bottom: 8px; font-weight: 600; }
+        .form-control { 
+            width: 100%; 
+            padding: 14px 16px; 
+            font-size: 15px; 
+            border: 1px solid #d1d5db; 
+            border-radius: 12px; 
+            box-sizing: border-box; 
+            transition: all 0.2s ease; 
+            font-family: inherit; 
+            outline: none;
+            background-color: #f9fafb;
+        }
+        .form-control:focus { background-color: #ffffff; border-color: #4f46e5; box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1); }
+        
+        .submit-btn { 
+            width: 100%; 
+            padding: 15px; 
+            background-color: #4f46e5; 
+            color: white; 
+            border: none; 
+            border-radius: 12px; 
+            font-size: 16px; 
+            font-weight: 700; 
+            cursor: pointer; 
+            transition: all 0.2s ease; 
+            margin-top: 10px; 
+            font-family: inherit; 
+            box-shadow: 0 4px 6px rgba(79, 70, 229, 0.2);
+        }
+        .submit-btn:hover { background-color: #4338ca; transform: translateY(-2px); box-shadow: 0 6px 12px rgba(79, 70, 229, 0.3); }
+        
+        .bottom-text { margin-top: 25px; text-align: center; font-size: 14px; color: #6b7280; font-weight: 500; }
+        .bottom-text a { color: #4f46e5; text-decoration: none; font-weight: 700; transition: color 0.2s; }
+        .bottom-text a:hover { color: #312e81; text-decoration: underline; }
+        
+        @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     </style>
 </head>
 <body>
-    <div class="modern-auth-container">
-        <h2>Join as a Customer</h2>
-        <p class="subtitle">Order your favorite meals instantly.</p>
+    
+    <a href="/" class="brand-logo">
+        <img src="{{ url_for('static', filename='images/icons/logo.svg') }}" alt="Lezzet Kapında">
+    </a>
+
+    <div class="auth-card">
+        <h2>Aramıza Katıl</h2>
+        <p class="subtitle">Lezzet dolu bir dünyaya adım at.</p>
 
         <form action="{{ url_for('customer_register') }}" method="POST">
             <div class="form-group">
-                <label for="name">Full Name</label>
-                <input type="text" name="name" id="name" placeholder="John Doe" required>
+                <label for="name">Ad Soyad</label>
+                <input type="text" name="name" id="name" class="form-control" placeholder="Örn: Ahmet Yılmaz" required>
             </div>
             <div class="form-group">
-                <label for="email">Email Address</label>
-                <input type="email" name="email" id="email" placeholder="john@example.com" required>
+                <label for="email">E-posta Adresi</label>
+                <input type="email" name="email" id="email" class="form-control" placeholder="ornek@mail.com" required>
             </div>
             <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" name="password" id="password" placeholder="••••••••" required>
+                <label for="password">Şifre Belirle</label>
+                <input type="password" name="password" id="password" class="form-control" placeholder="••••••••" required>
             </div>
 
-            <button type="submit" class="submit-btn">Create Account</button>
+            <button type="submit" class="submit-btn">Kayıt Ol ve Başla</button>
         </form>
         
         <div class="bottom-text">
-            Already have an account? <a href="{{ url_for('customer_login') }}">Login here</a>
+            Zaten bir hesabın var mı? <a href="{{ url_for('customer_login') }}">Giriş Yap</a>
         </div>
     </div>
 
-    <div class="flash-container">
+    <div id="toast-container" style="position: fixed; bottom: 20px; right: 20px; z-index: 99999; display: flex; flex-direction: column-reverse; gap: 10px;"></div>
+    <script>
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const bgColor = type === 'success' ? '#10b981' : '#ef4444';
+            const icon = type === 'success' ? '✅' : '❌';
+            toast.style.background = bgColor; toast.style.color = 'white'; toast.style.padding = '14px 24px'; toast.style.borderRadius = '10px'; toast.style.boxShadow = '0 10px 15px -3px rgba(0,0,0,0.1)'; toast.style.fontFamily = "'Inter', sans-serif"; toast.style.fontSize = '14px'; toast.style.fontWeight = '700'; toast.style.display = 'flex'; toast.style.alignItems = 'center'; toast.style.gap = '10px'; toast.style.opacity = '0'; toast.style.transform = 'translateX(100%)'; toast.style.transition = 'all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55)'; 
+            toast.innerHTML = `<span style="font-size: 18px;">${icon}</span> <span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '1'; toast.style.transform = 'translateX(0)'; }, 10);
+            setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateX(100%)'; setTimeout(() => toast.remove(), 400); }, 3000);
+        }
+    </script>
+    <div id="flash-messages-container" style="display: none;">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
-                <div class="flash-message {{ category }}">
-                    {{ message }}
-                    <button class="close-flash" onclick="this.parentElement.style.display='none';">&times;</button>
-                </div>
+                    <span class="flash-message-data" data-category="{{ category }}" data-message="{{ message }}"></span>
                 {% endfor %}
             {% endif %}
         {% endwith %}
     </div>
-
-    <script src="{{ url_for('static', filename='js/common.js') }}"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const flashElements = document.querySelectorAll('.flash-message-data');
+            flashElements.forEach((el, index) => {
+                let msgType = el.getAttribute('data-category'); let msgText = el.getAttribute('data-message');
+                if (msgType === 'danger' || msgType === 'warning') msgType = 'error';
+                setTimeout(() => { if (typeof showToast === "function") showToast(msgText, msgType); }, 100 + (index * 150)); 
+            });
+        });
+    </script>
 </body>
 </html>
