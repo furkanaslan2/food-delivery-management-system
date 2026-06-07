@@ -6,6 +6,9 @@
     <title>{{ restaurant['restaurant_name'] }} - Menü | Lezzet Kapında</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/flash.css') }}">
+    
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
     <style>
         body { margin: 0; font-family: 'Inter', sans-serif; background-color: #f8f9fa; color: #111827; }
         
@@ -30,7 +33,7 @@
         } 
         
         .nav-links { display: flex; gap: 15px; align-items: center; }
-        .nav-links a { text-decoration: none; color: #d1d5db; font-weight: 500; transition: color 0.2s; }
+        .nav-links a { text-decoration: none; color: #d1d5db; font-weight: 500; transition: color 0.2s; display: flex; align-items: center; gap: 6px; }
         .nav-links a:hover { color: #ffffff; }
         
         .nav-address-btn { background: #1f2937; border: 1px solid #374151; padding: 10px 18px; border-radius: 20px; font-family: inherit; font-size: 14px; font-weight: 600; color: #f3f4f6; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s; }
@@ -38,6 +41,7 @@
         
         .cart-btn { background: #4f46e5; color: white !important; padding: 10px 20px; border-radius: 20px; display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; transition: background 0.2s; border: 1px solid #4338ca; }
         .cart-btn:hover { background: #4338ca; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3); }
+        .cart-btn i { font-size: 18px; }
         
         /* Dropdown (Hesabım Menüsü) */
         .dropdown { position: relative; display: inline-block; }
@@ -49,7 +53,9 @@
         .dropdown-btn:hover { background-color: #374151; border-color: #4b5563; color: white; }
         .dropdown-content { display: none; position: absolute; right: 0; top: 100%; background-color: #ffffff; min-width: 200px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); border-radius: 12px; overflow: hidden; z-index: 1000; border: 1px solid #e5e7eb; margin-top: 10px; }
         .dropdown-content a { color: #374151; padding: 12px 18px; text-decoration: none; display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; transition: background-color 0.2s; }
+        .dropdown-content a i { font-size: 18px; color: #6b7280; }
         .dropdown-content a:hover { background-color: #f3f4f6; color: #4f46e5; }
+        .dropdown-content a:hover i { color: #4f46e5; }
         .dropdown:hover .dropdown-content { display: block; }
 
         /* Sepet Bildirim Balonu */
@@ -58,28 +64,28 @@
 
         /* Restoran Header (Kapak) */
         .restaurant-header { transition: all 0.3s; }
-        .restaurant-header h1 { margin: 0 0 10px 0; font-size: 36px; font-weight: 800; letter-spacing: -0.5px; }
-        .restaurant-header p { margin: 0; color: #d1d5db; font-size: 16px; font-weight: 500; }
-        .rating { background: #fef08a; color: #854d0e; padding: 6px 12px; border-radius: 8px; font-size: 14px; font-weight: 700; display: inline-block; margin-top: 15px; border: 1px solid #fde047; }
+        .restaurant-header h1 { margin: 0 0 10px 0; font-size: 42px; font-weight: 800; letter-spacing: -1px; }
+        .restaurant-header p { margin: 0; color: #d1d5db; font-size: 16px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .rating { background: #ffffff; color: #111827; padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: 800; display: inline-flex; align-items: center; gap: 6px; margin-top: 20px; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
         
         /* Menü İçeriği */
         .container { max-width: 900px; margin: 30px auto 100px auto; padding: 0 20px; }
         
-        /* Yemek Listesi */
+        /* Yemek Listesi (Yenilendi) */
         .menu-list { display: flex; flex-direction: column; gap: 15px; }
-        .menu-item { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03); display: flex; justify-content: space-between; align-items: center; border: 1px solid #f3f4f6; transition: all 0.2s; }
-        .menu-item:hover { border-color: #d1d5db; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); transform: translateY(-2px); }
+        .menu-item { background: white; padding: 20px; border-radius: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03); display: flex; justify-content: space-between; align-items: center; border: 1px solid #f3f4f6; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .menu-item:hover { border-color: #e5e7eb; box-shadow: 0 15px 25px -5px rgba(0,0,0,0.08); transform: translateY(-4px); }
         
-        .item-info h3 { margin: 0 0 6px 0; font-size: 18px; font-weight: 700; color: #111827; }
-        .item-info .type { font-size: 13px; color: #6b7280; margin-bottom: 8px; display: inline-block; background: #f3f4f6; padding: 2px 8px; border-radius: 4px; }
-        .item-info .price { font-size: 16px; font-weight: 700; color: #059669; margin: 0; }
+        .item-info h3 { margin: 0 0 6px 0; font-size: 18px; font-weight: 800; color: #111827; }
+        .item-info .type { font-size: 13px; color: #4b5563; margin-bottom: 8px; display: inline-flex; align-items: center; gap: 4px; background: #f3f4f6; padding: 4px 10px; border-radius: 20px; font-weight: 600;}
+        .item-info .price { font-size: 17px; font-weight: 800; color: #059669; margin: 0; }
         
         /* Sepete Ekle Butonu Formu */
         .add-to-cart-form { display: flex; align-items: center; gap: 10px; }
-        .qty-input { width: 45px; padding: 10px 8px; border: 1px solid #d1d5db; border-radius: 8px; text-align: center; font-family: inherit; font-weight: 600; outline: none; transition: border-color 0.2s; }
-        .qty-input:focus { border-color: #4f46e5; }
-        .add-btn { background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.2s; font-family: inherit; box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2); }
-        .add-btn:hover { background: #059669; box-shadow: 0 4px 6px rgba(16, 185, 129, 0.3); transform: translateY(-1px); }
+        .qty-input { width: 45px; padding: 12px 8px; border: 1px solid #d1d5db; border-radius: 12px; text-align: center; font-family: inherit; font-weight: 700; outline: none; transition: border-color 0.2s; background: #f9fafb; }
+        .qty-input:focus { border-color: #4f46e5; background: #ffffff; }
+        .add-btn { background: #10b981; color: white; border: none; padding: 12px 20px; border-radius: 12px; font-weight: 800; font-size: 14px; cursor: pointer; transition: all 0.2s; font-family: inherit; box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2); display: flex; align-items: center; gap: 6px; }
+        .add-btn:hover { background: #059669; box-shadow: 0 6px 12px rgba(16, 185, 129, 0.3); transform: translateY(-2px); }
 
         /* Kapalı Restoran CSS Kuralları */
         .closed-menu-item { opacity: 0.55; filter: grayscale(100%); pointer-events: none; }
@@ -89,7 +95,7 @@
 
         /* Modallar */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 24, 39, 0.7); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
-        .modal-content { background: white; width: 90%; max-width: 600px; max-height: 80vh; border-radius: 16px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        .modal-content { background: white; width: 90%; max-width: 600px; max-height: 80vh; border-radius: 20px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
         .modal-header { padding: 20px 25px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; background-color: #fff; }
         .modal-header h3 { margin: 0; font-size: 20px; color: #111827; font-weight: 800; }
         .close-btn { background: none; border: none; font-size: 28px; cursor: pointer; color: #9ca3af; transition: color 0.2s; line-height: 1; }
@@ -105,10 +111,10 @@
         @keyframes heartPop { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
         .heart-animate { animation: heartPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 
-        /* 📍 YAPIŞKAN KATEGORİ ÇUBUĞU (Scrollspy) */
+        /* 📍 YAPIŞKAN KATEGORİ ÇUBUĞU */
         .sticky-category-nav {
             position: sticky;
-            top: 70px; /* Navbar (70px) yüksekliğine göre hizalandı */
+            top: 75px; 
             background: rgba(248, 249, 250, 0.95);
             backdrop-filter: blur(12px);
             padding: 15px 0 15px 0;
@@ -118,9 +124,9 @@
             gap: 12px;
             overflow-x: auto;
             border-bottom: 1px solid #e5e7eb;
-            scrollbar-width: none; /* Firefox için scrollbar gizleme */
+            scrollbar-width: none; 
         }
-        .sticky-category-nav::-webkit-scrollbar { display: none; } /* Chrome/Safari için scrollbar gizleme */
+        .sticky-category-nav::-webkit-scrollbar { display: none; } 
         
         .cat-link {
             background: #ffffff;
@@ -135,13 +141,13 @@
             transition: all 0.2s;
             text-decoration: none;
             box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            display: flex; align-items: center; gap: 6px;
         }
         .cat-link:hover { border-color: #d1d5db; background: #f9fafb; transform: translateY(-1px); }
         .cat-link.active { background: #111827; color: white; border-color: #111827; box-shadow: 0 4px 10px rgba(17, 24, 39, 0.2); }
 
-        /* 📍 KAYDIRILABİLİR BÖLÜMLER İÇİN MARJİN */
         .menu-section {
-            scroll-margin-top: 150px; /* Tıklandığında başlığın 70px'lik navbar altında kalmasını önler */
+            scroll-margin-top: 150px; 
             margin-bottom: 45px;
         }
         .menu-section h2 {
@@ -151,39 +157,60 @@
 </head>
 <body>
 
-    <!-- 🌟 KUSURSUZ NAVBAR (DARK MODE) -->
     <nav class="customer-nav" id="main-navbar">
         <a href="/" class="nav-brand">
-            <!-- Jilet gibi SVG Logomuz -->
             <img src="{{ url_for('static', filename='images/icons/logo.svg') }}" alt="Lezzet Kapında">
         </a>
         
         <div class="nav-links">
             {% if request.endpoint == 'index' %}
             <button class="nav-address-btn" onclick="openAddressModal()">
-                📍 <span id="navbar-address-text">{{ session.get('customer_city') or 'Teslimat Adresi Seçin' }}</span> ▾
+                <i class="ph-bold ph-map-pin"></i> <span id="navbar-address-text">{{ session.get('customer_city') or 'Teslimat Adresi Seçin' }}</span> <i class="ph-bold ph-caret-down" style="font-size:12px;"></i>
             </button>
             {% endif %}
 
-            <a href="{{ url_for('view_cart') }}" class="cart-btn cart-wrapper" style="text-decoration: none;">
-                🛒 Sepet
-                {% set cart_qty = namespace(total=0) %}
-                {% for item in session.get('cart', []) %}
-                    {% set cart_qty.total = cart_qty.total + item.quantity|int %}
-                {% endfor %}
-                {% if cart_qty.total > 0 %}
-                    <span class="cart-badge">{{ cart_qty.total }}</span>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; margin-top: 5px;">
+                <a href="{{ url_for('view_cart') }}" class="cart-btn cart-wrapper" style="text-decoration: none;">
+                    <i class="ph-bold ph-shopping-cart"></i> Sepet
+                    
+                    {% set cart_qty = namespace(total=0) %}
+                    {% set cart_price = namespace(total=0) %}
+                    
+                    {% if session.get('cart') %}
+                        {% for item in session.get('cart') %}
+                            {% set cart_qty.total = cart_qty.total + item['quantity']|int %}
+                            {% set cart_price.total = cart_price.total + (item['price']|float * item['quantity']|int) %}
+                        {% endfor %}
+                    {% endif %}
+                    
+                    {% if cart_qty.total > 0 %}
+                        <span class="cart-badge" id="nav-cart-badge">{{ cart_qty.total }}</span>
+                    {% else %}
+                        <span class="cart-badge" id="nav-cart-badge" style="display: none;">0</span>
+                    {% endif %}
+                </a>
+                
+                {% if cart_price.total > 0 %}
+                    <span id="nav-cart-total" data-total="{{ cart_price.total }}" 
+                          style="font-size: 13px; font-weight: 800; color: #10b981; background: #ecfdf5; padding: 2px 10px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: transform 0.3s;">
+                        ${{ "%.2f"|format(cart_price.total) }}
+                    </span>
+                {% else %}
+                    <span id="nav-cart-total" data-total="0" 
+                          style="display: none; font-size: 13px; font-weight: 800; color: #10b981; background: #ecfdf5; padding: 2px 10px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: transform 0.3s;">
+                        $0.00
+                    </span>
                 {% endif %}
-            </a>
+            </div>
 
             <div class="dropdown">
-                <button class="dropdown-btn">👤 Hesabım ▾</button>
+                <button class="dropdown-btn"><i class="ph-bold ph-user"></i> Hesabım <i class="ph-bold ph-caret-down" style="font-size:12px;"></i></button>
                 <div class="dropdown-content">
-                    <a href="{{ url_for('customer_orders') }}">📦 Siparişlerim</a>
-                    <a href="{{ url_for('view_favorites') }}">❤️ Favorilerim</a>
-                    <a href="{{ url_for('view_profile') }}">⚙️ Ayarlarım</a>
+                    <a href="{{ url_for('customer_orders') }}"><i class="ph-bold ph-package"></i> Siparişlerim</a>
+                    <a href="{{ url_for('view_favorites') }}"><i class="ph-bold ph-heart"></i> Favorilerim</a>
+                    <a href="{{ url_for('view_profile') }}"><i class="ph-bold ph-gear"></i> Ayarlarım</a>
                     <div style="height: 1px; background: #e5e7eb; margin: 4px 0;"></div>
-                    <a href="/logout" style="color: #ef4444;">🚪 Çıkış Yap</a>
+                    <a href="/logout" style="color: #ef4444;"><i class="ph-bold ph-sign-out" style="color: #ef4444;"></i> Çıkış Yap</a>
                 </div>
             </div>
         </div>
@@ -191,7 +218,6 @@
 
     {% set bg_image = url_for('static', filename='images/restaurants/' ~ restaurant['image_url']) %}
     
-    <!-- 🌟 RESTORAN KAPAK (HERO) ALANI -->
     <div class="restaurant-header {% if restaurant.get('is_open') == False %}closed-header{% endif %}" 
          {% if restaurant['image_url'] and restaurant['image_url'] != 'default_restaurant.jpg' %}
             style="background: linear-gradient(rgba(17, 24, 39, 0.75), rgba(17, 24, 39, 0.9)), url('{{ bg_image }}') center/cover; color: white; padding: 70px 5%; text-align: center; border-bottom: 5px solid #4f46e5;"
@@ -211,7 +237,7 @@
             </button>
         </div>
         
-        <p style="text-shadow: 0 2px 4px rgba(0,0,0,0.5);">{{ restaurant['cuisine'] }} • {{ restaurant['restaurant_address'] }}</p>
+        <p style="text-shadow: 0 2px 4px rgba(0,0,0,0.5);"><i class="ph-bold ph-map-pin"></i> {{ restaurant['cuisine'] }} • {{ restaurant['restaurant_address'] }}</p>
         
         {% if restaurant.get('is_open') == False %}
             <div style="background-color: #ef4444; color: white; padding: 8px 20px; border-radius: 30px; font-weight: 800; font-size: 15px; display: inline-block; margin-top: 20px; box-shadow: 0 4px 10px rgba(239,68,68,0.4);">
@@ -220,16 +246,15 @@
         {% endif %}
 
         <div class="rating" onclick="document.getElementById('reviewsModal').style.display='flex'" style="cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.3);" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-            ⭐ {{ restaurant['rating'] }} ({{ restaurant['rating_count'] }}) - Yorumları Gör
+            {{ restaurant['rating'] }} <i class="ph-fill ph-star" style="color: #f59e0b;"></i> ({{ restaurant['rating_count'] }}) - Yorumları Gör
         </div>
     </div>
 
     <div class="container">
 
-        <!-- KUPONLAR -->
         {% if active_promos %}
         <div style="margin-bottom: 35px;">
-            <h3 style="font-size: 18px; font-weight: 800; margin: 0 0 15px 0; color: #111827;">🎟️ Fırsatları Kaçırma</h3>
+            <h3 style="font-size: 18px; font-weight: 800; margin: 0 0 15px 0; color: #111827; display: flex; align-items: center; gap: 8px;"><i class="ph-fill ph-ticket" style="color: #ec4899; font-size: 24px;"></i> Fırsatları Kaçırma</h3>
             <div style="display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none;">
                 {% for promo in active_promos %}
                 <div onclick="navigator.clipboard.writeText('{{ promo.code_name }}'); showToast('Kupon kodu kopyalandı: {{ promo.code_name }}', 'success');" 
@@ -255,10 +280,9 @@
         </div>
         {% endif %}
         
-        <!-- YAPIŞKAN KATEGORİ ÇUBUĞU -->
         <div class="sticky-category-nav" id="categoryNav">
             {% if popular_items %}
-                <a href="#cat-popular" class="cat-link active">🔥 Çok Satanlar</a>
+                <a href="#cat-popular" class="cat-link active"><i class="ph-fill ph-fire" style="color: #ef4444;"></i> Çok Satanlar</a>
             {% endif %}
             
             {% for category in grouped_menus.keys() %}
@@ -266,7 +290,6 @@
             {% endfor %}
         </div>
 
-        <!-- ÇOK SATANLAR BÖLÜMÜ -->
         {% if popular_items %}
         <div id="cat-popular" class="menu-section">
             <h2>🔥 Çok Satanlar</h2>
@@ -275,7 +298,7 @@
                 <div class="menu-item {% if restaurant.get('is_open') == False %}closed-menu-item{% endif %}">
                     <div style="display: flex; gap: 20px; align-items: center; flex: 1;">
                         {% if item.get('image_url') %}
-                            <img src="{{ url_for('static', filename='images/menus/' ~ item.get('image_url')) }}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);" alt="{{ item.get('food_name') }}">
+                            <img src="{{ url_for('static', filename='images/menus/' ~ item.get('image_url')) }}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);" alt="{{ item.get('food_name') }}">
                         {% endif %}
                         <div class="item-info">
                             <h3>{{ item['custom_name'] or item['food_name'] }}</h3>
@@ -288,7 +311,7 @@
                         <input type="hidden" name="food_name" value="{{ item['custom_name'] or item['food_name'] }}">
                         <input type="hidden" name="price" value="{{ item['price'] }}">
                         <input type="number" name="quantity" class="qty-input" value="1" min="1" max="{{ item['stock_quantity'] }}" {% if restaurant.get('is_open') == False %}disabled{% endif %}>
-                        <button type="submit" class="add-btn" {% if restaurant.get('is_open') == False %}disabled{% endif %}>+ Ekle</button>
+                        <button type="submit" class="add-btn" {% if restaurant.get('is_open') == False %}disabled{% endif %}><i class="ph-bold ph-plus"></i> Ekle</button>
                     </form>
                 </div>
                 {% endfor %}
@@ -296,7 +319,6 @@
         </div>
         {% endif %}
 
-        <!-- DİĞER KATEGORİLER -->
         {% for category, items in grouped_menus.items() %}
         <div id="cat-{{ loop.index }}" class="menu-section">
             <h2>{{ category }}</h2>
@@ -305,7 +327,7 @@
                 <div class="menu-item {% if restaurant.get('is_open') == False %}closed-menu-item{% endif %}">
                     <div style="display: flex; gap: 20px; align-items: center; flex: 1;">
                         {% if item.get('image_url') %}
-                            <img src="{{ url_for('static', filename='images/menus/' ~ item.get('image_url')) }}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);" alt="{{ item.get('food_name') }}">
+                            <img src="{{ url_for('static', filename='images/menus/' ~ item.get('image_url')) }}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);" alt="{{ item.get('food_name') }}">
                         {% endif %}
                         <div class="item-info">
                             <h3>{{ item['custom_name'] or item['food_name'] }}</h3>
@@ -318,7 +340,7 @@
                         <input type="hidden" name="food_name" value="{{ item['custom_name'] or item['food_name'] }}">
                         <input type="hidden" name="price" value="{{ item['price'] }}">
                         <input type="number" name="quantity" class="qty-input" value="1" min="1" max="{{ item['stock_quantity'] }}" {% if restaurant.get('is_open') == False %}disabled{% endif %}>
-                        <button type="submit" class="add-btn" {% if restaurant.get('is_open') == False %}disabled{% endif %}>+ Ekle</button>
+                        <button type="submit" class="add-btn" {% if restaurant.get('is_open') == False %}disabled{% endif %}><i class="ph-bold ph-plus"></i> Ekle</button>
                     </form>
                 </div>
                 {% endfor %}
@@ -328,7 +350,6 @@
 
     </div> 
 
-    <!-- SCRIPTLER VE MODALLAR (Orijinal Kodları Aynen Korundu) -->
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             const sections = document.querySelectorAll('.menu-section');
@@ -383,23 +404,23 @@
                 {% if reviews %}
                     <div style="display: grid; grid-template-columns: 1fr; gap: 15px;">
                     {% for review in reviews %}
-                        <div style="background-color: #ffffff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); border: 1px solid #f3f4f6;">
+                        <div style="background-color: #ffffff; padding: 25px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); border: 1px solid #f3f4f6;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                                <span style="font-weight: 700; color: #111827; font-size: 16px;">👤 {{ review.customer_name }}</span>
+                                <span style="font-weight: 700; color: #111827; font-size: 16px; display: flex; align-items: center; gap: 6px;"><i class="ph-fill ph-user-circle" style="font-size: 20px; color: #9ca3af;"></i> {{ review.customer_name }}</span>
                                 <span style="color: #9ca3af; font-size: 13px; font-weight: 500;">{{ review.created_at.strftime('%d %b %Y') }}</span>
                             </div>
-                            <div style="margin-bottom: 15px; font-size: 14px;">
-                                {% for i in range(review.rating) %}⭐{% endfor %}
+                            <div style="margin-bottom: 15px; font-size: 14px; color: #f59e0b; display: flex; align-items: center;">
+                                {% for i in range(review.rating) %}<i class="ph-fill ph-star"></i>{% endfor %}
                                 <span style="color: #6b7280; font-size: 13px; margin-left: 5px; font-weight: 600;">({{ review.rating }})</span>
                             </div>
                             {% if review.comment %}
-                                <p style="margin: 0; color: #374151; font-size: 15px; line-height: 1.6; font-style: italic; background-color: #f9fafb; padding: 15px; border-radius: 8px; border-left: 4px solid #f59e0b;">
+                                <p style="margin: 0; color: #374151; font-size: 15px; line-height: 1.6; font-style: italic; background-color: #f9fafb; padding: 15px; border-radius: 12px; border-left: 4px solid #f59e0b;">
                                     "{{ review.comment }}"
                                 </p>
                             {% endif %}
 
                             {% if review.restaurant_reply %}
-                                <div style="margin-top: 15px; background-color: #eff6ff; padding: 15px; border-radius: 8px; border-left: 4px solid #3b82f6;">
+                                <div style="margin-top: 15px; background-color: #eff6ff; padding: 15px; border-radius: 12px; border-left: 4px solid #3b82f6;">
                                     <span style="font-size: 12px; font-weight: 800; color: #1d4ed8; text-transform: uppercase;">Restoranın Yanıtı:</span>
                                     <p style="margin: 6px 0 0 0; color: #1e293b; font-size: 14px; font-weight: 500; line-height: 1.5;">
                                         "{{ review.restaurant_reply }}"
@@ -410,9 +431,10 @@
                     {% endfor %}
                     </div>
                 {% else %}
-                    <div style="background-color: #ffffff; padding: 40px; border-radius: 12px; text-align: center; border: 2px dashed #e5e7eb;">
-                        <p style="color: #6b7280; font-size: 16px; margin: 0; font-weight: 500;">
-                            🍽️ Bu restoran için henüz bir değerlendirme yapılmamış.
+                    <div style="background-color: #ffffff; padding: 40px; border-radius: 16px; text-align: center; border: 2px dashed #e5e7eb;">
+                        <p style="color: #6b7280; font-size: 16px; margin: 0; font-weight: 500; display: flex; flex-direction: column; align-items: center; gap: 10px;">
+                            <i class="ph-fill ph-chat-teardrop-slash" style="font-size: 40px; color: #d1d5db;"></i>
+                            Bu restoran için henüz bir değerlendirme yapılmamış.
                         </p>
                     </div>
                 {% endif %}
@@ -433,8 +455,8 @@
             </div>
             <div style="padding: 20px 25px; border-top: 1px solid #e5e7eb; background: #f9fafb; display: flex; justify-content: space-between; align-items: center;">
                 <div style="font-size: 20px; font-weight: 800; color: #111827;">Total: $<span id="opt-total-price">0.00</span></div>
-                <button type="button" onclick="submitOptionsToCart()" style="background: #10b981; color: white; border: none; padding: 14px 28px; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 16px; box-shadow: 0 4px 10px rgba(16,185,129,0.25);" onmouseover="this.style.background='#059669'" onmouseout="this.style.background='#10b981'">
-                    🛒 Sepete Ekle
+                <button type="button" onclick="submitOptionsToCart()" style="background: #10b981; color: white; border: none; padding: 14px 28px; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 16px; box-shadow: 0 4px 10px rgba(16,185,129,0.25); display: flex; align-items: center; gap: 8px;" onmouseover="this.style.background='#059669'" onmouseout="this.style.background='#10b981'">
+                    <i class="ph-bold ph-shopping-cart"></i> Sepete Ekle
                 </button>
             </div>
         </div>
@@ -496,12 +518,12 @@
                 
                 opt.choices.forEach(ch => {
                     html += `
-                        <label style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: 14px 16px; border: 1px solid #e5e7eb; border-radius: 10px; background: white; transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.02);" onmouseover="this.style.borderColor='#4f46e5'" onmouseout="this.style.borderColor='#e5e7eb'">
+                        <label style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: 14px 16px; border: 1px solid #e5e7eb; border-radius: 12px; background: white; transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.02);" onmouseover="this.style.borderColor='#4f46e5'" onmouseout="this.style.borderColor='#e5e7eb'">
                             <div style="display: flex; align-items: center; gap: 12px;">
                                 <input type="${inputType}" name="opt_${opt.option_id}" value="${ch.choice_name}" data-id="${ch.choice_id}" data-price="${ch.additional_price}" onchange="calculateModalPrice()" ${reqAttr} style="transform: scale(1.3); cursor: pointer; accent-color: #4f46e5;">
                                 <span style="font-size: 15px; font-weight: 600; color: #374151;">${ch.choice_name}</span>
                             </div>
-                            ${ch.additional_price > 0 ? `<span style="color: #059669; font-weight: 700; font-size: 14px; background: #ecfdf5; padding: 4px 8px; border-radius: 6px;">+$${ch.additional_price}</span>` : ''}
+                            ${ch.additional_price > 0 ? `<span style="color: #059669; font-weight: 700; font-size: 14px; background: #ecfdf5; padding: 4px 8px; border-radius: 8px;">+$${ch.additional_price}</span>` : ''}
                         </label>
                     `;
                 });
@@ -559,7 +581,8 @@
             
             document.querySelectorAll('#customer-options-form input:checked').forEach(input => {
                 selectedTexts.push(input.value);
-                totalExtra += parseFloat(input.getAttribute('data-price'));
+                let valStr = input.getAttribute('data-price') || "0";
+                totalExtra += parseFloat(valStr.replace(',', '.')) || 0;
                 activeFormData.append('choices', input.getAttribute('data-id'));
             });
             
@@ -567,17 +590,34 @@
                 const currentName = activeFormData.get('food_name');
                 activeFormData.set('food_name', currentName + ' (' + selectedTexts.join(', ') + ')');
             }
+            
+            // 🛠️ DÜZELTME 1: Backend iki kere eklemesin diye SADECE baz fiyatı yolluyoruz!
             activeFormData.set('price', currentBasePrice); 
             
-            executeCartAjax(activeFormData, activeFormElement);
+            // 🛠️ DÜZELTME 2: Navbar'ın doğru hesaplaması için toplam fiyatı özel parametre olarak yolluyoruz!
+            const finalUnitPrice = currentBasePrice + totalExtra;
+            executeCartAjax(activeFormData, activeFormElement, finalUnitPrice);
+            
             closeCustomerOptionsModal();
         }
 
         function closeCustomerOptionsModal() { document.getElementById('customerOptionsModal').style.display = 'none'; }
 
-        function executeCartAjax(formData, formElement) {
+        // 🛠️ DÜZELTME 3: "customPrice" parametresi eklendi
+        function executeCartAjax(formData, formElement, customPrice = null) {
             const btn = formElement.querySelector('.add-btn');
             const originalText = btn.innerHTML;
+            
+            // 🛠️ DÜZELTME 4: Eğer ekstralı bir fiyatsa customPrice'ı kullan, yoksa formdan çek
+            let itemPrice;
+            if (customPrice !== null && customPrice !== undefined) {
+                itemPrice = customPrice;
+            } else {
+                itemPrice = parseFloat(formData.get('price')) || 0;
+            }
+            
+            const itemQty = parseInt(formData.get('quantity')) || 1;
+            const addedTotal = itemPrice * itemQty;
             
             fetch(formElement.action, {
                 method: 'POST', body: formData, headers: { 'X-Requested-With': 'XMLHttpRequest' }
@@ -585,22 +625,38 @@
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
-                    btn.innerHTML = '✓ Eklendi';
+                    btn.innerHTML = '<i class="ph-bold ph-check"></i> Eklendi';
                     btn.style.backgroundColor = '#059669'; 
                     btn.style.transform = 'scale(1.05)';
                     
                     setTimeout(() => { btn.innerHTML = originalText; btn.style.backgroundColor = '#10b981'; btn.style.transform = 'scale(1)'; }, 1500);
                     
-                    const cartBtn = document.querySelector('.cart-btn');
-                    let badge = document.querySelector('.cart-badge');
-                    if (!badge) { badge = document.createElement('span'); badge.className = 'cart-badge'; cartBtn.appendChild(badge); }
-                    badge.innerText = data.total_cart_qty;
+                    let badge = document.getElementById('nav-cart-badge');
+                    if (badge) {
+                        badge.innerText = data.total_cart_qty;
+                        badge.style.display = data.total_cart_qty > 0 ? 'flex' : 'none';
+                    }
                     
-                    if (data.cart_cleared) {
-                        showToast("Yeni restoran seçildiği için sepet yenilendi.", "success");
+                    let priceTag = document.getElementById('nav-cart-total');
+                    if (priceTag) {
+                        let currentTotal = parseFloat(priceTag.getAttribute('data-total')) || 0;
+                        
+                        if (data.cart_cleared) {
+                            currentTotal = addedTotal;
+                            if (typeof showToast === "function") showToast("Yeni restoran seçildiği için sepet yenilendi.", "success");
+                        } else {
+                            currentTotal += addedTotal;
+                        }
+                        
+                        priceTag.setAttribute('data-total', currentTotal);
+                        priceTag.innerText = '$' + currentTotal.toFixed(2);
+                        priceTag.style.display = 'inline-block'; 
+                        
+                        priceTag.style.transform = 'scale(1.15)';
+                        setTimeout(() => { priceTag.style.transform = 'scale(1)'; }, 200);
                     }
                 } else {
-                    showToast(data.message || 'Sepete eklenirken bir hata oluştu.', 'error');
+                    if (typeof showToast === "function") showToast(data.message || 'Sepete eklenirken bir hata oluştu.', 'error');
                     if(data.message.includes('login')) setTimeout(() => { window.location.href = '/customer_login'; }, 1500);
                 }
             })
@@ -640,7 +696,7 @@
                                 svg.setAttribute('stroke', '#6b7280');
                             }
                         } else {
-                            alert(data.message);
+                            showToast(data.message, "error");
                             if(data.message.includes('giriş')) window.location.href = '/customer_login';
                         }
                     })
@@ -650,7 +706,7 @@
         });
     </script>
 
-    <div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 99999; display: flex; flex-direction: column; gap: 10px;"></div>
+    <div id="toast-container" style="position: fixed; bottom: 20px; right: 20px; z-index: 99999; display: flex; flex-direction: column-reverse; gap: 10px;"></div>
 
     <script>
         function showToast(message, type = 'success') {
@@ -658,7 +714,7 @@
             const toast = document.createElement('div');
             
             const bgColor = type === 'success' ? '#10b981' : '#ef4444';
-            const icon = type === 'success' ? '✅' : '❌';
+            const icon = type === 'success' ? '<i class="ph-fill ph-check-circle"></i>' : '<i class="ph-fill ph-x-circle"></i>';
 
             toast.style.background = bgColor;
             toast.style.color = 'white';
@@ -675,7 +731,7 @@
             toast.style.transform = 'translateX(100%)';
             toast.style.transition = 'all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55)'; 
             
-            toast.innerHTML = `<span style="font-size: 18px;">${icon}</span> <span>${message}</span>`;
+            toast.innerHTML = `<span style="font-size: 20px; display: flex;">${icon}</span> <span>${message}</span>`;
             container.appendChild(toast);
 
             setTimeout(() => { toast.style.opacity = '1'; toast.style.transform = 'translateX(0)'; }, 10);
@@ -747,19 +803,6 @@
             }, 10000); 
         });
     </script>
-
-    <div class="flash-container">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                <div class="flash-message {{ category }}">
-                    {{ message }}
-                    <button class="close-flash" onclick="this.parentElement.style.display='none';">&times;</button>
-                </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-    </div>
 
     <script src="{{ url_for('static', filename='js/common.js') }}"></script>
 </body>

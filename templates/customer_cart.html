@@ -29,8 +29,25 @@
             margin-top: 20px;
         } 
         
-        .back-link { text-decoration: none; color: #d1d5db; font-weight: 600; font-size: 14px; transition: color 0.2s; display: flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 8px; background: rgba(255,255,255,0.05); }
-        .back-link:hover { color: #ffffff; background: rgba(255,255,255,0.1); }
+        .back-link { 
+            text-decoration: none; 
+            color: #ffffff; 
+            font-weight: 700; 
+            font-size: 14px; 
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            display: flex; align-items: center; gap: 8px; 
+            padding: 10px 20px; 
+            border-radius: 20px; 
+            background: #4f46e5; 
+            box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);
+            border: 1px solid #4338ca;
+        }
+        .back-link:hover { 
+            background: #4338ca; 
+            color: #ffffff;
+            transform: translateX(-5px) scale(1.02); 
+            box-shadow: 0 8px 15px rgba(79, 70, 229, 0.4); 
+        }
 
         .container { max-width: 1000px; margin: 40px auto 80px auto; padding: 0 20px; display: grid; grid-template-columns: 1.5fr 1fr; gap: 30px; }
         @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
@@ -70,7 +87,20 @@
             <img src="{{ url_for('static', filename='images/icons/logo.svg') }}" alt="Lezzet Kapında">
         </a>
         <div style="display: flex; gap: 20px; align-items: center;">   
-            <a href="javascript:history.back()" class="back-link">⬅️ Menüye Dön</a>
+            {% set back_nav = namespace(url=url_for('index')) %}
+            {% for item in session.get('cart', []) %}
+                {% if loop.first %}
+                    {% set r_id = item.get('restaurant_id', '') %}
+                    {% if r_id %}
+                        {% set back_nav.url = url_for('view_restaurant', restaurant_id=r_id) %}
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
+            
+            <a href="{{ back_nav.url }}" class="back-link">
+                <i class="ph-bold ph-arrow-left"></i> 
+                {% if session.get('cart') %}Menüye Dön{% else %}Alışverişe Başla{% endif %}
+            </a>
         </div>
     </nav>
 
