@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-posta Doğrulama | Lezzet Kapında</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <style>
+        body { margin: 0; font-family: 'Inter', sans-serif; background-color: #f3f4f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        
+        .verify-container { background: white; width: 100%; max-width: 450px; padding: 40px; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.08); text-align: center; border: 1px solid #e5e7eb; }
+        
+        .icon-wrapper { width: 80px; height: 80px; background: #eef2ff; border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 20px auto; color: #4f46e5; font-size: 40px; box-shadow: 0 0 0 10px rgba(79, 70, 229, 0.1); }
+        
+        h2 { margin: 0 0 10px 0; color: #111827; font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+        p { color: #6b7280; font-size: 15px; margin: 0 0 30px 0; line-height: 1.6; }
+        .email-highlight { font-weight: 700; color: #111827; }
+
+        /* 🌟 MODERN OTP KUTUCUKLARI */
+        .otp-inputs { display: flex; gap: 10px; justify-content: center; margin-bottom: 30px; direction: ltr; }
+        .otp-input { width: 50px; height: 60px; font-size: 24px; font-weight: 800; text-align: center; border: 2px solid #d1d5db; border-radius: 12px; background: #f9fafb; outline: none; transition: all 0.2s; font-family: 'Inter', sans-serif; color: #111827; }
+        .otp-input:focus { border-color: #4f46e5; background: white; box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15); transform: translateY(-2px); }
+        .otp-input.filled { border-color: #10b981; background: #ecfdf5; color: #059669; }
+        
+        .verify-btn { width: 100%; padding: 16px; background-color: #4f46e5; color: white; border: none; border-radius: 14px; font-size: 16px; font-weight: 800; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3); font-family: inherit; display: flex; justify-content: center; align-items: center; gap: 8px; }
+        .verify-btn:hover { background-color: #4338ca; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(79, 70, 229, 0.4); }
+        
+        .resend-text { margin-top: 25px; font-size: 14px; color: #6b7280; font-weight: 500; }
+        .resend-link { color: #4f46e5; font-weight: 700; text-decoration: none; cursor: pointer; transition: 0.2s; }
+        .resend-link:hover { text-decoration: underline; color: #4338ca; }
+        .resend-timer { color: #9ca3af; font-weight: 700; }
+
+        /* Toast Bildirimi */
+        #toast { position: fixed; top: 20px; right: 20px; background: #ef4444; color: white; padding: 14px 24px; border-radius: 10px; font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 10px; opacity: 0; transform: translateX(100%); transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); box-shadow: 0 10px 15px rgba(0,0,0,0.1); z-index: 1000; }
+    </style>
+</head>
+<body>
+
+    <div id="toast"><i class="ph-fill ph-x-circle" style="font-size: 20px;"></i> <span id="toast-msg">Hatalı kod!</span></div>
+
+    <div class="verify-container">
+        <div class="icon-wrapper">
+            <i class="ph-bold ph-envelope-open"></i>
+        </div>
+        
+        <h2>E-postanızı Doğrulayın</h2>
+        <p><span class="email-highlight">{{ session.get('pending_email', 'E-posta adresinize') }}</span> adresine 6 haneli bir güvenlik kodu gönderdik. Lütfen aşağıya girin.</p>
+        
+        <form action="{{ url_for('verify_email_code') }}" method="POST" id="verify-form">
+            <input type="hidden" name="verification_code" id="full-code" required>
+            
+            <div class="otp-inputs" id="otp-container">
+                <input type="text" class="otp-input" maxlength="1" autocomplete="off" autofocus>
+                <input type="text" class="otp-input" maxlength="1" autocomplete="off">
+                <input type="text" class="otp-input" maxlength="1" autocomplete="off">
+                <input type="text" class="otp-input" maxlength="1" autocomplete="off">
+                <input type="text" class="otp-input" maxlength="1" autocomplete="off">
+                <input type="text" class="otp-input" maxlength="1" autocomplete="off">
+            </div>
+            
+            <button type="button" class="verify-btn" onclick="submitVerification()">
+                <i class="ph-bold ph-check-circle"></i> Hesabımı Onayla
+            </button>
+        </form>
+
+        <div class="resend-text">
+            Kodu almadınız mı? <br>
+            <span id="resend-wrapper">
+                <span class="resend-timer" id="timer">01:00</span> sonra 
+                <a href="#" class="resend-link" style="opacity: 0.5; pointer-events: none;" id="resend-btn" onclick="resendCode()">Tekrar Gönder</a>
+            </span>
+        </div>
+    </div>
+
+    <script>
+        const inputs = document.querySelectorAll('.otp-input');
+        const fullCodeInput = document.getElementById('full-code');
+        const form = document.getElementById('verify-form');
+
+        // Kutucuk atlama animasyonları
+        inputs.forEach((input, index) => {
+            input.addEventListener('input', (e) => {
+                if (e.target.value.length === 1) {
+                    input.classList.add('filled');
+                    if (index < inputs.length - 1) inputs[index + 1].focus();
+                } else {
+                    input.classList.remove('filled');
+                }
+            });
+
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                    inputs[index - 1].focus();
+                    inputs[index - 1].value = '';
+                    inputs[index - 1].classList.remove('filled');
+                }
+            });
+            
+            input.addEventListener('paste', (e) => {
+                e.preventDefault();
+                const pastedData = e.clipboardData.getData('text').slice(0, 6).replace(/[^0-9]/g, '');
+                pastedData.split('').forEach((char, i) => {
+                    if (i < inputs.length) {
+                        inputs[i].value = char;
+                        inputs[i].classList.add('filled');
+                        if (i < inputs.length - 1) inputs[i + 1].focus();
+                    }
+                });
+            });
+        });
+
+        // DOĞRULAMA GÖNDERİMİ
+        function submitVerification() {
+            let code = '';
+            inputs.forEach(input => code += input.value);
+            
+            if (code.length === 6) {
+                const btn = document.querySelector('.verify-btn');
+                const originalText = btn.innerHTML;
+                
+                btn.innerHTML = '<i class="ph-bold ph-spinner ph-spin"></i> Doğrulanıyor...';
+                btn.disabled = true;
+
+                fetch("{{ url_for('verify_email_code') }}", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ verification_code: code })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.href = data.redirect;
+                    } else {
+                        showToast(data.message, 'error'); 
+                        inputs.forEach(input => { 
+                            input.value = ''; 
+                            input.classList.remove('filled');
+                            input.style.borderColor = '#ef4444';
+                            setTimeout(() => input.style.borderColor = '', 1500);
+                        });
+                        inputs[0].focus();
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                    }
+                })
+                .catch(err => {
+                    showToast("Bağlantı hatası oluştu.", "error");
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                });
+            } else {
+                showToast("Lütfen 6 haneli kodu eksiksiz girin.", "error");
+            }
+        }
+
+        // AKILLI TOAST BİLDİRİMİ (Hem Yeşil Hem Kırmızı çalışır)
+        function showToast(msg, type = 'error') {
+            const toast = document.getElementById('toast');
+            const icon = toast.querySelector('i');
+            document.getElementById('toast-msg').innerText = msg;
+            
+            if (type === 'success') {
+                toast.style.background = '#10b981';
+                icon.className = 'ph-fill ph-check-circle';
+            } else {
+                toast.style.background = '#ef4444';
+                icon.className = 'ph-fill ph-x-circle';
+            }
+            
+            toast.style.opacity = '1';
+            toast.style.transform = 'translateX(0)';
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+            }, 3000);
+        }
+
+        // AKILLI SAYAÇ VE YENİDEN GÖNDERME
+        let timeLeft;
+        let countdown; // Sayacı dışarıda tanımladık ki sıfırlayabilelim
+        const timerEl = document.getElementById('timer');
+        const resendBtn = document.getElementById('resend-btn');
+
+        function startTimer() {
+            timeLeft = 60;
+            timerEl.style.display = 'inline';
+            resendBtn.style.opacity = '0.5';
+            resendBtn.style.pointerEvents = 'none';
+            resendBtn.innerText = 'Tekrar Gönder';
+
+            clearInterval(countdown); // Önceki sayacı durdur
+            countdown = setInterval(() => {
+                timeLeft--;
+                let seconds = timeLeft % 60;
+                timerEl.innerText = `00:${seconds < 10 ? '0' : ''}${seconds}`;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(countdown);
+                    timerEl.style.display = 'none';
+                    resendBtn.style.opacity = '1';
+                    resendBtn.style.pointerEvents = 'auto';
+                }
+            }, 1000);
+        }
+
+        // Sayfa açıldığında sayacı başlat
+        startTimer();
+
+        // KODU TEKRAR GÖNDER BUTONU (SAYFA YENİLENMEZ)
+        function resendCode() {
+            resendBtn.innerText = 'Gönderiliyor...';
+            resendBtn.style.opacity = '0.5';
+            resendBtn.style.pointerEvents = 'none';
+
+            fetch("{{ url_for('resend_verification_code') }}", {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message, 'success'); // Yeşil bildirim
+                    startTimer(); // Sayacı 60'tan tekrar başlat
+                } else {
+                    showToast(data.message, 'error'); // Kırmızı bildirim
+                    resendBtn.innerText = 'Tekrar Gönder';
+                    resendBtn.style.opacity = '1';
+                    resendBtn.style.pointerEvents = 'auto';
+                }
+            })
+            .catch(err => {
+                showToast("Bir hata oluştu, tekrar deneyin.", "error");
+                resendBtn.innerText = 'Tekrar Gönder';
+                resendBtn.style.opacity = '1';
+                resendBtn.style.pointerEvents = 'auto';
+            });
+        }
+    </script>
+</body>
+</html>

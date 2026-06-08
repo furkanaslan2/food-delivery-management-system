@@ -125,7 +125,7 @@
             <form action="{{ url_for('update_profile') }}" method="POST">
                 
                 <div class="form-group">
-                    <label>E-posta Adresi (Giriş ID)</label>
+                    <label>E-posta Adresi</label>
                     <input type="email" class="form-control" value="{{ user_data.get('email') or session.get('email', '') }}" disabled title="E-posta adresi değiştirilemez.">
                 </div>
 

@@ -77,12 +77,13 @@
         }
         .section-title { font-size: 22px; font-weight: 700; margin-bottom: 20px; color: #111827; display: flex; align-items: center; gap: 10px; }
         
-        /* 🌟 GÜNCEL: DAHA BÜYÜK VE İŞTAH AÇICI FOTOĞRAFLAR */
         .category-filters { 
             display: flex; gap: 12px; margin-bottom: 30px; 
             overflow-x: auto; 
             padding-bottom: 12px; 
-            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch; 
+            scrollbar-width: thin; 
+            will-change: transform; 
         }
 
         .category-filters::-webkit-scrollbar { height: 6px; }
