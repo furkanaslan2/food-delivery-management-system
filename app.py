@@ -3,7 +3,7 @@ from flask import Flask
 from flask_session import Session
 from dotenv import load_dotenv
 from index import index
-from auth import login, logout, register, customer_login, customer_register, verify_email_page, verify_email_code, resend_verification_code
+from auth import login, logout, register, customer_login, customer_register, verify_email_page, verify_email_code, resend_verification_code, forgot_password, reset_password, process_reset, resend_reset_code
 from users import users, user_action
 from restaurants import restaurants, restaurant_action, restaurant_analytics, restaurant_profile, restaurant_reviews, reply_review
 from couriers import couriers, courier_action, api_check_courier_orders
@@ -96,6 +96,10 @@ app.add_url_rule('/approve_application/<int:app_id>', 'approve_application', app
 app.add_url_rule('/verify_email', 'verify_email_page', verify_email_page, methods=['GET'])
 app.add_url_rule('/verify_email_code', 'verify_email_code', verify_email_code, methods=['POST'])
 app.add_url_rule('/resend_verification_code', 'resend_verification_code', resend_verification_code, methods=['GET'])
+app.add_url_rule('/forgot_password', 'forgot_password', forgot_password, methods=['GET', 'POST'])
+app.add_url_rule('/reset_password', 'reset_password', reset_password, methods=['GET'])
+app.add_url_rule('/process_reset', 'process_reset', process_reset, methods=['POST'])
+app.add_url_rule('/resend_reset_code', 'resend_reset_code', resend_reset_code, methods=['GET'])
 
 if __name__ == '__main__':
     app.run(debug=True)

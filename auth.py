@@ -342,3 +342,130 @@ def customer_login():
                     connection.close()
 
     return render_template('customer_login.html')
+
+def send_reset_email(to_email, otp_code):
+    sender_email = os.getenv('MAIL_USERNAME')
+    sender_password = os.getenv('MAIL_PASSWORD')
+
+    if not sender_email or not sender_password:
+        return False
+
+    subject = "Yesende - Şifre Sıfırlama Kodu"
+    body = f"""
+    Merhaba,
+    
+    Hesabınızın şifresini sıfırlamak için tek kullanımlık güvenlik kodunuz:
+    
+    GÜVENLİK KODU: {otp_code}
+    
+    Eğer bu şifre sıfırlama isteğini siz yapmadıysanız, lütfen bu e-postayı dikkate almayın. Hesabınız güvendedir.
+    
+    İyi günler dileriz,
+    Yesende Ekibi
+    """
+    
+    msg = MIMEMultipart()
+    msg['From'] = sender_email
+    msg['To'] = to_email
+    msg['Subject'] = subject
+    msg.attach(MIMEText(body, 'plain', 'utf-8'))
+
+    try:
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()
+        server.login(sender_email, sender_password)
+        server.send_message(msg)
+        server.quit()
+        return True
+    except Exception as e:
+        print(f"Mail gönderme hatası: {e}")
+        return False
+
+@nocache
+def forgot_password():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        
+        connection = get_db_connection()
+        if connection:
+            try:
+                cursor = connection.cursor(dictionary=True)
+                cursor.execute('SELECT * FROM customers WHERE email = %s', (email,))
+                customer = cursor.fetchone()
+                
+                if customer:
+                    otp_code = str(random.randint(100000, 999999))
+                    if send_reset_email(email, otp_code):
+                        session['reset_email'] = email
+                        session['reset_otp'] = otp_code
+                        return redirect(url_for('reset_password'))
+                    else:
+                        flash("E-posta gönderilirken bir hata oluştu. Lütfen tekrar deneyin.", "danger")
+                else:
+                    # UX/Güvenlik: E-posta sistemde yoksa hata veriyoruz
+                    flash("Bu e-posta adresiyle kayıtlı bir hesap bulunamadı.", "danger")
+                    
+            except Error as e:
+                flash("Bağlantı hatası oluştu.", "danger")
+            finally:
+                if connection.is_connected():
+                    cursor.close()
+                    connection.close()
+                    
+    return render_template('forgot_password.html')
+
+@nocache
+def reset_password():
+    if 'reset_email' not in session:
+        return redirect(url_for('forgot_password'))
+    return render_template('reset_password.html')
+
+@nocache
+def process_reset():
+    if request.method == 'POST':
+        data = request.get_json(silent=True) or {}
+        entered_code = data.get('verification_code')
+        new_password = data.get('new_password')
+        
+        real_code = session.get('reset_otp')
+        email = session.get('reset_email')
+        
+        if entered_code and real_code and entered_code == real_code:
+            hashed_password = generate_password_hash(new_password, method='pbkdf2:sha256')
+            connection = get_db_connection()
+            if connection:
+                try:
+                    cursor = connection.cursor()
+                    cursor.execute('UPDATE customers SET password = %s WHERE email = %s', (hashed_password, email))
+                    connection.commit()
+                    
+                    # İşlem bitti, session temizle
+                    session.pop('reset_email', None)
+                    session.pop('reset_otp', None)
+                    
+                    flash("Şifreniz başarıyla yenilendi! 🎉 Artık giriş yapabilirsiniz.", "success")
+                    return {'success': True, 'redirect': url_for('customer_login')}
+                except Error as e:
+                    connection.rollback()
+                    return {'success': False, 'message': 'Kayıt sırasında hata oluştu.'}
+                finally:
+                    if connection.is_connected():
+                        cursor.close()
+                        connection.close()
+        else:
+            return {'success': False, 'message': 'Hatalı veya süresi geçmiş kod girdiniz!'}
+            
+    return {'success': False, 'message': 'Geçersiz istek.'}
+
+@nocache
+def resend_reset_code():
+    email = session.get('reset_email')
+    if email:
+        otp_code = str(random.randint(100000, 999999))
+        if send_reset_email(email, otp_code):
+            session['reset_otp'] = otp_code
+            return {'success': True, 'message': 'Yeni doğrulama kodu gönderildi! 📨'}
+        else:
+            return {'success': False, 'message': 'Kod gönderilemedi, lütfen tekrar deneyin.'}
+            
+    return {'success': False, 'message': 'Bekleyen bir işlem bulunamadı.'}
