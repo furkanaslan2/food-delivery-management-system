@@ -137,7 +137,7 @@ def index():
         cursor = connection.cursor(dictionary=True)
         if role == 'admin':
             # Admin için tüm restoranlardan gelen son 5 sipariş
-            cursor.execute("SELECT order_id, order_date, order_type, customer_name, table_no, sales_amount, order_status FROM orders ORDER BY order_id DESC LIMIT 5")
+            cursor.execute("SELECT order_id, order_date, order_type, customer_name, table_no, sales_amount, order_status FROM orders WHERE order_status != 'awaiting_payment' ORDER BY order_id DESC LIMIT 5")
             recent_orders = cursor.fetchall()
             
             queries = {
@@ -145,7 +145,7 @@ def index():
                 'restaurants': "SELECT COUNT(*) AS count FROM restaurants",
                 'menus': "SELECT COUNT(*) AS count FROM menus",
                 'foods': "SELECT COUNT(*) AS count FROM foods",
-                'orders': "SELECT COUNT(*) AS count FROM orders",
+                'orders': "SELECT COUNT(*) AS count FROM orders WHERE order_status != 'awaiting_payment'",
                 'couriers': "SELECT COUNT(*) AS count FROM couriers",
                 'waiters': "SELECT COUNT(*) AS count FROM waiters"
             }
@@ -154,13 +154,14 @@ def index():
             restaurant_id = session.get('restaurant_id')
             
             # Sadece o restorana ait son 5 sipariş
-            cursor.execute("SELECT order_id, order_date, order_type, customer_name, table_no, sales_amount, order_status FROM orders WHERE restaurant_id = %s ORDER BY order_id DESC LIMIT 5", (restaurant_id,))
+            # 📍 KESİN ÇÖZÜM: Son 5 siparişi getir ama ödeme bekleyen "hayaletleri" hariç tut!
+            cursor.execute("SELECT order_id, order_date, order_type, customer_name, table_no, sales_amount, order_status FROM orders WHERE restaurant_id = %s AND order_status != 'awaiting_payment' ORDER BY order_id DESC LIMIT 5", (restaurant_id,))
             recent_orders = cursor.fetchall()
             
             queries = {
                 'menus': f"SELECT COUNT(*) AS count FROM menus WHERE restaurant_id = {restaurant_id}",
                 'foods': f"SELECT COUNT(DISTINCT f.food_id) AS count FROM foods f JOIN menus m ON f.food_id = m.food_id JOIN restaurants r ON m.restaurant_id = r.restaurant_id WHERE r.user_id = {user_id}",
-                'orders': f"SELECT COUNT(*) AS count FROM orders WHERE restaurant_id = {restaurant_id}",
+                'orders': f"SELECT COUNT(*) AS count FROM orders WHERE restaurant_id = {restaurant_id} AND order_status != 'awaiting_payment'",
                 'couriers': f"SELECT COUNT(*) AS count FROM couriers WHERE restaurant_id = {restaurant_id}",
                 'waiters': f"SELECT COUNT(*) AS count FROM waiters WHERE restaurant_id = {restaurant_id}",
             }

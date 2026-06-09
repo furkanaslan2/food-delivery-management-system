@@ -133,3 +133,101 @@ window.confirmFormSubmit = function(event, formElement, message) {
         formElement.submit(); 
     });
 };
+
+// ==========================================
+// 🍞 SİTE GENELİ AKILLI TOAST BİLDİRİM SİSTEMİ (DARK PREMIUM VERSİYON)
+// ==========================================
+window.showToast = function(message, type = 'success') {
+    // 1. Container Yoksa Yarat
+    let container = document.getElementById('toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        container.style.cssText = 'position: fixed; bottom: 20px; right: 20px; z-index: 99999; display: flex; flex-direction: column-reverse; gap: 12px;';
+        document.body.appendChild(container);
+    }
+
+    // 2. CSS Animasyonlarını HTML'e Enjekte Et
+    if (!document.getElementById('toast-premium-styles')) {
+        const style = document.createElement('style');
+        style.id = 'toast-premium-styles';
+        style.innerHTML = `
+            @keyframes shrinkBar { from { width: 100%; } to { width: 0%; } }
+            @keyframes iconBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+        `;
+        document.head.appendChild(style);
+    }
+
+    // 3. Duruma Göre Renk, İkon ve Başlıkları Belirle
+    const isSuccess = (type === 'success');
+    const themeColor = isSuccess ? '#10b981' : '#ef4444'; 
+    const iconClass = isSuccess ? 'ph-fill ph-check-circle' : 'ph-fill ph-warning-circle';
+    const titleText = isSuccess ? 'Harika! 🎉' : 'Bir Sorun Var 😔';
+
+    // 4. Toast HTML Elementini İnşa Et (DARK MODE UYARLI)
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+        background: #111827; /* 🌙 JİLET GİBİ GECE MAVİSİ/SİYAH ARKA PLAN */
+        width: 320px;
+        border-radius: 16px;
+        box-shadow: 0 20px 40px -5px rgba(0,0,0,0.4), 0 8px 10px -6px rgba(0,0,0,0.2); /* Gölgeyi koyulaştırdık */
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        opacity: 0;
+        transform: translateX(120%);
+        transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        border: 1px solid #374151; /* İncecik antrasit bir çerçeve */
+        border-left: 6px solid ${themeColor}; 
+    `;
+    
+    toast.innerHTML = `
+        <div style="padding: 16px 20px; display: flex; align-items: flex-start; gap: 14px;">
+            <div style="font-size: 26px; color: ${themeColor}; animation: iconBounce 2s infinite ease-in-out;">
+                <i class="${iconClass}"></i>
+            </div>
+            <div style="flex: 1; margin-top: 2px;">
+                <div style="font-family: 'Inter', sans-serif; font-weight: 800; font-size: 15px; color: #f9fafb; margin-bottom: 4px; letter-spacing: -0.3px;">
+                    ${titleText}
+                </div>
+                <div style="font-family: 'Inter', sans-serif; font-weight: 500; font-size: 13.5px; color: #9ca3af; line-height: 1.4;">
+                    ${message}
+                </div>
+            </div>
+            <div style="cursor: pointer; color: #6b7280; font-size: 18px; transition: 0.2s;" onclick="this.closest('div').parentElement.style.display='none'" onmouseover="this.style.color='#f9fafb'" onmouseout="this.style.color='#6b7280'">
+                <i class="ph-bold ph-x"></i>
+            </div>
+        </div>
+        <div style="height: 4px; background: #374151; width: 100%;">
+            <div style="height: 100%; background: ${themeColor}; width: 100%; animation: shrinkBar 3s linear forwards;"></div>
+        </div>
+    `;
+
+    container.appendChild(toast);
+
+    // 5. Giriş Çıkış Animasyonları
+    setTimeout(() => { toast.style.opacity = '1'; toast.style.transform = 'translateX(0)'; }, 10);
+    setTimeout(() => { 
+        toast.style.opacity = '0'; 
+        toast.style.transform = 'translateX(100%)'; 
+        setTimeout(() => toast.remove(), 400); 
+    }, 3000);
+};
+
+// ==========================================
+// 🚀 FLASK "FLASH" MESAJLARINI OTOMATİK YAKALAYICI
+// ==========================================
+document.addEventListener("DOMContentLoaded", function() {
+    const flashElements = document.querySelectorAll('.flash-message-data');
+    flashElements.forEach((el, index) => {
+        let msgType = el.getAttribute('data-category'); 
+        let msgText = el.getAttribute('data-message');
+        if (msgType === 'danger' || msgType === 'warning') msgType = 'error';
+        
+        // Bildirimlerin şelale gibi sırayla kayarak gelmesi için gecikme (delay) ekliyoruz
+        setTimeout(() => { 
+            window.showToast(msgText, msgType); 
+            el.remove(); // İşlem bitince HTML'i temizle
+        }, 100 + (index * 150)); 
+    });
+});

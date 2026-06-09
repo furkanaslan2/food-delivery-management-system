@@ -328,7 +328,14 @@ def customer_login():
                     session['role'] = 'customer' 
                     session['customer_id'] = customer['customer_id']
                     
-                    flash("Login successful! Welcome to the marketplace.", "success")
+                    cursor.execute("SELECT latitude, longitude, city, district FROM customer_addresses WHERE customer_id = %s AND is_active = 1", (customer['customer_id'],))
+                    active_addr = cursor.fetchone()
+                    if active_addr:
+                        session['latitude'] = float(active_addr['latitude'])
+                        session['longitude'] = float(active_addr['longitude'])
+                        session['customer_city'] = f"{active_addr['district']}, {active_addr['city']}"
+                    
+                    flash("Giriş başarılı! Lezzet dünyasına hoş geldin.", "success")
                     return redirect(url_for('index')) 
                 else:
                     flash("Invalid email or password.", "danger")

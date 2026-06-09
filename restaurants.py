@@ -59,10 +59,11 @@ def restaurant_action():
             city = request.form.get('city')
             cuisine = request.form.get('cuisine')
             restaurant_address = request.form.get('restaurant_address')
+            table_count = request.form.get('table_count') # 🛠️ EKLENDİ
             
             user_id = session_user_id if role == 'user' else request.form.get('user_id')
 
-            if not all([restaurant_name, city, cuisine, restaurant_address, user_id]):
+            if not all([restaurant_name, city, cuisine, restaurant_address, user_id, table_count]):
                 flash("Lütfen gerekli tüm alanları doldurun.", "warning")
                 return redirect(url_for('restaurants'))
 
@@ -72,10 +73,10 @@ def restaurant_action():
                 flash("Bu kullanıcının zaten bir restoranı var!", "danger")
                 return redirect(url_for('restaurants'))
 
-            # MySQL AUTO_INCREMENT ID'yi otomatik atayacak. Manuel ID karmaşası kaldırıldı!
-            query = '''INSERT INTO restaurants (user_id, restaurant_name, city, cuisine, restaurant_address) 
-                       VALUES (%s, %s, %s, %s, %s)'''
-            cursor.execute(query, (user_id, restaurant_name, city, cuisine, restaurant_address))
+            # 🛠️ SQL SORGUSUNA TABLE_COUNT EKLENDİ
+            query = '''INSERT INTO restaurants (user_id, restaurant_name, city, cuisine, restaurant_address, table_count) 
+                       VALUES (%s, %s, %s, %s, %s, %s)'''
+            cursor.execute(query, (user_id, restaurant_name, city, cuisine, restaurant_address, table_count))
             connection.commit()
             flash("Restoran başarıyla eklendi!", "success")
 
@@ -85,12 +86,13 @@ def restaurant_action():
             city = request.form.get('city')
             cuisine = request.form.get('cuisine')
             restaurant_address = request.form.get('restaurant_address')
+            table_count = request.form.get('table_count') # 🛠️ EKLENDİ
 
             if not update_restaurant_id:
                 flash("Güncellenecek restoran seçilmedi.", "warning")
                 return redirect(url_for('restaurants'))
 
-            # Güvenlik Kontrolü: Kullanıcı URL manipülasyonu ile başkasının restoranını güncelleyemez
+            # Güvenlik Kontrolü
             if role == 'user':
                 cursor.execute("SELECT user_id FROM restaurants WHERE restaurant_id = %s", (update_restaurant_id,))
                 res = cursor.fetchone()
@@ -98,10 +100,11 @@ def restaurant_action():
                     flash("Yetkisiz işlem! Sadece kendi restoranınızı güncelleyebilirsiniz.", "danger")
                     return redirect(url_for('restaurants'))
 
+            # 🛠️ SQL SORGUSUNA TABLE_COUNT EKLENDİ
             query = '''UPDATE restaurants 
-                       SET restaurant_name = %s, city = %s, cuisine = %s, restaurant_address = %s 
+                       SET restaurant_name = %s, city = %s, cuisine = %s, restaurant_address = %s, table_count = %s 
                        WHERE restaurant_id = %s'''
-            cursor.execute(query, (restaurant_name, city, cuisine, restaurant_address, update_restaurant_id))
+            cursor.execute(query, (restaurant_name, city, cuisine, restaurant_address, table_count, update_restaurant_id))
             connection.commit()
             flash("Restoran bilgileri başarıyla güncellendi!", "success")
 

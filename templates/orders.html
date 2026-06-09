@@ -407,18 +407,7 @@
     </div>
 </div>
 
-<script>
-// Modal'ı açma ve kapatma fonksiyonları
-function openCourierModal(orderId) {
-    document.getElementById('courier-modal-order-id').value = orderId;
-    document.getElementById('modal-display-order-id').innerText = "#" + orderId;
-    document.getElementById('courierAssignModal').style.display = 'flex';
-}
 
-function closeCourierModal() {
-    document.getElementById('courierAssignModal').style.display = 'none';
-}
-</script>
 {% endblock %}
 
 {% block extra_js %}

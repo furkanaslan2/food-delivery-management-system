@@ -277,6 +277,31 @@ def view_cart():
         flash("Sepetinizi görmek için lütfen giriş yapın.", "danger")
         return redirect(url_for('customer_login'))
 
+    customer_id = session.get('customer_id')
+
+    connection = get_db_connection()
+    if connection:
+        try:
+            cursor = connection.cursor(dictionary=True)
+            cursor.execute("SELECT order_id FROM orders WHERE customer_id = %s AND order_status = 'awaiting_payment'", (customer_id,))
+            ghost_orders = cursor.fetchall()
+            
+            for ghost in ghost_orders:
+                g_id = ghost['order_id']
+                cursor.execute("DELETE FROM order_item_choices WHERE order_id = %s", (g_id,))
+                cursor.execute("DELETE FROM order_items WHERE order_id = %s", (g_id,))
+                cursor.execute("DELETE FROM orders WHERE order_id = %s", (g_id,))
+            
+            connection.commit()
+        except Exception as e:
+            pass
+        finally:
+            if connection.is_connected():
+                cursor.close()
+                connection.close()
+                
+    session.pop('current_order_id', None)
+
     cart = session.get('cart', [])
     total_amount = sum(item['price'] * item['quantity'] for item in cart)
     
@@ -295,7 +320,7 @@ def view_cart():
             """, (customer_id,))
             active_address = cursor.fetchone()
 
-            # YENİ: Restoranın minimum sipariş tutarını çek
+            # Restoranın minimum sipariş tutarını çek
             if cart:
                 restaurant_id = cart[0]['restaurant_id']
                 cursor.execute("SELECT min_order_amount FROM restaurants WHERE restaurant_id = %s", (restaurant_id,))
@@ -330,12 +355,20 @@ def checkout():
 
         restaurant_id = cart[0]['restaurant_id']
         total_qty = sum(item['quantity'] for item in cart)
-        total_amount = sum(item['price'] * item['quantity'] for item in cart) # Fiyat artık ekstralı!
+        total_amount = sum(item['price'] * item['quantity'] for item in cart) 
 
         connection = get_db_connection()
         if connection:
             try:
                 cursor = connection.cursor(dictionary=True)
+
+                cursor.execute("SELECT order_id FROM orders WHERE customer_id = %s AND order_status = 'awaiting_payment'", (customer_id,))
+                ghost_orders = cursor.fetchall()
+                for ghost in ghost_orders:
+                    g_id = ghost['order_id']
+                    cursor.execute("DELETE FROM order_item_choices WHERE order_id = %s", (g_id,))
+                    cursor.execute("DELETE FROM order_items WHERE order_id = %s", (g_id,))
+                    cursor.execute("DELETE FROM orders WHERE order_id = %s", (g_id,))
                 
                 if applied_promo_code:
                     cursor.execute("SELECT * FROM promo_codes WHERE code_name = %s AND restaurant_id = %s AND is_active = 1", (applied_promo_code, restaurant_id))
@@ -398,13 +431,11 @@ def checkout():
                     
                     if menu_data:
                         food_id = menu_data['food_id']
-                        # unit_price artık ekstralar eklenmiş nihai fiyattır
                         cursor.execute("""
                             INSERT INTO order_items (order_id, food_id, quantity, unit_price)
                             VALUES (%s, %s, %s, %s)
                         """, (new_order_id, food_id, item['quantity'], item['price']))
 
-                        # 📍 YENİ: Sipariş onaylandığı an ek seçenek tercihleri ilişki tablosuna tek tek yazılıyor
                         if item.get('choices'):
                             for choice_id in item['choices']:
                                 cursor.execute("""
@@ -445,11 +476,12 @@ def customer_orders():
         try:
             cursor = connection.cursor(dictionary=True)
             
+            # 📍 ÇÖZÜM 3: Ödeme bekleyen (hayalet) siparişleri Sipariş Geçmişinden Gizle
             cursor.execute("""
                 SELECT o.*, r.restaurant_name 
                 FROM orders o
                 JOIN restaurants r ON o.restaurant_id = r.restaurant_id
-                WHERE o.customer_id = %s
+                WHERE o.customer_id = %s AND o.order_status != 'awaiting_payment'
                 ORDER BY o.order_date DESC
             """, (customer_id,))
             orders_list = cursor.fetchall()
@@ -465,7 +497,6 @@ def customer_orders():
                 """, (order['order_id'],))
                 order_items_list = cursor.fetchall()
                 
-                # 📍 YENİ: Geçmiş sipariş satırlarındaki yemeklerin ekstralarını bulup isme parantezle ekliyoruz
                 for oi in order_items_list:
                     cursor.execute("""
                         SELECT moc.choice_name 
@@ -477,17 +508,13 @@ def customer_orders():
                     
                     if choices_data:
                         names = [c['choice_name'] for c in choices_data]
-                        oi['item_name'] += f" ({', '.join(names)})" # "Pizza (Ekstra Peynir, İnce Hamur)" formatı
+                        oi['item_name'] += f" ({', '.join(names)})"
                 
                 order['items'] = order_items_list
                 
                 cursor.execute("SELECT rating, comment, restaurant_reply FROM reviews WHERE order_id = %s", (order['order_id'],))
                 review_data = cursor.fetchone()
-                
-                if review_data:
-                    order['review'] = review_data 
-                else:
-                    order['review'] = None 
+                order['review'] = review_data if review_data else None 
                 
                 orders_data.append(order)
 
@@ -584,17 +611,14 @@ def get_active_order_status():
     if connection:
         try:
             cursor = connection.cursor(dictionary=True)
-            # YENİ SQL: Aktif siparişleri her zaman getir. 
-            # Teslim/İptal durumlarını ise SADECE sipariş son 2 saat içinde verildiyse getir.
+            # 📍 KESİN ÇÖZÜM: Canlı takip çubuğu sadece süreci devam eden AKTİF siparişleri getirmeli.
+            # Teslim edilen (delivered), iptal edilen (canceled) veya ödeme bekleyen siparişler çubuğa asla yansımamalı.
             cursor.execute("""
                 SELECT order_id, order_status 
                 FROM orders 
                 WHERE customer_id = %s 
-                  AND (
-                      order_status IN ('pending', 'preparing', 'on_the_way') 
-                      OR order_date >= NOW() - INTERVAL 2 HOUR
-                  )
-                ORDER BY order_date DESC LIMIT 1
+                  AND order_status IN ('pending', 'preparing', 'ready', 'on_the_way')
+                ORDER BY order_id DESC LIMIT 1
             """, (customer_id,))
             order = cursor.fetchone()
             

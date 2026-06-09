@@ -113,20 +113,6 @@
         </div>
     </div>
 
-    <div id="toast-container" style="position: fixed; bottom: 20px; right: 20px; z-index: 99999; display: flex; flex-direction: column-reverse; gap: 10px;"></div>
-    <script>
-        function showToast(message, type = 'success') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            const bgColor = type === 'success' ? '#10b981' : '#ef4444';
-            const icon = type === 'success' ? '✅' : '❌';
-            toast.style.background = bgColor; toast.style.color = 'white'; toast.style.padding = '14px 24px'; toast.style.borderRadius = '10px'; toast.style.boxShadow = '0 10px 15px -3px rgba(0,0,0,0.1)'; toast.style.fontFamily = "'Inter', sans-serif"; toast.style.fontSize = '14px'; toast.style.fontWeight = '700'; toast.style.display = 'flex'; toast.style.alignItems = 'center'; toast.style.gap = '10px'; toast.style.opacity = '0'; toast.style.transform = 'translateX(100%)'; toast.style.transition = 'all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55)'; 
-            toast.innerHTML = `<span style="font-size: 18px;">${icon}</span> <span>${message}</span>`;
-            container.appendChild(toast);
-            setTimeout(() => { toast.style.opacity = '1'; toast.style.transform = 'translateX(0)'; }, 10);
-            setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateX(100%)'; setTimeout(() => toast.remove(), 400); }, 3000);
-        }
-    </script>
     <div id="flash-messages-container" style="display: none;">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}

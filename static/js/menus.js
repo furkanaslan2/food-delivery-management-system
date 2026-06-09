@@ -75,16 +75,16 @@ function openMenuModalFromBtn(btn) {
 
     // 🛠️ OPSİYONLARI VERİTABANINDAN ÇEKİP EKRANA ÇİZME KISMI
     const optionsSection = document.getElementById('options-section');
-    if(optionsSection) optionsSection.style.display = 'block'; // Alanı tekrar görünür yap
+    if(optionsSection) optionsSection.style.display = 'block'; 
     
     const optionsContainer = document.getElementById('options-container');
     optionsContainer.innerHTML = '<div style="padding: 15px; text-align: center; color: #6b7280; font-weight: 600;">⏳ Mevcut seçenekler yükleniyor...</div>';
-    optionGroupIndex = 0; // İndeksi sıfırla
+    optionGroupIndex = 0; 
 
     fetch('/api/menu_options?menu_id=' + menuId)
         .then(res => res.json())
         .then(data => {
-            optionsContainer.innerHTML = ''; // Yükleniyor yazısını temizle
+            optionsContainer.innerHTML = ''; 
             if (data.success && data.options && data.options.length > 0) {
                 data.options.forEach(opt => {
                     const groupId = optionGroupIndex++;
@@ -131,6 +131,7 @@ function openMenuModalFromBtn(btn) {
         .catch(err => {
             optionsContainer.innerHTML = '<div style="padding: 15px; text-align: center; color: #dc2626; font-weight: 600;">❌ Seçenekler yüklenemedi.</div>';
             console.error("Seçenekler çekilirken hata:", err);
+            if(typeof window.showToast === 'function') window.showToast("Seçenekler yüklenirken hata oluştu.", "error");
         });
 }
 
@@ -138,16 +139,14 @@ function closeMenuModal() {
     document.getElementById('menuFormModal').style.display = 'none';
 }
 
-// 🛠️ OPSİYON GRUBU VE SEÇENEK EKLEME FONKSİYONLARI (HTML'den taşındı)
+// 🛠️ OPSİYON GRUBU VE SEÇENEK EKLEME FONKSİYONLARI 
 function addOptionGroup() {
     const container = document.getElementById('options-container');
     const groupId = optionGroupIndex++;
     
     const groupHTML = `
         <div class="option-group" id="group-${groupId}" style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 15px; position: relative; animation: fadeIn 0.3s ease-out;">
-            
             <button type="button" onclick="document.getElementById('group-${groupId}').remove()" style="position: absolute; top: 12px; right: 12px; background: #fee2e2; color: #dc2626; border: none; width: 26px; height: 26px; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; display: flex; align-items: center; justify-content: center; transition: 0.2s;" onmouseover="this.style.background='#fca5a5'" onmouseout="this.style.background='#fee2e2'" title="Grubu Sil">&times;</button>
-            
             <div style="display: flex; gap: 15px; margin-bottom: 15px; padding-right: 30px;">
                 <div style="flex: 2;">
                     <input type="text" name="option_names[]" placeholder="Seçenek Grubu (Örn: Ekstra Malzemeler, Hamur Tipi)" class="form-input" style="margin: 0; font-weight: 600;" required>
@@ -161,7 +160,6 @@ function addOptionGroup() {
                     </label>
                 </div>
             </div>
-
             <div class="choices-container" id="choices-${groupId}" style="display: flex; flex-direction: column; gap: 8px;">
                 <div style="display: flex; gap: 10px; align-items: center;">
                     <input type="text" name="choice_names_${groupId}[]" placeholder="Seçenek Adı (Örn: Kaşar Peyniri)" class="form-input" style="margin: 0; padding: 8px 12px; font-size: 13px;" required>
@@ -169,13 +167,11 @@ function addOptionGroup() {
                     <button type="button" onclick="this.parentElement.remove()" style="background: none; border: none; color: #9ca3af; cursor: pointer; font-size: 18px; transition: 0.2s;" onmouseover="this.style.color='#dc2626'" onmouseout="this.style.color='#9ca3af'">&times;</button>
                 </div>
             </div>
-            
             <button type="button" onclick="addChoice(${groupId})" style="background: none; border: 1px dashed #d1d5db; color: #4b5563; padding: 8px 10px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 10px; transition: 0.2s;" onmouseover="this.style.borderColor='#4f46e5'; this.style.color='#4f46e5'" onmouseout="this.style.borderColor='#d1d5db'; this.style.color='#4b5563'">
                 + Yeni Seçenek Ekle
             </button>
         </div>
     `;
-    
     container.insertAdjacentHTML('beforeend', groupHTML);
 }
 
@@ -208,7 +204,6 @@ function loadPromos() {
     fetch('/api/manage_promos')
     .then(res => res.json())
     .then(data => {
-        // data.promos verisinin geldiğinden de emin oluyoruz
         if(data.success && data.promos && data.promos.length > 0) {
             tbody.innerHTML = data.promos.map(p => `
                 <tr>
@@ -240,7 +235,11 @@ function addPromo() {
     const val = document.getElementById('new-promo-val').value;
     const min = document.getElementById('new-promo-min').value;
 
-    if(!code || !val) return alert("Kod ve İndirim tutarı boş olamaz!");
+    if(!code || !val) {
+        if(typeof window.showToast === 'function') window.showToast("Kod ve İndirim tutarı boş olamaz!", "error");
+        else alert("Kod ve İndirim tutarı boş olamaz!");
+        return;
+    }
 
     fetch('/api/manage_promos', {
         method: 'POST',
@@ -251,8 +250,11 @@ function addPromo() {
             document.getElementById('new-promo-code').value = '';
             document.getElementById('new-promo-val').value = '';
             document.getElementById('new-promo-min').value = '';
+            if(typeof window.showToast === 'function') window.showToast("Kupon başarıyla oluşturuldu!", "success");
             loadPromos();
-        } else alert(data.message);
+        } else {
+            if(typeof window.showToast === 'function') window.showToast(data.message, "error");
+        }
     });
 }
 
@@ -261,12 +263,22 @@ function deletePromo(id) {
     fetch('/api/manage_promos', {
         method: 'POST', headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({action: 'delete', promo_id: id})
-    }).then(res => res.json()).then(data => { if(data.success) loadPromos(); });
+    }).then(res => res.json()).then(data => { 
+        if(data.success) {
+            if(typeof window.showToast === 'function') window.showToast("Kupon silindi.", "success");
+            loadPromos(); 
+        }
+    });
 }
 
 function togglePromo(id, newStatus) {
     fetch('/api/manage_promos', {
         method: 'POST', headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({action: 'toggle', promo_id: id, is_active: newStatus})
-    }).then(res => res.json()).then(data => { if(data.success) loadPromos(); });
+    }).then(res => res.json()).then(data => { 
+        if(data.success) {
+            if(typeof window.showToast === 'function') window.showToast("Kupon durumu güncellendi.", "success");
+            loadPromos(); 
+        } 
+    });
 }

@@ -56,46 +56,6 @@
     <div id="gps-tracker-banner" style="display: none; background: #10b981; color: white; text-align: center; padding: 10px; font-size: 13px; font-weight: 600; box-shadow: 0 2px 4px rgba(0,0,0,0.1); position: sticky; top: 60px; z-index: 50;">
         <span id="gps-status-text">📡 Müşteriye Canlı Konum Aktarılıyor...</span>
     </div>
-
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            // HTML içindeki güvenli kutudan veriyi alıyoruz
-            const gpsDataElement = document.getElementById('courier-gps-data');
-            if (!gpsDataElement) return;
-
-            const hasActiveDelivery = gpsDataElement.getAttribute('data-has-active-delivery') === 'true';
-
-            // Eğer kurye yoldaysa, telefonun GPS'ini takip etmeye başla
-            if (hasActiveDelivery && navigator.geolocation) {
-                document.getElementById('gps-tracker-banner').style.display = 'block';
-
-                navigator.geolocation.watchPosition(
-                    (position) => {
-                        const lat = position.coords.latitude;
-                        const lon = position.coords.longitude;
-
-                        // Her konum değiştiğinde arka plandaki Python API'mize fırlatıyoruz
-                        fetch('/api/update_courier_location', {
-                            method: 'POST',
-                            headers: {'Content-Type': 'application/json'},
-                            body: JSON.stringify({ lat: lat, lon: lon })
-                        }).catch(err => console.log("GPS Gönderim Hatası:", err));
-                    },
-                    (error) => {
-                        console.error("Konum hatası:", error);
-                        const statusText = document.getElementById('gps-status-text');
-                        const banner = document.getElementById('gps-tracker-banner');
-                        
-                        banner.style.backgroundColor = "#ef4444"; // Hata durumunda kırmızı yap
-                        if (error.code === 1) statusText.innerText = "⚠️ Lütfen Tarayıcıdan Konum İzni Verin!";
-                        else statusText.innerText = "⚠️ Konum Sinyali Zayıf!";
-                    },
-                    // Yüksek doğruluk (Gerçek GPS) kullanmasını istiyoruz
-                    { enableHighAccuracy: true, maximumAge: 10000, timeout: 30000 }
-                );
-            }
-        });
-    </script>
     
     <div id="courier-alert" style="display: none; background-color: #3b82f6; color: white; padding: 15px; text-align: center; font-weight: 700; font-size: 16px; margin-bottom: -15px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); animation: flashPulse 1.5s infinite;" onclick="window.location.reload();">
         <span id="courier-alert-text">📦 YENİ PAKET GELDİ! Yenilemek için dokun.</span>
@@ -109,43 +69,6 @@
             100% { background-color: #3b82f6; }
         }
     </style>
-
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            // 1. DİKKAT: Kurye ekranındaki sipariş kartlarının doğru class'ını buluyoruz. 
-            // Eğer senin tasarımında class '.order-card' değilse burayı ona göre değiştir. (Örn: '.card')
-            const orderElements = document.querySelectorAll('.order-card');
-            let currentOrderCount = orderElements ? orderElements.length : 0;
-
-            function checkCourierOrders() {
-                // 2. Tarayıcının Cache (önbellek) yapmasını engellemek için zaman damgası üretiyoruz
-                const timestamp = new Date().getTime();
-                
-                // Arka plandan gizlice durumu sor (Zaman damgası ile!)
-                fetch(`/api/check_courier_orders?order_count=${currentOrderCount}&t=${timestamp}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.has_changes) {
-                            // Değişiklik varsa mavi uyarı çubuğunu göster
-                            const alertBox = document.getElementById('courier-alert');
-                            if(alertBox) {
-                                document.getElementById('courier-alert-text').innerText = data.message + ' (Yenilemek için dokun)';
-                                alertBox.style.display = 'block';
-                            }
-                            
-                            // 5 saniye sonra ekranı kendi kendine yenile (Kurye motordaysa diye)
-                            setTimeout(() => { window.location.reload(); }, 5000);
-                            
-                            clearInterval(courierPolling); 
-                        }
-                    })
-                    .catch(err => console.error('Kurye API Hatası:', err));
-            }
-
-            // 3. Her 7 saniyede bir sessizce tekrarla
-            const courierPolling = setInterval(checkCourierOrders, 7000);
-        });
-    </script>
 
     <div class="container">
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -220,5 +143,6 @@
         {% endif %}
     </div>
 
+    <script src="{{ url_for('static', filename='js/courier_dashboard.js') }}"></script>
 </body>
 </html>

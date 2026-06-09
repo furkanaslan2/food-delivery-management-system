@@ -38,8 +38,6 @@
 </head>
 <body>
 
-    <div id="toast"><i class="ph-fill ph-x-circle" style="font-size: 20px;"></i> <span id="toast-msg">Hatalı kod!</span></div>
-
     <div class="verify-container">
         <div class="icon-wrapper">
             <i class="ph-bold ph-envelope-open"></i>
@@ -74,168 +72,17 @@
         </div>
     </div>
 
-    <script>
-        const inputs = document.querySelectorAll('.otp-input');
-        const fullCodeInput = document.getElementById('full-code');
-        const form = document.getElementById('verify-form');
+    <div id="flash-messages-container" style="display: none;">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <span class="flash-message-data" data-category="{{ category }}" data-message="{{ message }}"></span>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
 
-        // Kutucuk atlama animasyonları
-        inputs.forEach((input, index) => {
-            input.addEventListener('input', (e) => {
-                if (e.target.value.length === 1) {
-                    input.classList.add('filled');
-                    if (index < inputs.length - 1) inputs[index + 1].focus();
-                } else {
-                    input.classList.remove('filled');
-                }
-            });
-
-            input.addEventListener('keydown', (e) => {
-                if (e.key === 'Backspace' && !e.target.value && index > 0) {
-                    inputs[index - 1].focus();
-                    inputs[index - 1].value = '';
-                    inputs[index - 1].classList.remove('filled');
-                }
-            });
-            
-            input.addEventListener('paste', (e) => {
-                e.preventDefault();
-                const pastedData = e.clipboardData.getData('text').slice(0, 6).replace(/[^0-9]/g, '');
-                pastedData.split('').forEach((char, i) => {
-                    if (i < inputs.length) {
-                        inputs[i].value = char;
-                        inputs[i].classList.add('filled');
-                        if (i < inputs.length - 1) inputs[i + 1].focus();
-                    }
-                });
-            });
-        });
-
-        // DOĞRULAMA GÖNDERİMİ
-        function submitVerification() {
-            let code = '';
-            inputs.forEach(input => code += input.value);
-            
-            if (code.length === 6) {
-                const btn = document.querySelector('.verify-btn');
-                const originalText = btn.innerHTML;
-                
-                btn.innerHTML = '<i class="ph-bold ph-spinner ph-spin"></i> Doğrulanıyor...';
-                btn.disabled = true;
-
-                fetch("{{ url_for('verify_email_code') }}", {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ verification_code: code })
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        window.location.href = data.redirect;
-                    } else {
-                        showToast(data.message, 'error'); 
-                        inputs.forEach(input => { 
-                            input.value = ''; 
-                            input.classList.remove('filled');
-                            input.style.borderColor = '#ef4444';
-                            setTimeout(() => input.style.borderColor = '', 1500);
-                        });
-                        inputs[0].focus();
-                        btn.innerHTML = originalText;
-                        btn.disabled = false;
-                    }
-                })
-                .catch(err => {
-                    showToast("Bağlantı hatası oluştu.", "error");
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
-                });
-            } else {
-                showToast("Lütfen 6 haneli kodu eksiksiz girin.", "error");
-            }
-        }
-
-        // AKILLI TOAST BİLDİRİMİ (Hem Yeşil Hem Kırmızı çalışır)
-        function showToast(msg, type = 'error') {
-            const toast = document.getElementById('toast');
-            const icon = toast.querySelector('i');
-            document.getElementById('toast-msg').innerText = msg;
-            
-            if (type === 'success') {
-                toast.style.background = '#10b981';
-                icon.className = 'ph-fill ph-check-circle';
-            } else {
-                toast.style.background = '#ef4444';
-                icon.className = 'ph-fill ph-x-circle';
-            }
-            
-            toast.style.opacity = '1';
-            toast.style.transform = 'translateX(0)';
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transform = 'translateX(100%)';
-            }, 3000);
-        }
-
-        // AKILLI SAYAÇ VE YENİDEN GÖNDERME
-        let timeLeft;
-        let countdown; // Sayacı dışarıda tanımladık ki sıfırlayabilelim
-        const timerEl = document.getElementById('timer');
-        const resendBtn = document.getElementById('resend-btn');
-
-        function startTimer() {
-            timeLeft = 60;
-            timerEl.style.display = 'inline';
-            resendBtn.style.opacity = '0.5';
-            resendBtn.style.pointerEvents = 'none';
-            resendBtn.innerText = 'Tekrar Gönder';
-
-            clearInterval(countdown); // Önceki sayacı durdur
-            countdown = setInterval(() => {
-                timeLeft--;
-                let seconds = timeLeft % 60;
-                timerEl.innerText = `00:${seconds < 10 ? '0' : ''}${seconds}`;
-                
-                if (timeLeft <= 0) {
-                    clearInterval(countdown);
-                    timerEl.style.display = 'none';
-                    resendBtn.style.opacity = '1';
-                    resendBtn.style.pointerEvents = 'auto';
-                }
-            }, 1000);
-        }
-
-        // Sayfa açıldığında sayacı başlat
-        startTimer();
-
-        // KODU TEKRAR GÖNDER BUTONU (SAYFA YENİLENMEZ)
-        function resendCode() {
-            resendBtn.innerText = 'Gönderiliyor...';
-            resendBtn.style.opacity = '0.5';
-            resendBtn.style.pointerEvents = 'none';
-
-            fetch("{{ url_for('resend_verification_code') }}", {
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    showToast(data.message, 'success'); // Yeşil bildirim
-                    startTimer(); // Sayacı 60'tan tekrar başlat
-                } else {
-                    showToast(data.message, 'error'); // Kırmızı bildirim
-                    resendBtn.innerText = 'Tekrar Gönder';
-                    resendBtn.style.opacity = '1';
-                    resendBtn.style.pointerEvents = 'auto';
-                }
-            })
-            .catch(err => {
-                showToast("Bir hata oluştu, tekrar deneyin.", "error");
-                resendBtn.innerText = 'Tekrar Gönder';
-                resendBtn.style.opacity = '1';
-                resendBtn.style.pointerEvents = 'auto';
-            });
-        }
-    </script>
+    <script src="{{ url_for('static', filename='js/common.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/verify_email.js') }}"></script>
 </body>
 </html>
