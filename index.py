@@ -122,7 +122,7 @@ def index():
 
     connection = get_db_connection()
     if connection is None:
-        flash("Couldn't connect to the database!", "danger")
+        flash("Veritabanına bağlanılamadı!", "danger")
         return render_template('index.html', statistics=[])
 
     statistics = {
@@ -172,7 +172,7 @@ def index():
             statistics[key] = result['count'] if result and 'count' in result else 0
             
     except Error as e:
-        flash(f"Query failed: {e}", "danger")
+        flash(f"Sorgu hatası: {e}", "danger")
     finally:
         if connection.is_connected():
             cursor.close()

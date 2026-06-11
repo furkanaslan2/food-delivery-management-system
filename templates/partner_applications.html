@@ -1,6 +1,8 @@
 {% extends 'dashboard_base.html' %}
-{% block title %}İş Ortağı Başvuruları{% endblock %}
-{% block page_title %}📥 İş Ortağı (Restoran) Başvuruları{% endblock %}
+{% block page_title %}
+    <img src="{{ url_for('static', filename='images/icons/application.png') }}" class="title-icon" style="width: 28px; height: 28px; margin-right: 8px;"> 
+    İş Ortağı (Restoran) Başvuruları
+{% endblock %}
 
 {% block content %}
 <div style="background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e5e7eb;">
@@ -22,14 +24,30 @@
                 <td style="padding: 15px; font-weight: 600; color: #111827;">{{ app.restaurant_name }}</td>
                 <td style="padding: 15px; font-size: 14px; color: #4b5563;">{{ app.contact_name }}</td>
                 <td style="padding: 15px; font-size: 13px; color: #4b5563;">
-                    <div>📧 {{ app.email }}</div>
-                    <div style="margin-top: 4px;">📱 {{ app.phone }}</div>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <img src="{{ url_for('static', filename='images/icons/email.png') }}" style="width: 16px; height: 16px;"> {{ app.email }}
+                    </div>
+                    <div style="margin-top: 6px; display: flex; align-items: center; gap: 6px;">
+                        <img src="{{ url_for('static', filename='images/icons/phone.png') }}" style="width: 16px; height: 16px;"> {{ app.phone }}
+                    </div>
                 </td>
                 <td style="padding: 15px; font-size: 13px; color: #6b7280;">{{ app.applied_at.strftime('%d.%m.%Y - %H:%M') if app.applied_at else '-' }}</td>
                 <td style="padding: 15px; text-align: right;">
-                    <form action="{{ url_for('approve_application', app_id=app.application_id) }}" method="POST" style="display:inline;">
-                        <button type="submit" style="background: #10b981; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#059669'" onmouseout="this.style.background='#10b981'">✅ Onayla & Hesap Aç</button>
-                    </form>
+                    <div style="display: flex; justify-content: flex-end; gap: 10px; align-items: center;">
+                        
+                        <form action="{{ url_for('reject_application', app_id=app.application_id) }}" method="POST" style="margin: 0;">
+                            <button type="button" style="background: white; color: #ef4444; border: 1px solid #ef4444; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 6px;" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='white'" onclick="confirmFormSubmit(event, this.closest('form'), 'Bu iş ortağı başvurusunu tamamen reddetmek (silmek) istediğinize emin misiniz?');">
+                                <img src="{{ url_for('static', filename='images/icons/cancel.png') }}" style="width: 16px; height: 16px;"> Reddet
+                            </button>
+                        </form>
+
+                        <form action="{{ url_for('approve_application', app_id=app.application_id) }}" method="POST" style="margin: 0;">
+                            <button type="submit" style="background: white; color: #10b981; border: 1px solid #10b981; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 6px;" onmouseover="this.style.background='#f0fdf4'" onmouseout="this.style.background='white'">
+                                <img src="{{ url_for('static', filename='images/icons/success.png') }}" style="width: 16px; height: 16px;"> Onayla & Hesap Aç
+                            </button>
+                        </form>
+                        
+                    </div>
                 </td>
             </tr>
             {% else %}

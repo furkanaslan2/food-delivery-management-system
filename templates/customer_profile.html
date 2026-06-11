@@ -25,13 +25,9 @@
         .nav-brand { display: flex; align-items: center; text-decoration: none; }
         
         .nav-brand img { 
-            width: 100px; 
-            max-height: 70px; 
+            height: 45px; 
             object-fit: contain; 
-            transform: scale(3); 
-            transform-origin: left center;
-            margin-top: 20px;
-        } 
+        }
         
         .nav-links { display: flex; gap: 15px; align-items: center; }
         .nav-links a { text-decoration: none; color: #d1d5db; font-weight: 500; transition: color 0.2s; display: flex; align-items: center; gap: 6px; }
@@ -152,9 +148,49 @@
                     <i class="ph-bold ph-floppy-disk" style="font-size: 20px;"></i> Değişiklikleri Kaydet
                 </button>
             </form>
+
+            <div style="margin-top: 40px; padding-top: 25px; border-top: 1px solid #fee2e2;">
+                <h3 style="color: #dc2626; font-size: 16px; margin: 0 0 10px 0; display: flex; align-items: center; gap: 8px;">
+                    <i class="ph-bold ph-warning-circle" style="font-size: 20px;"></i> Tehlikeli Bölge
+                </h3>
+                <p style="font-size: 13.5px; color: #6b7280; margin: 0 0 20px 0; line-height: 1.5;">
+                    Hesabınızı sildiğinizde tüm favorileriniz, adresleriniz ve kişisel verileriniz sistemden kalıcı olarak temizlenir. Bu işlem geri alınamaz.
+                </p>
+                <button type="button" onclick="openDeleteModal()" style="background: #fef2f2; color: #dc2626; border: 1px solid #fca5a5; padding: 12px 20px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s; width: 100%; justify-content: center;" onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='#fef2f2'">
+                    <i class="ph-bold ph-trash" style="font-size: 18px;"></i> Hesabımı Kalıcı Olarak Sil
+                </button>
+            </div>
             
         </div>
     </div>
+
+    <div id="deleteAccountModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 1000; justify-content: center; align-items: center;">
+        <div style="background: white; width: 100%; max-width: 420px; border-radius: 16px; padding: 35px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);">
+            <div style="width: 65px; height: 65px; background: #fee2e2; border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 20px auto;">
+                <i class="ph-bold ph-warning" style="font-size: 32px; color: #dc2626;"></i>
+            </div>
+            <h3 style="margin: 0 0 10px 0; color: #111827; font-size: 19px; font-weight: 700;">Hesabınızı Silmek Üzeresiniz!</h3>
+            <p style="color: #4b5563; font-size: 14px; line-height: 1.6; margin-bottom: 30px;">
+                Tüm kişisel verileriniz, favorileriniz ve adresleriniz <b>kalıcı olarak</b> silinecektir. Bu işlemi geri alamayız. Onaylıyor musunuz?
+            </p>
+            
+            <div style="display: flex; gap: 12px;">
+                <button type="button" onclick="closeDeleteModal()" style="flex: 1; background: #f3f4f6; color: #4b5563; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
+                    Vazgeç
+                </button>
+                <form action="{{ url_for('delete_customer_account') }}" method="POST" style="flex: 1; margin: 0;">
+                    <button type="submit" style="width: 100%; background: #dc2626; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#b91c1c'" onmouseout="this.style.background='#dc2626'">
+                        Evet, Sil
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function openDeleteModal() { document.getElementById('deleteAccountModal').style.display = 'flex'; }
+        function closeDeleteModal() { document.getElementById('deleteAccountModal').style.display = 'none'; }
+    </script>
 
     <div id="flash-messages-container" style="display: none;">
         {% with messages = get_flashed_messages(with_categories=true) %}

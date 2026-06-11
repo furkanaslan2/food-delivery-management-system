@@ -38,7 +38,7 @@ def courier_dashboard(courier_id):
             active_orders = cursor.fetchall()
             
         except Exception as e:
-            flash(f"Error loading dashboard: {e}", "danger")
+            flash(f"Panel yüklenirken hata oluştu: {e}", "danger")
         finally:
             if connection.is_connected():
                 cursor.close()
@@ -59,10 +59,10 @@ def update_delivery_status():
                 # Siparişin durumunu ("Yolda" veya "Teslim Edildi" olarak) güncelle
                 cursor.execute("UPDATE orders SET order_status = %s WHERE order_id = %s", (new_status, order_id))
                 connection.commit()
-                flash("Order status updated successfully! 🛵", "success")
+                flash("Sipariş durumu başarıyla güncellendi! 🛵", "success")
             except Exception as e:
                 connection.rollback()
-                flash(f"Failed to update status: {e}", "danger")
+                flash(f"Durum güncellenirken hata oluştu: {e}", "danger")
             finally:
                 if connection.is_connected():
                     cursor.close()
@@ -74,14 +74,14 @@ def api_update_courier_location():
     # Sadece giriş yapmış kuryeler konum gönderebilir
     courier_id = session.get('courier_id')
     if not courier_id:
-        return jsonify({'success': False, 'message': 'Unauthorized'})
+        return jsonify({'success': False, 'message': 'Yetkisiz erişim'})
 
     data = request.get_json()
     lat = data.get('lat')
     lon = data.get('lon')
 
     if lat is None or lon is None:
-        return jsonify({'success': False, 'message': 'Missing coordinates'})
+        return jsonify({'success': False, 'message': 'Koordinat bilgisi eksik'})
 
     connection = get_db_connection()
     if connection:
@@ -103,4 +103,4 @@ def api_update_courier_location():
                 cursor.close()
                 connection.close()
 
-    return jsonify({'success': False, 'message': 'Database connection error'})
+    return jsonify({'success': False, 'message': 'Veritabanı bağlantı hatası'})

@@ -2,7 +2,7 @@
 
 {% block title %}Müşteri Değerlendirmeleri{% endblock %}
 {% block page_title %}
-    <img src="{{ url_for('static', filename='images/icons/feedback-review.svg') }}" class="title-icon"> 
+    <img src="{{ url_for('static', filename='images/icons/review.png') }}" class="title-icon" style="width: 28px; height: 28px; margin-right: 8px;"> 
     Müşteri Değerlendirmeleri
 {% endblock %}
 
@@ -14,11 +14,16 @@
             
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
                 <div>
-                    <h4 style="margin: 0 0 5px 0; color: #111827; font-size: 16px;">👤 {{ review.customer_name }}</h4>
+                    <h4 style="margin: 0 0 5px 0; color: #111827; font-size: 16px; display: flex; align-items: center; gap: 6px;">
+                        <img src="{{ url_for('static', filename='images/icons/user.png') }}" style="width: 20px; height: 20px;"> {{ review.customer_name }}
+                    </h4>
                     <span style="color: #6b7280; font-size: 13px;">Sipariş: #{{ review.order_id }} • {{ review.order_date.strftime('%d %b %Y') }}</span>
                 </div>
-                <div style="background: #fef3c7; color: #92400e; padding: 6px 12px; border-radius: 20px; font-weight: 700; font-size: 14px; display: flex; gap: 5px;">
-                    {% for i in range(review.rating) %}⭐{% endfor %} ({{ review.rating }}/5)
+                <div style="background: #fef3c7; color: #92400e; padding: 6px 12px; border-radius: 20px; font-weight: 700; font-size: 14px; display: flex; gap: 3px; align-items: center;">
+                    {% for i in range(review.rating) %}
+                        <img src="{{ url_for('static', filename='images/icons/star.png') }}" style="width: 16px; height: 16px;">
+                    {% endfor %} 
+                    <span style="margin-left: 5px;">({{ review.rating }}/5)</span>
                 </div>
             </div>
 
@@ -35,10 +40,11 @@
                         <p style="margin: 5px 0 0 0; color: #0f172a; font-size: 15px;">{{ review.restaurant_reply }}</p>
                     </div>
                 {% else %}
-                    <div style="display: flex; gap: 10px;">
-                        <input type="text" id="reply-input-{{ review.order_id }}" placeholder="Müşteriye kibar bir yanıt yazın..." style="flex: 1; padding: 10px 15px; border: 1px solid #d1d5db; border-radius: 6px; font-family: inherit; outline: none;">
-                        <button onclick="submitReply('{{ review.order_id }}')" style="background: #4f46e5; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#4338ca'" onmouseout="this.style.background='#4f46e5'">
-                            Yanıtla 🚀
+                   <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="text" id="reply-input-{{ review.order_id }}" placeholder="Müşteriye kibar bir yanıt yazın..." style="flex: 1; height: 42px; margin: 0; padding: 0 15px; box-sizing: border-box; border: 1px solid #d1d5db; border-radius: 6px; font-family: inherit; outline: none;">
+                        
+                        <button onclick="submitReply('{{ review.order_id }}')" style="height: 42px; margin: 0; padding: 0 20px; box-sizing: border-box; background: #4f46e5; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;" onmouseover="this.style.background='#4338ca'" onmouseout="this.style.background='#4f46e5'">
+                            Yanıtla <img src="{{ url_for('static', filename='images/icons/send.png') }}" style="width: 18px; height: 18px; filter: brightness(0) invert(1);">
                         </button>
                     </div>
                 {% endif %}
@@ -48,7 +54,9 @@
         {% endfor %}
     {% else %}
         <div style="text-align: center; padding: 50px 20px; background: white; border-radius: 12px; border: 1px dashed #d1d5db;">
-            <div style="font-size: 40px; margin-bottom: 15px;">🌟</div>
+            <div style="margin-bottom: 15px; display: flex; justify-content: center;">
+                <img src="{{ url_for('static', filename='images/icons/star.png') }}" style="width: 64px; height: 64px; opacity: 0.5;">
+            </div>
             <h3 style="margin: 0 0 10px 0; color: #374151;">Henüz Değerlendirme Yok</h3>
             <p style="color: #6b7280; margin: 0;">Müşterileriniz siparişlerini değerlendirdikçe burada görünecek.</p>
         </div>

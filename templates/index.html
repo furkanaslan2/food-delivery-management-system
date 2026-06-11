@@ -2,7 +2,7 @@
 
 {% block title %}Ana Panel{% endblock %}
 {% block page_title %}
-    <img src="{{ url_for('static', filename='images/icons/home.svg') }}" class="title-icon"> 
+    <img src="{{ url_for('static', filename='images/icons/home.png') }}" class="title-icon" style="width: 28px; height: 28px; margin-right: 8px;"> 
     Ana Panel
 {% endblock %}
 
@@ -62,14 +62,14 @@
     .bg-purple { background-color: #f3e8ff; } 
     .bg-pink   { background-color: #fce7f3; } 
 
-    .quick-access-title { margin-bottom: 20px; color: #111827; font-size: 18px; font-weight: 700; }
+    .quick-access-title { margin-bottom: 10px; color: #111827; font-size: 18px; font-weight: 700; }
     
     .quick-grid {
         display: flex; 
         gap: 10px;
         width: 100%;
         overflow-x: auto; 
-        padding-bottom: 5px; 
+        padding-top: 5px; 
     }
     
     .quick-card {
@@ -111,8 +111,7 @@
     .status-badge { padding: 5px 12px; border-radius: 999px; font-size: 11px; font-weight: 700; display: inline-block; letter-spacing: 0.3px; }
     .status-pending { background: #fef3c7; color: #d97706; }
     .status-preparing { background: #e0f2fe; color: #0284c7; }
-    .status-ready { background: #dcfce3; color: #166534; border: 1px solid #bbf7d0; animation: pulse 2s infinite; }
-    @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+    .status-ready { background: #dcfce3; color: #166534; border: 1px solid #bbf7d0; }
     .status-on_the_way { background: #ede9fe; color: #7c3aed; }
     .status-delivered { background: #dcfce3; color: #16a34a; }
     .status-completed { background: #d1fae5; color: #059669; }
@@ -125,7 +124,7 @@
     {% if role == 'admin' %}
     <div class="stat-card">
         <div class="stat-icon-box bg-blue">
-            <img src="{{ url_for('static', filename='images/icons/circle-user.svg') }}" class="stat-img">
+            <img src="{{ url_for('static', filename='images/icons/user.png') }}" class="stat-img" style="opacity: 1;">
         </div>
         <div class="stat-info">
             <h3>{{ statistics['users'] }}</h3>
@@ -134,7 +133,7 @@
     </div>
     <div class="stat-card">
         <div class="stat-icon-box bg-purple">
-            <img src="{{ url_for('static', filename='images/icons/restaurant-sign.svg') }}" class="stat-img">
+            <img src="{{ url_for('static', filename='images/icons/store.png') }}" class="stat-img" style="opacity: 1;">
         </div>
         <div class="stat-info">
             <h3>{{ statistics['restaurants'] }}</h3>
@@ -143,7 +142,7 @@
     </div>
     <div class="stat-card">
         <div class="stat-icon-box bg-green">
-            <img src="{{ url_for('static', filename='images/icons/cart-shopping-fast.svg') }}" class="stat-img">
+            <img src="{{ url_for('static', filename='images/icons/package.png') }}" class="stat-img" style="opacity: 1;">
         </div>
         <div class="stat-info">
             <h3>{{ statistics['orders'] }}</h3>
@@ -152,7 +151,7 @@
     </div>
     <div class="stat-card">
         <div class="stat-icon-box bg-pink">
-            <img src="{{ url_for('static', filename='images/icons/food-categories.svg') }}" class="stat-img">
+            <img src="{{ url_for('static', filename='images/icons/note.png') }}" class="stat-img" style="opacity: 1;">
         </div>
         <div class="stat-info">
             <h3>{{ statistics['foods'] }}</h3>
@@ -162,7 +161,7 @@
     {% elif role == 'user' %}
     <div class="stat-card">
         <div class="stat-icon-box bg-pink">
-            <img src="{{ url_for('static', filename='images/icons/holding-hand-dinner.svg') }}" class="stat-img">
+            <img src="{{ url_for('static', filename='images/icons/menu.png') }}" class="stat-img" style="opacity: 1;">
         </div>
         <div class="stat-info">
             <h3>{{ statistics['menus'] }}</h3>
@@ -171,7 +170,7 @@
     </div>
     <div class="stat-card">
         <div class="stat-icon-box bg-green">
-            <img src="{{ url_for('static', filename='images/icons/cart-shopping-fast.svg') }}" class="stat-img">
+            <img src="{{ url_for('static', filename='images/icons/package.png') }}" class="stat-img" style="opacity: 1;">
         </div>
         <div class="stat-info">
             <h3>{{ statistics['orders'] }}</h3>
@@ -180,7 +179,7 @@
     </div>
     <div class="stat-card">
         <div class="stat-icon-box bg-orange">
-            <img src="{{ url_for('static', filename='images/icons/delivery-bike.svg') }}" class="stat-img">
+            <img src="{{ url_for('static', filename='images/icons/delivery.png') }}" class="stat-img" style="opacity: 1;">
         </div>
         <div class="stat-info">
             <h3>{{ statistics['couriers'] }}</h3>
@@ -189,7 +188,7 @@
     </div>
     <div class="stat-card">
         <div class="stat-icon-box bg-purple">
-            <img src="{{ url_for('static', filename='images/icons/holding-hand-dinner.svg') }}" class="stat-img">
+            <img src="{{ url_for('static', filename='images/icons/waiter.png') }}" class="stat-img" style="opacity: 1;">
         </div>
         <div class="stat-info">
             <h3>{{ statistics['waiters'] }}</h3>
@@ -199,68 +198,70 @@
     {% endif %}
 </div>
 
-<h3 class="quick-access-title">⚡ Hızlı Erişim</h3>
+<h3 class="quick-access-title" style="display: flex; align-items: center; gap: 8px;">
+    <img src="{{ url_for('static', filename='images/icons/lightning.png') }}" style="width: 24px; height: 24px; object-fit: contain;"> Hızlı Erişim
+</h3>
 <div class="quick-grid">
     <a href="{{ url_for('users') }}" class="quick-card">
-        <img src="{{ url_for('static', filename='images/icons/circle-user.svg') }}" alt="user">
-        <span>{{ 'Profilim' if session['role'] == 'user' else 'Kullanıcılar' }}</span>
+        <img src="{{ url_for('static', filename='images/icons/user.png') }}" alt="user">
+        <span>{{ 'Profilim' if session['role'] == 'user' else 'Kullanıcı Yönetimi' }}</span>
     </a>
     
     <a href="{{ url_for('restaurants') }}" class="quick-card">
-        <img src="{{ url_for('static', filename='images/icons/restaurant-sign.svg') }}" alt="restaurant">
-        <span>{{ 'Restoranım' if session['role'] == 'user' else 'Restoranlar' }}</span>
+        <img src="{{ url_for('static', filename='images/icons/store.png') }}" alt="restaurant">
+        <span>{{ 'Restoranım' if session['role'] == 'user' else 'Restoran Yönetimi' }}</span>
     </a>
 
     {% if session['role'] == 'admin' %}
     <a href="{{ url_for('partner_applications') }}" class="quick-card">
-        <img src="{{ url_for('static', filename='images/icons/inbox-in.svg') }}" alt="application">
-        <span>Başvurular</span>
+        <img src="{{ url_for('static', filename='images/icons/application.png') }}" alt="application">
+        <span>İş Ortağı Başvuruları</span>
     </a>
     {% endif %}
     
     <a href="{{ url_for('menus') }}" class="quick-card">
-        <img src="{{ url_for('static', filename='images/icons/menu-food.svg') }}" alt="menu">
+        <img src="{{ url_for('static', filename='images/icons/menu.png') }}" alt="menu">
         <span>Menü Yönetimi</span>
     </a>
 
     <a href="{{ url_for('foods') }}" class="quick-card">
-        <img src="{{ url_for('static', filename='images/icons/food-categories.svg') }}" alt="food">
+        <img src="{{ url_for('static', filename='images/icons/category.png') }}" alt="food">
         <span>Kategoriler</span>
     </a>
     
     <a href="{{ url_for('orders') }}" class="quick-card">
-        <img src="{{ url_for('static', filename='images/icons/cart-shopping-fast.svg') }}" alt="order">
+        <img src="{{ url_for('static', filename='images/icons/package.png') }}" alt="order">
         <span>Siparişler</span>
     </a>
     
     <a href="{{ url_for('couriers') }}" class="quick-card">
-        <img src="{{ url_for('static', filename='images/icons/delivery-bike.svg') }}" alt="courier">
+        <img src="{{ url_for('static', filename='images/icons/delivery.png') }}" alt="courier">
         <span>Kuryeler</span>
     </a>
     
     <a href="{{ url_for('waiters') }}" class="quick-card">
-        <img src="{{ url_for('static', filename='images/icons/holding-hand-dinner.svg') }}" alt="waiter">
+        <img src="{{ url_for('static', filename='images/icons/waiter.png') }}" alt="waiter">
         <span>Garsonlar</span>
     </a>
     
     {% if session['role'] == 'user' %}
     <a href="{{ url_for('restaurant_analytics') }}" class="quick-card">
-        <img src="{{ url_for('static', filename='images/icons/chart-histogram.svg') }}" alt="analytics">
+        <img src="{{ url_for('static', filename='images/icons/trend.png') }}" alt="analytics">
         <span>İş Analizleri</span>
     </a>
     
     <a href="{{ url_for('restaurant_profile') }}" class="quick-card">
-        <img src="{{ url_for('static', filename='images/icons/settings.svg') }}" alt="profile">
-        <span>Kapak ve Profil</span>
+        <img src="{{ url_for('static', filename='images/icons/options.png') }}" alt="profile">
+        <span>Restoran Ayarları</span>
     </a>
 
     <a href="{{ url_for('restaurant_reviews') }}" class="quick-card">
-        <img src="{{ url_for('static', filename='images/icons/feedback-review.svg') }}" alt="review">
-        <span>Yorumlar</span>
+        <img src="{{ url_for('static', filename='images/icons/review.png') }}" alt="review">
+        <span>Değerlendirmeler</span>
     </a>
 
     <a href="{{ url_for('kitchen_display') }}" class="quick-card">
-        <img src="{{ url_for('static', filename='images/icons/hat-chef.svg') }}" alt="kitchen">
+        <img src="{{ url_for('static', filename='images/icons/chef.png') }}" alt="kitchen">
         <span>Mutfak Ekranı</span>
     </a>
     {% endif %}
@@ -268,7 +269,9 @@
 
 <div class="recent-orders-wrapper">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-        <h3 style="margin: 0; color: #111827; font-size: 18px; font-weight: 700;">📦 Son Gelen Siparişler</h3>
+        <h3 style="margin: 0; color: #111827; font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+            <img src="{{ url_for('static', filename='images/icons/package.png') }}" style="width: 24px; height: 24px; object-fit: contain;"> Son Gelen Siparişler
+        </h3>
         <a href="{{ url_for('orders') }}" style="color: #4f46e5; text-decoration: none; font-size: 13px; font-weight: 600;">Tümünü Gör →</a>
     </div>
     <div style="background: white; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #e5e7eb; overflow: hidden;">
@@ -297,7 +300,14 @@
                     <td style="padding: 15px 20px; font-weight: 700; color: #059669;">${{ order.sales_amount }}</td>
                     <td style="padding: 15px 20px;">
                         <span class="status-badge status-{{ order.order_status }}">
-                            {{ order.order_status | capitalize }}
+                            {% if order.order_status == 'pending' %}Onay Bekliyor
+                            {% elif order.order_status == 'preparing' %}Hazırlanıyor
+                            {% elif order.order_status == 'ready' %}Hazır
+                            {% elif order.order_status == 'on_the_way' %}Yolda
+                            {% elif order.order_status == 'delivered' %}Teslim Edildi
+                            {% elif order.order_status == 'completed' %}Tamamlandı
+                            {% elif order.order_status == 'canceled' %}İptal Edildi
+                            {% else %}{{ order.order_status | capitalize }}{% endif %}
                         </span>
                     </td>
                 </tr>

@@ -31,7 +31,7 @@ document.addEventListener("DOMContentLoaded", function () {
             selectAllBtn.style.marginLeft = '5px'; 
         }
 
-        selectAllBtn.innerHTML = 'Select All';
+        selectAllBtn.innerHTML = 'Tümünü Seç';
         selectAllBtn.dataset.action = 'select'; 
     }
 

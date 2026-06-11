@@ -36,7 +36,7 @@ def orders():
             couriers = cursor.fetchall()
             
             query_foods = """
-                SELECT f.food_id, f.item_name, m.price 
+                SELECT m.menu_id, f.food_id, COALESCE(m.custom_name, f.item_name) AS item_name, m.price 
                 FROM menus m 
                 JOIN foods f ON m.food_id = f.food_id 
                 WHERE m.restaurant_id = %s
@@ -88,52 +88,64 @@ def order_action():
             courier_id = request.form.get('courier_id') or None
             table_no = request.form.get('table_no') or None
 
-            # Paket servis için müşteri bilgileri kontrolü
             if order_type == 'Delivery':
                 table_no = None
                 if not customer_name or not customer_phone or not customer_address:
                     flash("Paket servis için müşteri bilgileri zorunludur!", "warning")
                     return redirect(url_for('orders'))
             
-            # Masa siparişi (Dine-in) için masa no kontrolü
             if order_type == 'Dine-in':
                 if not table_no:
                     flash("Masa siparişi için lütfen Masa Numarası girin!", "warning")
                     return redirect(url_for('orders'))
 
-            food_ids = request.form.getlist('food_id')    
-            quantities = request.form.getlist('quantity') 
+            # 🚀 YENİ POS SEPET SİSTEMİ (Garson paneliyle birebir aynı mantık)
+            cart_indices = request.form.getlist('cart_index')
             
             valid_items = []
             total_qty = 0
             total_amount = 0
 
-            # Yemek stok ve fiyat hesaplamaları
-            for i in range(len(food_ids)):
-                f_id = food_ids[i]
-                qty_str = quantities[i]
-                
-                if f_id and qty_str:
+            for idx in cart_indices:
+                menu_id = request.form.get(f'menu_id_{idx}')
+                qty_str = request.form.get(f'qty_{idx}', '0')
+                note = request.form.get(f'note_{idx}', '').strip()
+                selected_choices = request.form.getlist(f'choices_{idx}[]')
+
+                if menu_id and qty_str:
                     try:
                         qty = int(qty_str)
                         if qty > 0:
-                            cursor.execute("SELECT price, stock_quantity FROM menus WHERE food_id = %s", (f_id,))
+                            cursor.execute("SELECT price, food_id, stock_quantity FROM menus WHERE menu_id = %s", (menu_id,))
                             menu_item = cursor.fetchone()
+                            
                             if menu_item:
                                 current_stock = menu_item['stock_quantity']
                                 if current_stock < qty:
-                                    flash(f"HATA: Stok yetersiz! Ürün ID {f_id} (Mevcut: {current_stock})", "danger")
+                                    flash(f"HATA: Stok yetersiz!", "danger")
                                     return redirect(url_for('orders'))
                                 
-                                price = float(menu_item['price'])
-                                item_total = price * qty
-                                total_amount += item_total
+                                base_price = float(menu_item['price'])
+                                extras_price = 0
+                                
+                                if selected_choices:
+                                    format_strings = ','.join(['%s'] * len(selected_choices))
+                                    cursor.execute(f"SELECT additional_price FROM menu_option_choices WHERE choice_id IN ({format_strings})", selected_choices)
+                                    for row in cursor.fetchall():
+                                        if row['additional_price']:
+                                            extras_price += float(row['additional_price'])
+                                
+                                unit_price = base_price + extras_price
+                                total_amount += (unit_price * qty)
                                 total_qty += qty
                                 
                                 valid_items.append({
-                                    'food_id': f_id,
+                                    'food_id': menu_item['food_id'],
                                     'quantity': qty,
-                                    'unit_price': price
+                                    'unit_price': unit_price,
+                                    'choices': selected_choices,
+                                    'cart_index': idx,
+                                    'note': note
                                 })
                     except (ValueError, TypeError):
                         continue 
@@ -148,7 +160,6 @@ def order_action():
 
             order_status = request.form.get('order_status') or 'pending'
 
-            # MySQL AUTO_INCREMENT kullanarak ID otomatik atama!
             query = """
                 INSERT INTO orders 
                 (restaurant_id, order_date, order_status, sales_qty, sales_amount, 
@@ -160,8 +171,15 @@ def order_action():
             final_order_id = cursor.lastrowid
 
             for item in valid_items:
-                item_query = "INSERT INTO order_items (order_id, food_id, quantity, unit_price) VALUES (%s, %s, %s, %s)"
-                cursor.execute(item_query, (final_order_id, item['food_id'], item['quantity'], item['unit_price']))
+                item_query = "INSERT INTO order_items (order_id, food_id, quantity, unit_price, cart_index, item_note) VALUES (%s, %s, %s, %s, %s, %s)"
+                cursor.execute(item_query, (final_order_id, item['food_id'], item['quantity'], item['unit_price'], item['cart_index'], item['note']))
+                
+                if item['choices']:
+                    for choice_id in item['choices']:
+                        cursor.execute("""
+                            INSERT INTO order_item_choices (order_id, food_id, choice_id, cart_index)
+                            VALUES (%s, %s, %s, %s)
+                        """, (final_order_id, item['food_id'], choice_id, item['cart_index']))
 
             for item in valid_items:
                 cursor.execute("""
@@ -266,9 +284,9 @@ def order_action():
             couriers = cursor.fetchall()
             
             if role == 'user':
-                cursor.execute("SELECT f.food_id, f.item_name, m.price FROM menus m JOIN foods f ON m.food_id = f.food_id WHERE m.restaurant_id = %s", (restaurant_id_session,))
+                cursor.execute("SELECT m.menu_id, f.food_id, COALESCE(m.custom_name, f.item_name) AS item_name, m.price FROM menus m JOIN foods f ON m.food_id = f.food_id WHERE m.restaurant_id = %s", (restaurant_id_session,))
             else:
-                cursor.execute("SELECT f.food_id, f.item_name, m.price FROM menus m JOIN foods f ON m.food_id = f.food_id")
+                cursor.execute("SELECT m.menu_id, f.food_id, COALESCE(m.custom_name, f.item_name) AS item_name, m.price FROM menus m JOIN foods f ON m.food_id = f.food_id")
             foods = cursor.fetchall()
                 
             return render_template('orders.html', orders=orders_data, foods=foods, couriers=couriers)
@@ -305,14 +323,15 @@ def order_action():
 
 def get_order_details(order_id):
     if not session.get('logged_in'):
-        return jsonify({'error': 'Unauthorized'}), 401
+        return jsonify({'error': 'Yetkisiz erişim'}), 401
 
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     
     query = """
         SELECT f.food_id, COALESCE(m.custom_name, f.item_name) AS item_name, 
-               oi.quantity, oi.unit_price, (oi.quantity * oi.unit_price) as subtotal
+               oi.quantity, oi.unit_price, (oi.quantity * oi.unit_price) as subtotal,
+               oi.cart_index, oi.item_note
         FROM order_items oi
         JOIN orders o ON oi.order_id = o.order_id
         JOIN foods f ON oi.food_id = f.food_id
@@ -322,14 +341,30 @@ def get_order_details(order_id):
     cursor.execute(query, (order_id,))
     items = cursor.fetchall()
     
-    cursor.close()
-    conn.close()
+    for item in items:
+        # Eğer yeni sistemden geldiyse karışmaması için cart_index üzerinden arıyoruz!
+        if item.get('cart_index'):
+            cursor.execute("""
+                SELECT moc.choice_name, moc.additional_price 
+                FROM order_item_choices oic
+                JOIN menu_option_choices moc ON oic.choice_id = moc.choice_id
+                WHERE oic.order_id = %s AND oic.cart_index = %s
+            """, (order_id, item['cart_index']))
+        else:
+            cursor.execute("""
+                SELECT moc.choice_name, moc.additional_price 
+                FROM order_item_choices oic
+                JOIN menu_option_choices moc ON oic.choice_id = moc.choice_id
+                WHERE oic.order_id = %s AND oic.food_id = %s
+            """, (order_id, item['food_id']))
+        item['choices'] = cursor.fetchall()
     
+    cursor.close(); conn.close()
     return jsonify(items)
 
 def get_restaurant_details(restaurant_id):
     if 'logged_in' not in session:
-        return jsonify({'error': 'Unauthorized'}), 401
+        return jsonify({'error': 'Yetkisiz erişim'}), 401
     
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -418,23 +453,34 @@ def kitchen_display():
             orders_list = cursor.fetchall()
 
             for order in orders_list:
-                # 📍 DÜZELTME: Şemana uygun olarak food_id ve custom_name üzerinden bağlantı kuruyoruz
+                # 🚀 DÜZELTME: foods ve menus tablolarını birleştirip, yeni cart_index ve item_note verilerini de çekiyoruz
                 cursor.execute("""
-                    SELECT oi.*, m.custom_name AS item_name 
+                    SELECT oi.*, COALESCE(m.custom_name, f.item_name) AS item_name 
                     FROM order_items oi
-                    JOIN menus m ON oi.food_id = m.food_id
-                    WHERE oi.order_id = %s AND m.restaurant_id = %s
-                """, (order['order_id'], order['restaurant_id']))
+                    JOIN foods f ON oi.food_id = f.food_id
+                    LEFT JOIN menus m ON oi.food_id = m.food_id AND m.restaurant_id = %s
+                    WHERE oi.order_id = %s
+                """, (order['restaurant_id'], order['order_id']))
                 items = cursor.fetchall()
 
-                # Ekstraları çekerken de menu_id yerine senin şemandaki food_id'yi kullanıyoruz
                 for item in items:
-                    cursor.execute("""
-                        SELECT moc.choice_name 
-                        FROM order_item_choices oic
-                        JOIN menu_option_choices moc ON oic.choice_id = moc.choice_id
-                        WHERE oic.order_id = %s AND oic.food_id = %s
-                    """, (order['order_id'], item['food_id']))
+                    # 🚀 YENİ ZIRH: Eğer ürün yeni sepet sistemiyle (cart_index) eklendiyse sadece kendi satırındaki ekstraları çek
+                    if item.get('cart_index'):
+                        cursor.execute("""
+                            SELECT moc.choice_name 
+                            FROM order_item_choices oic
+                            JOIN menu_option_choices moc ON oic.choice_id = moc.choice_id
+                            WHERE oic.order_id = %s AND oic.cart_index = %s
+                        """, (order['order_id'], item['cart_index']))
+                    else:
+                        # Eski siparişler için geriye dönük uyumluluk
+                        cursor.execute("""
+                            SELECT moc.choice_name 
+                            FROM order_item_choices oic
+                            JOIN menu_option_choices moc ON oic.choice_id = moc.choice_id
+                            WHERE oic.order_id = %s AND oic.food_id = %s
+                        """, (order['order_id'], item['food_id']))
+                        
                     choices = cursor.fetchall()
                     
                     if choices:

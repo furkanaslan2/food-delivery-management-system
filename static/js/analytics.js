@@ -46,7 +46,7 @@ document.addEventListener("DOMContentLoaded", function() {
         new Chart(doughnutChartEl, {
             type: 'doughnut',
             data: {
-                labels: ['🛵 Paket Servis', '🍽️ Masaya Servis'],
+                labels: ['Paket Servis', 'Masaya Servis'],
                 datasets: [{
                     data: [db.chart_delivery_count, db.chart_dinein_count],
                     backgroundColor: [successColor, warningColor],

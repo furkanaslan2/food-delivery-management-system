@@ -175,10 +175,6 @@ def waiter_action():
 
     return redirect(url_for('waiters'))
 
-# =====================================================================
-# AŞAĞIDAKİ KISIM SENİN YAZDIĞIN GARSON POS SİSTEMİDİR (DOKUNULMADI)
-# =====================================================================
-
 def waiter_dashboard():
     if not session.get('logged_in') or session.get('role') != 'waiter':
         return redirect(url_for('login'))
@@ -187,7 +183,7 @@ def waiter_dashboard():
     connection = get_db_connection()
     
     if connection is None:
-        flash("Couldn't connect to the database!", "danger")
+        flash("Veritabanına bağlanılamadı!", "danger")
         return render_template('waiter_dashboard.html', menus=[])
 
     try:
@@ -212,13 +208,13 @@ def waiter_dashboard():
         cursor.execute('''
             SELECT DISTINCT table_no 
             FROM orders 
-            WHERE restaurant_id = %s AND order_status = 'pending'
+            WHERE restaurant_id = %s AND order_status IN ('pending', 'preparing', 'ready', 'delivered')
         ''', (restaurant_id,))
         occupied_tables = [row['table_no'] for row in cursor.fetchall()]
         
         return render_template('waiter_dashboard.html', menus=menus, total_tables=total_tables, occupied_tables=occupied_tables)
     except Error as e:
-        flash(f"Query failed: {e}", "danger")
+        flash(f"Sorgu hatası: {e}", "danger")
         return render_template('waiter_dashboard.html', menus=[], total_tables=0, occupied_tables=[])
     finally:
         if connection.is_connected():
@@ -230,140 +226,82 @@ def waiter_create_order():
         return redirect(url_for('login'))
 
     restaurant_id = session.get('restaurant_id')
-    selected_menus = request.form.getlist('selected_items')
     table_no = request.form.get('table_no')
+    cart_indices = request.form.getlist('cart_index')
     
-    if not selected_menus:
-        flash("No items selected!", "warning")
+    if not cart_indices:
+        flash("Adisyona hiçbir ürün eklemediniz!", "warning")
         return redirect(url_for('waiter_dashboard'))
     
-    if not table_no:
-        flash("Please enter a table number!", "danger")
-        return redirect(url_for('waiter_dashboard'))
-
     connection = get_db_connection()
     if connection is None:
         return redirect(url_for('waiter_dashboard'))
 
     try:
         cursor = connection.cursor(dictionary=True)
-
-        cursor.execute("SELECT table_count FROM restaurants WHERE restaurant_id = %s", (restaurant_id,))
-        res_info = cursor.fetchone()
         
-        if res_info and res_info['table_count']:
-            max_limit = res_info['table_count']
-            if int(table_no) > max_limit:
-                flash(f"Invalid Table Number! This restaurant only has {max_limit} tables.", "warning")
-                cursor.close()
-                connection.close()
-                return redirect(url_for('waiter_dashboard'))
-        
-        total_qty = 0
-        total_amount = 0
-
+        total_qty, total_amount = 0, 0
         order_details = [] 
 
-        for menu_id in selected_menus:
-            qty = int(request.form.get(f'qty_{menu_id}', 0))
+        for idx in cart_indices:
+            menu_id = request.form.get(f'menu_id_{idx}')
+            qty = int(request.form.get(f'qty_{idx}', 0))
+            note = request.form.get(f'note_{idx}', '').strip() 
+            selected_choices = request.form.getlist(f'choices_{idx}[]')
+
             if qty > 0:
-                cursor.execute('SELECT price, food_id, stock_quantity FROM menus WHERE menu_id = %s', (menu_id,))
+                cursor.execute('''
+                    SELECT m.price, m.food_id, m.stock_quantity, m.custom_name, f.item_name 
+                    FROM menus m JOIN foods f ON m.food_id = f.food_id WHERE m.menu_id = %s
+                ''', (menu_id,))
                 result = cursor.fetchone()
                 
                 if result:
-                    if result['stock_quantity'] < qty:
-                        flash(f"ERROR: Insufficient stock! Some items are out of stock.", "danger")
-                        connection.close()
-                        return redirect(url_for('waiter_dashboard'))
+                    base_price = float(result['price'])
+                    extras_price = 0
                     
+                    if selected_choices:
+                        format_strings = ','.join(['%s'] * len(selected_choices))
+                        cursor.execute(f"SELECT choice_name, additional_price FROM menu_option_choices WHERE choice_id IN ({format_strings})", selected_choices)
+                        for row in cursor.fetchall():
+                            if row['additional_price']:
+                                extras_price += float(row['additional_price'])
+                    
+                    unit_price = base_price + extras_price
+                    total_amount += (unit_price * qty)
                     total_qty += qty
-
-                    unit_price = float(result['price']) 
-                    
-                    item_total = unit_price * qty
-                    total_amount += item_total
                     
                     order_details.append({
-                        'food_id': result['food_id'],
-                        'quantity': qty,
-                        'price': unit_price  
+                        'food_id': result['food_id'], 'quantity': qty, 'price': unit_price,
+                        'choices': selected_choices, 'cart_index': idx, 'note': note
                     })
 
         if total_qty > 0:
-            cursor.execute("""
-                SELECT order_id, sales_amount, sales_qty 
-                FROM orders 
-                WHERE restaurant_id = %s AND table_no = %s AND order_status = 'pending'
-            """, (restaurant_id, table_no))
-            
-            existing_order = cursor.fetchone()
-
-            if existing_order:
-                order_id = existing_order['order_id']
-                
-                new_sales_qty = float(existing_order['sales_qty']) + total_qty
-                new_sales_amount = float(existing_order['sales_amount']) + total_amount
-                
-                cursor.execute("""
-                    UPDATE orders 
-                    SET sales_amount = %s, sales_qty = %s, order_date = %s
-                    WHERE order_id = %s
-                """, (new_sales_amount, new_sales_qty, date.today(), order_id))
-                
-                flash(f"Items added to existing Order #{order_id} for Table {table_no}", "info")
-            else:
-                query = 'INSERT INTO orders (order_date, sales_qty, sales_amount, restaurant_id, order_status, table_no) VALUES (%s, %s, %s, %s, %s, %s)'
-                cursor.execute(query, (date.today(), total_qty, total_amount, restaurant_id, 'pending', table_no))
-                
-                order_id = cursor.lastrowid
-                flash(f"New Order #{order_id} created for Table {table_no}", "success")
+            query = 'INSERT INTO orders (order_date, sales_qty, sales_amount, restaurant_id, order_status, table_no, order_type) VALUES (NOW(), %s, %s, %s, %s, %s, %s)'
+            cursor.execute(query, (total_qty, total_amount, restaurant_id, 'pending', table_no, 'Dine-in'))
+            order_id = cursor.lastrowid
+            flash(f"Masa {table_no} için yeni lezzetler mutfağa iletildi. 🍽️", "success")
             
             for item in order_details:
-                food_id = item['food_id']
-                qty = item['quantity']
-                price = item['price']
-
+                # Ürünleri kendi sepet ID'si ve kendi özel notuyla ekliyoruz!
                 cursor.execute("""
-                    SELECT item_id, quantity 
-                    FROM order_items 
-                    WHERE order_id = %s AND food_id = %s
-                """, (order_id, food_id))
+                    INSERT INTO order_items (order_id, food_id, quantity, unit_price, cart_index, item_note)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                """, (order_id, item['food_id'], item['quantity'], item['price'], item['cart_index'], item['note']))
                 
-                existing_item = cursor.fetchone()
-
-                if existing_item:
-                    new_item_qty = existing_item['quantity'] + qty
-                    cursor.execute("""
-                        UPDATE order_items 
-                        SET quantity = %s 
-                        WHERE item_id = %s
-                    """, (new_item_qty, existing_item['item_id']))
-                    
-                else:
-                    cursor.execute("""
-                        INSERT INTO order_items (order_id, food_id, quantity, unit_price)
-                        VALUES (%s, %s, %s, %s)
-                    """, (order_id, food_id, qty, price))
-            
-            for item in order_details:
-                cursor.execute("""
-                    UPDATE menus 
-                    SET stock_quantity = stock_quantity - %s 
-                    WHERE food_id = %s
-                """, (item['quantity'], item['food_id']))
+                if item['choices']:
+                    for choice_id in item['choices']:
+                        # Seçenekleri de o satıra ait sepet ID'sine bağlıyoruz!
+                        cursor.execute("""
+                            INSERT INTO order_item_choices (order_id, food_id, choice_id, cart_index)
+                            VALUES (%s, %s, %s, %s)
+                        """, (order_id, item['food_id'], choice_id, item['cart_index']))
             
             connection.commit()
-        else:
-            flash("Invalid quantity selected.", "warning")
-
     except Error as e:
-        flash(f"Error creating order: {e}", "danger")
         connection.rollback() 
     finally:
-        if connection.is_connected():
-            cursor.close()
-            connection.close()
-
+        if connection.is_connected(): cursor.close(); connection.close()
     return redirect(url_for('waiter_dashboard'))
 
 def waiter_close_bill():
@@ -384,27 +322,55 @@ def waiter_close_bill():
     try:
         cursor = connection.cursor(dictionary=True)
 
-        # Aktif adisyonu bul
+        # Masadaki tüm aktif fişleri (biletleri) eskiden yeniye doğru bul
         cursor.execute("""
             SELECT order_id FROM orders 
-            WHERE restaurant_id = %s AND table_no = %s AND order_status = 'pending'
+            WHERE restaurant_id = %s AND table_no = %s AND order_status IN ('pending', 'preparing', 'ready', 'delivered')
+            ORDER BY order_id ASC
         """, (restaurant_id, table_no))
-        order = cursor.fetchone()
+        active_orders = cursor.fetchall()
 
-        if order:
-            order_id = order['order_id']
+        if active_orders:
+            main_order_id = active_orders[0]['order_id'] # Ana faturamız en eski açılan sipariş olacak
             
-            # Durumu tamamlandı yap
+            # Eğer masada birden fazla fiş (Adana ayrı, Pepsi ayrı) varsa, hesabı kapatırken hepsini birleştir!
+            if len(active_orders) > 1:
+                other_order_ids = [str(o['order_id']) for o in active_orders[1:]]
+                format_strings = ','.join(['%s'] * len(other_order_ids))
+                
+                # 1. Diğer siparişlerdeki yemekleri ana siparişe (main_order_id) taşı
+                cursor.execute(f"""
+                    UPDATE order_items 
+                    SET order_id = %s 
+                    WHERE order_id IN ({format_strings})
+                """, [main_order_id] + other_order_ids)
+                
+                # 2. Ana siparişin toplam tutarını ve adetini her şey dahil şekilde yeniden hesapla
+                cursor.execute("""
+                    UPDATE orders o
+                    SET 
+                        sales_qty = (SELECT COALESCE(SUM(quantity), 0) FROM order_items WHERE order_id = %s),
+                        sales_amount = (SELECT COALESCE(SUM(quantity * unit_price), 0) FROM order_items WHERE order_id = %s)
+                    WHERE order_id = %s
+                """, (main_order_id, main_order_id, main_order_id))
+                
+                # 3. İçi boşaltılan diğer fişleri veritabanından temizle
+                cursor.execute(f"""
+                    DELETE FROM orders 
+                    WHERE order_id IN ({format_strings})
+                """, other_order_ids)
+            
+            # Son olarak birleşmiş devasa ana siparişi "Tamamlandı" yap ve hesabı kapat
             cursor.execute("""
                 UPDATE orders 
                 SET order_status = 'completed' 
                 WHERE order_id = %s
-            """, (order_id,))
+            """, (main_order_id,))
             
             connection.commit()
             
             flash(f"💳 Masa {table_no} hesabı kapatıldı. Adisyon hazırlanıyor...", "success")
-            return redirect(url_for('waiter_receipt', order_id=order_id))
+            return redirect(url_for('waiter_receipt', order_id=main_order_id))
         else:
             flash(f"Masa {table_no} zaten boş veya aktif bir adisyonu bulunmuyor.", "warning")
             return redirect(url_for('waiter_dashboard'))
@@ -419,48 +385,42 @@ def waiter_close_bill():
             connection.close()
 
 def waiter_receipt(order_id):
-    if not session.get('logged_in') or session.get('role') != 'waiter':
-        return redirect(url_for('login'))
-
     restaurant_id = session.get('restaurant_id')
     connection = get_db_connection()
-    if connection is None:
-        return redirect(url_for('waiter_dashboard'))
-
     try:
         cursor = connection.cursor(dictionary=True)
-        
-        # 1. Restoran Bilgisi
         cursor.execute("SELECT restaurant_name, restaurant_address FROM restaurants WHERE restaurant_id = %s", (restaurant_id,))
         restaurant = cursor.fetchone()
 
-        # 2. Sipariş Ana Bilgileri
-        cursor.execute("""
-            SELECT order_id, order_date, sales_amount, table_no 
-            FROM orders 
-            WHERE order_id = %s AND restaurant_id = %s
-        """, (order_id, restaurant_id))
+        cursor.execute("SELECT order_id, order_date, sales_amount, table_no FROM orders WHERE order_id = %s AND restaurant_id = %s", (order_id, restaurant_id))
         order = cursor.fetchone()
 
-        if not order:
-            flash("Adisyon bulunamadı!", "danger")
-            return redirect(url_for('waiter_dashboard'))
-
-        # 3. Sipariş Edilen Yemekler (Kalemler)
+        # 🚀 Gruplamayı (GROUP BY) kaldırdık! Adana acılı ve acısız alt alta iki satır olarak çıkar
         cursor.execute("""
-            SELECT f.item_name, oi.quantity, oi.unit_price 
+            SELECT f.food_id, COALESCE(m.custom_name, f.item_name) AS item_name, 
+                   oi.quantity, oi.unit_price, oi.cart_index, oi.item_note
             FROM order_items oi
             JOIN foods f ON oi.food_id = f.food_id
+            LEFT JOIN menus m ON oi.food_id = m.food_id AND m.restaurant_id = %s
             WHERE oi.order_id = %s
-        """, (order_id,))
+        """, (restaurant_id, order_id))
         items = cursor.fetchall()
 
-        return render_template('receipt.html', order=order, items=items, restaurant=restaurant)
+        for item in items:
+            if item['cart_index']:
+                cursor.execute("""
+                    SELECT moc.choice_name, moc.additional_price FROM order_item_choices oic
+                    JOIN menu_option_choices moc ON oic.choice_id = moc.choice_id
+                    WHERE oic.order_id = %s AND oic.cart_index = %s
+                """, (order_id, item['cart_index']))
+            else:
+                cursor.execute("""
+                    SELECT moc.choice_name, moc.additional_price FROM order_item_choices oic
+                    JOIN menu_option_choices moc ON oic.choice_id = moc.choice_id
+                    WHERE oic.order_id = %s AND oic.food_id = %s
+                """, (order_id, item['food_id']))
+            item['choices'] = cursor.fetchall()
 
-    except Error as e:
-        flash(f"Adisyon yüklenirken hata: {e}", "danger")
-        return redirect(url_for('waiter_dashboard'))
+        return render_template('receipt.html', order=order, items=items, restaurant=restaurant)
     finally:
-        if connection.is_connected():
-            cursor.close()
-            connection.close()
+        cursor.close(); connection.close()

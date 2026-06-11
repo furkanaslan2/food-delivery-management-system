@@ -11,7 +11,7 @@ def foods():
 
     connection = get_db_connection()
     if connection is None:
-        flash("Couldn't connect to the database!", "danger")
+        flash("Veritabanına bağlanılamadı!", "danger")
         return render_template('foods.html', foods=[])
 
     try:
@@ -34,7 +34,7 @@ def foods():
                 GROUP BY f.food_id, f.item_name
             ''', (restaurant_id,))
         else:
-            flash("Unauthorized access!", "danger")
+            flash("Yetkisiz erişim!", "danger")
             return redirect(url_for('index'))
 
         foods_list = cursor.fetchall()
@@ -42,7 +42,7 @@ def foods():
 
     except Error as e:
         print(f"Database error: {str(e)}")
-        flash(f"Query failed: {e}", "danger")
+        flash(f"Sorgu hatası: {e}", "danger")
         return render_template('foods.html', foods=[])
     finally:
         if connection.is_connected():
@@ -57,7 +57,7 @@ def food_action():
     connection = get_db_connection()
     
     if connection is None:
-        flash("Couldn't connect to the database!", "danger")
+        flash("Veritabanına bağlanılamadı!", "danger")
         return redirect(url_for('foods'))
 
     try:
@@ -68,14 +68,14 @@ def food_action():
             food_id = request.form.get('food_id')
 
             if not food_name:
-                flash("Food name is required.", "warning")
+                flash("Kategori adı zorunludur.", "warning")
                 return redirect(url_for('foods'))
 
             try:
                 if food_id:
                     cursor.execute("SELECT food_id FROM foods WHERE food_id = %s", (food_id,))
                     if cursor.fetchone():
-                        flash("Food ID already exists.", "warning")
+                        flash("Bu Kategori ID zaten mevcut.", "warning")
                         return redirect(url_for('foods'))
                     
                     query = "INSERT INTO foods (food_id, item_name) VALUES (%s, %s)"
@@ -85,17 +85,17 @@ def food_action():
                     cursor.execute(query, (food_name,))
 
                 connection.commit()
-                flash("Food item added successfully!", "success")
+                flash("Kategori başarıyla eklendi!", "success")
 
             except Error as e:
                 connection.rollback()
-                flash(f"Error adding food item: {str(e)}", "danger")
+                flash(f"Kategori eklenirken hata: {str(e)}", "danger")
 
         elif action == 'delete':
             selected_ids = request.form.get('selected_food_items')
             
             if not selected_ids:
-                flash("No food item(s) selected for deletion.", "warning")
+                flash("Silinecek kategori seçilmedi.", "warning")
                 return redirect(url_for('foods'))
 
             selected_ids = selected_ids.split(',')
@@ -106,12 +106,12 @@ def food_action():
                 connection.commit()
                 
                 if cursor.rowcount > 0:
-                    flash(f"Successfully deleted {cursor.rowcount} food item(s).", "success")
+                    flash(f"{cursor.rowcount} kategori başarıyla silindi.", "success")
                 else:
-                    flash("No food items were deleted.", "warning")
+                    flash("Hiçbir kategori silinemedi.", "warning")
                     
             except Error as e:
-                flash(f"Error deleting food items: {str(e)}", "danger")
+                flash(f"Kategoriler silinirken hata: {str(e)}", "danger")
                 connection.rollback()
 
         elif action == 'update':
@@ -119,11 +119,11 @@ def food_action():
             food_name = request.form.get('name')
 
             if not update_food_id:
-                flash("No food item selected for update.", "warning")
+                flash("Güncellenecek kategori seçilmedi.", "warning")
                 return redirect(url_for('foods'))
             
             if not food_name:
-                flash("Food name is required for update.", "warning")
+                flash("Güncelleme için kategori adı zorunludur.", "warning")
                 return redirect(url_for('foods'))
 
             try:
@@ -134,11 +134,11 @@ def food_action():
                 """
                 cursor.execute(query, (food_name, update_food_id))
                 connection.commit()
-                flash("Food item updated successfully!", "success")
+                flash("Kategori başarıyla güncellendi!", "success")
 
             except Error as e:
                 connection.rollback()
-                flash(f"Error updating food item: {str(e)}", "danger")
+                flash(f"Kategori güncellenirken hata: {str(e)}", "danger")
 
         elif action == 'filter':
             try:
@@ -165,14 +165,14 @@ def food_action():
                 foods = cursor.fetchall()
                 
                 if foods:
-                    flash(f"Found {len(foods)} food item(s) matching your criteria.", "success")
+                    flash(f"Kriterlerinize uygun {len(foods)} kategori bulundu.", "success")
                 else:
-                    flash("No food items found matching your criteria.", "info")
+                    flash("Kriterlerinize uygun kategori bulunamadı.", "info")
                     
                 return render_template('foods.html', foods=foods)
 
             except Error as e:
-                flash(f"Error during filtering: {str(e)}", "danger")
+                flash(f"Filtreleme hatası: {str(e)}", "danger")
                 return redirect(url_for('foods'))
 
         elif action == 'sort':
@@ -180,7 +180,7 @@ def food_action():
             sort_order = request.form.get('sort_order')
 
             if not sort_by or sort_order not in ['ASC', 'DESC']:
-                flash("Invalid sort parameters.", "danger")
+                flash("Geçersiz sıralama parametreleri.", "danger")
                 return redirect(url_for('foods'))
 
             query = f"""
@@ -192,7 +192,7 @@ def food_action():
             """
             cursor.execute(query)
             foods = cursor.fetchall()
-            flash("Food items sorted successfully!", "success")
+            flash("Kategoriler başarıyla sıralandı!", "success")
             return render_template('foods.html', foods=foods)
 
         elif action == 'clear':
@@ -204,11 +204,11 @@ def food_action():
             """
             cursor.execute(query)
             foods = cursor.fetchall()
-            flash("All filters and sorting have been cleared.", "success")
+            flash("Tüm filtreler ve sıralamalar temizlendi.", "success")
             return render_template('foods.html', foods=foods)
 
     except Error as e:
-        flash(f"An error occurred: {e}", "danger")
+        flash(f"Bir hata oluştu: {e}", "danger")
     finally:
         if connection.is_connected():
             cursor.close()

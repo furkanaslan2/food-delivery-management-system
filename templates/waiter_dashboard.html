@@ -1,230 +1,430 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Waiter Panel</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <title>Garson Paneli | YeSende</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/flash.css') }}">
     <style>
-        .table-no-container {
-            display: flex !important;
-            align-items: center !important; 
-            gap: 10px;
-            background: white;
-            padding: 0 15px; 
-            border-radius: 8px;
-            border: 1px solid #ddd;
-            height: 45px; 
-        }
-
-        .table-no-container label {
-            margin: 0 !important;   
-            padding: 0 !important;  
-            line-height: 45px;      
-            white-space: nowrap;    
-        }
-
-        .table-no-container input {
-            margin: 0 !important;  
-            height: 32px;           
-            display: flex;
-            align-items: center;
-        }
-
-        .table-status-container {
-            margin-top: 100px !important; 
-            padding: 20px;
-            background: #f8f9fa;
-            border-bottom: 1px solid #ddd;
-            margin-bottom: 20px;
-        }
-
-        .table-box {
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            color: white;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        .table-box:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        }
-
-        .table-box.free {
-            background-color: #2ecc71; 
-        }
-
-        .table-box.occupied {
-            background-color: #e74c3c; 
-            border: 2px solid #c0392b;
-        }
-
-        .order-action-bar {
-            margin-top: 20px; 
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
+        body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; background-color: #f3f4f6; color: #111827; }
         
-        .qty-container {
-            margin-top: 10px;
-            border-top: 1px solid #ddd;
-            padding-top: 10px;
-        }
+        .navbar { background: #111827; padding: 0 5%; height: 75px; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; color: white; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-bottom: 1px solid #374151; }
+        .navbar-brand { font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 10px; margin: 0; color: white; text-decoration: none;}
+        .navbar-brand i { color: #4f46e5; font-size: 24px; }
+        
+        .logout-btn { background: #ef4444; color: white; text-decoration: none; padding: 10px 18px; border-radius: 10px; font-weight: 700; font-size: 14px; transition: 0.2s; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2); }
+        .logout-btn:hover { background: #dc2626; transform: translateY(-2px); }
 
-        .qty-input {
-            width: 70px !important;
-            padding: 5px !important;
-            margin-bottom: 0 !important;
-            display: inline-block !important;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
+        .container { padding: 30px 5%; max-width: 1200px; margin: auto; }
 
-        .table-card:hover .qty-input {
-            color: black;
-        }
+        .section-title { font-size: 18px; font-weight: 800; margin-bottom: 15px; color: #374151; display: flex; align-items: center; gap: 8px; }
+        
+        .table-grid { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 15px; }
+        .table-box { width: 55px; height: 55px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 800; color: white; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .table-box:hover { transform: translateY(-4px); box-shadow: 0 8px 15px rgba(0,0,0,0.15); }
+        .table-free { background: #10b981; border: 2px solid #059669; }
+        .table-occupied { background: #ef4444; border: 2px solid #b91c1c; }
+
+        .legend { display: flex; gap: 15px; font-size: 13px; font-weight: 700; color: #6b7280; margin-bottom: 30px; }
+        .legend-item { display: flex; align-items: center; gap: 6px; }
+        .legend-dot { width: 14px; height: 14px; border-radius: 4px; }
+
+        .action-bar { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); display: flex; flex-wrap: wrap; gap: 15px; align-items: center; justify-content: space-between; margin-bottom: 30px; border: 1px solid #e5e7eb; position: sticky; top: 85px; z-index: 90; }
+        
+        .table-input-group { display: flex; align-items: center; gap: 12px; background: #f9fafb; padding: 10px 15px; border-radius: 12px; border: 1px solid #e5e7eb;}
+        .table-input-group label { font-weight: 800; color: #111827; font-size: 15px; }
+        .table-input-group input { width: 60px; padding: 8px; border: 2px solid #d1d5db; border-radius: 8px; font-size: 16px; font-weight: 800; text-align: center; outline: none; transition: 0.2s; font-family: inherit; color: #4f46e5;}
+
+        .btn-group { display: flex; gap: 10px; flex-wrap: wrap; }
+        .btn { padding: 14px 24px; border: none; border-radius: 12px; font-size: 15px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s; color: white; font-family: inherit; }
+        .btn-submit { background: #4f46e5; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3); }
+        .btn-submit:hover { background: #4338ca; transform: translateY(-2px); }
+        .btn-close-bill { background: #ef4444; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3); }
+
+        .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
+        .menu-card { background: white; border-radius: 16px; padding: 20px; border: 2px solid #f3f4f6; transition: all 0.2s; display: flex; flex-direction: column; position: relative; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+        .menu-card:hover { border-color: #4f46e5; transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.06); }
+        
+        .menu-name { font-size: 16px; font-weight: 800; color: #111827; margin: 0 0 5px 0; padding-right: 35px; line-height: 1.3; }
+        .menu-price { font-size: 17px; font-weight: 800; color: #10b981; margin: 0; }
+        
+        .sold-out { opacity: 0.6; filter: grayscale(100%); pointer-events: none; border-color: #e5e7eb !important; background: #f9fafb !important; }
+        .sold-out-badge { position: absolute; top: -10px; left: 15px; background: #ef4444; color: white; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 800; text-transform: uppercase; }
+
+        .pos-modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 24, 39, 0.7); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(5px); animation: fadeIn 0.2s; padding: 20px; box-sizing: border-box;}
+        .pos-modal { background: white; width: 100%; max-width: 500px; max-height: 90vh; display: flex; flex-direction: column; border-radius: 24px; box-sizing: border-box; animation: scaleUpModal 0.3s cubic-bezier(0.16, 1, 0.3, 1); position: relative; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);}
+        
+        .pos-modal-header { padding: 25px 30px 15px 30px; border-bottom: 1px solid #f3f4f6; }
+        .pos-modal-body { padding: 20px 30px; overflow-y: auto; flex: 1; }
+        .pos-modal-footer { padding: 20px 30px; border-top: 1px solid #f3f4f6; background: white; }
+
+        .pos-modal-body::-webkit-scrollbar { width: 6px; }
+        .pos-modal-body::-webkit-scrollbar-track { background: #f3f4f6; border-radius: 10px; }
+        .pos-modal-body::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
+        .pos-modal-body::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes scaleUpModal { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-5px);} 75% {transform: translateX(5px);} }
+        .error-shake { animation: shake 0.3s ease-in-out; }
     </style>
 </head>
 <body>
-    <div id="loading-overlay" class="d-none">
-        <div class="spinner-ring"></div>
-    </div>
 
-    <nav>
-        <div class="logo navbar">
-            <a href="/"><img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo"></a>
-            <h1><a href="/">Food Delivery Management System</a> / <span style="margin-left: 10px; color: white">Waiter Panel</span></h1>
-        </div>
-        <ul class="navbar">
-            <li><a href="/logout">Logout</a></li>
-        </ul>
+    <nav class="navbar">
+        <a href="/" class="navbar-brand">
+            <img src="{{ url_for('static', filename='images/icons/logo.svg') }}" alt="YeSende" style="height: 45px; object-fit: contain;">
+            <span style="font-weight: 600; font-size: 16px; color: #9ca3af; margin-left: 15px; border-left: 2px solid #374151; padding-left: 15px; letter-spacing: 0.5px;">Garson Paneli</span>
+        </a>
+        <a href="{{ url_for('logout') }}" class="logout-btn"><i class="ph-bold ph-sign-out"></i> Çıkış Yap</a>
     </nav>
 
-    <div class="flash-container">
+    <div class="container">
+        <h2 class="section-title"><i class="ph-bold ph-squares-four" style="color: #4f46e5; font-size: 24px;"></i> Masa Durumu</h2>
+        <div class="table-grid">
+            {% for i in range(1, total_tables + 1) %}
+                <div class="table-box {% if i in occupied_tables %}table-occupied{% else %}table-free{% endif %}" onclick="setTable('{{ i }}')">{{ i }}</div>
+            {% endfor %}
+        </div>
+        
+        <div class="legend">
+            <div class="legend-item"><div class="legend-dot" style="background: #ef4444;"></div> Dolu Masa</div>
+            <div class="legend-item"><div class="legend-dot" style="background: #10b981;"></div> Boş Masa</div>
+        </div>
+
+        <form action="{{ url_for('waiter_create_order') }}" method="POST" id="order-form">
+            
+            <div class="action-bar">
+                <div class="table-input-group">
+                    <label for="table_no"><i class="ph-bold ph-chair"></i> Masa No:</label>
+                    <input type="number" id="table_no" name="table_no" required min="1" max="{{ total_tables }}" placeholder="Örn: 5">
+                </div>
+
+                <div class="btn-group">
+                    <button type="submit" class="btn btn-submit"><i class="ph-bold ph-check-circle"></i> Siparişi Onayla</button>
+                    <button type="button" class="btn btn-close-bill" onclick="openConfirmModal()"><i class="ph-bold ph-credit-card"></i> Hesabı Kapat</button>
+                </div>
+            </div>
+
+            <div id="cart-panel" style="display: none; background: white; padding: 25px; border-radius: 16px; margin-bottom: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.06); border: 1px solid #e5e7eb;">
+                <h3 style="margin: 0 0 15px 0; color: #111827; display: flex; justify-content: space-between; align-items: center;">
+                    <span><i class="ph-bold ph-receipt" style="color: #4f46e5;"></i> Adisyon Özeti</span>
+                    <span id="cart-total-display" style="color: #059669; font-size: 22px;">$0.00</span>
+                </h3>
+                <div id="order-cart-items" style="display: flex; flex-direction: column; gap: 10px;"></div>
+            </div>
+
+            <h2 class="section-title"><i class="ph-bold ph-list-dashes" style="color: #4f46e5; font-size: 24px;"></i> Menü Listesi</h2>
+            <div class="menu-grid">
+                {% for menu in menus %}
+                {% set is_sold_out = menu.stock_quantity <= 0 %}
+                {% set safe_name = (menu.custom_name or menu.item_name)|replace("'", "\\'") %}
+                
+                <div class="menu-card {{ 'sold-out' if is_sold_out else '' }}" onclick="openPosModal('{{ menu.menu_id }}', '{{ safe_name }}', '{{ menu.price }}')">
+                    {% if is_sold_out %}<div class="sold-out-badge">Tükendi</div>{% endif %}
+                    <h3 class="menu-name">{{ menu.custom_name or menu.item_name }}</h3>
+                    <p class="menu-price">${{ menu.price }}</p>
+                    <div style="margin-top: 10px; color: #4f46e5; font-size: 13px; font-weight: 700;"><i class="ph-bold ph-plus-circle"></i> Tıkla ve Seçenekleri Gör</div>
+                </div>
+                {% else %}
+                <div style="grid-column: 1 / -1; text-align: center; padding: 40px; background: white; border-radius: 16px; border: 2px dashed #d1d5db; color: #6b7280; font-weight: 600;">
+                    Menü bulunamadı.
+                </div>
+                {% endfor %}
+            </div>
+        </form>
+    </div>
+
+    <div id="confirmModal" class="pos-modal-overlay" onclick="if(event.target==this) closeConfirmModal()">
+        <div class="pos-modal" style="max-width: 400px; text-align: center; padding: 40px 30px; border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+            <div style="font-size: 56px; margin-bottom: 20px;">💳</div>
+            <h3 style="margin: 0 0 10px 0; color: #111827; font-size: 22px; font-weight: 800;">Hesabı Kapat</h3>
+            <p style="color: #6b7280; font-size: 15px; margin-bottom: 30px; line-height: 1.5; font-weight: 500;">
+                Seçili masanın hesabı tamamen kapatılacak ve adisyon yazdırılacaktır. Onaylıyor musunuz?
+            </p>
+            <div style="display: flex; gap: 12px;">
+                <button type="button" onclick="closeConfirmModal()" style="flex: 1; background: #f3f4f6; color: #4b5563; border: none; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 16px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">İptal</button>
+                <button type="button" onclick="submitCloseBill()" style="flex: 1; background: #ef4444; color: white; border: none; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 16px; cursor: pointer; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3); transition: 0.2s;" onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='#ef4444'">Evet, Kapat</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="posModal" class="pos-modal-overlay" onclick="if(event.target==this) closePosModal()">
+        <div class="pos-modal">
+            <div class="pos-modal-header">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 5px;">
+                    <h2 id="modal-item-name" style="margin: 0; font-size: 22px; font-weight: 800; color: #111827; line-height: 1.2;">Ürün Adı</h2>
+                    <button type="button" onclick="closePosModal()" style="background: none; border: none; font-size: 28px; color: #9ca3af; cursor: pointer; padding: 0; line-height: 1;">&times;</button>
+                </div>
+                <p id="modal-item-price" style="font-size: 20px; font-weight: 800; color: #10b981; margin: 0;">$0.00</p>
+            </div>
+
+            <div class="pos-modal-body">
+                <div id="modal-dynamic-options" style="margin-bottom: 20px;"></div>
+
+                <div style="margin-bottom: 25px; background: #f9fafb; padding: 15px; border-radius: 16px; border: 1px solid #e5e7eb;">
+                    <label style="display: block; font-size: 13px; font-weight: 800; color: #374151; margin-bottom: 15px; text-transform: uppercase;">Adet</label>
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <button type="button" onclick="changeModalQty(-1)" style="width: 65px; height: 50px; border-radius: 12px; background: white; border: 2px solid #d1d5db; font-size: 24px; font-weight: 800; color: #374151; cursor: pointer;">-</button>
+                        <span id="modal-qty" style="font-size: 28px; font-weight: 800; color: #111827; width: 60px; text-align: center;">1</span>
+                        <button type="button" onclick="changeModalQty(1)" style="width: 65px; height: 50px; border-radius: 12px; background: #eef2ff; border: 2px solid #a5b4fc; font-size: 24px; font-weight: 800; color: #4f46e5; cursor: pointer;">+</button>
+                    </div>
+                </div>
+
+                <div>
+                    <label style="display: block; font-size: 13px; font-weight: 800; color: #374151; margin-bottom: 10px; text-transform: uppercase;"><i class="ph-bold ph-note-pencil"></i> Ürün Özel Notu</label>
+                    <textarea id="modal-note" placeholder="Örn: Az Pişmiş" style="width: 100%; height: 70px; padding: 15px; border-radius: 12px; border: 2px solid #e5e7eb; font-family: inherit; resize: none; box-sizing: border-box; outline: none; transition: 0.2s;" onfocus="this.style.borderColor='#4f46e5'"></textarea>
+                </div>
+            </div>
+
+            <div class="pos-modal-footer">
+                <button type="button" onclick="savePosSelection()" style="width: 100%; background: #4f46e5; color: white; border: none; padding: 16px; border-radius: 14px; font-size: 16px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);">
+                    <i class="ph-bold ph-plus-circle" style="font-size: 20px; vertical-align: middle;"></i> Sepete Ekle
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="flash-messages-container" style="display: none;">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
-                <div class="flash-messages">
-                    {% for category, message in messages %}
-                    <div class="flash-message {{ category }}">
-                        {{ message }}
-                        <button class="close-flash" onclick="this.parentElement.style.display='none';">&times;</button>
-                    </div>
-                    {% endfor %}
-                </div>
+                {% for category, message in messages %}
+                    <span class="flash-message-data" data-category="{{ category }}" data-message="{{ message }}"></span>
+                {% endfor %}
             {% endif %}
         {% endwith %}
     </div>
 
-    <div class="table-status-container">
-        <h3 style="margin-top: 0; color: #333;">Table Status</h3>
-        
-        <div style="display: flex; flex-wrap: wrap; gap: 10px;">
-            {% for i in range(1, total_tables + 1) %}
-                {% if i in occupied_tables %}
-                    <div class="table-box occupied" onclick="setTable('{{ i }}')">
-                        {{ i }}
-                    </div>
-                {% else %}
-                    <div class="table-box free" onclick="setTable('{{ i }}')">
-                        {{ i }}
-                    </div>
-                {% endif %}
-            {% endfor %}
-        </div>
-        
-        <div style="margin-top: 10px; font-size: 0.9em; color: #666; display: flex; gap: 15px;">
-            <span style="display: flex; align-items: center; gap: 5px;">
-                <div style="width:12px; height:12px; background:#e74c3c; border-radius:3px;"></div> Occupied
-            </span>
-            <span style="display: flex; align-items: center; gap: 5px;">
-                <div style="width:12px; height:12px; background:#2ecc71; border-radius:3px;"></div> Free
-            </span>
-        </div>
-    </div>
-
-    <form action="{{ url_for('waiter_create_order') }}" method="POST">
-        
-    <div class="order-action-bar">
-        <div class="table-no-container">
-            <label for="table_no">Table No:</label>
-            <input type="number" id="table_no" name="table_no" required min="1" max="{{ total_tables }}"
-                style="width: 80px; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
-        </div>
-
-        <button type="submit" class="add-button">
-            <img class="button-img" src="{{ url_for('static', filename='images/order.png') }}" alt="order icon" style="filter: brightness(0) invert(1);"> 
-            Complete Order
-        </button>
-
-        <button type="submit" formaction="{{ url_for('waiter_close_bill') }}" class="add-button" style="background-color: #e74c3c; border-color: #c0392b;">
-            💳 Hesabı Kapat
-        </button>
-    </div>
-
-        <div class="list">
-            {% for menu in menus %}
-            {% set is_sold_out = menu.stock_quantity <= 0 %}
-            <div class="table-card {{ 'sold-out' if is_sold_out else '' }}">
-                
-                {% if is_sold_out %}
-                    <div class="sold-out-badge">Sold Out</div>
-                {% endif %}
-
-                <input type="checkbox" name="selected_items" value="{{ menu.menu_id }}" id="menu-{{ loop.index }}" 
-                       {{ 'disabled' if is_sold_out else '' }}>
-                
-                <label for="menu-{{ loop.index }}" style="cursor: pointer; display: block; height: 100%;">
-                    <p><strong>Item:</strong> <span>{{ menu.item_name }}</span></p>
-                    <p><strong>Price:</strong> <span>${{ menu.price }}</span></p>
-                    
-                    <div class="qty-container">
-                        <label><strong>Quantity:</strong></label>
-                        <input type="number" name="qty_{{ menu.menu_id }}" class="qty-input" min="1" value="1" 
-                               onclick="document.getElementById('menu-{{ loop.index }}').checked = true;">
-                    </div>
-                </label>
-            </div>
-            {% else %}
-            <p style="text-align: center; font-size: 18px; color: #666;">No menu items found for this restaurant.</p>
-            {% endfor %}
-        </div>
-    </form>
-
     <script src="{{ url_for('static', filename='js/common.js') }}"></script>
     <script>
-        // Sayfa içi input dinleyicileri
-        document.querySelectorAll('.qty-input').forEach(input => {
-            input.addEventListener('change', function() {
-                const checkbox = this.closest('.table-card').querySelector('input[type="checkbox"]');
-                checkbox.checked = true;
-            });
-            
-            input.addEventListener('click', function(e) {
-                const checkbox = this.closest('.table-card').querySelector('input[type="checkbox"]');
-                checkbox.checked = true;
-                e.stopPropagation(); 
-            });
-        });
-
-        // GLOBAL fonksiyon: Masaya tıklandığında input kutusunu doldurur
         function setTable(num) {
             const input = document.getElementById('table_no');
-            if(input) {
-                input.value = num;
-                input.focus(); 
+            if(input) { input.value = num; input.style.backgroundColor = "#e0e7ff"; setTimeout(() => input.style.backgroundColor = "white", 300); }
+        }
+
+        // 🚀 1. HESAP KAPATMA MODALI KONTROLLERİ
+        function openConfirmModal() {
+            const tableNo = document.getElementById('table_no').value;
+            if(!tableNo) {
+                if(typeof window.showToast === 'function') window.showToast("Lütfen hesabı kapatılacak masa numarasını seçin!", "error");
+                else alert("Lütfen hesabı kapatılacak masa numarasını seçin!");
+                return;
+            }
+            document.getElementById('confirmModal').style.display = 'flex';
+        }
+
+        function closeConfirmModal() {
+            document.getElementById('confirmModal').style.display = 'none';
+        }
+
+        function submitCloseBill() {
+            const form = document.getElementById('order-form');
+            form.action = "{{ url_for('waiter_close_bill') }}";
+            form.submit();
+        }
+
+        let currentMenuId = null;
+        let cartTotal = 0;
+
+        async function openPosModal(menuId, name, price) {
+            currentMenuId = menuId;
+            document.getElementById('modal-item-name').innerText = name;
+            document.getElementById('modal-item-price').innerText = "$" + parseFloat(price).toFixed(2);
+            document.getElementById('modal-qty').innerText = "1";
+            document.getElementById('modal-note').value = "";
+            
+            const optionsContainer = document.getElementById('modal-dynamic-options');
+            optionsContainer.innerHTML = '<div style="text-align:center; padding: 20px;"><i class="ph-bold ph-spinner ph-spin" style="font-size: 32px; color: #4f46e5;"></i><p style="color:#6b7280; margin-top:10px; font-weight:600;">Seçenekler Yükleniyor...</p></div>';
+            document.getElementById('posModal').style.display = 'flex';
+
+            try {
+                const response = await fetch(`{{ url_for('manage_menu_options') }}?menu_id=${menuId}`);
+                const data = await response.json();
+                
+                if(data.success && data.options && data.options.length > 0) {
+                    let html = '<h3 style="font-size: 13px; font-weight: 800; text-transform: uppercase; margin-bottom: 10px; color: #4b5563;">Ekstra Seçenekler</h3>';
+                    data.options.forEach(opt => {
+                        html += `<div class="option-group" data-required="${opt.is_required}" data-name="${opt.option_name}" style="margin-bottom: 15px; background: #f9fafb; padding: 15px; border-radius: 12px; border: 1px solid #e5e7eb; transition: all 0.2s;">`;
+                        html += `<label style="display: flex; justify-content: space-between; font-weight: 800; margin-bottom: 10px; color: #111827; font-size: 14px; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px;">
+                                    <span>${opt.option_name} ${opt.is_required ? '<span style="color:#ef4444; margin-left:4px;">*Zorunlu</span>' : ''}</span>
+                                    <span style="color:#6b7280; font-size:12px; font-weight:600;">${opt.is_multiple ? 'Çoklu Seçim' : 'Tek Seçim'}</span>
+                                 </label>`;
+                        
+                        opt.choices.forEach(choice => {
+                            const inputType = opt.is_multiple ? 'checkbox' : 'radio';
+                            const inputName = `modal_opt_${opt.option_id}`;
+                            const addPrice = parseFloat(choice.additional_price);
+                            const priceText = addPrice > 0 ? `<strong style="color:#10b981;">(+$${addPrice.toFixed(2)})</strong>` : '';
+                            
+                            html += `<label style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px; cursor: pointer; font-size: 14px; color: #374151;">
+                                <input type="${inputType}" name="${inputName}" value="${choice.choice_id}" data-name="${choice.choice_name}" data-price="${addPrice}" class="modal-choice-input" style="width: 20px; height: 20px; accent-color: #4f46e5; cursor: pointer;">
+                                <span>${choice.choice_name} ${priceText}</span>
+                            </label>`;
+                        });
+                        html += `</div>`;
+                    });
+                    optionsContainer.innerHTML = html;
+                } else {
+                    optionsContainer.innerHTML = ''; 
+                }
+            } catch (err) { optionsContainer.innerHTML = '<p style="color:#ef4444;">Seçenekler yüklenirken bir hata oluştu.</p>'; }
+        }
+
+        function changeModalQty(change) {
+            let qty = parseInt(document.getElementById('modal-qty').innerText);
+            qty += change;
+            if(qty < 1) qty = 1;
+            document.getElementById('modal-qty').innerText = qty;
+        }
+
+        function savePosSelection() {
+            let isValid = true;
+            document.querySelectorAll('.option-group').forEach(group => {
+                const isRequired = group.getAttribute('data-required');
+                if (isRequired === "1" || isRequired === "true") {
+                    const checkedCount = group.querySelectorAll('.modal-choice-input:checked').length;
+                    
+                    if (checkedCount === 0) {
+                        isValid = false;
+                        group.style.borderColor = '#ef4444';
+                        group.style.backgroundColor = '#fef2f2';
+                        group.classList.add('error-shake');
+                        setTimeout(() => group.classList.remove('error-shake'), 300);
+                    } else {
+                        group.style.borderColor = '#e5e7eb';
+                        group.style.backgroundColor = '#f9fafb';
+                    }
+                }
+            });
+
+            if (!isValid) {
+                if(typeof window.showToast === 'function') {
+                    window.showToast("Lütfen kırmızı ile işaretlenen zorunlu seçenekleri belirleyin!", "error");
+                } else {
+                    alert("Lütfen zorunlu seçenekleri belirleyin!");
+                }
+                return;
+            }
+
+            const qty = parseInt(document.getElementById('modal-qty').innerText);
+            const note = document.getElementById('modal-note').value.trim();
+            const itemName = document.getElementById('modal-item-name').innerText;
+            let basePrice = parseFloat(document.getElementById('modal-item-price').innerText.replace('$', ''));
+            
+            let extrasTotal = 0;
+            let selectedChoicesText = [];
+            let choicesHtml = '';
+            
+            const cartIndex = Date.now() + Math.floor(Math.random() * 1000); 
+            
+            document.querySelectorAll('.modal-choice-input:checked').forEach(input => {
+                const addPrice = parseFloat(input.getAttribute('data-price') || 0);
+                extrasTotal += addPrice;
+                
+                const choiceName = input.getAttribute('data-name');
+                let priceText = addPrice > 0 ? ` (+$${addPrice.toFixed(2)})` : '';
+                selectedChoicesText.push(`${choiceName}${priceText}`);
+                
+                choicesHtml += `<input type="hidden" name="choices_${cartIndex}[]" value="${input.value}">`;
+            });
+            
+            const unitPrice = basePrice + extrasTotal;
+            const lineTotal = unitPrice * qty;
+            
+            cartTotal += lineTotal;
+            document.getElementById('cart-total-display').innerText = '$' + cartTotal.toFixed(2);
+            
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'cart-item-row';
+            itemDiv.style.cssText = "display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #f9fafb; border-radius: 12px; border: 1px solid #e5e7eb;";
+            
+            let extrasDisplay = selectedChoicesText.length > 0 ? `<div style="font-size: 12px; color: #6b7280; margin-top: 5px;">${selectedChoicesText.join(', ')}</div>` : '';
+            let noteDisplay = note ? `<div style="font-size: 12px; color: #f59e0b; margin-top: 5px;"><i class="ph-bold ph-note-pencil"></i> ${note}</div>` : '';
+
+            itemDiv.innerHTML = `
+                <div style="flex: 1;">
+                    <div style="font-weight: 800; color: #111827; font-size: 15px;">${qty}x ${itemName} <span style="font-weight: 500; color: #6b7280;">($${basePrice.toFixed(2)})</span></div>
+                    ${extrasDisplay}
+                    ${noteDisplay}
+                </div>
+                <div style="font-weight: 800; color: #059669; font-size: 16px; margin: 0 15px;">
+                    $${lineTotal.toFixed(2)}
+                </div>
+                <button type="button" onclick="removeCartItem(this, ${lineTotal})" style="background: white; color: #ef4444; border: 2px solid #fecaca; width: 40px; height: 40px; border-radius: 10px; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.2s;" onmouseover="this.style.background='#fef2f2'">
+                    <i class="ph-bold ph-trash" style="font-size: 18px;"></i>
+                </button>
+                
+                <input type="hidden" name="cart_index" value="${cartIndex}">
+                <input type="hidden" name="menu_id_${cartIndex}" value="${currentMenuId}">
+                <input type="hidden" name="qty_${cartIndex}" value="${qty}">
+                <input type="hidden" name="note_${cartIndex}" value="${note}">
+                ${choicesHtml}
+            `;
+            
+            document.getElementById('order-cart-items').appendChild(itemDiv);
+            document.getElementById('cart-panel').style.display = 'block';
+            closePosModal();
+        }
+
+        function removeCartItem(btn, amount) {
+            btn.closest('.cart-item-row').remove();
+            cartTotal -= amount;
+            document.getElementById('cart-total-display').innerText = '$' + cartTotal.toFixed(2);
+            
+            if(document.getElementById('order-cart-items').children.length === 0) {
+                document.getElementById('cart-panel').style.display = 'none';
             }
         }
+
+        function closePosModal() { document.getElementById('posModal').style.display = 'none'; }
+        
+        document.getElementById('order-form').addEventListener('submit', function(e) {
+            const tableNo = document.getElementById('table_no').value;
+            const cartItems = document.querySelectorAll('.cart-item-row').length;
+            
+            if(cartItems > 0 && !tableNo) {
+                e.preventDefault();
+                if(typeof window.showToast === 'function') window.showToast("Lütfen bir masa numarası seçin!", "error");
+                else alert("Lütfen bir masa numarası seçin!");
+            }
+        });
+
+        // 🚀 2. SESSİZ GÜNCELLEME (MASA VE MENÜ DURUMLARINI ANLIK YENİLEME)
+        document.addEventListener("DOMContentLoaded", function() {
+            function checkAndRefreshTables() {
+                fetch(window.location.href)
+                    .then(response => response.text())
+                    .then(html => {
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+                        
+                        // 1. Masa Listesini Yenile (Kırmızı/Yeşil durumu)
+                        const newTableGrid = doc.querySelector('.table-grid');
+                        const currentTableGrid = document.querySelector('.table-grid');
+                        if (newTableGrid && currentTableGrid && newTableGrid.innerHTML !== currentTableGrid.innerHTML) {
+                            currentTableGrid.innerHTML = newTableGrid.innerHTML;
+                        }
+
+                        // 2. Menü Stoklarını Yenile 
+                        // SADECE POS veya Onay modalı açık değilse araya gir, yoksa garsonun işlemini bölebilir!
+                        const posModal = document.getElementById('posModal');
+                        const confirmModal = document.getElementById('confirmModal');
+                        if (posModal.style.display !== 'flex' && confirmModal.style.display !== 'flex') {
+                            const newMenuGrid = doc.querySelector('.menu-grid');
+                            const currentMenuGrid = document.querySelector('.menu-grid');
+                            if (newMenuGrid && currentMenuGrid && newMenuGrid.innerHTML !== currentMenuGrid.innerHTML) {
+                                currentMenuGrid.innerHTML = newMenuGrid.innerHTML;
+                            }
+                        }
+                    })
+                    .catch(err => console.log("Sessiz güncelleme hatası:", err));
+            }
+            
+            // Arka planda her 5 saniyede bir sayfayı hissettirmeden günceller
+            setInterval(checkAndRefreshTables, 5000);
+        });
     </script>
 </body>
 </html>

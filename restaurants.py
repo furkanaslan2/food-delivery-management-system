@@ -173,7 +173,7 @@ def restaurant_analytics():
     connection = get_db_connection()
     
     if connection is None:
-        flash("Database connection failed!", "danger")
+        flash("Veritabanı bağlantısı başarısız!", "danger")
         return redirect(url_for('index'))
 
     try:
@@ -277,7 +277,7 @@ def restaurant_analytics():
         rating_enum = res_info['rating_count'] if res_info['rating_count'] else "No Ratings"
 
     except Exception as e:
-        flash(f"Error fetching analytics: {e}", "danger")
+        flash(f"Analiz verileri alınırken hata oluştu: {e}", "danger")
         top_item_labels, top_item_data, trend_labels, trend_data, courier_labels, courier_data = [], [], [], [], [], []
         chart_delivery_count, chart_dinein_count = 0, 0
         total_revenue, total_orders, delivery_count, dinein_count, restaurant_rating, rating_enum = 0, 0, 0, 0, 0, ""

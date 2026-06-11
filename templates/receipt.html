@@ -8,7 +8,7 @@
         /* Ekran Tasarımı (Web'de nasıl görünecek) */
         body { background-color: #f3f4f6; font-family: 'Courier New', Courier, monospace; display: flex; flex-direction: column; align-items: center; padding: 40px 20px; margin: 0; }
         
-        .receipt-box { background: #ffffff; width: 340px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.06); border: 1px solid #e5e7eb; border-radius: 4px; box-sizing: border-box; }
+        .receipt-box { background: #ffffff; width: 360px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.06); border: 1px solid #e5e7eb; border-radius: 4px; box-sizing: border-box; }
         
         .restaurant-title { font-size: 18px; font-weight: bold; text-align: center; text-transform: uppercase; margin: 0 0 5px 0; }
         .restaurant-address { font-size: 12px; text-align: center; color: #4b5563; margin: 0 0 15px 0; line-height: 1.4; }
@@ -23,17 +23,17 @@
         .total-line { font-size: 16px; font-weight: bold; display: flex; justify-content: space-between; margin-top: 10px; }
         
         /* Buton Alanı */
-        .actions-container { display: flex; gap: 10px; width: 340px; margin-top: 25px; }
+        .actions-container { display: flex; gap: 10px; width: 360px; margin-top: 25px; }
         .btn { flex: 1; padding: 12px; font-family: 'Segoe UI', sans-serif; font-size: 14px; font-weight: 600; text-align: center; border-radius: 8px; cursor: pointer; border: none; text-decoration: none; transition: opacity 0.2s; }
         .btn-print { background-color: #4f46e5; color: white; }
         .btn-back { background-color: #e5e7eb; color: #374151; }
         .btn:hover { opacity: 0.9; }
 
-        /* 🔥 SİHİRLİ DOKUNUŞ: Yazıcı Çıktı Tasarımı (Yazdırılırken butonlar gizlenir) */
+        /* 🔥 SİHİRLİ DOKUNUŞ: Yazıcı Çıktı Tasarımı */
         @media print {
             body { background-color: #ffffff; padding: 0; margin: 0; }
             .receipt-box { box-shadow: none; border: none; width: 100%; padding: 0; }
-            .actions-container { display: none !important; } /* Butonları gizle */
+            .actions-container { display: none !important; }
         }
     </style>
 </head>
@@ -57,17 +57,41 @@
         <table class="items-table">
             <thead>
                 <tr>
-                    <th style="width: 55%;">Ürün Adı</th>
-                    <th style="width: 15%; text-align: center;">Adet</th>
-                    <th style="width: 30%; text-align: right;">Tutar</th>
+                    <th style="width: 75%;">Ürün Adı</th>
+                    <th style="width: 10%; text-align: center;">Adet</th>
+                    <th style="width: 15%; text-align: right;">Tutar</th>
                 </tr>
             </thead>
             <tbody>
                 {% for item in items %}
+                
+                {% set extras_total = namespace(value=0) %}
+                {% if item.choices %}
+                    {% for choice in item.choices %}
+                        {% if choice.additional_price %}
+                            {% set extras_total.value = extras_total.value + choice.additional_price %}
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+                {% set base_price = item.unit_price - extras_total.value %}
+
                 <tr>
-                    <td>{{ item.item_name }}</td>
-                    <td style="text-align: center;">{{ item.quantity }}</td>
-                    <td style="text-align: right;">${{ "%.2f"|format(item.unit_price * item.quantity) }}</td>
+                    <td>
+                        <div style="font-weight: bold;">{{ item.item_name }} (${{ "%.2f"|format(base_price) }})</div>
+                        
+                        {% if item.choices %}
+                        <div style="font-size: 11px; color: #4b5563; margin-top: 3px; padding-left: 5px;">
+                            {% for choice in item.choices %}
+                            &bull; {{ choice.choice_name }} 
+                            {% if choice.additional_price and choice.additional_price > 0 %}
+                                (+${{ "%.2f"|format(choice.additional_price) }})
+                            {% endif %}<br>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </td>
+                    <td style="text-align: center; font-weight: bold;">{{ item.quantity }}</td>
+                    <td style="text-align: right; font-weight: bold;">${{ "%.2f"|format(item.unit_price * item.quantity) }}</td>
                 </tr>
                 {% endfor %}
             </tbody>

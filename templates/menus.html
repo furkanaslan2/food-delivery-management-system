@@ -2,7 +2,7 @@
 
 {% block title %}Menü Yönetimi{% endblock %}
 {% block page_title %}
-    <img src="{{ url_for('static', filename='images/icons/home.svg') }}" class="title-icon"> 
+    <img src="{{ url_for('static', filename='images/icons/menu.png') }}" class="title-icon" style="width: 28px; height: 28px; margin-right: 8px;"> 
     Menü Yönetimi
 {% endblock %}
 
@@ -63,17 +63,19 @@
         font-size: 15px;
     }
 
-    /* ⚙️ İŞLEM BUTONLARI */
     .action-btn {
         background: none;
         border: none;
         cursor: pointer;
-        padding: 8px;
+        padding: 6px;
         border-radius: 6px;
         transition: 0.2s;
-        font-size: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0; 
     }
-    .action-btn:hover { background: #e5e7eb; }
+    .action-btn:hover { background: #f3f4f6; }
 
     /* 🔝 ÜST ARAÇ ÇUBUĞU */
     .toolbar {
@@ -131,15 +133,19 @@
         <h3 style="margin: 0; color: #111827;">Menü Listesi</h3>
         <p style="margin: 5px 0 0 0; color: #6b7280; font-size: 14px;">Restoranınızdaki yemekleri, fiyatları ve stokları yönetin.</p>
     </div>
-    <div style="display: flex; gap: 10px;">
-        <form action="{{ url_for('menus_action') }}" method="POST" style="display: flex; gap: 10px;">
-            <input type="text" name="name" placeholder="Yemek Adı Ara..." class="form-input" style="margin: 0; padding: 8px 15px; width: 220px;">
-            <button type="submit" name="action" value="filter" class="action-btn" style="background-color: #3b82f6; color: white; border-radius: 6px; padding: 8px 15px; font-size: 14px;">Ara</button>
-            <button type="submit" name="action" value="clear" class="action-btn" style="background-color: #6b7280; color: white; border-radius: 6px; padding: 8px 15px; font-size: 14px;" onclick="document.querySelector('input[name=name]').value=''">Temizle</button>
+    <div style="display: flex; gap: 12px; align-items: center;">
+        <form action="{{ url_for('menus_action') }}" method="POST" style="display: flex; gap: 8px; margin: 0; align-items: center;">
+            <input type="text" name="name" placeholder="Yemek Adı Ara..." class="form-input" style="height: 42px; margin: 0; padding: 0 15px; width: 220px; border: 1px solid #d1d5db; border-radius: 8px; box-sizing: border-box; outline: none; font-family: inherit; font-size: 14px; transition: 0.2s;" onfocus="this.style.borderColor='#4f46e5'" onblur="this.style.borderColor='#d1d5db'">
+            <button type="submit" name="action" value="filter" class="action-btn" style="height: 42px; background-color: #3b82f6; color: white; border-radius: 8px; padding: 0 20px; font-size: 14px; font-weight: 600; box-sizing: border-box; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s;" onmouseover="this.style.backgroundColor='#2563eb'" onmouseout="this.style.backgroundColor='#3b82f6'">Ara</button>
+            <button type="submit" name="action" value="clear" class="action-btn" style="height: 42px; background-color: #6b7280; color: white; border-radius: 8px; padding: 0 20px; font-size: 14px; font-weight: 600; box-sizing: border-box; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s;" onclick="document.querySelector('input[name=name]').value=''" onmouseover="this.style.backgroundColor='#4b5563'" onmouseout="this.style.backgroundColor='#6b7280'">Temizle</button>
         </form>
 
-        <button class="promo-btn" onclick="openPromoModal()">🎟️ Kupon Yönetimi</button>
-        <button class="primary-btn" onclick="openMenuModal()"><span>+</span> Yeni Yemek Ekle</button>
+        <button class="promo-btn" onclick="openPromoModal()" style="height: 42px; padding: 0 20px; box-sizing: border-box; margin: 0; display: flex; align-items: center; justify-content: center;">
+            <img src="{{ url_for('static', filename='images/icons/coupon.png') }}" style="width: 20px; height: 20px; margin-right: 6px; margin-top: -2px;"> Kupon Yönetimi
+        </button>
+        <button class="primary-btn" onclick="openMenuModal()" style="height: 42px; padding: 0 20px; box-sizing: border-box; margin: 0;">
+            <span style="font-size: 18px; line-height: 1; margin-right: 2px;">+</span> Yeni Yemek Ekle
+        </button>
     </div>
 </div>
 
@@ -155,7 +161,7 @@
                 <th>Kategori (Mutfak)</th>
                 <th>Fiyat</th>
                 <th>Stok Durumu</th>
-                <th style="text-align: right;">İşlemler</th>
+                <th style="text-align: center; width: 140px; min-width: 140px;">İşlemler</th>
             </tr>
         </thead>
         <tbody>
@@ -193,21 +199,27 @@
                         <span class="stock-badge stock-out">Tükendi</span>
                     {% endif %}
                 </td>
-                <td style="text-align: right;">
-                    <button class="action-btn" title="Düzenle" 
-                        data-id="{{ menu['menu_id'] }}" 
-                        data-food-id="{{ menu['food_id'] }}" 
-                        data-custom-name="{% if menu['custom_name'] %}{{ menu['custom_name'] }}{% endif %}" 
-                        data-price="{{ menu['price'] }}" 
-                        data-stock="{{ menu['stock_quantity'] }}" 
-                        data-image="{{ menu['image_url'] or '' }}" 
-                        onclick="openMenuModalFromBtn(this)">✏️</button>
-                    
-                    <form action="{{ url_for('menus_action') }}" method="POST" style="display:inline;">
-                        <input type="hidden" name="selected_menu_items" value="{{ menu['menu_id'] }}">
-                        <input type="hidden" name="action" value="delete">
-                        <button type="button" class="action-btn" title="Sil" onclick="confirmFormSubmit(event, this.closest('form'), 'Bu yemeği menüden silmek istediğinize emin misiniz?');">🗑️</button>
-                    </form>
+                <td style="text-align: center; vertical-align: middle;">
+                    <div style="display: flex; justify-content: center; gap: 8px; align-items: center;">
+                        <button type="button" class="action-btn" title="Düzenle" 
+                            data-id="{{ menu['menu_id'] }}" 
+                            data-food-id="{{ menu['food_id'] }}" 
+                            data-custom-name="{% if menu['custom_name'] %}{{ menu['custom_name'] }}{% endif %}" 
+                            data-price="{{ menu['price'] }}" 
+                            data-stock="{{ menu['stock_quantity'] }}" 
+                            data-image="{{ menu['image_url'] or '' }}" 
+                            onclick="openMenuModalFromBtn(this)">
+                            <img src="{{ url_for('static', filename='images/icons/edit.png') }}" style="width: 24px; height: 24px; object-fit: contain;">
+                        </button>
+                        
+                        <form action="{{ url_for('menus_action') }}" method="POST" style="margin:0;">
+                            <input type="hidden" name="selected_menu_items" value="{{ menu['menu_id'] }}">
+                            <input type="hidden" name="action" value="delete">
+                            <button type="button" class="action-btn" title="Sil" onclick="confirmFormSubmit(event, this.closest('form'), 'Bu yemeği menüden silmek istediğinize emin misiniz?');">
+                                <img src="{{ url_for('static', filename='images/icons/delete.png') }}" style="width: 24px; height: 24px; object-fit: contain;">
+                            </button>
+                        </form>
+                    </div>
                 </td>
             </tr>
             {% else %}
@@ -237,10 +249,12 @@
             <div style="margin-bottom: 15px;">
                 <label style="font-size: 13px; font-weight: 600; color: #374151; display: block; margin-bottom: 8px;">Menü Görseli</label>
                 <div id="menu-image-preview" style="width: 100%; height: 160px; background-color: #f9fafb; border: 2px dashed #d1d5db; border-radius: 8px; display: flex; justify-content: center; align-items: center; margin-bottom: 10px; overflow: hidden; position: relative;">
-                    <span style="color: #9ca3af; font-size: 30px;">🍲</span>
+                    <img src="{{ url_for('static', filename='images/icons/gallery.png') }}" style="width: 48px; height: 48px; opacity: 0.6;">
                 </div>
                 <div style="position: relative; overflow: hidden; display: inline-block; width: 100%;">
-                    <button type="button" style="width: 100%; background: #f3f4f6; border: 1px solid #d1d5db; padding: 10px; border-radius: 6px; font-weight: 600; color: #374151; cursor: pointer;">📷 Fotoğraf Seç</button>
+                    <button type="button" style="width: 100%; background: #f3f4f6; border: 1px solid #d1d5db; padding: 10px; border-radius: 6px; font-weight: 600; color: #374151; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                        <img src="{{ url_for('static', filename='images/icons/camera.png') }}" style="width: 20px; height: 20px;"> Fotoğraf Seç
+                    </button>
                     <input type="file" name="menu_image" accept="image/*" style="font-size: 100px; position: absolute; left: 0; top: 0; opacity: 0; cursor: pointer;">
                 </div>
             </div>
@@ -282,7 +296,9 @@
             <div style="border-top: 2px dashed #e5e7eb; padding-top: 20px; margin-bottom: 15px;" id="options-section">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                     <div>
-                        <h4 style="margin: 0; color: #111827; font-size: 15px;">🛠️ Ek Seçenekler (Opsiyonlar)</h4>
+                        <h4 style="margin: 0; color: #111827; font-size: 15px; display: flex; align-items: center; gap: 6px;">
+                            <img src="{{ url_for('static', filename='images/icons/options.png') }}" style="width: 20px; height: 20px;"> Ek Seçenekler (Opsiyonlar)
+                        </h4>
                         <p style="margin: 4px 0 0 0; font-size: 12px; color: #6b7280;">Müşterilerinize ekstra malzeme, boyut veya sos seçenekleri sunun.</p>
                     </div>
                     <button type="button" onclick="addOptionGroup()" style="background: #10b981; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; box-shadow: 0 2px 4px rgba(16,185,129,0.2); transition: 0.2s;" onmouseover="this.style.background='#059669'" onmouseout="this.style.background='#10b981'">
@@ -307,20 +323,25 @@
     <div style="background-color: #fff; padding: 25px; border-radius: 12px; width: 90%; max-width: 600px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
         
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f3f4f6; margin-bottom: 15px; padding-bottom: 10px;">
-            <h3 style="margin: 0; color: #111827;">Kupon ve Promosyonlar</h3>
+            <h3 style="margin: 0; color: #111827; display: flex; align-items: center; gap: 8px;">
+                <img src="{{ url_for('static', filename='images/icons/coupon.png') }}" style="width: 24px; height: 24px;"> Kupon ve Promosyonlar
+            </h3>
             <span style="font-size: 24px; cursor: pointer; color: #9ca3af;" onclick="closePromoModal()">&times;</span>
         </div>
 
         <div style="background: #fdf2f8; padding: 15px; border-radius: 8px; border: 1px dashed #fbcfe8; margin-bottom: 20px;">
             <h4 style="margin: 0 0 10px 0; color: #be185d;">Yeni Kupon Oluştur</h4>
-            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <input type="text" id="new-promo-code" placeholder="Kupon Kodu (Örn: YAZ10)" class="form-input" style="flex: 1; min-width: 120px; margin-top:0;">
-                <select id="new-promo-type" class="form-input" style="flex: 1; min-width: 100px; margin-top:0;">
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                <input type="text" id="new-promo-code" placeholder="Kupon Kodu (Örn: YAZ10)" class="form-input" style="flex: 1; min-width: 120px; margin: 0; height: 42px; box-sizing: border-box; padding: 0 15px;">
+                
+                <select id="new-promo-type" class="form-input" style="flex: 1; min-width: 140px; margin: 0; height: 42px; box-sizing: border-box; padding: 0 15px; cursor: pointer;">
                     <option value="percentage">% Yüzde İndirim</option>
                     <option value="fixed">₺ Sabit İndirim</option>
                 </select>
-                <input type="number" id="new-promo-val" placeholder="Değer (Örn: 10)" class="form-input" style="flex: 1; min-width: 100px; margin-top:0;">
-                <input type="number" id="new-promo-min" placeholder="Min. Sepet" class="form-input" style="flex: 1; min-width: 100px; margin-top:0;">
+                
+                <input type="number" id="new-promo-val" placeholder="Değer (Örn: 10)" class="form-input" style="flex: 1; min-width: 100px; margin: 0; height: 42px; box-sizing: border-box; padding: 0 15px;">
+                
+                <input type="number" id="new-promo-min" placeholder="Min. Sepet ($)" class="form-input" style="flex: 1; min-width: 120px; margin: 0; height: 42px; box-sizing: border-box; padding: 0 15px;">
             </div>
             <button onclick="addPromo()" style="width: 100%; margin-top: 10px; background: #ec4899; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: 600;">Oluştur</button>
         </div>

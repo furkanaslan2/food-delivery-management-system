@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Dashboard{% endblock %} - Restoran Paneli</title>
+    <title>{% block title %}Ana Panel{% endblock %} - Restoran Paneli</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
@@ -198,7 +198,7 @@
 
     <aside class="sidebar">
         <div class="sidebar-header" style="display: flex; align-items: center; justify-content: flex-start; padding-left: 20px; height: 75px;">
-            <img src="{{ url_for('static', filename='images/icons/logo.svg') }}" alt="Lezzet Kapında" style="width: 200px; height: auto; object-fit: contain; margin-top: 20px;">
+            <img src="{{ url_for('static', filename='images/icons/logo.svg') }}" alt="YeSende" style="width: 170px; max-height: 50px; object-fit: contain;">
         </div>
         
         <ul class="sidebar-menu">
@@ -235,7 +235,11 @@
                 
                 <div class="user-profile">
                     <img src="{{ url_for('static', filename='images/icons/circle-user.svg') }}" style="width: 16px; height: 16px; object-fit: contain; opacity: 0.7;">
-                    {{ session.get('role', 'Yetkili') | capitalize }}
+                    {% if session.get('role') == 'admin' %}Sistem Yöneticisi
+                    {% elif session.get('role') == 'user' %}Restoran Sahibi
+                    {% elif session.get('role') == 'waiter' %}Garson
+                    {% elif session.get('role') == 'courier' %}Kurye
+                    {% else %}Yetkili{% endif %}
                 </div>
                 
                 <a href="/logout" class="logout-btn">

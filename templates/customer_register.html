@@ -21,13 +21,14 @@
         }
         
         .brand-logo { 
-            margin-top: -9vh; 
-            margin-bottom: -80px; 
+            margin-bottom: 30px; 
             text-align: center; 
-            position: relative; 
-            z-index: 10; 
         }
-        .brand-logo img { width: 260px; height: auto; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); }
+        
+        .brand-logo img {
+            height: 70px; 
+            object-fit: contain;
+        }
 
         .auth-card { 
             background: #ffffff; 
@@ -124,15 +125,6 @@
             {% endif %}
         {% endwith %}
     </div>
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const flashElements = document.querySelectorAll('.flash-message-data');
-            flashElements.forEach((el, index) => {
-                let msgType = el.getAttribute('data-category'); let msgText = el.getAttribute('data-message');
-                if (msgType === 'danger' || msgType === 'warning') msgType = 'error';
-                setTimeout(() => { if (typeof showToast === "function") showToast(msgText, msgType); }, 100 + (index * 150)); 
-            });
-        });
-    </script>
+    <script src="{{ url_for('static', filename='js/common.js') }}"></script>
 </body>
 </html>

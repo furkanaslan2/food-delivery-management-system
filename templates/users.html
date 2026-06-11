@@ -1,7 +1,9 @@
 {% extends 'dashboard_base.html' %}
 
-{% block title %}{{ 'Profilim' if session['role'] == 'user' else 'Kullanıcı Yönetimi' }}{% endblock %}
-{% block page_title %}<img src="{{ url_for('static', filename='images/icons/circle-user.svg') }}" class="title-icon">{{ 'Profilim' if session['role'] == 'user' else 'Kullanıcı Yönetimi' }}{% endblock %}
+{% block page_title %}
+    <img src="{{ url_for('static', filename='images/icons/user.png') }}" class="title-icon" style="width: 28px; height: 28px; margin-right: 8px;"> 
+    {{ 'Profilim' if session['role'] == 'user' else 'Kullanıcı Yönetimi' }}
+{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -10,8 +12,19 @@
     .modern-table th { background: #f9fafb; padding: 15px 20px; color: #6b7280; font-size: 13px; text-transform: uppercase; font-weight: 600; border-bottom: 1px solid #e5e7eb; }
     .modern-table td { padding: 15px 20px; border-bottom: 1px solid #e5e7eb; color: #1f2937; font-size: 14px; vertical-align: middle; }
     .modern-table tr:hover { background: #f9fafb; }
-    .action-btn { background: none; border: none; cursor: pointer; padding: 8px; border-radius: 6px; transition: 0.2s; font-size: 16px; }
-    .action-btn:hover { background: #e5e7eb; }
+    .action-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 6px;
+        border-radius: 6px;
+        transition: 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0; 
+    }
+    .action-btn:hover { background: #f3f4f6; }
     .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
     .primary-btn { background: #4f46e5; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 8px; }
     .primary-btn:hover { background: #4338ca; }
@@ -28,16 +41,16 @@
         </p>
     </div>
     
-    <div style="display: flex; gap: 10px;">
+    <div style="display: flex; gap: 12px; align-items: center;">
         {% if session['role'] == 'admin' %}
-        <form action="{{ url_for('user_action') }}" method="POST" style="display: flex; gap: 10px;">
-            <input type="text" name="name" placeholder="Kullanıcı Adı Ara..." class="form-input" style="margin: 0; padding: 8px 15px; width: 250px;">
-            <button type="submit" name="action" value="filter" class="action-btn" style="background-color: #3b82f6; color: white; border-radius: 6px; padding: 8px 15px; font-size: 14px;">Ara</button>
-            <button type="submit" name="action" value="clear" class="action-btn" style="background-color: #6b7280; color: white; border-radius: 6px; padding: 8px 15px; font-size: 14px;" onclick="document.querySelector('input[name=name]').value=''">Temizle</button>
+        <form action="{{ url_for('user_action') }}" method="POST" style="display: flex; gap: 8px; margin: 0; align-items: center;">
+            <input type="text" name="name" placeholder="Kullanıcı Adı Ara..." class="form-input" style="height: 42px; margin: 0; padding: 0 15px; width: 250px; border: 1px solid #d1d5db; border-radius: 8px; box-sizing: border-box; outline: none; font-family: inherit; font-size: 14px; transition: 0.2s;" onfocus="this.style.borderColor='#4f46e5'" onblur="this.style.borderColor='#d1d5db'">
+            <button type="submit" name="action" value="filter" class="action-btn" style="height: 42px; background-color: #3b82f6; color: white; border-radius: 8px; padding: 0 20px; font-size: 14px; font-weight: 600; box-sizing: border-box; border: none; cursor: pointer; transition: 0.2s;" onmouseover="this.style.backgroundColor='#2563eb'" onmouseout="this.style.backgroundColor='#3b82f6'">Ara</button>
+            <button type="submit" name="action" value="clear" class="action-btn" style="height: 42px; background-color: #6b7280; color: white; border-radius: 8px; padding: 0 20px; font-size: 14px; font-weight: 600; box-sizing: border-box; border: none; cursor: pointer; transition: 0.2s;" onclick="document.querySelector('input[name=name]').value=''" onmouseover="this.style.backgroundColor='#4b5563'" onmouseout="this.style.backgroundColor='#6b7280'">Temizle</button>
         </form>
 
-        <button class="primary-btn" onclick="openUserModal()">
-            <span>+</span> Yeni Kullanıcı Ekle
+        <button class="primary-btn" onclick="openUserModal()" style="height: 42px; padding: 0 20px; box-sizing: border-box; margin: 0;">
+            <span style="font-size: 18px; line-height: 1; margin-right: 2px;">+</span> Yeni Kullanıcı Ekle
         </button>
         {% endif %}
     </div>
@@ -52,7 +65,7 @@
                 {% if session['role'] == 'admin' %}
                 <th>Restoranı</th>
                 {% endif %}
-                <th style="text-align: right;">İşlemler</th>
+                <th style="text-align: center; width: 140px; min-width: 140px;">İşlemler</th>
             </tr>
         </thead>
         <tbody>
@@ -77,20 +90,26 @@
                     {% endif %}
                 </td>
                 {% endif %}
-                <td style="text-align: right;">
-                    <button class="action-btn" title="Düzenle" 
-                        data-id="{{ user['user_id'] }}" 
-                        data-name="{{ user['name'] }}" 
-                        data-email="{{ user['email'] }}" 
-                        onclick="openUserModalFromBtn(this)">✏️</button>
-                    
-                    {% if session['role'] == 'admin' %}
-                    <form action="{{ url_for('user_action') }}" method="POST" style="display:inline;">
-                        <input type="hidden" name="selected_users" value="{{ user['user_id'] }}">
-                        <input type="hidden" name="action" value="delete">
-                        <button type="button" class="action-btn" title="Sil" onclick="confirmFormSubmit(event, this.closest('form'), 'Bu kullanıcıyı silmek istediğinize emin misiniz?');">🗑️</button>
-                    </form>
-                    {% endif %}
+                <td style="text-align: center; vertical-align: middle;">
+                    <div style="display: flex; justify-content: center; gap: 8px; align-items: center;">
+                        <button type="button" class="action-btn" title="Düzenle" 
+                            data-id="{{ user['user_id'] }}" 
+                            data-name="{{ user['name'] }}" 
+                            data-email="{{ user['email'] }}" 
+                            onclick="openUserModalFromBtn(this)">
+                            <img src="{{ url_for('static', filename='images/icons/edit.png') }}" style="width: 24px; height: 24px; object-fit: contain;">
+                        </button>
+                        
+                        {% if session['role'] == 'admin' %}
+                        <form action="{{ url_for('user_action') }}" method="POST" style="margin:0;">
+                            <input type="hidden" name="selected_users" value="{{ user['user_id'] }}">
+                            <input type="hidden" name="action" value="delete">
+                            <button type="button" class="action-btn" title="Sil" onclick="confirmFormSubmit(event, this.closest('form'), 'Bu kullanıcıyı silmek istediğinize emin misiniz?');">
+                                <img src="{{ url_for('static', filename='images/icons/delete.png') }}" style="width: 24px; height: 24px; object-fit: contain;">
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
                 </td>
             </tr>
             {% else %}

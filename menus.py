@@ -13,8 +13,8 @@ def menus():
 
     connection = get_db_connection()
     if connection is None:
-        flash("Couldn't connect to the database!", "danger")
-        return render_template('menus.html', menus=[], foods=[]) # 🟢 foods=[] eklendi
+        flash("Veritabanına bağlanılamadı!", "danger")
+        return render_template('menus.html', menus=[], foods=[]) 
 
     try:
         cursor = connection.cursor(dictionary=True)
@@ -37,14 +37,14 @@ def menus():
             ''', (restaurant_id,))
             menus = cursor.fetchall()
         else:
-            flash("Unauthorized access!", "danger")
+            flash("Yetkisiz erişim!", "danger")
             return redirect(url_for('index'))
 
         cursor.execute("SELECT food_id, item_name, category FROM foods ORDER BY category ASC, item_name ASC")
         foods = cursor.fetchall()
 
     except Error as e:
-        flash(f"Query failed: {e}", "danger")
+        flash(f"Sorgu hatası: {e}", "danger")
         menus = []
         foods = []
     finally:

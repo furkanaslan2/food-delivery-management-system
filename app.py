@@ -3,7 +3,7 @@ from flask import Flask
 from flask_session import Session
 from dotenv import load_dotenv
 from index import index
-from auth import login, logout, register, customer_login, customer_register, verify_email_page, verify_email_code, resend_verification_code, forgot_password, reset_password, process_reset, resend_reset_code
+from auth import login, logout, register, customer_login, customer_register, verify_email_page, verify_email_code, resend_verification_code, forgot_password, reset_password, process_reset, resend_reset_code, delete_customer_account
 from users import users, user_action
 from restaurants import restaurants, restaurant_action, restaurant_analytics, restaurant_profile, restaurant_reviews, reply_review
 from couriers import couriers, courier_action, api_check_courier_orders
@@ -15,7 +15,7 @@ from customer import view_restaurant, add_to_cart, view_cart, checkout, customer
 from courier_panel import courier_dashboard, update_delivery_status, api_update_courier_location
 from payment_handler import checkout_payment, payment_callback
 from profile_settings import view_profile, update_profile
-from admin_routes import partner_applications, approve_application
+from admin_routes import partner_applications, approve_application, reject_application
 
 load_dotenv()
 
@@ -93,6 +93,7 @@ app.add_url_rule('/kitchen', 'kitchen_display', kitchen_display)
 app.add_url_rule('/kitchen/action', 'kitchen_order_action', kitchen_order_action, methods=['POST'])
 app.add_url_rule('/applications', 'partner_applications', partner_applications)
 app.add_url_rule('/approve_application/<int:app_id>', 'approve_application', approve_application, methods=['POST'])
+app.add_url_rule('/reject_application/<int:app_id>', 'reject_application', reject_application, methods=['POST'])
 app.add_url_rule('/verify_email', 'verify_email_page', verify_email_page, methods=['GET'])
 app.add_url_rule('/verify_email_code', 'verify_email_code', verify_email_code, methods=['POST'])
 app.add_url_rule('/resend_verification_code', 'resend_verification_code', resend_verification_code, methods=['GET'])
@@ -100,6 +101,7 @@ app.add_url_rule('/forgot_password', 'forgot_password', forgot_password, methods
 app.add_url_rule('/reset_password', 'reset_password', reset_password, methods=['GET'])
 app.add_url_rule('/process_reset', 'process_reset', process_reset, methods=['POST'])
 app.add_url_rule('/resend_reset_code', 'resend_reset_code', resend_reset_code, methods=['GET'])
+app.add_url_rule('/delete_customer_account', 'delete_customer_account', delete_customer_account, methods=['POST'])
 
 if __name__ == '__main__':
     app.run(debug=True)

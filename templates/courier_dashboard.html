@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Courier Dashboard</title>
+    <title>Kurye Paneli</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; margin: 0; color: #1f2937; }
@@ -117,8 +117,8 @@
                 {% endif %}
 
                 <div class="contact-links">
-                    <a href="tel:{{ order.customer_phone }}" class="contact-btn">📞 Call</a>
-                    <a href="https://www.google.com/maps/search/?api=1&query={{ order.customer_address }}" target="_blank" class="contact-btn">📍 Navigate</a>
+                    <a href="tel:{{ order.customer_phone }}" class="contact-btn">📞 Ara</a>
+                    <a href="https://www.google.com/maps/search/?api=1&query={{ order.customer_address }}" target="_blank" class="contact-btn">📍 Yol Tarifi</a>
                 </div>
 
                 <form action="{{ url_for('update_delivery_status') }}" method="POST">
@@ -137,8 +137,8 @@
             {% endfor %}
         {% else %}
             <div class="empty-state">
-                <h3>No active deliveries</h3>
-                <p>You're all caught up! Take a break. ☕</p>
+                <h3>Aktif teslimat bulunmuyor</h3>
+                <p>Tüm siparişleri başarıyla teslim ettin! Biraz mola ver. ☕</p>
             </div>
         {% endif %}
     </div>

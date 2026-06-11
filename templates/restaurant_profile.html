@@ -2,7 +2,7 @@
 
 {% block title %}Restoran Profili{% endblock %}
 {% block page_title %}
-    <img src="{{ url_for('static', filename='images/icons/settings.svg') }}" class="title-icon"> 
+    <img src="{{ url_for('static', filename='images/icons/options.png') }}" class="title-icon" style="width: 28px; height: 28px; margin-right: 8px;"> 
     Restoran Ayarları
 {% endblock %}
 
@@ -68,7 +68,7 @@
 
     <form action="{{ url_for('restaurant_profile') }}" method="POST" enctype="multipart/form-data">
         
-        <h3 class="section-title">🖼️ Vitrin Bilgileri</h3>
+        <h3 class="section-title"><img src="{{ url_for('static', filename='images/icons/gallery.png') }}" style="width: 24px; height: 24px; margin-right: 5px;"> Vitrin Bilgileri</h3>
         
         <div class="form-group">
             <label>Mevcut Kapak Fotoğrafı</label>
@@ -76,8 +76,8 @@
                 {% if restaurant['image_url'] and restaurant['image_url'] != 'default_restaurant.jpg' %}
                     <img src="{{ url_for('static', filename='images/restaurants/' + restaurant['image_url']) }}" alt="Restaurant Image">
                 {% else %}
-                    <div style="text-align: center;">
-                        <span style="font-size: 40px; display: block; margin-bottom: 10px;">🏪</span>
+                    <div style="text-align: center; display: flex; flex-direction: column; align-items: center;">
+                        <img src="{{ url_for('static', filename='images/icons/store.png') }}" style="width: 48px; height: 48px; margin-bottom: 10px; opacity: 0.7;">
                         <span style="color: #9ca3af; font-size: 14px; font-weight: 500;">Görsel Yüklenmemiş</span>
                     </div>
                 {% endif %}
@@ -85,7 +85,9 @@
             
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <div class="file-input-wrapper">
-                    <button type="button" class="btn-upload">📷 Yeni Fotoğraf Seç</button>
+                    <button type="button" class="btn-upload">
+                        <img src="{{ url_for('static', filename='images/icons/camera.png') }}" style="width: 18px; height: 18px; vertical-align: middle; margin-right: 5px; margin-top: -3px;"> Yeni Fotoğraf Seç
+                    </button>
                     <input type="file" name="restaurant_image" accept="image/*">
                 </div>
                 <small style="color: #6b7280; font-weight: 500;">Sadece .jpg ve .png desteklenir.</small>
@@ -130,15 +132,15 @@
             </div>
         </div>
 
-        <h3 class="section-title">🕒 Operasyon ve Sipariş Ayarları</h3>
+        <h3 class="section-title"><img src="{{ url_for('static', filename='images/icons/clock.png') }}" style="width: 24px; height: 24px; margin-right: 5px;"> Operasyon ve Sipariş Ayarları</h3>
         
         <div style="display: flex; gap: 15px;">
             <div class="form-group" style="flex: 1;">
-                <label>Açılış Saati 🟢</label>
+                <label>Açılış Saati</label>
                 <input type="time" name="opening_time" class="form-input" value="{{ restaurant['opening_time'] or '09:00' }}" required>
             </div>
             <div class="form-group" style="flex: 1;">
-                <label>Kapanış Saati 🔴</label>
+                <label>Kapanış Saati</label>
                 <input type="time" name="closing_time" class="form-input" value="{{ restaurant['closing_time'] or '23:00' }}" required>
             </div>
             <div class="form-group" style="flex: 1;">
@@ -150,14 +152,14 @@
         <div style="background: #fee2e2; border: 1px solid #fca5a5; padding: 15px; border-radius: 8px; margin-bottom: 25px;">
             <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; color: #991b1b; font-weight: 700; font-size: 15px; margin-bottom: 0;">
                 <input type="checkbox" name="is_manually_closed" style="width: 20px; height: 20px;" {% if restaurant['is_manually_closed'] %}checked{% endif %}>
-                🚨 Dükkanı Acil Durum İçin Kapat
+                <img src="{{ url_for('static', filename='images/icons/alert.png') }}" style="width: 24px; height: 24px;"> Dükkanı Acil Durum İçin Kapat
             </label>
-            <p style="margin: 5px 0 0 30px; font-size: 13px; color: #b91c1c; font-weight: 500; line-height: 1.4;">
+            <p style="margin: 5px 0 0 34px; font-size: 13px; color: #b91c1c; font-weight: 500; line-height: 1.4;">
                 İşaretlerseniz, çalışma saatiniz içinde olsanız bile müşteriler dükkanınızı "ŞU AN KAPALI" olarak görür.
             </p>
         </div>
 
-        <h3 class="section-title">📍 Restoran Lokasyonu (Harita)</h3>
+        <h3 class="section-title"><img src="{{ url_for('static', filename='images/icons/location.png') }}" style="width: 24px; height: 24px; margin-right: 5px;"> Restoran Lokasyonu (Harita)</h3>
         <p style="font-size: 13px; color: #6b7280; margin: 0 0 15px 0;">Harita üzerinden dükkanınızın tam konumunu işaretleyin. Bu, siparişlerin 10 KM sınırında çalışabilmesi için <b>zorunludur.</b></p>
         
         <div id="map" style="width: 100%; height: 300px; border-radius: 12px; border: 1px solid #cbd5e1; margin-bottom: 15px; z-index: 1;"></div>

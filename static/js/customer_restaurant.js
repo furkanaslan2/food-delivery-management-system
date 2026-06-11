@@ -244,7 +244,7 @@ function executeCartAjax(formData, formElement, customPrice = null) {
             }
         } else {
             if (typeof showToast === "function") showToast(data.message || 'Sepete eklenirken bir hata oluştu.', 'error');
-            if(data.message.includes('login')) setTimeout(() => { window.location.href = '/customer_login'; }, 1500);
+            if(data.message.includes('giriş')) setTimeout(() => { window.location.href = '/customer_login'; }, 1500);
         }
     })
     .catch(error => console.error('AJAX Hatası:', error));

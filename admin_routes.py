@@ -83,3 +83,34 @@ def approve_application(app_id):
             connection.close()
 
     return redirect(url_for('partner_applications'))
+
+def reject_application(app_id):
+    # Sadece Admin girebilir
+    if 'logged_in' not in session or session.get('role') != 'admin':
+        return redirect(url_for('index'))
+
+    connection = get_db_connection()
+    if connection is None:
+        flash("Veritabanı bağlantısı kurulamadı.", "danger")
+        return redirect(url_for('partner_applications'))
+
+    try:
+        cursor = connection.cursor()
+        
+        # Başvuruyu veritabanından tamamen silmek için DELETE kullanıyoruz.
+        # (Eğer veritabanında log olarak tutmak istersen DELETE yerine 
+        # "UPDATE restaurant_applications SET status = 'rejected' WHERE application_id = %s" kullanabilirsin)
+        cursor.execute("DELETE FROM restaurant_applications WHERE application_id = %s", (app_id,))
+        connection.commit()
+        
+        flash("❌ İş ortağı başvurusu reddedildi ve sistemden silindi.", "success")
+        
+    except Error as e:
+        connection.rollback()
+        flash(f"Reddetme işlemi sırasında hata oluştu: {e}", "danger")
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+    return redirect(url_for('partner_applications'))

@@ -1,11 +1,10 @@
 // ==========================================
-// 📦 SİPARİŞ DETAY MODALI VE API İSTEĞİ
+// 📦 SİPARİŞ DETAY MODALI VE API İSTEĞİ (3 SÜTUN + NOTLAR)
 // ==========================================
 function showOrderDetails(event, orderId) {
     event.preventDefault();
-    
     document.getElementById('detailModal').style.display = 'flex';
-    document.getElementById('modal-items').innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px; color: #6b7280;">Yükleniyor...</td></tr>';
+    document.getElementById('modal-items').innerHTML = '<tr><td colspan="3" style="text-align:center; padding: 20px;">Yükleniyor...</td></tr>';
     document.getElementById('grand-total').innerText = '$0.00';
 
     fetch(`/order_details/${orderId}`)
@@ -14,37 +13,49 @@ function showOrderDetails(event, orderId) {
             let itemsHtml = '';
             let grandTotal = 0;
 
-            if(data.error) {
-                if(typeof window.showToast === 'function') window.showToast(data.error, "error");
-                itemsHtml = `<tr><td colspan="4" style="text-align:center; color:red; padding: 20px;">Hata: ${data.error}</td></tr>`;
-            } else if(data.length === 0) {
-                itemsHtml = '<tr><td colspan="4" style="text-align:center; padding: 20px; color: #6b7280;">Bu siparişe ait ürün bulunamadı.</td></tr>';
+            if(!data || data.length === 0 || data.error) {
+                itemsHtml = `<tr><td colspan="3" style="text-align:center; padding: 20px;">Ürün bulunamadı.</td></tr>`;
             } else {
                 data.forEach(item => {
                     let total = item.quantity * parseFloat(item.unit_price);
                     grandTotal += total;
+
+                    let extrasTotal = 0;
+                    let choicesHtml = '';
+                    
+                    if (item.choices && item.choices.length > 0) {
+                        choicesHtml = '<ul style="margin: 5px 0 0 15px; padding: 0; font-size: 12px; color: #6b7280; list-style-type: disc;">';
+                        item.choices.forEach(choice => {
+                            let addPrice = parseFloat(choice.additional_price || 0);
+                            extrasTotal += addPrice;
+                            let priceText = addPrice > 0 ? ` <strong style="color: #059669;">(+$${addPrice.toFixed(2)})</strong>` : '';
+                            choicesHtml += `<li>${choice.choice_name}${priceText}</li>`;
+                        });
+                        choicesHtml += '</ul>';
+                    }
+
+                    let basePrice = parseFloat(item.unit_price) - extrasTotal;
+
                     itemsHtml += `
                         <tr style="border-bottom: 1px solid #e5e7eb;">
-                            <td style="padding: 12px; font-weight: 600; color: #111827;">${item.item_name}</td>
-                            <td style="padding: 12px;">${item.quantity}</td>
-                            <td style="padding: 12px;">$${parseFloat(item.unit_price).toFixed(2)}</td>
-                            <td style="padding: 12px; font-weight: 600; color: #059669;">$${total.toFixed(2)}</td>
+                            <td style="padding: 12px; color: #111827;">
+                                <div style="font-weight: 600;">${item.item_name} <span style="color: #6b7280; font-weight: 500;">($${basePrice.toFixed(2)})</span></div>
+                                ${choicesHtml} 
+                                ${item.item_note ? `<div style="font-size: 12px; color: #f59e0b; margin-top: 5px;"><i class="ph-bold ph-note-pencil"></i> Not: ${item.item_note}</div>` : ''}
+                            </td>
+                            <td style="padding: 12px; text-align: center; font-weight: 600;">${item.quantity}</td>
+                            <td style="padding: 12px; font-weight: 600; color: #059669; text-align: right;">$${total.toFixed(2)}</td>
                         </tr>
                     `;
                 });
             }
-            
             document.getElementById('modal-items').innerHTML = itemsHtml;
             document.getElementById('grand-total').innerText = '$' + grandTotal.toFixed(2);
-        })
-        .catch(err => {
-            if(typeof window.showToast === 'function') window.showToast("Sipariş detayları alınırken bağlantı hatası oluştu.", "error");
-            document.getElementById('modal-items').innerHTML = '<tr><td colspan="4" style="text-align:center; color:red; padding: 20px;">Bağlantı hatası!</td></tr>';
         });
 }
 
 // ==========================================
-// ✏️ SİPARİŞ EKLE/DÜZENLE MODALI
+// ✏️ SİPARİŞ EKLE/DÜZENLE MODALI (GÜNCELLENDİ)
 // ==========================================
 function openOrderModal(isUpdate = false, btn = null) {
     document.getElementById('orderFormModal').style.display = 'flex';
@@ -82,6 +93,10 @@ function openOrderModal(isUpdate = false, btn = null) {
         
         document.getElementById('dine-in-fields').style.display = 'none';
         document.getElementById('delivery-fields').style.display = 'none';
+        
+        // Modal açıldığında sepeti temizle ve 1 tane boş satır ekle
+        document.getElementById('food-items-container').innerHTML = '';
+        addFoodRow();
     }
 }
 
@@ -94,15 +109,147 @@ function toggleOrderFields() {
     document.getElementById('delivery-fields').style.display = (type === 'Delivery') ? 'block' : 'none';
 }
 
+// 🚀 DİNAMİK SATIR EKLEME MOTORU (Milimetrik Hizalanmış Tasarım)
 function addFoodRow() {
     const container = document.getElementById('food-items-container');
-    const firstRow = container.querySelector('.food-row');
-    if (firstRow) {
-        const newRow = firstRow.cloneNode(true);
-        newRow.querySelector('input').value = 1; 
-        container.appendChild(newRow);
+    const cartIndex = Date.now() + Math.floor(Math.random() * 1000);
+    
+    const templateEl = document.getElementById('food-options-template');
+    if (!templateEl) return;
+    const optionsHtml = templateEl.innerHTML;
+
+    const rowDiv = document.createElement('div');
+    rowDiv.className = 'food-row';
+    rowDiv.style.cssText = "background: white; padding: 15px; border-radius: 8px; border: 1px solid #d1d5db; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);";
+    
+    // 🚀 SİHİRLİ DOKUNUŞ: Konteynera 'height: 45px' ve 'align-items: stretch' verildi. Marginler sıfırlandı.
+    rowDiv.innerHTML = `
+        <div style="display: flex; gap: 10px; margin-bottom: 12px; align-items: stretch; height: 45px;">
+            <input type="hidden" name="cart_index" value="${cartIndex}">
+            
+            <select name="menu_id_${cartIndex}" class="dynamic-food-list" style="flex: 2; margin: 0; padding: 0 10px; border: 1px solid #d1d5db; border-radius: 6px; font-family:inherit; font-weight:600; font-size: 14px; box-sizing: border-box; outline: none; cursor: pointer;" onchange="fetchMenuOptions(this, ${cartIndex})" required>
+                ${optionsHtml}
+            </select>
+            
+            <input type="number" name="qty_${cartIndex}" placeholder="Adet" value="1" min="1" style="flex: 0.5; margin: 0; padding: 0 10px; border: 1px solid #d1d5db; border-radius: 6px; font-family:inherit; font-weight:600; font-size: 14px; text-align: center; box-sizing: border-box; outline: none;" required>
+            
+            <button type="button" title="Bu Kalemi Sil" onclick="this.closest('.food-row').remove()" style="flex: 0 0 45px; margin: 0; padding: 0; background: transparent; border: 1px solid #fecaca; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-sizing: border-box; transition: 0.2s;" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='transparent'">
+                <img src="/static/images/icons/delete.png" style="width: 20px; height: 20px; object-fit: contain;">
+            </button>
+        </div>
+        
+        <input type="text" name="note_${cartIndex}" placeholder="Ürün Özel Notu (Örn: Az Pişmiş)" style="width: 100%; height: 42px; margin: 0; padding: 0 12px; border: 1px solid #d1d5db; border-radius: 6px; font-family:inherit; font-size: 13px; outline: none; box-sizing: border-box;">
+        
+        <div id="options-container-${cartIndex}" style="margin-top: 10px;"></div>
+    `;
+    
+    container.appendChild(rowDiv);
+}
+
+// 🚀 AJAX İLE SEÇENEKLERİ ÇEKME (Gereksiz Yamalar Silindi, Doğru Link Eklendi)
+async function fetchMenuOptions(selectEl, cartIndex) {
+    const container = document.getElementById(`options-container-${cartIndex}`);
+    const menuId = selectEl.value;
+    container.innerHTML = '';
+    
+    if (!menuId || menuId === "None") return;
+    
+    container.innerHTML = '<div style="color:#4f46e5; font-size:13px; font-weight:600; padding: 5px 0;">⏳ Seçenekler yükleniyor...</div>';
+    
+    try {
+        // Tertemiz, doğrudan api rotası.
+        const response = await fetch(`/api/menu_options?menu_id=${menuId}`);
+        if (!response.ok) throw new Error("API Yanıt Vermedi");
+        
+        const data = await response.json();
+        
+        if (data.success && data.options && data.options.length > 0) {
+            let html = '<div style="background: #f9fafb; padding: 12px; border-radius: 8px; border: 1px dashed #d1d5db; margin-top: 10px;">';
+            data.options.forEach(opt => {
+                html += `<div class="admin-option-group" data-required="${opt.is_required}" style="margin-bottom: 12px; transition: 0.2s;">
+                            <div style="font-size: 13px; font-weight: 800; color: #374151; margin-bottom: 8px;">
+                                ${opt.option_name} ${opt.is_required ? '<span style="color:#ef4444; font-size:11px;">*Zorunlu</span>' : ''}
+                            </div>
+                            <div style="display: flex; flex-wrap: wrap; gap: 12px;">`;
+                
+                opt.choices.forEach(choice => {
+                    const inputType = opt.is_multiple ? 'checkbox' : 'radio';
+                    const inputName = opt.is_multiple ? `chk_${opt.option_id}_${cartIndex}[]` : `rad_${opt.option_id}_${cartIndex}`;
+                    const addPrice = parseFloat(choice.additional_price);
+                    const priceText = addPrice > 0 ? `<strong style="color:#10b981;">(+$${addPrice.toFixed(2)})</strong>` : '';
+                    
+                    html += `
+                        <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: #4b5563; cursor: pointer; font-weight: 500;">
+                            <input type="${inputType}" name="${inputName}" value="${choice.choice_id}" class="choice-input" data-cart-index="${cartIndex}" style="accent-color: #4f46e5; width: 16px; height: 16px;">
+                            <span>${choice.choice_name} ${priceText}</span>
+                        </label>
+                    `;
+                });
+                html += `</div></div>`;
+            });
+            html += '</div>';
+            container.innerHTML = html;
+        } else {
+            container.innerHTML = '';
+        }
+    } catch (err) {
+        console.error(err);
+        container.innerHTML = '<div style="color:#ef4444; font-size:12px;">Seçenekler yüklenemedi.</div>';
     }
 }
+
+// 🚀 FORM GÖNDERİLİRKEN ZORUNLU ALANLARI KONTROL ET VE SEÇİMLERİ PAKETLE
+document.addEventListener("DOMContentLoaded", function() {
+    const orderForm = document.getElementById('order-form');
+    if (orderForm) {
+        orderForm.addEventListener('submit', function(e) {
+            // Sadece "Yeni Sipariş Ekle" modundaysak doğrulama yap (Düzenleme ekranında seçenek olmaz)
+            if (document.getElementById('food-section').style.display === 'none') {
+                return; 
+            }
+
+            let isValid = true;
+            
+            // Zorunlu alanların işaretlenip işaretlenmediğine bak
+            document.querySelectorAll('.admin-option-group').forEach(group => {
+                const isRequired = group.getAttribute('data-required');
+                if (isRequired === "1" || isRequired === "true") {
+                    const checkedCount = group.querySelectorAll('.choice-input:checked').length;
+                    if (checkedCount === 0) {
+                        isValid = false;
+                        group.style.borderLeft = '4px solid #ef4444';
+                        group.style.paddingLeft = '10px';
+                        group.style.backgroundColor = '#fef2f2';
+                    } else {
+                        group.style.borderLeft = 'none';
+                        group.style.paddingLeft = '0';
+                        group.style.backgroundColor = 'transparent';
+                    }
+                }
+            });
+
+            if (!isValid) {
+                e.preventDefault();
+                if(typeof window.showToast === 'function') window.showToast("Lütfen kırmızı renkle işaretlenen zorunlu seçenekleri belirleyin!", "error");
+                else alert("Lütfen zorunlu seçenekleri işaretleyin!");
+                return;
+            }
+
+            // Temizlik yap ve seçili olan ekstra opsiyonları arka planda Python'ın okuyabileceği formata çevir
+            document.querySelectorAll('.dynamic-choice-hidden').forEach(el => el.remove());
+            
+            document.querySelectorAll('.choice-input:checked').forEach(input => {
+                const cartIndex = input.getAttribute('data-cart-index');
+                const hidden = document.createElement('input');
+                hidden.type = 'hidden';
+                hidden.name = `choices_${cartIndex}[]`;
+                hidden.value = input.value;
+                hidden.className = 'dynamic-choice-hidden';
+                this.appendChild(hidden);
+            });
+        });
+    }
+});
 
 // ==========================================
 // 🛵 KURYE ATAMA MODALI (HTML'DEN TAŞINDI)
@@ -217,4 +364,52 @@ document.addEventListener("DOMContentLoaded", function() {
             }).catch(err => console.error("Sessiz güncelleme hatası:", err));
     }
     setInterval(checkAndRefreshTable, 5000);
+});
+
+// 🚀 FORM GÖNDERİLİRKEN ZORUNLU ALANLARI KONTROL ET VE SEÇİMLERİ PAKETLE
+document.getElementById('order-form').addEventListener('submit', function(e) {
+    // Sadece "Yeni Sipariş Ekle" modundaysak doğrulama yap (Düzenleme ekranında seçenek olmaz)
+    if (document.getElementById('food-section').style.display === 'none') {
+        return; 
+    }
+
+    let isValid = true;
+    
+    // Zorunlu alanların işaretlenip işaretlenmediğine bak
+    document.querySelectorAll('.admin-option-group').forEach(group => {
+        const isRequired = group.getAttribute('data-required');
+        if (isRequired === "1" || isRequired === "true") {
+            const checkedCount = group.querySelectorAll('.choice-input:checked').length;
+            if (checkedCount === 0) {
+                isValid = false;
+                group.style.borderLeft = '4px solid #ef4444';
+                group.style.paddingLeft = '10px';
+                group.style.backgroundColor = '#fef2f2';
+            } else {
+                group.style.borderLeft = 'none';
+                group.style.paddingLeft = '0';
+                group.style.backgroundColor = 'transparent';
+            }
+        }
+    });
+
+    if (!isValid) {
+        e.preventDefault();
+        if(typeof window.showToast === 'function') window.showToast("Lütfen kırmızı renkle işaretlenen zorunlu seçenekleri belirleyin!", "error");
+        else alert("Lütfen zorunlu seçenekleri işaretleyin!");
+        return;
+    }
+
+    // Temizlik yap ve seçili olan ekstra opsiyonları arka planda Python'ın okuyabileceği formata (choices_IDX[]) çevir
+    document.querySelectorAll('.dynamic-choice-hidden').forEach(el => el.remove());
+    
+    document.querySelectorAll('.choice-input:checked').forEach(input => {
+        const cartIndex = input.getAttribute('data-cart-index');
+        const hidden = document.createElement('input');
+        hidden.type = 'hidden';
+        hidden.name = `choices_${cartIndex}[]`;
+        hidden.value = input.value;
+        hidden.className = 'dynamic-choice-hidden';
+        this.appendChild(hidden);
+    });
 });

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -39,12 +39,14 @@
     <div class="header">
         <div style="display: flex; align-items: center; gap: 15px;">
             <h1 style="margin: 0; display: flex; align-items: center; gap: 12px;">
-                <img src="{{ url_for('static', filename='images/icons/user-chef.svg') }}" style="width: 36px; height: 36px; object-fit: contain; filter: brightness(0) invert(1);">
+                <img src="{{ url_for('static', filename='images/icons/chef.png') }}" style="width: 36px; height: 36px; object-fit: contain;">
                 Mutfak Ekranı
             </h1>
                         <span style="background: #374151; padding: 5px 12px; border-radius: 20px; font-weight: 600;">{{ orders|length }} Bekleyen</span>
         </div>
-        <a href="{{ url_for('orders') }}" class="exit-btn">⬅️ Panele Dön</a>
+        <a href="{{ url_for('orders') }}" class="exit-btn" style="display: flex; align-items: center; gap: 8px;">
+            <img src="{{ url_for('static', filename='images/icons/back.png') }}" style="width: 18px; height: 18px;"> Panele Dön
+        </a>
     </div>
 
     <div class="grid-container">
@@ -54,20 +56,33 @@
             <div class="card-header">
                 <span class="order-id">#{{ order.order_id }}</span>
                 <span class="order-time">{{ order.order_date.strftime('%H:%M') }} 
-                    {% if order.order_type == 'Delivery' %} 🛵 Paket {% else %} 🍽️ Masa {{ order.table_no }} {% endif %}
+                    {% if order.order_type == 'Delivery' %} 
+                        <img src="{{ url_for('static', filename='images/icons/delivery.png') }}" style="width: 18px; height: 18px; vertical-align: middle; margin-right: 4px; margin-left: 8px;"> Paket 
+                    {% else %} 
+                        <img src="{{ url_for('static', filename='images/icons/dine-in.png') }}" style="width: 18px; height: 18px; vertical-align: middle; margin-right: 4px; margin-left: 8px;"> Masa {{ order.table_no }} 
+                    {% endif %}
                 </span>
             </div>
             
             <div class="card-body">
                 {% for item in order['items'] %}
-                <div class="item-row">
-                    <span class="item-qty">{{ item['quantity'] }}x</span>
-                    <span>{{ item['item_name'] }}</span>
+                <div class="item-row" style="flex-direction: column; align-items: flex-start; gap: 4px; border-bottom: 1px solid #374151; padding-bottom: 10px; margin-bottom: 12px;">
+                    <div style="display: flex; gap: 10px; width: 100%;">
+                        <span class="item-qty">{{ item['quantity'] }}x</span>
+                        <span style="flex: 1;">{{ item['item_name'] }}</span>
+                    </div>
+                    
+                    {% if item['item_note'] %}
+                    <div style="font-size: 13px; color: #fbbf24; margin-left: 30px; margin-top: 4px; font-weight: 500; display: flex; align-items: center; gap: 4px;">
+                        <img src="{{ url_for('static', filename='images/icons/note.png') }}" style="width: 14px; height: 14px;"> Özel Not: {{ item['item_note'] }}
+                    </div>
+                    {% endif %}
                 </div>
                 {% endfor %}
+                
                 {% if order['order_note'] %}
-                    <div style="background: #ef4444; color: white; padding: 10px; border-radius: 6px; font-size: 14px; font-weight: 600;">
-                        📝 Not: {{ order['order_note'] }}
+                    <div style="background: #ef4444; color: white; padding: 10px; border-radius: 6px; font-size: 14px; font-weight: 600; margin-top: 10px; display: flex; align-items: center; gap: 6px;">
+                        <img src="{{ url_for('static', filename='images/icons/note.png') }}" style="width: 18px; height: 18px;"> Genel Adisyon Notu: {{ order['order_note'] }}
                     </div>
                 {% endif %}
             </div>
@@ -78,11 +93,24 @@
                     
                     {% if order.order_status == 'pending' %}
                         <input type="hidden" name="order_status" value="preparing">
-                        <button type="submit" class="btn btn-start">▶️ Hazırlamaya Başla</button>
+                        <button type="submit" class="btn btn-start" style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <img src="{{ url_for('static', filename='images/icons/cook.png') }}" style="width: 22px; height: 22px;"> Hazırlamaya Başla
+                        </button>
                     
                     {% elif order.order_status == 'preparing' %}
-                        <input type="hidden" name="order_status" value="ready">
-                        <button type="submit" class="btn btn-ready">✅ Sipariş Hazır</button>
+                        
+                        {% if order.order_type == 'Dine-in' %}
+                            <input type="hidden" name="order_status" value="delivered">
+                            <button type="submit" class="btn btn-ready" style="background: #8b5cf6; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                <img src="{{ url_for('static', filename='images/icons/dine-in.png') }}" style="width: 22px; height: 22px;"> Masaya Servis Et
+                            </button>
+                        {% else %}
+                            <input type="hidden" name="order_status" value="ready">
+                            <button type="submit" class="btn btn-ready" style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                <img src="{{ url_for('static', filename='images/icons/package.png') }}" style="width: 22px; height: 22px;"> Paket Hazır
+                            </button>
+                        {% endif %}
+                        
                     {% endif %}
                 </form>
             </div>
@@ -90,7 +118,9 @@
         </div>
         {% else %}
         <div style="grid-column: 1 / -1; text-align: center; padding: 50px; color: #6b7280;">
-            <h2 style="font-size: 30px; margin-bottom: 10px;">🎉 Harika! Mutfak tertemiz.</h2>
+            <h2 style="font-size: 30px; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                <img src="{{ url_for('static', filename='images/icons/success.png') }}" style="width: 36px; height: 36px;"> Harika! Mutfak tertemiz.
+            </h2>
             <p>Şu an bekleyen veya hazırlanan hiçbir sipariş yok.</p>
         </div>
         {% endfor %}

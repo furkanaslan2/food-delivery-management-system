@@ -2,7 +2,7 @@
 
 {% block title %}Kurye Yönetimi{% endblock %}
 {% block page_title %}
-    <img src="{{ url_for('static', filename='images/icons/delivery-bike.svg') }}" class="title-icon"> 
+    <img src="{{ url_for('static', filename='images/icons/delivery.png') }}" class="title-icon" style="width: 28px; height: 28px; margin-right: 8px;"> 
     Kurye Yönetimi
 {% endblock %}
 
@@ -45,17 +45,19 @@
         background: #f9fafb;
     }
 
-    /* ⚙️ İŞLEM BUTONLARI */
     .action-btn {
         background: none;
         border: none;
         cursor: pointer;
-        padding: 8px;
+        padding: 6px;
         border-radius: 6px;
         transition: 0.2s;
-        font-size: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0; 
     }
-    .action-btn:hover { background: #e5e7eb; }
+    .action-btn:hover { background: #f3f4f6; }
 
     /* 🔝 ÜST ARAÇ ÇUBUĞU */
     .toolbar {
@@ -108,16 +110,15 @@
         <h3 style="margin: 0; color: #111827;">Kurye Listesi</h3>
         <p style="margin: 5px 0 0 0; color: #6b7280; font-size: 14px;">Restoranınızın teslimat ekibini yönetin.</p>
     </div>
-    
-    <div style="display: flex; gap: 10px;">
-        <form action="{{ url_for('courier_action') }}" method="POST" style="display: flex; gap: 10px;">
-            <input type="text" name="name" placeholder="Kurye Adı Ara..." class="form-input" style="margin: 0; padding: 8px 15px; width: 250px;">
-            <button type="submit" name="action" value="filter" class="action-btn" style="background-color: #3b82f6; color: white; border-radius: 6px; padding: 8px 15px; font-size: 14px;">Ara</button>
-            <button type="submit" name="action" value="clear" class="action-btn" style="background-color: #6b7280; color: white; border-radius: 6px; padding: 8px 15px; font-size: 14px;" onclick="document.querySelector('input[name=name]').value=''">Temizle</button>
+    <div style="display: flex; gap: 12px; align-items: center;">
+        <form action="{{ url_for('courier_action') }}" method="POST" style="display: flex; gap: 8px; margin: 0; align-items: center;">
+            <input type="text" name="name" placeholder="Kurye Adı Ara..." class="form-input" style="height: 42px; margin: 0; padding: 0 15px; width: 250px; border: 1px solid #d1d5db; border-radius: 8px; box-sizing: border-box; outline: none; font-family: inherit; font-size: 14px; transition: 0.2s;" onfocus="this.style.borderColor='#4f46e5'" onblur="this.style.borderColor='#d1d5db'">
+            <button type="submit" name="action" value="filter" class="action-btn" style="height: 42px; background-color: #3b82f6; color: white; border-radius: 8px; padding: 0 20px; font-size: 14px; font-weight: 600; box-sizing: border-box; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s;" onmouseover="this.style.backgroundColor='#2563eb'" onmouseout="this.style.backgroundColor='#3b82f6'">Ara</button>
+            <button type="submit" name="action" value="clear" class="action-btn" style="height: 42px; background-color: #6b7280; color: white; border-radius: 8px; padding: 0 20px; font-size: 14px; font-weight: 600; box-sizing: border-box; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s;" onclick="document.querySelector('input[name=name]').value=''" onmouseover="this.style.backgroundColor='#4b5563'" onmouseout="this.style.backgroundColor='#6b7280'">Temizle</button>
         </form>
 
-        <button class="primary-btn" onclick="openCourierModal()">
-            <span>+</span> Yeni Kurye Ekle
+        <button class="primary-btn" onclick="openCourierModal()" style="height: 42px; padding: 0 20px; box-sizing: border-box; margin: 0;">
+            <span style="font-size: 18px; line-height: 1; margin-right: 2px;">+</span> Yeni Kurye Ekle
         </button>
     </div>
 </div>
@@ -133,7 +134,7 @@
                 {% endif %}
                 <th>Cinsiyet</th>
                 <th>Doğum Tarihi</th>
-                <th style="text-align: right;">İşlemler</th>
+                <th style="text-align: center; width: 140px; min-width: 140px;">İşlemler</th>
             </tr>
         </thead>
         <tbody>
@@ -150,20 +151,26 @@
                 {% endif %}
                 <td><span class="gender-badge">{{ courier['gender'] }}</span></td>
                 <td>{{ courier['birth_date'] }}</td>
-                <td style="text-align: right;">
-                    <button class="action-btn" title="Düzenle" 
-                        data-id="{{ courier['courier_id'] }}" 
-                        data-name="{{ courier['name'] }}" 
-                        data-email="{{ courier['email'] }}" 
-                        data-gender="{{ courier['gender'] }}" 
-                        data-birth="{{ courier['birth_date'] }}" 
-                        onclick="openCourierModalFromBtn(this)">✏️</button>
-                    
-                    <form action="{{ url_for('courier_action') }}" method="POST" style="display:inline;">
-                        <input type="hidden" name="selected_couriers" value="{{ courier['courier_id'] }}">
-                        <input type="hidden" name="action" value="delete">
-                        <button type="button" class="action-btn" title="Sil" onclick="confirmFormSubmit(event, this.closest('form'), 'Bu kuryeyi silmek istediğinize emin misiniz?');">🗑️</button>
-                    </form>
+                <td style="text-align: center; vertical-align: middle;">
+                    <div style="display: flex; justify-content: center; gap: 8px; align-items: center;">
+                        <button type="button" class="action-btn" title="Düzenle" 
+                            data-id="{{ courier['courier_id'] }}" 
+                            data-name="{{ courier['name'] }}" 
+                            data-email="{{ courier['email'] }}" 
+                            data-gender="{{ courier['gender'] }}" 
+                            data-birth="{{ courier['birth_date'] }}" 
+                            onclick="openCourierModalFromBtn(this)">
+                            <img src="{{ url_for('static', filename='images/icons/edit.png') }}" style="width: 24px; height: 24px; object-fit: contain;">
+                        </button>
+                        
+                        <form action="{{ url_for('courier_action') }}" method="POST" style="margin:0;">
+                            <input type="hidden" name="selected_couriers" value="{{ courier['courier_id'] }}">
+                            <input type="hidden" name="action" value="delete">
+                            <button type="button" class="action-btn" title="Sil" onclick="confirmFormSubmit(event, this.closest('form'), 'Bu kuryeyi silmek istediğinize emin misiniz?');">
+                                <img src="{{ url_for('static', filename='images/icons/delete.png') }}" style="width: 24px; height: 24px; object-fit: contain;">
+                            </button>
+                        </form>
+                    </div>
                 </td>
             </tr>
             {% else %}

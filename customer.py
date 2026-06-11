@@ -108,7 +108,7 @@ def view_restaurant(restaurant_id):
                     is_favorited = True
             
         except Exception as e:
-            flash(f"Error loading menu: {e}", "danger")
+            flash(f"Menü yüklenirken hata oluştu: {e}", "danger")
         finally:
             if connection.is_connected():
                 cursor.close()
@@ -132,7 +132,7 @@ def view_restaurant(restaurant_id):
 def add_to_cart():
     if 'logged_in' not in session or session.get('role') != 'customer':
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return jsonify({'success': False, 'message': 'Please login to add items.'}), 401
+            return jsonify({'success': False, 'message': 'Sepete ürün eklemek için lütfen giriş yapın.'}), 401
         flash("Sepetinize ürün eklemek için lütfen giriş yapın.", "danger")
         return redirect(url_for('customer_login'))
 
@@ -237,7 +237,7 @@ def add_to_cart():
 
         if cart_cleared:
             flash("Farklı bir restoran seçtiğiniz için sepetiniz temizlendi.", "warning")
-        flash(f"Added {quantity}x {food_name} to cart!", "success")
+        flash(f"{quantity} adet {food_name} sepete eklendi!", "success")
         return redirect(url_for('view_restaurant', restaurant_id=restaurant_id))
     
 def remove_from_cart(menu_id):
@@ -455,7 +455,7 @@ def checkout():
 
             except Exception as e:
                 connection.rollback()
-                flash(f"Checkout failed: {e}", "danger")
+                flash(f"Sipariş işlemi başarısız oldu: {e}", "danger")
             finally:
                 if connection.is_connected():
                     cursor.close()
@@ -519,7 +519,7 @@ def customer_orders():
                 orders_data.append(order)
 
         except Exception as e:
-            flash(f"Error loading your orders: {e}", "danger")
+            flash(f"Sipariş geçmişiniz yüklenirken hata oluştu: {e}", "danger")
         finally:
             if connection.is_connected():
                 cursor.close()

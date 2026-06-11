@@ -2,7 +2,7 @@
 
 {% block title %}Analizler ve Çok Satanlar{% endblock %}
 {% block page_title %}
-    <img src="{{ url_for('static', filename='images/icons/chart-histogram.svg') }}" class="title-icon"> 
+    <img src="{{ url_for('static', filename='images/icons/trend.png') }}" class="title-icon" style="width: 28px; height: 28px; margin-right: 8px;"> 
     İşletme Analizleri
 {% endblock %}
 
@@ -94,38 +94,47 @@
 
     <div class="summary-card orange">
         <span class="summary-title">Bugünkü Dağılım</span>
-        <h3 class="summary-value" style="font-size: 18px;">
-            🛵 {{ delivery_count }} Paket <br> 
-            🍽️ {{ dinein_count }} Masa
+        <h3 class="summary-value" style="font-size: 17px; display: flex; flex-direction: column; gap: 10px; margin-top: 5px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <img src="{{ url_for('static', filename='images/icons/delivery.png') }}" style="width: 22px; height: 22px; object-fit: contain;"> {{ delivery_count }} Paket
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <img src="{{ url_for('static', filename='images/icons/dine-in.png') }}" style="width: 22px; height: 22px; object-fit: contain;"> {{ dinein_count }} Masa
+            </div>
         </h3>
-        <span class="summary-subtext">Bugünün operasyon özeti</span>
+        <span class="summary-subtext" style="margin-top: 10px;">Bugünün operasyon özeti</span>
     </div>
 
     <div class="summary-card purple">
         <span class="summary-title">Genel Restoran Puanı</span>
-        <h3 class="summary-value">⭐ {{ restaurant_rating }}</h3>
+        <h3 class="summary-value" style="display: flex; align-items: center; gap: 8px;">
+            <img src="{{ url_for('static', filename='images/icons/star.png') }}" style="width: 28px; height: 28px; object-fit: contain;"> {{ restaurant_rating }}
+        </h3>
         <span class="summary-subtext">{{ rating_enum }} Değerlendirme</span>
     </div>
 </div>
 
 <div class="dashboard-container">
     <div class="chart-card full-width">
-        <h2>📈 Son 7 Günlük Ciro Trendi</h2>
+        <h2><img src="{{ url_for('static', filename='images/icons/trend.png') }}" style="width: 28px; height: 28px; vertical-align: middle; margin-right: 8px; margin-top: -4px;"> Son 7 Günlük Ciro Trendi</h2>
         <canvas id="lineChart"></canvas>
     </div>
 
     <div class="chart-card">
-        <h2>🍽️ Masa / 🛵 Paket Oranı (Son 30 Gün)</h2>
+        <h2>
+            <img src="{{ url_for('static', filename='images/icons/dine-in.png') }}" style="width: 24px; height: 24px; vertical-align: middle; margin-right: 5px; margin-top: -4px;"> Masa / 
+            <img src="{{ url_for('static', filename='images/icons/delivery.png') }}" style="width: 24px; height: 24px; vertical-align: middle; margin-right: 5px; margin-top: -4px;"> Paket Oranı (Son 30 Gün)
+        </h2>
         <canvas id="doughnutChart"></canvas>
     </div>
 
     <div class="chart-card">
-        <h2>🔥 En Çok Satan 5 Lezzet (Son 30 Gün)</h2>
+        <h2><img src="{{ url_for('static', filename='images/icons/badge.png') }}" style="width: 28px; height: 28px; vertical-align: middle; margin-right: 8px; margin-top: -4px;"> En Çok Satan 5 Lezzet (Son 30 Gün)</h2>
         <canvas id="barChart"></canvas>
     </div>
 
     <div class="chart-card full-width">
-        <h2>🚀 Kurye Teslimat Şampiyonları (Son 30 Gün)</h2>
+        <h2><img src="{{ url_for('static', filename='images/icons/trophy.png') }}" style="width: 28px; height: 28px; vertical-align: middle; margin-right: 8px; margin-top: -4px;"> Kurye Teslimat Şampiyonları (Son 30 Gün)</h2>
         <canvas id="horizontalBarChart"></canvas>
     </div>
 </div>

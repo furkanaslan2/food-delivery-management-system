@@ -71,7 +71,7 @@ def login():
 
         connection = get_db_connection()
         if connection is None:
-            flash("Couldn't connect to the database!", "danger")
+            flash("Veritabanına bağlanılamadı!", "danger") 
             return render_template('login.html')
 
         try:
@@ -83,7 +83,7 @@ def login():
             if admin and check_password_hash(admin['password'], password):
                 session['logged_in'] = True
                 session['role'] = 'admin'
-                flash("Admin login successful!", "success")
+                flash("Yönetici girişi başarılı!", "success") 
                 return redirect(url_for('index'))
 
             # 🕵️‍♂️ 2. KONTROL: Bu kişi bir RESTORAN SAHİBİ mi?
@@ -98,7 +98,7 @@ def login():
                     session['logged_in'] = True
                     session['role'] = 'user'
                     session['restaurant_id'] = restaurant['restaurant_id']
-                    flash("Restaurant Owner login successful!", "success")
+                    flash("Restoran sahibi girişi başarılı!", "success") 
                     return redirect(url_for('index'))
                 else:
                     flash("Hesabınıza bağlı bir restoran bulunamadı.", "danger")
@@ -112,7 +112,7 @@ def login():
                 session['role'] = 'waiter'
                 session['waiter_id'] = waiter['waiter_id']
                 session['restaurant_id'] = waiter['restaurant_id']
-                flash("Waiter login successful!", "success")
+                flash("Garson girişi başarılı!", "success") 
                 return redirect(url_for('waiter_dashboard'))
 
             # 🕵️‍♂️ 4. KONTROL: Bu kişi bir KURYE mi?
@@ -122,14 +122,14 @@ def login():
                 session['logged_in'] = True
                 session['role'] = 'courier'
                 session['courier_id'] = courier['courier_id']
-                flash("Courier login successful!", "success")
+                flash("Kurye girişi başarılı!", "success") 
                 return redirect(url_for('courier_dashboard', courier_id=courier['courier_id']))
 
-            flash("Invalid email or password.", "danger")
+            flash("Geçersiz e-posta veya şifre.", "danger") 
             return redirect(url_for('login')) 
 
         except Error as e:
-            flash(f"Query failed: {e}", "danger")
+            flash(f"Sorgu hatası: {e}", "danger") 
             return redirect(url_for('login')) 
         finally:
             if connection.is_connected():
@@ -145,7 +145,7 @@ def logout():
     # 2. Artık güvenle TÜM oturum verilerini silebiliriz
     session.clear()
     
-    flash('You have been logged out!', 'success')
+    flash("Başarıyla çıkış yaptınız!", "success") 
     
     # 3. Yönlendirme Mantığı (Kuryeyi de genel portala gönderiyoruz)
     if role == 'customer':
@@ -338,10 +338,10 @@ def customer_login():
                     flash("Giriş başarılı! Lezzet dünyasına hoş geldin.", "success")
                     return redirect(url_for('index')) 
                 else:
-                    flash("Invalid email or password.", "danger")
+                    flash("Geçersiz e-posta veya şifre.", "danger") 
                     return redirect(url_for('customer_login')) 
             except Error as e:
-                flash(f"Login failed: {e}", "danger")
+                flash(f"Giriş başarısız: {e}", "danger") 
                 return redirect(url_for('customer_login')) 
             finally:
                 if connection.is_connected():
@@ -476,3 +476,59 @@ def resend_reset_code():
             return {'success': False, 'message': 'Kod gönderilemedi, lütfen tekrar deneyin.'}
             
     return {'success': False, 'message': 'Bekleyen bir işlem bulunamadı.'}
+
+def delete_customer_account():
+    if 'logged_in' not in session or session.get('role') != 'customer':
+        flash("Yetkisiz işlem.", "danger")
+        return redirect(url_for('customer_login'))
+        
+    customer_id = session.get('customer_id')
+    
+    connection = get_db_connection()
+    if connection:
+        try:
+            cursor = connection.cursor()
+            
+            # 1. Aşama: Müşterinin hassas verilerini (Adresler ve Favoriler) kalıcı olarak sil
+            cursor.execute("DELETE FROM favorite_restaurants WHERE customer_id = %s", (customer_id,))
+            cursor.execute("DELETE FROM customer_addresses WHERE customer_id = %s", (customer_id,))
+            
+            # 2. Aşama: Doğrudan hesabı silmeyi dene
+            cursor.execute("DELETE FROM customers WHERE customer_id = %s", (customer_id,))
+            connection.commit()
+            
+            session.clear()
+            flash("Hesabınız ve tüm verileriniz sistemimizden başarıyla silinmiştir. Sizi özleyeceğiz!", "success")
+            return redirect(url_for('customer_login'))
+            
+        except Error as e:
+            connection.rollback()
+            # 3. Aşama: Yabancı Anahtar (Foreign Key) hatası verirse (Yani müşterinin geçmiş mali siparişi varsa)
+            # KVKK gereği hesabı SİLMİŞ gibi yapıp verileri "Anonim" hale getiririz.
+            if "foreign key" in str(e).lower():
+                try:
+                    cursor.execute("""
+                        UPDATE customers 
+                        SET name = 'Silinmiş Kullanıcı', 
+                            email = CONCAT('deleted_', customer_id, '@anonym.com'), 
+                            phone = '0000000000', 
+                            password = '' 
+                        WHERE customer_id = %s
+                    """, (customer_id,))
+                    connection.commit()
+                    
+                    session.clear()
+                    flash("Hesabınız silindi. (Mali sipariş kayıtlarınız yasalar gereği anonimleştirilerek sistemde tutulmaktadır).", "success")
+                    return redirect(url_for('customer_login'))
+                except Exception as ex:
+                    flash("Hesap anonimleştirilirken bir hata oluştu.", "danger")
+            else:
+                flash(f"Silme işlemi başarısız: {e}", "danger")
+                
+            return redirect(url_for('customer_profile'))
+        finally:
+            if connection.is_connected():
+                cursor.close()
+                connection.close()
+                
+    return redirect(url_for('index'))

@@ -141,6 +141,8 @@ CREATE TABLE order_items (
     food_id INT NOT NULL,
     quantity INT NOT NULL,
     unit_price DECIMAL(10,2) NOT NULL,
+    cart_index VARCHAR(50) DEFAULT NULL,
+    item_note TEXT DEFAULT NULL,
     FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE,
     FOREIGN KEY (food_id) REFERENCES foods(food_id)
 );
@@ -213,6 +215,7 @@ CREATE TABLE order_item_choices (
     order_id INT NOT NULL,
     food_id INT NOT NULL,
     choice_id INT NOT NULL,
+    cart_index VARCHAR(50) DEFAULT NULL,
     FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE,
     FOREIGN KEY (food_id) REFERENCES foods(food_id) ON DELETE CASCADE,
     FOREIGN KEY (choice_id) REFERENCES menu_option_choices(choice_id) ON DELETE CASCADE
