@@ -27,7 +27,7 @@ document.addEventListener("DOMContentLoaded", function() {
             data: {
                 labels: db.trend_labels,
                 datasets: [{
-                    label: 'Günlük Ciro ($)',
+                    label: 'Günlük Ciro (₺)',
                     data: db.trend_data,
                     borderColor: primaryColor,
                     backgroundColor: 'rgba(79, 70, 229, 0.1)',

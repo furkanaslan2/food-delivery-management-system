@@ -72,15 +72,12 @@ document.addEventListener("DOMContentLoaded", function() {
             fetch('/api/menu_options?menu_id=' + menuId)
             .then(res => res.json())
             .then(data => {
-                if (data.success && data.options && data.options.length > 0) {
-                    openCustomerOptionsModal(data.options, formData, basePrice, foodName, form);
-                } else {
-                    executeCartAjax(formData, form);
-                }
+                const opts = (data.success && data.options) ? data.options : [];
+                openCustomerOptionsModal(opts, formData, basePrice, foodName, form);
             })
             .catch(err => {
                 console.error('Opsiyon kontrol hatası:', err);
-                executeCartAjax(formData, form); 
+                openCustomerOptionsModal([], formData, basePrice, foodName, form); 
             });
         });
     });
@@ -95,29 +92,44 @@ function openCustomerOptionsModal(options, formData, basePrice, foodName, formEl
     const container = document.getElementById('opt-dynamic-content');
     container.innerHTML = '';
     
-    options.forEach(opt => {
-        let html = `<div style="margin-bottom: 25px;" class="opt-group" data-is-required="${opt.is_required}" data-name="${opt.option_name}">
-            <h4 style="margin: 0 0 12px 0; font-size: 16px; font-weight: 700; color: #111827;">${opt.option_name} ${opt.is_required ? '<span style="color:#ef4444; font-size:12px; font-weight: 600; margin-left:5px;">(Zorunlu)</span>' : ''}</h4>
-            <div style="display: flex; flex-direction: column; gap: 10px;">`;
-        
-        const inputType = opt.is_multiple ? 'checkbox' : 'radio';
-        const reqAttr = opt.is_required && !opt.is_multiple ? 'required' : '';
-        
-        opt.choices.forEach(ch => {
-            html += `
-                <label style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: 14px 16px; border: 1px solid #e5e7eb; border-radius: 12px; background: white; transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.02);" onmouseover="this.style.borderColor='#4f46e5'" onmouseout="this.style.borderColor='#e5e7eb'">
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <input type="${inputType}" name="opt_${opt.option_id}" value="${ch.choice_name}" data-id="${ch.choice_id}" data-price="${ch.additional_price}" onchange="calculateModalPrice()" ${reqAttr} style="transform: scale(1.3); cursor: pointer; accent-color: #4f46e5;">
-                        <span style="font-size: 15px; font-weight: 600; color: #374151;">${ch.choice_name}</span>
-                    </div>
-                    ${ch.additional_price > 0 ? `<span style="color: #059669; font-weight: 700; font-size: 14px; background: #ecfdf5; padding: 4px 8px; border-radius: 8px;">+$${ch.additional_price}</span>` : ''}
-                </label>
-            `;
+    let hasOptions = options && options.length > 0;
+    let finalHtml = ""; 
+
+    if (hasOptions) {
+        options.forEach(opt => {
+            let html = `<div style="margin-bottom: 25px;" class="opt-group" data-is-required="${opt.is_required}" data-name="${opt.option_name}">
+                <h4 style="margin: 0 0 12px 0; font-size: 16px; font-weight: 700; color: #111827;">${opt.option_name} ${opt.is_required ? '<span style="color:#ef4444; font-size:12px; font-weight: 600; margin-left:5px;">(Zorunlu)</span>' : ''}</h4>
+                <div style="display: flex; flex-direction: column; gap: 10px;">`;
+            
+            const inputType = opt.is_multiple ? 'checkbox' : 'radio';
+            const reqAttr = opt.is_required && !opt.is_multiple ? 'required' : '';
+            
+            opt.choices.forEach(ch => {
+                html += `
+                    <label style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: 14px 16px; border: 1px solid #e5e7eb; border-radius: 12px; background: white; transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.02);" onmouseover="this.style.borderColor='#4f46e5'" onmouseout="this.style.borderColor='#e5e7eb'">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <input type="${inputType}" name="opt_${opt.option_id}" value="${ch.choice_name}" data-id="${ch.choice_id}" data-price="${ch.additional_price}" onchange="calculateModalPrice()" ${reqAttr} style="transform: scale(1.3); cursor: pointer; accent-color: #4f46e5;">
+                            <span style="font-size: 15px; font-weight: 600; color: #374151;">${ch.choice_name}</span>
+                        </div>
+                        ${ch.additional_price > 0 ? `<span style="color: #059669; font-weight: 700; font-size: 14px; background: #ecfdf5; padding: 4px 8px; border-radius: 8px;">+₺${ch.additional_price}</span>` : ''}
+                    </label>
+                `;
+            });
+            html += `</div></div>`;
+            finalHtml += html; 
         });
-        html += `</div></div>`;
-        container.innerHTML += html;
-    });
+    }
     
+    const borderStyle = hasOptions ? 'border-top: 1px solid #e5e7eb; padding-top: 15px;' : '';
+    const noteHtml = `
+    <div style="margin-top: 15px; ${borderStyle}">
+        <label style="font-size: 14px; font-weight: 700; color: #374151; display: block; margin-bottom: 8px;">Ürün Notu (İsteğe Bağlı)</label>
+        <input type="text" id="modal-item-note" placeholder="Örn: Ketçap olmasın, acılı olsun..." style="width: 100%; padding: 12px 16px; border: 1px solid #d1d5db; border-radius: 10px; font-family: inherit; font-size: 14px; box-sizing: border-box; outline: none; transition: 0.2s;" onfocus="this.style.borderColor='#4f46e5'" onblur="this.style.borderColor='#d1d5db'">
+    </div>
+    `;
+    
+    container.innerHTML = finalHtml + noteHtml;
+
     calculateModalPrice();
     document.getElementById('customerOptionsModal').style.display = 'flex';
 }
@@ -166,6 +178,9 @@ function submitOptionsToCart() {
     
     activeFormData.delete('choices');
     
+    const modalNote = document.getElementById('modal-item-note').value; 
+    activeFormData.set('item_note', modalNote);
+
     document.querySelectorAll('#customer-options-form input:checked').forEach(input => {
         selectedTexts.push(input.value);
         let valStr = input.getAttribute('data-price') || "0";
@@ -236,12 +251,16 @@ function executeCartAjax(formData, formElement, customPrice = null) {
                 }
                 
                 priceTag.setAttribute('data-total', currentTotal);
-                priceTag.innerText = '$' + currentTotal.toFixed(2);
+                priceTag.innerText = '₺' + currentTotal.toFixed(2);
                 priceTag.style.display = 'inline-block'; 
                 
                 priceTag.style.transform = 'scale(1.15)';
                 setTimeout(() => { priceTag.style.transform = 'scale(1)'; }, 200);
             }
+
+            const noteInput = formElement.querySelector('input[name="item_note"]');
+            if (noteInput) noteInput.value = '';
+
         } else {
             if (typeof showToast === "function") showToast(data.message || 'Sepete eklenirken bir hata oluştu.', 'error');
             if(data.message.includes('giriş')) setTimeout(() => { window.location.href = '/customer_login'; }, 1500);

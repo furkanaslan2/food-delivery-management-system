@@ -36,13 +36,13 @@
                     <div style="display: flex; justify-content: flex-end; gap: 10px; align-items: center;">
                         
                         <form action="{{ url_for('reject_application', app_id=app.application_id) }}" method="POST" style="margin: 0;">
-                            <button type="button" style="background: white; color: #ef4444; border: 1px solid #ef4444; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 6px;" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='white'" onclick="confirmFormSubmit(event, this.closest('form'), 'Bu iş ortağı başvurusunu tamamen reddetmek (silmek) istediğinize emin misiniz?');">
+                            <button type="button" style="background: white; color: #ef4444; border: 1px solid #ef4444; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer; transition: background-color 0.2s ease; display: inline-flex; align-items: center; justify-content: center; gap: 6px;" onmouseover="this.style.backgroundColor='#fef2f2'" onmouseout="this.style.backgroundColor='white'" onclick="confirmFormSubmit(event, this.closest('form'), 'Bu iş ortağı başvurusunu tamamen reddetmek (silmek) istediğinize emin misiniz?');">
                                 <img src="{{ url_for('static', filename='images/icons/cancel.png') }}" style="width: 16px; height: 16px;"> Reddet
                             </button>
                         </form>
 
                         <form action="{{ url_for('approve_application', app_id=app.application_id) }}" method="POST" style="margin: 0;">
-                            <button type="submit" style="background: white; color: #10b981; border: 1px solid #10b981; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 6px;" onmouseover="this.style.background='#f0fdf4'" onmouseout="this.style.background='white'">
+                            <button type="submit" style="background: white; color: #10b981; border: 1px solid #10b981; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer; transition: background-color 0.2s ease; display: inline-flex; align-items: center; justify-content: center; gap: 6px;" onmouseover="this.style.backgroundColor='#f0fdf4'" onmouseout="this.style.backgroundColor='white'">
                                 <img src="{{ url_for('static', filename='images/icons/success.png') }}" style="width: 16px; height: 16px;"> Onayla & Hesap Aç
                             </button>
                         </form>

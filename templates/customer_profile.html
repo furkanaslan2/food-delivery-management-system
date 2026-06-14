@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hesap Ayarlarım | Lezzet Kapında</title>
+    <title>Hesap Ayarlarım | YeSende</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/flash.css') }}">
     
@@ -41,7 +41,11 @@
         .dropdown::after { content: ''; position: absolute; top: 100%; left: 0; width: 100%; height: 15px; background: transparent; display: none; }
         .dropdown:hover::after { display: block; }
         
-        .dropdown-btn { background-color: #1f2937; color: #f3f4f6; padding: 10px 18px; font-size: 14px; font-weight: 600; border: 1px solid #374151; border-radius: 20px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s; font-family: inherit; }
+        .dropdown-btn { 
+            background-color: #1f2937; color: #f3f4f6; padding: 10px 18px; font-size: 14px; font-weight: 600; border: 1px solid #374151; border-radius: 20px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-family: inherit; 
+            transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+            transform: translateZ(0);
+        }
         .dropdown-btn:hover { background-color: #374151; border-color: #4b5563; color: white; }
         .dropdown-btn i { font-size: 18px; }
         
@@ -66,19 +70,36 @@
 
         .form-group { margin-bottom: 20px; }
         .form-group label { display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px; }
-        .form-control { width: 100%; padding: 14px 16px; border: 1px solid #d1d5db; border-radius: 10px; font-family: inherit; font-size: 15px; outline: none; transition: all 0.2s; box-sizing: border-box; background-color: #ffffff; color: #111827; }
+        .form-control { 
+            width: 100%; padding: 14px 16px; border: 1px solid #d1d5db; border-radius: 10px; font-family: inherit; font-size: 15px; outline: none; box-sizing: border-box; background-color: #ffffff; color: #111827; 
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            will-change: box-shadow;
+        }
         .form-control:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
         .form-control:disabled { background-color: #f3f4f6; color: #6b7280; cursor: not-allowed; }
 
-        .save-btn { background: #111827; color: white; border: none; padding: 16px; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s; width: 100%; margin-top: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .save-btn:hover { background: #374151; transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.15); }
+        .input-with-icon { position: relative; }
+        .input-with-icon i { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #9ca3af; font-size: 20px; transition: color 0.2s; pointer-events: none; }
+        .input-with-icon input:focus ~ i { color: #4f46e5; }
+        .form-control.icon-padded { padding-left: 46px; }
+
+        .save-btn { 
+            background: #111827; color: white; border: none; padding: 16px; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; width: 100%; margin-top: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; gap: 8px; 
+            transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+            will-change: transform, box-shadow;
+            transform: translateZ(0);
+        }
+        .save-btn:hover { 
+            background: #374151; box-shadow: 0 6px 12px rgba(0,0,0,0.15); 
+            transform: translateY(-2px) translateZ(0); 
+        }
     </style>
 </head>
 <body>
 
     <nav class="customer-nav">
         <a href="/" class="nav-brand">
-            <img src="{{ url_for('static', filename='images/icons/logo.svg') }}" alt="Lezzet Kapında">
+            <img src="{{ url_for('static', filename='images/icons/logo.svg') }}" alt="YeSende">
         </a>
         <div class="nav-links">
             <a href="{{ url_for('view_cart') }}" class="cart-btn cart-wrapper">
@@ -122,17 +143,26 @@
                 
                 <div class="form-group">
                     <label>E-posta Adresi</label>
-                    <input type="email" class="form-control" value="{{ user_data.get('email') or session.get('email', '') }}" disabled title="E-posta adresi değiştirilemez.">
+                    <div class="input-with-icon">
+                        <input type="email" class="form-control icon-padded" value="{{ user_data.get('email') or session.get('email', '') }}" disabled title="E-posta adresi değiştirilemez.">
+                        <i class="ph-bold ph-envelope-simple"></i>
+                    </div>
                 </div>
 
                 <div class="form-group">
                     <label>Ad Soyad</label>
-                    <input type="text" name="name" class="form-control" value="{{ user_data.get('name') or '' }}" placeholder="Örn: Ahmet Yılmaz" required>
+                    <div class="input-with-icon">
+                        <input type="text" name="name" class="form-control icon-padded" value="{{ user_data.get('name') or '' }}" placeholder="Örn: Ahmet Yılmaz" required>
+                        <i class="ph-bold ph-user"></i>
+                    </div>
                 </div>
 
                 <div class="form-group">
                     <label>Telefon Numarası</label>
-                    <input type="tel" name="phone" class="form-control" value="{{ user_data.get('phone') or '' }}" placeholder="Örn: 0555 123 45 67">
+                    <div class="input-with-icon">
+                        <input type="tel" name="phone" class="form-control icon-padded" value="{{ user_data.get('phone') or '' }}" placeholder="05XX..." maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                        <i class="ph-bold ph-phone"></i>
+                    </div>
                 </div>
 
                 <div style="border-top: 1px dashed #e5e7eb; margin: 30px 0; position: relative;">
@@ -141,7 +171,10 @@
 
                 <div class="form-group">
                     <label>Yeni Şifre Belirle (İsteğe Bağlı)</label>
-                    <input type="password" name="password" class="form-control" placeholder="•••••••• (Değiştirmek istemiyorsanız boş bırakın)">
+                    <div class="input-with-icon">
+                        <input type="password" name="password" class="form-control icon-padded" placeholder="•••••••• (Değiştirmek istemiyorsanız boş bırakın)">
+                        <i class="ph-bold ph-lock-key"></i>
+                    </div>
                 </div>
 
                 <button type="submit" class="save-btn">
@@ -156,7 +189,7 @@
                 <p style="font-size: 13.5px; color: #6b7280; margin: 0 0 20px 0; line-height: 1.5;">
                     Hesabınızı sildiğinizde tüm favorileriniz, adresleriniz ve kişisel verileriniz sistemden kalıcı olarak temizlenir. Bu işlem geri alınamaz.
                 </p>
-                <button type="button" onclick="openDeleteModal()" style="background: #fef2f2; color: #dc2626; border: 1px solid #fca5a5; padding: 12px 20px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s; width: 100%; justify-content: center;" onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='#fef2f2'">
+                <button type="button" onclick="openDeleteModal()" style="background: #fef2f2; color: #dc2626; border: 1px solid #fca5a5; padding: 12px 20px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background-color 0.2s ease; width: 100%; justify-content: center;" this.style.backgroundColor='#fee2e2'" onmouseout="this.style.background='#fef2f2'">
                     <i class="ph-bold ph-trash" style="font-size: 18px;"></i> Hesabımı Kalıcı Olarak Sil
                 </button>
             </div>
@@ -164,7 +197,7 @@
         </div>
     </div>
 
-    <div id="deleteAccountModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 1000; justify-content: center; align-items: center;">
+    <div id="deleteAccountModal" style="display: none; position: fixed; inset: 0; background: rgba(17, 24, 39, 0.85); z-index: 1000; justify-content: center; align-items: center;">
         <div style="background: white; width: 100%; max-width: 420px; border-radius: 16px; padding: 35px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);">
             <div style="width: 65px; height: 65px; background: #fee2e2; border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 20px auto;">
                 <i class="ph-bold ph-warning" style="font-size: 32px; color: #dc2626;"></i>
@@ -175,11 +208,11 @@
             </p>
             
             <div style="display: flex; gap: 12px;">
-                <button type="button" onclick="closeDeleteModal()" style="flex: 1; background: #f3f4f6; color: #4b5563; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
+                <button type="button" onclick="closeDeleteModal()" style="flex: 1; background: #f3f4f6; color: #4b5563; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background-color 0.2s ease;" this.style.backgroundColor='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
                     Vazgeç
                 </button>
                 <form action="{{ url_for('delete_customer_account') }}" method="POST" style="flex: 1; margin: 0;">
-                    <button type="submit" style="width: 100%; background: #dc2626; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#b91c1c'" onmouseout="this.style.background='#dc2626'">
+                    <button type="submit" style="width: 100%; background: #dc2626; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background-color 0.2s ease;" this.style.backgroundColor='#b91c1c'" onmouseout="this.style.background='#dc2626'">
                         Evet, Sil
                     </button>
                 </form>

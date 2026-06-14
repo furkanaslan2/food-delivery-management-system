@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yönetim Girişi | Lezzet Kapında</title>
+    <title>Yönetim Girişi | YeSende</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/flash.css') }}">
     <style>
@@ -53,10 +53,12 @@
             border: 1px solid #d1d5db; 
             border-radius: 12px; 
             box-sizing: border-box; 
-            transition: all 0.2s ease; 
             font-family: inherit; 
             outline: none;
             background-color: #f9fafb;
+            transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease; 
+            will-change: box-shadow;
+            transform: translateZ(0);
         }
         .form-control:focus { background-color: #ffffff; border-color: #4f46e5; box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1); }
         
@@ -70,12 +72,18 @@
             font-size: 16px; 
             font-weight: 700; 
             cursor: pointer; 
-            transition: all 0.2s ease; 
             margin-top: 10px; 
             font-family: inherit; 
             box-shadow: 0 4px 6px rgba(79, 70, 229, 0.2);
+            transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+            will-change: transform, box-shadow;
+            transform: translateZ(0);
         }
-        .submit-btn:hover { background-color: #4338ca; transform: translateY(-2px); box-shadow: 0 6px 12px rgba(79, 70, 229, 0.3); }
+        .submit-btn:hover { 
+            background-color: #4338ca; 
+            transform: translateY(-2px) translateZ(0); 
+            box-shadow: 0 6px 12px rgba(79, 70, 229, 0.3); 
+        }
         
         .bottom-text { margin-top: 25px; text-align: center; font-size: 14px; color: #6b7280; font-weight: 500; }
         .bottom-text a { color: #4f46e5; text-decoration: none; font-weight: 700; transition: color 0.2s; }
@@ -87,7 +95,7 @@
 <body>
 
     <a href="/" class="brand-logo">
-        <img src="{{ url_for('static', filename='images/icons/logo.svg') }}" alt="Lezzet Kapında">
+        <img src="{{ url_for('static', filename='images/icons/logo.svg') }}" alt="YeSende">
     </a>
 
     <div class="auth-card">
@@ -101,7 +109,10 @@
             </div>
 
             <div class="form-group">
-                <label for="password">Şifre</label>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <label for="password" style="margin-bottom: 0;">Şifre</label>
+                    <a href="{{ url_for('forgot_password_admin') }}" style="font-size: 13px; color: #4f46e5; font-weight: 600; text-decoration: none; transition: color 0.2s;">Şifremi Unuttum</a>
+                </div>
                 <input type="password" name="password" id="password" class="form-control" placeholder="••••••••" required>
             </div>
 

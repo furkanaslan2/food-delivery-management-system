@@ -3,9 +3,9 @@ from flask import Flask
 from flask_session import Session
 from dotenv import load_dotenv
 from index import index
-from auth import login, logout, register, customer_login, customer_register, verify_email_page, verify_email_code, resend_verification_code, forgot_password, reset_password, process_reset, resend_reset_code, delete_customer_account
+from auth import login, logout, register, customer_login, customer_register, verify_email_page, verify_email_code, resend_verification_code, forgot_password, reset_password, process_reset, resend_reset_code, delete_customer_account, forgot_password_admin, reset_password_admin, process_reset_admin, resend_reset_code_admin
 from users import users, user_action
-from restaurants import restaurants, restaurant_action, restaurant_analytics, restaurant_profile, restaurant_reviews, reply_review
+from restaurants import restaurants, restaurant_action, restaurant_analytics, restaurant_profile, restaurant_reviews, reply_review, delete_restaurant_account, toggle_store_status
 from couriers import couriers, courier_action, api_check_courier_orders
 from menus import menus, menus_action, manage_menu_options, upload_menu_image, manage_promos
 from orders import orders, order_action, get_order_details, get_restaurant_details, api_check_new_orders, kitchen_display, kitchen_order_action
@@ -101,7 +101,13 @@ app.add_url_rule('/forgot_password', 'forgot_password', forgot_password, methods
 app.add_url_rule('/reset_password', 'reset_password', reset_password, methods=['GET'])
 app.add_url_rule('/process_reset', 'process_reset', process_reset, methods=['POST'])
 app.add_url_rule('/resend_reset_code', 'resend_reset_code', resend_reset_code, methods=['GET'])
+app.add_url_rule('/forgot_password_admin', 'forgot_password_admin', forgot_password_admin, methods=['GET', 'POST'])
+app.add_url_rule('/reset_password_admin', 'reset_password_admin', reset_password_admin, methods=['GET'])
+app.add_url_rule('/process_reset_admin', 'process_reset_admin', process_reset_admin, methods=['POST'])
+app.add_url_rule('/resend_reset_code_admin', 'resend_reset_code_admin', resend_reset_code_admin, methods=['GET'])
 app.add_url_rule('/delete_customer_account', 'delete_customer_account', delete_customer_account, methods=['POST'])
+app.add_url_rule('/delete_restaurant_account', 'delete_restaurant_account', delete_restaurant_account, methods=['POST'])
+app.add_url_rule('/api/toggle_store_status', view_func=toggle_store_status, methods=['GET', 'POST'])
 
 if __name__ == '__main__':
     app.run(debug=True)

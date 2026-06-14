@@ -23,15 +23,21 @@
         .item-qty { color: #fbbf24; }
         
         .card-footer { padding: 15px; display: flex; gap: 10px; }
-        .btn { flex: 1; border: none; padding: 15px; font-size: 18px; font-weight: 800; border-radius: 8px; cursor: pointer; transition: 0.2s; color: white; text-transform: uppercase; }
+        .btn { 
+            flex: 1; border: none; padding: 15px; font-size: 18px; font-weight: 800; border-radius: 8px; cursor: pointer; color: white; text-transform: uppercase; 
+            transition: background-color 0.15s ease, transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            will-change: transform;
+            transform: translateZ(0);
+        }
         
         .btn-start { background: #2563eb; }
-        .btn-start:active { background: #1d4ed8; transform: scale(0.95); }
+        .btn-start:active { background: #1d4ed8; transform: scale(0.95) translateZ(0); }
         
         .btn-ready { background: #10b981; }
-        .btn-ready:active { background: #059669; transform: scale(0.95); }
+        .btn-ready:active { background: #059669; transform: scale(0.95) translateZ(0); }
         
-        .exit-btn { background: #374151; color: white; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; }
+        .exit-btn { background: #374151; color: white; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; transition: background-color 0.2s ease; }
+        .exit-btn:hover { background: #4b5563; }
     </style>
 </head>
 <body>
@@ -82,7 +88,7 @@
                 
                 {% if order['order_note'] %}
                     <div style="background: #ef4444; color: white; padding: 10px; border-radius: 6px; font-size: 14px; font-weight: 600; margin-top: 10px; display: flex; align-items: center; gap: 6px;">
-                        <img src="{{ url_for('static', filename='images/icons/note.png') }}" style="width: 18px; height: 18px;"> Genel Adisyon Notu: {{ order['order_note'] }}
+                        <img src="{{ url_for('static', filename='images/icons/note.png') }}" style="width: 18px; height: 18px;"> Özel Not: {{ order['order_note'] }}
                     </div>
                 {% endif %}
             </div>

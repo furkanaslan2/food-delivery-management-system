@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", function() {
         // Eğer kurye yoldaysa, telefonun GPS'ini takip etmeye başla
         if (hasActiveDelivery && navigator.geolocation) {
             const trackerBanner = document.getElementById('gps-tracker-banner');
-            if(trackerBanner) trackerBanner.style.display = 'block';
+            if(trackerBanner) trackerBanner.style.display = 'flex';
 
             navigator.geolocation.watchPosition(
                 (position) => {

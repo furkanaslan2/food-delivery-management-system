@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Siparişlerim | Lezzet Kapında</title>
+    <title>Siparişlerim | YeSende</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/flash.css') }}">
     
@@ -34,7 +34,11 @@
         .dropdown { position: relative; display: inline-block; }
         .dropdown::after { content: ''; position: absolute; top: 100%; left: 0; width: 100%; height: 15px; background: transparent; display: none; }
         .dropdown:hover::after { display: block; }
-        .dropdown-btn { background-color: #1f2937; color: #f3f4f6; padding: 10px 18px; font-size: 14px; font-weight: 600; border: 1px solid #374151; border-radius: 20px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s; font-family: inherit; }
+        .dropdown-btn { 
+            background-color: #1f2937; color: #f3f4f6; padding: 10px 18px; font-size: 14px; font-weight: 600; border: 1px solid #374151; border-radius: 20px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-family: inherit; 
+            transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+            transform: translateZ(0);
+        }
         .dropdown-btn:hover { background-color: #374151; border-color: #4b5563; color: white; }
         .dropdown-content { display: none; position: absolute; right: 0; top: 100%; background-color: #ffffff; min-width: 200px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); border-radius: 12px; overflow: hidden; z-index: 1000; border: 1px solid #e5e7eb; margin-top: 10px; }
         .dropdown-content a { color: #374151; padding: 12px 18px; text-decoration: none; display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; transition: background-color 0.2s; }
@@ -49,8 +53,16 @@
         .section-title { font-size: 24px; font-weight: 800; margin-bottom: 25px; color: #111827; display: flex; align-items: center; gap: 10px; }
         
         /* 🌟 MODERNİZE EDİLMİŞ SİPARİŞ KARTLARI */
-        .order-card { background: white; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); margin-bottom: 25px; overflow: hidden; border: 1px solid #f3f4f6; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .order-card:hover { box-shadow: 0 15px 30px -5px rgba(0,0,0,0.08); transform: translateY(-4px); border-color: #e5e7eb; }
+        .order-card { 
+            background: white; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); margin-bottom: 25px; overflow: hidden; border: 1px solid #f3f4f6; 
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease, border-color 0.3s ease;
+            will-change: transform, box-shadow;
+            transform: translateZ(0); 
+        }
+        .order-card:hover { 
+            box-shadow: 0 15px 30px -5px rgba(0,0,0,0.08); border-color: #e5e7eb; 
+            transform: translateY(-4px) translateZ(0); 
+        }
         
         .order-header { background: #f9fafb; padding: 20px 24px; border-bottom: 1px dashed #e5e7eb; display: flex; justify-content: space-between; align-items: center; }
         .restaurant-name { font-weight: 800; font-size: 18px; margin: 0; color: #111827; display: flex; align-items: center; gap: 8px; }
@@ -75,7 +87,12 @@
         .empty-state { text-align: center; padding: 80px 20px; color: #6b7280; background: white; border-radius: 20px; border: 2px dashed #e5e7eb; }
         
         /* Buton Hover Efektleri */
-        .action-btn { font-family: inherit; font-weight: 700; font-size: 14px; padding: 10px 18px; border-radius: 10px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .action-btn { 
+            font-family: inherit; font-weight: 700; font-size: 14px; padding: 10px 18px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+            will-change: transform;
+            transform: translateZ(0);
+        }
         .action-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.1); }
     </style>
 </head>
@@ -83,7 +100,7 @@
 
     <nav class="customer-nav">
         <a href="/" class="nav-brand">
-            <img src="{{ url_for('static', filename='images/icons/logo.svg') }}" alt="Lezzet Kapında">
+            <img src="{{ url_for('static', filename='images/icons/logo.svg') }}" alt="YeSende">
         </a>
         <div class="nav-links">
             <a href="{{ url_for('view_cart') }}" class="cart-btn cart-wrapper" style="text-decoration: none;">
@@ -119,9 +136,20 @@
             {% for order in orders %}
             <div class="order-card" data-order-id="{{ order['order_id'] }}" data-status="{{ 'preparing' if order['order_status'] == 'ready' else order['order_status'] }}">
                 <div class="order-header">
-                    <div>
-                        <p class="restaurant-name"><i class="ph-fill ph-storefront" style="color: #6b7280;"></i> {{ order['restaurant_name'] }}</p>
-                        <p class="order-date"><i class="ph-bold ph-hash"></i> {{ order['order_id'] }} • <i class="ph-bold ph-calendar-blank"></i> {{ order['order_date'].strftime('%d %b %Y, %H:%M') }}</p>
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        
+                        <div style="width: 50px; height: 50px; border-radius: 12px; background-color: #f3f4f6; border: 1px solid #e5e7eb; box-shadow: 0 2px 5px rgba(0,0,0,0.05); overflow: hidden; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            {% if order.get('image_url') and order.get('image_url') != 'default_restaurant.jpg' %}
+                                <img src="{{ url_for('static', filename='images/restaurants/' ~ order['image_url']) }}" style="width: 100%; height: 100%; object-fit: cover;">
+                            {% else %}
+                                <i class="ph-fill ph-storefront" style="font-size: 26px; color: #9ca3af;"></i>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            <p class="restaurant-name" style="margin-bottom: 2px;">{{ order['restaurant_name'] }}</p>
+                            <p class="order-date"><i class="ph-bold ph-hash"></i> {{ order['order_id'] }} • <i class="ph-bold ph-calendar-blank"></i> {{ order['order_date'].strftime('%d %b %Y, %H:%M') }}</p>
+                        </div>
                     </div>
                     
                     {% set st = 'preparing' if order['order_status'] == 'ready' else order['order_status'] %}
@@ -142,7 +170,7 @@
                             <span class="item-qty">{{ item['quantity'] }}x</span> 
                             <span>{{ item['custom_name'] or item['item_name'] }}</span>
                         </div>
-                        <span style="font-weight: 800;">${{ "%.2f"|format(item['unit_price'] * item['quantity']) }}</span>
+                        <span style="font-weight: 800;">₺{{ "%.2f"|format(item['unit_price'] * item['quantity']) }}</span>
                     </div>
                     {% else %}
                         <div class="item-row"><span style="color:#9ca3af; font-style:italic;">Sipariş detayı bulunamadı.</span></div>
@@ -150,20 +178,22 @@
                 </div>
                 
                 <div class="order-footer">
-                    <span style="color: #6b7280; font-weight: 700; font-size: 15px;">Toplam Tutar</span>
-                    <div style="display: flex; align-items: center; gap: 20px;">
+                    <div style="display: flex; flex-direction: column;">
+                        <span style="color: #6b7280; font-weight: 600; font-size: 13px; margin-bottom: 2px;">Toplam Tutar</span>
+                        <span class="total-price" style="font-size: 22px;">₺{{ "%.2f"|format(order['sales_amount']) }}</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 15px;">
                         
                         {% if order['order_status'] == 'pending' %}
-                            <button class="action-btn cancel-order-btn" data-id="{{ order['order_id'] }}" style="background: #fee2e2; color: #991b1b; border: 1px solid #fecaca;" onmouseover="this.style.background='#fecaca'" onmouseout="this.style.background='#fee2e2'">
+                            <button class="action-btn cancel-order-btn" data-id="{{ order['order_id'] }}" style="background: #fee2e2; color: #991b1b; border: 1px solid #fecaca;" this.style.backgroundColor='#fecaca'" onmouseout="this.style.background='#fee2e2'">
                                 <i class="ph-bold ph-x"></i> Siparişi İptal Et
                             </button>
                             
                         {% elif order['order_status'] in ['delivered', 'completed', 'canceled'] %}
-                            <button class="action-btn reorder-btn" data-id="{{ order['order_id'] }}" style="background: #4f46e5; color: white; border: 1px solid #4338ca;" onmouseover="this.style.background='#4338ca'" onmouseout="this.style.background='#4f46e5'">
+                            <button class="action-btn reorder-btn" data-id="{{ order['order_id'] }}" style="background: #111827; color: white; border: 1px solid #111827; box-shadow: 0 4px 15px rgba(0,0,0,0.15);" this.style.backgroundColor='#374151'" onmouseout="this.style.background='#111827'">
                                 <i class="ph-bold ph-arrow-counter-clockwise"></i> Tekrar Sipariş Ver
                             </button>
                         {% endif %}
-                        <span class="total-price">${{ "%.2f"|format(order['sales_amount']) }}</span>
                     </div>
                 </div>
 
@@ -198,22 +228,22 @@
                                 <input type="hidden" name="order_id" value="{{ order['order_id'] }}">
                                 <input type="hidden" name="restaurant_id" value="{{ order['restaurant_id'] }}">
                                 
-                                <div style="position: relative; max-width: 300px;">
-                                    <i class="ph-fill ph-star" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #9ca3af; font-size: 18px; pointer-events: none;"></i>
-                                    <select name="rating" required style="padding: 14px 14px 14px 40px; border-radius: 12px; border: 1px solid #d1d5db; outline: none; font-family: inherit; font-weight: 600; width: 100%; cursor: pointer; appearance: none; background: white;">
-                                        <option value="" hidden>Puan Verin</option>
-                                        <option value="5">⭐⭐⭐⭐⭐ (5 - Mükemmel)</option>
-                                        <option value="4">⭐⭐⭐⭐ (4 - Çok İyi)</option>
-                                        <option value="3">⭐⭐⭐ (3 - Ortalama)</option>
-                                        <option value="2">⭐⭐ (2 - Kötü)</option>
-                                        <option value="1">⭐ (1 - Berbat)</option>
-                                    </select>
-                                    <i class="ph-bold ph-caret-down" style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: #9ca3af; pointer-events: none;"></i>
+                                <div style="display: flex; flex-direction: column; gap: 5px;">
+                                    <div class="star-rating-container" data-order-id="{{ order['order_id'] }}" style="display: flex; gap: 8px;">
+                                        <i class="ph-fill ph-star star-btn" data-val="1" style="font-size: 36px; color: #e5e7eb; cursor: pointer; transition: 0.2s;"></i>
+                                        <i class="ph-fill ph-star star-btn" data-val="2" style="font-size: 36px; color: #e5e7eb; cursor: pointer; transition: 0.2s;"></i>
+                                        <i class="ph-fill ph-star star-btn" data-val="3" style="font-size: 36px; color: #e5e7eb; cursor: pointer; transition: 0.2s;"></i>
+                                        <i class="ph-fill ph-star star-btn" data-val="4" style="font-size: 36px; color: #e5e7eb; cursor: pointer; transition: 0.2s;"></i>
+                                        <i class="ph-fill ph-star star-btn" data-val="5" style="font-size: 36px; color: #e5e7eb; cursor: pointer; transition: 0.2s;"></i>
+                                        
+                                        <input type="hidden" name="rating" id="rating-input-{{ order['order_id'] }}" required>
+                                    </div>
+                                    <span class="rating-text" id="rating-text-{{ order['order_id'] }}" style="font-size: 13px; font-weight: 700; color: #9ca3af; margin-left: 5px;">Lütfen puanınızı seçin</span>
                                 </div>
                                 
                                 <textarea name="comment" placeholder="Yemek ve teslimat hakkında ne düşünüyorsunuz? (Opsiyonel)" style="padding: 14px; border-radius: 12px; border: 1px solid #d1d5db; resize: vertical; min-height: 80px; font-family: inherit; font-size: 14px; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#4f46e5'" onblur="this.style.borderColor='#d1d5db'"></textarea>
                                 
-                                <button type="submit" style="background-color: #111827; color: white; font-weight: 700; padding: 14px 28px; border: none; border-radius: 12px; cursor: pointer; align-self: flex-start; transition: all 0.2s; font-family: inherit; box-shadow: 0 4px 10px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 8px;" onmouseover="this.style.background='#374151'; this.style.transform='translateY(-2px)';" onmouseout="this.style.background='#111827'; this.style.transform='translateY(0)';">
+                                <button type="submit" style="background-color: #111827; color: white; font-weight: 700; padding: 14px 28px; border: none; border-radius: 12px; cursor: pointer; align-self: flex-start; transition: all 0.2s; font-family: inherit; box-shadow: 0 4px 10px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 8px;" this.style.backgroundColor='#374151'; this.style.transform='translateY(-2px)';" onmouseout="this.style.background='#111827'; this.style.transform='translateY(0)';">
                                     <i class="ph-bold ph-paper-plane-right"></i> Yorumu Gönder
                                 </button>
                             </form>
@@ -234,24 +264,24 @@
         {% endif %}
     </div>
 
-    <div id="cancelConfirmModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(17,24,39,0.7); z-index:10000; justify-content:center; align-items:center; backdrop-filter:blur(4px);">
-        <div style="background:white; width:90%; max-width:420px; border-radius:20px; padding:30px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); text-align:center; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
+    <div id="cancelConfirmModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(17,24,39,0.85); z-index:10000; justify-content:center; align-items:center;">
+        <div style="background:white; width:90%; max-width:420px; border-radius:20px; padding:30px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); text-align:center; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); will-change: transform, opacity; transform: translateZ(0);">
             <div style="font-size:55px; margin-bottom:15px; color:#ef4444;"><i class="ph-fill ph-warning-circle"></i></div>
             <h3 style="margin:0 0 10px 0; color:#111827; font-size:22px; font-weight:800;">Siparişi İptal Et</h3>
             <p style="margin:0 0 30px 0; color:#4b5563; font-size:15px; font-weight:500; line-height: 1.5;">Bu siparişi iptal etmek istediğinize emin misiniz? Bu işlem geri alınamaz.</p>
             <div style="display:flex; justify-content:center; gap:12px;">
-                <button id="btn-cancel-no" style="flex:1; background:#f3f4f6; color:#374151; border:none; padding:14px; border-radius:12px; font-weight:700; cursor:pointer; font-family:inherit; transition:0.2s;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">Vazgeç</button>
-                <button id="btn-cancel-yes" style="flex:1; background:#ef4444; color:white; border:none; padding:14px; border-radius:12px; font-weight:700; cursor:pointer; font-family:inherit; transition:0.2s;" onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='#ef4444'">Evet, İptal Et</button>
+                <button id="btn-cancel-no" style="flex:1; background:#f3f4f6; color:#374151; border:none; padding:14px; border-radius:12px; font-weight:700; cursor:pointer; font-family:inherit; transition: background-color 0.2s ease;" this.style.backgroundColor='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">Vazgeç</button>
+                <button id="btn-cancel-yes" style="flex:1; background:#ef4444; color:white; border:none; padding:14px; border-radius:12px; font-weight:700; cursor:pointer; font-family:inherit; transition: background-color 0.2s ease;" this.style.backgroundColor='#dc2626'" onmouseout="this.style.background='#ef4444'">Evet, İptal Et</button>
             </div>
         </div>
     </div>
 
-    <div id="customAlertModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(17,24,39,0.7); z-index:10001; justify-content:center; align-items:center; backdrop-filter:blur(4px);">
-        <div style="background:white; width:90%; max-width:420px; border-radius:20px; padding:30px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); text-align:center; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
+    <div id="customAlertModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(17,24,39,0.85); z-index:10001; justify-content:center; align-items:center;">
+        <div style="background:white; width:90%; max-width:420px; border-radius:20px; padding:30px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); text-align:center; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); will-change: transform, opacity; transform: translateZ(0);">
             <div id="customAlertIcon" style="font-size:55px; margin-bottom:15px; color:#3b82f6;"><i class="ph-fill ph-info"></i></div>
             <h3 id="customAlertTitle" style="margin:0 0 10px 0; color:#111827; font-size:22px; font-weight:800;">Bilgi</h3>
             <p id="customAlertMessage" style="margin:0 0 30px 0; color:#4b5563; font-size:15px; font-weight:500; line-height: 1.5;">Mesaj buraya gelecek</p>
-            <button id="btn-alert-ok" style="background:#4f46e5; color:white; border:none; padding:14px; border-radius:12px; font-weight:700; cursor:pointer; width:100%; font-family:inherit; transition:0.2s; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);" onmouseover="this.style.background='#4338ca'" onmouseout="this.style.background='#4f46e5'">Tamam, Anladım</button>
+            <button id="btn-alert-ok" style="background:#4f46e5; color:white; border:none; padding:14px; border-radius:12px; font-weight:700; cursor:pointer; width:100%; font-family:inherit; transition: background-color 0.2s ease; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);" this.style.backgroundColor='#4338ca'" onmouseout="this.style.background='#4f46e5'">Tamam, Anladım</button>
         </div>
     </div>
     

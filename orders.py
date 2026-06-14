@@ -189,7 +189,7 @@ def order_action():
                 """, (item['quantity'], item['food_id']))
 
             connection.commit()
-            flash(f"Sipariş başarıyla eklendi! Toplam: ${total_amount:.2f} (ID: {final_order_id})", "success")
+            flash(f"Sipariş başarıyla eklendi! Toplam: ₺{total_amount:.2f} (ID: {final_order_id})", "success")
 
         elif action == 'delete':
             selected_ids = request.form.get('selected_orders')

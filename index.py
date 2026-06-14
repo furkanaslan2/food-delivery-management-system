@@ -19,8 +19,14 @@ def index():
     role = session.get('role')
 
     if role == 'customer':
+        # URL'den gelen filtreleri alıyoruz
         search_query = request.args.get('search', '').strip()
         min_rating = request.args.get('min_rating', '0')
+        max_min_order = request.args.get('max_min_order', '0') 
+        sort_by = request.args.get('sort_by', 'default')       
+        
+        # 🔥 GÜNCELLENDİ: Sadece tek bir mutfak seçilebilir (Varsayılan 'Tümü')
+        selected_cuisine = request.args.get('cuisine', 'Tümü') 
         
         connection = get_db_connection()
         restaurants = []
@@ -45,10 +51,20 @@ def index():
                 if min_rating and float(min_rating) > 0:
                     sql_query += " AND r.rating >= %s"
                     query_params.append(float(min_rating))
+                    
+                if max_min_order and float(max_min_order) > 0:
+                    sql_query += " AND (r.min_order_amount <= %s OR r.min_order_amount IS NULL)"
+                    query_params.append(float(max_min_order))
+
+                # 🔥 GÜNCELLENDİ: Tekli Mutfak (Radio) Filtresi
+                if selected_cuisine and selected_cuisine != 'Tümü':
+                    sql_query += " AND r.cuisine = %s"
+                    query_params.append(selected_cuisine)
 
                 cursor.execute(sql_query, tuple(query_params))
                 all_restaurants = cursor.fetchall()
                 
+                # ... (Konum ve Mesafe hesaplama kısımları aynı kalacak - dokunma) ...
                 customer_lat = session.get('latitude')
                 customer_lon = session.get('longitude')
                 now = datetime.datetime.now().time()
@@ -96,10 +112,20 @@ def index():
                             
                     r['is_open'] = is_open
 
-                if customer_lat and customer_lon:
+                # 🔥 YENİ: Genişletilmiş Akıllı Sıralama Mantığı
+                if sort_by == 'rating':
+                    all_restaurants.sort(key=lambda x: (not x.get('is_open', True), -float(x.get('rating') or 0)))
+                elif sort_by == 'distance' or sort_by == 'delivery_time':
                     all_restaurants.sort(key=lambda x: (not x.get('is_open', True), x.get('distance', 999)))
-                else:
-                    all_restaurants.sort(key=lambda x: (not x.get('is_open', True), -float(x.get('rating', 0) or 0)))
+                elif sort_by == 'review_count':
+                    all_restaurants.sort(key=lambda x: (not x.get('is_open', True), -int(x.get('rating_count') or 0)))
+                elif sort_by == 'alphabetical':
+                    all_restaurants.sort(key=lambda x: (not x.get('is_open', True), x.get('restaurant_name', '').lower()))
+                else: # Default (Akıllı Sıralama)
+                    if customer_lat and customer_lon:
+                        all_restaurants.sort(key=lambda x: (not x.get('is_open', True), x.get('distance', 999)))
+                    else:
+                        all_restaurants.sort(key=lambda x: (not x.get('is_open', True), -float(x.get('rating') or 0)))
 
                 restaurants = all_restaurants
 

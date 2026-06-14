@@ -10,7 +10,6 @@ load_dotenv()
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 # 1. RESTORAN MENÜSÜNÜ GÖRÜNTÜLEME
-# 1. RESTORAN MENÜSÜNÜ GÖRÜNTÜLEME
 def view_restaurant(restaurant_id):
     if 'logged_in' not in session or session.get('role') != 'customer':
         flash("Restoranları görmek için lütfen giriş yapın.", "danger")
@@ -142,6 +141,7 @@ def add_to_cart():
         food_name = request.form.get('food_name')
         price = float(request.form.get('price'))
         quantity = int(request.form.get('quantity', 1))
+        item_note = request.form.get('item_note', '').strip()
 
         # 📍 YENİ: Ön yüzden seçilen ek seçeneklerin ID listesini alıyoruz
         selected_choices = request.form.getlist('choices') 
@@ -205,10 +205,9 @@ def add_to_cart():
             session['cart'] = [] 
             cart_cleared = True
 
-        # Aynı ürün ve aynı ekstra konfigürasyonuna sahip mi kontrolü
         found = False
         for item in session['cart']:
-            if str(item['menu_id']) == str(menu_id) and sorted(item.get('choices', [])) == sorted(selected_choices):
+            if str(item['menu_id']) == str(menu_id) and sorted(item.get('choices', [])) == sorted(selected_choices) and item.get('item_note', '') == item_note:
                 item['quantity'] += quantity
                 found = True
                 break
@@ -220,7 +219,8 @@ def add_to_cart():
                 'food_name': food_name,
                 'price': price,
                 'quantity': quantity,
-                'choices': selected_choices # 📍 Seçim ID'leri session sepetine kaydoluyor
+                'choices': selected_choices,
+                'item_note': item_note # 📍 YENİ: Notu session'a kaydet
             })
 
         session.modified = True
@@ -378,14 +378,14 @@ def checkout():
                         discount = float(promo['discount_value']) if promo['discount_type'] == 'fixed' else (total_amount * float(promo['discount_value'])) / 100
                         if discount > total_amount: discount = total_amount
                         total_amount -= discount
-                        order_note = f"[KUPON KULLANILDI: {applied_promo_code} | İndirim: ${discount:.2f}] " + order_note
+                        order_note = f"[KUPON KULLANILDI: {applied_promo_code} | İndirim: ₺{discount:.2f}] " + order_note
                 
                 cursor.execute("SELECT min_order_amount FROM restaurants WHERE restaurant_id = %s", (restaurant_id,))
                 r_data = cursor.fetchone()
                 min_order_amount = float(r_data['min_order_amount']) if r_data and r_data.get('min_order_amount') else 0.0
 
                 if total_amount < min_order_amount:
-                    flash(f"Minimum sipariş tutarı ${min_order_amount}. Lütfen sepetinize ürün ekleyin.", "danger")
+                    flash(f"Minimum sipariş tutarı ₺{min_order_amount}. Lütfen sepetinize ürün ekleyin.", "danger")
                     return redirect(url_for('view_cart'))
 
                 cursor.execute("SELECT * FROM customer_addresses WHERE customer_id = %s AND is_active = 1", (customer_id,))
@@ -424,17 +424,17 @@ def checkout():
                 
                 new_order_id = cursor.lastrowid 
 
-                # Sepetteki ürünleri order_items tablosuna ekle
                 for item in cart:
                     cursor.execute("SELECT food_id FROM menus WHERE menu_id = %s", (item['menu_id'],))
                     menu_data = cursor.fetchone()
                     
                     if menu_data:
                         food_id = menu_data['food_id']
+                        
                         cursor.execute("""
-                            INSERT INTO order_items (order_id, food_id, quantity, unit_price)
-                            VALUES (%s, %s, %s, %s)
-                        """, (new_order_id, food_id, item['quantity'], item['price']))
+                            INSERT INTO order_items (order_id, food_id, quantity, unit_price, item_note)
+                            VALUES (%s, %s, %s, %s, %s)
+                        """, (new_order_id, food_id, item['quantity'], item['price'], item.get('item_note', '')))
 
                         if item.get('choices'):
                             for choice_id in item['choices']:
@@ -476,9 +476,8 @@ def customer_orders():
         try:
             cursor = connection.cursor(dictionary=True)
             
-            # 📍 ÇÖZÜM 3: Ödeme bekleyen (hayalet) siparişleri Sipariş Geçmişinden Gizle
             cursor.execute("""
-                SELECT o.*, r.restaurant_name 
+                SELECT o.*, r.restaurant_name, r.image_url 
                 FROM orders o
                 JOIN restaurants r ON o.restaurant_id = r.restaurant_id
                 WHERE o.customer_id = %s AND o.order_status != 'awaiting_payment'
@@ -992,7 +991,7 @@ def apply_promo():
                 return jsonify({'success': False, 'message': 'Bu kuponun süresi dolmuş veya artık pasif.'})
                 
             if total_amount < float(promo['min_cart_amount']):
-                return jsonify({'success': False, 'message': f"Bu kupon için sepet tutarınız en az ${promo['min_cart_amount']} olmalıdır."})
+                return jsonify({'success': False, 'message': f"Bu kupon için sepet tutarınız en az ₺{promo['min_cart_amount']} olmalıdır."})
                 
             discount_amount = 0
             if promo['discount_type'] == 'fixed':

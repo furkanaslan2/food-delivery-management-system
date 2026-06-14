@@ -43,7 +43,7 @@
                    <div style="display: flex; gap: 10px; align-items: center;">
                         <input type="text" id="reply-input-{{ review.order_id }}" placeholder="Müşteriye kibar bir yanıt yazın..." style="flex: 1; height: 42px; margin: 0; padding: 0 15px; box-sizing: border-box; border: 1px solid #d1d5db; border-radius: 6px; font-family: inherit; outline: none;">
                         
-                        <button onclick="submitReply('{{ review.order_id }}')" style="height: 42px; margin: 0; padding: 0 20px; box-sizing: border-box; background: #4f46e5; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;" onmouseover="this.style.background='#4338ca'" onmouseout="this.style.background='#4f46e5'">
+                        <button onclick="submitReply('{{ review.order_id }}')" style="height: 42px; margin: 0; padding: 0 20px; box-sizing: border-box; background: #4f46e5; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: background-color 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 8px;" onmouseover="this.style.backgroundColor='#4338ca'" onmouseout="this.style.backgroundColor='#4f46e5'">
                             Yanıtla <img src="{{ url_for('static', filename='images/icons/send.png') }}" style="width: 18px; height: 18px; filter: brightness(0) invert(1);">
                         </button>
                     </div>

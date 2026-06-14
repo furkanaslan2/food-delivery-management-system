@@ -532,3 +532,115 @@ def delete_customer_account():
                 connection.close()
                 
     return redirect(url_for('index'))
+
+@nocache
+def forgot_password_admin():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        
+        connection = get_db_connection()
+        if connection:
+            try:
+                cursor = connection.cursor(dictionary=True)
+                
+                # E-postanın hangi personel tablosunda olduğunu bulalım
+                user_record = None
+                target_table = None
+                
+                # Kontrol edilecek yönetim/personel tabloları
+                tables = ['admins', 'users', 'waiters', 'couriers']
+                
+                for table in tables:
+                    cursor.execute(f'SELECT * FROM {table} WHERE email = %s', (email,))
+                    user_record = cursor.fetchone()
+                    if user_record:
+                        target_table = table
+                        break # Kullanıcıyı bulduk, döngüden çık
+                
+                if user_record and target_table:
+                    # Daha önce yazdığımız send_reset_email fonksiyonunu kullanıyoruz
+                    otp_code = str(random.randint(100000, 999999))
+                    if send_reset_email(email, otp_code):
+                        session['admin_reset_email'] = email
+                        session['admin_reset_otp'] = otp_code
+                        session['admin_reset_table'] = target_table # Tabloyu da kaydediyoruz
+                        return redirect(url_for('reset_password_admin'))
+                    else:
+                        flash("E-posta gönderilirken bir hata oluştu. Lütfen tekrar deneyin.", "danger")
+                else:
+                    flash("Bu e-posta adresiyle kayıtlı bir personel/yönetici hesabı bulunamadı.", "danger")
+                    
+            except Error as e:
+                flash("Bağlantı hatası oluştu.", "danger")
+            finally:
+                if connection.is_connected():
+                    cursor.close()
+                    connection.close()
+                    
+    return render_template('forgot_password_admin.html')
+
+@nocache
+def reset_password_admin():
+    # Güvenlik: Eğer session'da doğrulama isteği yoksa direkt at
+    if 'admin_reset_email' not in session:
+        return redirect(url_for('forgot_password_admin'))
+    return render_template('reset_password_admin.html')
+
+@nocache
+def process_reset_admin():
+    if request.method == 'POST':
+        data = request.get_json(silent=True) or {}
+        entered_code = data.get('verification_code')
+        new_password = data.get('new_password')
+        
+        real_code = session.get('admin_reset_otp')
+        email = session.get('admin_reset_email')
+        target_table = session.get('admin_reset_table')
+        
+        # Sadece izin verdiğimiz güvenli tablolar güncellenebilir (SQL Injection koruması)
+        valid_tables = ['admins', 'users', 'waiters', 'couriers']
+        
+        if entered_code and real_code and entered_code == real_code and target_table in valid_tables:
+            hashed_password = generate_password_hash(new_password, method='pbkdf2:sha256')
+            connection = get_db_connection()
+            if connection:
+                try:
+                    cursor = connection.cursor()
+                    
+                    # İlgili tabloda şifreyi güncelle
+                    query = f"UPDATE {target_table} SET password = %s WHERE email = %s"
+                    cursor.execute(query, (hashed_password, email))
+                    connection.commit()
+                    
+                    # İşlem bitti, session verilerini temizle
+                    session.pop('admin_reset_email', None)
+                    session.pop('admin_reset_otp', None)
+                    session.pop('admin_reset_table', None)
+                    
+                    flash("Şifreniz başarıyla yenilendi! 🎉 Artık sisteme giriş yapabilirsiniz.", "success")
+                    return {'success': True, 'redirect': url_for('login')}
+                    
+                except Error as e:
+                    connection.rollback()
+                    return {'success': False, 'message': 'İşlem sırasında veritabanı hatası oluştu.'}
+                finally:
+                    if connection.is_connected():
+                        cursor.close()
+                        connection.close()
+        else:
+            return {'success': False, 'message': 'Hatalı veya süresi geçmiş kod girdiniz!'}
+            
+    return {'success': False, 'message': 'Geçersiz istek.'}
+
+@nocache
+def resend_reset_code_admin():
+    email = session.get('admin_reset_email')
+    if email:
+        otp_code = str(random.randint(100000, 999999))
+        if send_reset_email(email, otp_code):
+            session['admin_reset_otp'] = otp_code
+            return {'success': True, 'message': 'Yeni doğrulama kodu gönderildi! 📨'}
+        else:
+            return {'success': False, 'message': 'Kod gönderilemedi, lütfen tekrar deneyin.'}
+            
+    return {'success': False, 'message': 'Bekleyen bir işlem bulunamadı.'}

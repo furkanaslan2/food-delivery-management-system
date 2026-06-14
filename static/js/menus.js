@@ -208,8 +208,8 @@ function loadPromos() {
             tbody.innerHTML = data.promos.map(p => `
                 <tr>
                     <td style="font-weight:700; color:#111827;">${p.code_name}</td>
-                    <td style="color:#059669; font-weight:600;">${p.discount_type === 'percentage' ? '%' + p.discount_value : '$' + p.discount_value}</td>
-                    <td>$${p.min_cart_amount}</td>
+                    <td style="color:#059669; font-weight:600;">${p.discount_type === 'percentage' ? '%' + p.discount_value : '₺' + p.discount_value}</td>
+                    <td>₺${p.min_cart_amount}</td>
                     <td>
                         <button onclick="togglePromo(${p.promo_id}, ${p.is_active ? 0 : 1})" 
                             style="background:${p.is_active ? '#dcfce3' : '#f3f4f6'}; color:${p.is_active ? '#16a34a' : '#6b7280'}; border:none; padding:4px 8px; border-radius:4px; font-weight:bold; font-size:11px; cursor:pointer;">

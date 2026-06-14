@@ -1,45 +1,95 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kurye Paneli</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kurye Operasyon Paneli</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; margin: 0; color: #1f2937; }
-        .header { background: #1f2937; color: white; padding: 20px; text-align: center; position: sticky; top: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .header h1 { margin: 0; font-size: 20px; }
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; margin: 0; color: #111827; -webkit-tap-highlight-color: transparent; }
         
-        .container { padding: 15px; max-width: 500px; margin: auto; }
+        .kurye-header { background: #111827; color: white; padding: 25px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .header-title { display: flex; flex-direction: column; gap: 4px; }
+        .header-title h1 { margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
+        .header-title span { font-size: 13px; color: #9ca3af; font-weight: 500; }
         
-        .order-card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .status-badge { display: inline-block; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-bottom: 15px; }
-        .status-preparing { background: #fef3c7; color: #92400e; }
-        .status-on_the_way { background: #dbeafe; color: #1e40af; }
+        .logout-btn { background-color: rgba(255, 255, 255, 0.1); color: white; text-decoration: none; padding: 10px 16px; border-radius: 8px; font-size: 14px; font-weight: 600; border: 1px solid rgba(255, 255, 255, 0.2); 
+            transition: background-color 0.2s ease, transform 0.2s ease; 
+            transform: translateZ(0); 
+        }
+        .logout-btn:active { background-color: rgba(255, 255, 255, 0.2); transform: scale(0.95) translateZ(0); }
+
+        #gps-tracker-banner { background: #10b981; color: white; display: flex; justify-content: center; align-items: center; gap: 10px; padding: 12px; font-size: 13px; font-weight: 700; box-shadow: 0 4px 10px rgba(16,185,129,0.3); position: sticky; top: 80px; z-index: 50; }
+        .pulse-dot { width: 10px; height: 10px; background-color: white; border-radius: 50%; animation: pulse-white 1.5s infinite; }
         
-        .info-row { margin-bottom: 12px; font-size: 15px; line-height: 1.5; }
-        .info-label { color: #6b7280; font-size: 13px; display: block; }
+        #courier-alert { background-color: #3b82f6; color: white; padding: 20px; text-align: center; font-weight: 800; font-size: 15px; margin: 15px; border-radius: 12px; cursor: pointer; box-shadow: 0 6px 15px rgba(59, 130, 246, 0.4); animation: flashPulse 1.5s infinite; letter-spacing: 0.5px; }
+
+        @keyframes pulse-white { 0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); } 70% { box-shadow: 0 0 0 6px rgba(255, 255, 255, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); } }
+        @keyframes flashPulse { 0% { background-color: #3b82f6; } 50% { background-color: #2563eb; transform: scale(1.02); } 100% { background-color: #3b82f6; } }
+
+        .container { padding: 15px; max-width: 500px; margin: auto; padding-bottom: 100px; }
         
-        /* Tek Tıkla Arama ve Harita Butonları */
-        .contact-links { display: flex; gap: 10px; margin-top: 15px; }
-        .contact-btn { flex: 1; padding: 12px; text-align: center; background: #f3f4f6; border-radius: 8px; text-decoration: none; color: #374151; font-weight: 600; font-size: 14px; border: 1px solid #e5e7eb; }
+        .order-card { background: white; border-radius: 20px; padding: 24px 20px; margin-bottom: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.04); border: 1px solid #e5e7eb; position: relative; }
         
-        /* Devasa Aksiyon Butonları */
-        .action-btn { width: 100%; padding: 16px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; color: white; cursor: pointer; margin-top: 15px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .btn-pickup { background-color: #3b82f6; } /* Mavi: Yola Çık */
-        .btn-deliver { background-color: #10b981; } /* Yeşil: Teslim Et */
+        .card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f3f4f6; padding-bottom: 15px; margin-bottom: 20px; }
+        .status-badge { display: inline-flex; align-items: center; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .status-ready { background: #fef3c7; color: #b45309; }
+        .status-on_the_way { background: #dbeafe; color: #1d4ed8; }
+        .price-tag { font-weight: 800; color: #111827; font-size: 18px; }
+
+        .route-container { position: relative; margin-bottom: 25px; margin-top: 10px; }
+        .route-line { position: absolute; left: 7px; top: 15px; bottom: 15px; width: 2px; background: #e5e7eb; z-index: 1; }
         
-        .empty-state { text-align: center; margin-top: 60px; color: #6b7280; }
-        .empty-state h3 { font-size: 20px; color: #374151; }
+        .route-point { display: flex; gap: 15px; position: relative; margin-bottom: 20px; align-items: flex-start; }
+        .route-point:last-child { margin-bottom: 0; }
+        
+        .point-dot { width: 16px; height: 16px; border-radius: 50%; z-index: 2; box-shadow: 0 0 0 4px white; flex-shrink: 0; margin-top: 2px; }
+        .dot-pickup { background: #111827; }
+        .dot-dropoff { background: #10b981; }
+        
+        .point-details h4 { margin: 0 0 4px 0; font-size: 12px; color: #6b7280; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .point-details p { margin: 0; font-size: 15px; color: #111827; font-weight: 600; line-height: 1.4; }
+        .point-details .sub-text { font-size: 14px; color: #6b7280; font-weight: 500; margin-top: 2px; }
+
+        .payment-info { margin-top: 20px; padding-top: 15px; border-top: 1px dashed #e5e7eb; }
+        .payment-pill { display: inline-block; padding: 6px 10px; border-radius: 6px; font-size: 13px; font-weight: 700; }
+        .pay-online { color: #059669; background: #dcfce3; }
+        .pay-cash { color: #b45309; background: #fef3c7; }
+
+        .customer-note { margin-top: 15px; background-color: #f9fafb; border-left: 3px solid #111827; padding: 12px 15px; border-radius: 4px; font-size: 14px; color: #374151; font-weight: 500; }
+        .customer-note span { display: block; font-size: 11px; color: #6b7280; font-weight: 700; text-transform: uppercase; margin-bottom: 4px; }
+
+        .contact-links { display: flex; gap: 10px; margin-top: 25px; margin-bottom: 15px; }
+        .contact-btn { flex: 1; padding: 14px; text-align: center; background: white; border-radius: 10px; text-decoration: none; color: #111827; font-weight: 700; font-size: 14px; border: 1px solid #d1d5db; display: flex; justify-content: center; align-items: center; gap: 8px; 
+            transition: background-color 0.2s ease, transform 0.2s ease; 
+            transform: translateZ(0); 
+            will-change: transform; 
+        }
+        .contact-btn:active { background: #f3f4f6; transform: scale(0.98) translateZ(0); }
+        
+        .action-btn { width: 100%; border: none; padding: 18px; border-radius: 12px; font-size: 16px; font-weight: 800; color: white; cursor: pointer; letter-spacing: 0.5px; 
+            transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1); 
+            transform: translateZ(0); 
+            will-change: transform; 
+        }
+        .action-btn:active { transform: scale(0.96) translateZ(0); }
+        .btn-pickup { background: #111827; }
+        .btn-deliver { background: #10b981; }
+        
+        .empty-state { text-align: center; padding: 60px 20px; background: white; border-radius: 20px; margin-top: 30px; border: 1px solid #e5e7eb; }
+        .empty-state svg { width: 48px; height: 48px; color: #d1d5db; margin-bottom: 15px; }
+        .empty-state h3 { margin: 0 0 8px 0; color: #111827; font-size: 18px; font-weight: 800; }
+        .empty-state p { margin: 0; color: #6b7280; font-size: 14px; font-weight: 500; }
     </style>
 </head>
 <body>
 
-    <div class="header" style="display: flex; justify-content: space-between; align-items: center;">
-        <h1 style="text-align: left;">🛵 {{ courier_name }}</h1>
-        <a href="{{ url_for('logout') }}" style="background-color: #ef4444; color: white; text-decoration: none; padding: 8px 14px; border-radius: 6px; font-size: 14px; font-weight: 600; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
-            Logout 🚪
-        </a>
+    <div class="kurye-header">
+        <div class="header-title">
+            <h1>Kurye Paneli</h1>
+            <span>{{ courier_name }}</span>
+        </div>
+        <a href="{{ url_for('logout') }}" class="logout-btn">Çıkış Yap</a>
     </div>
 
     {% set ns = namespace(active_delivery='false') %}
@@ -53,28 +103,20 @@
     
     <div id="courier-gps-data" data-has-active-delivery="{{ ns.active_delivery }}" style="display: none;"></div>
 
-    <div id="gps-tracker-banner" style="display: none; background: #10b981; color: white; text-align: center; padding: 10px; font-size: 13px; font-weight: 600; box-shadow: 0 2px 4px rgba(0,0,0,0.1); position: sticky; top: 60px; z-index: 50;">
-        <span id="gps-status-text">📡 Müşteriye Canlı Konum Aktarılıyor...</span>
+    <div id="gps-tracker-banner" style="display: none;">
+        <div class="pulse-dot"></div>
+        <span id="gps-status-text">Canlı Konum Aktarılıyor</span>
     </div>
     
-    <div id="courier-alert" style="display: none; background-color: #3b82f6; color: white; padding: 15px; text-align: center; font-weight: 700; font-size: 16px; margin-bottom: -15px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); animation: flashPulse 1.5s infinite;" onclick="window.location.reload();">
-        <span id="courier-alert-text">📦 YENİ PAKET GELDİ! Yenilemek için dokun.</span>
+    <div id="courier-alert" style="display: none;" onclick="window.location.reload();">
+        <span id="courier-alert-text">YENİ PAKET GELDİ - YENİLE</span>
     </div>
-
-    <style>
-        /* Kuryenin dikkatini çekmek için yanıp sönen animasyon */
-        @keyframes flashPulse {
-            0% { background-color: #3b82f6; }
-            50% { background-color: #1d4ed8; transform: scale(1.02); }
-            100% { background-color: #3b82f6; }
-        }
-    </style>
 
     <div class="container">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
-                    <div style="background: #d1fae5; color: #065f46; padding: 12px; border-radius: 8px; margin-bottom: 20px; text-align: center; font-weight: 500;">
+                    <div style="background: #111827; color: white; padding: 14px; border-radius: 10px; margin-bottom: 20px; text-align: center; font-weight: 600; font-size: 14px;">
                         {{ message }}
                     </div>
                 {% endfor %}
@@ -84,50 +126,68 @@
         {% if orders %}
             {% for order in orders %}
             <div class="order-card">
-                <div style="display: flex; justify-content: space-between; align-items: start;">
-                    <span class="status-badge status-{{ order.order_status }}">
-                        {{ '📦 Ready for Pickup' if order.order_status == 'ready' else '🛵 On the Way' }}
-                    </span>
-                    <span style="font-weight: 700; color: #059669; font-size: 18px;">${{ order.sales_amount }}</span>
-                </div>
-
-                <div class="info-row">
-                    <span class="info-label">Customer</span>
-                    <strong>{{ order.customer_name }}</strong>
-                </div>
                 
-                <div class="info-row">
-                    <span class="info-label">Delivery Address</span>
-                    {{ order.customer_address }}
+                <div class="card-header">
+                    <span class="status-badge status-{{ order.order_status }}">
+                        {{ 'TESLİM ALINACAK' if order.order_status == 'ready' else 'YOLDA (SENDE)' }}
+                    </span>
+                    <span class="price-tag">₺{{ order.sales_amount }}</span>
                 </div>
 
-                <div style="margin-top: 15px; font-weight: 600; font-size: 14px;">
-                    💳 Ödeme: 
+                <div class="route-container">
+                    <div class="route-line"></div>
+                    
+                    <div class="route-point">
+                        <div class="point-dot dot-pickup"></div>
+                        <div class="point-details">
+                            <h4>Alınacak Nokta</h4>
+                            <p>Restoran Şubesi</p>
+                        </div>
+                    </div>
+
+                    <div class="route-point">
+                        <div class="point-dot dot-dropoff"></div>
+                        <div class="point-details">
+                            <h4>Teslim Noktası</h4>
+                            <p>{{ order.customer_name }}</p>
+                            <div class="sub-text">{{ order.customer_address }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="payment-info">
                     {% if order.payment_method == 'Online Payment' %}
-                        <span style="color: #059669; background: #dcfce3; padding: 4px 8px; border-radius: 6px;">🌐 Online Ödendi</span>
+                        <span class="payment-pill pay-online">Online Ödendi</span>
                     {% else %}
-                        <span style="color: #b45309; background: #fef3c7; padding: 4px 8px; border-radius: 6px;">💰 {{ order.payment_method }} (Tahsil Edilecek)</span>
+                        <span class="payment-pill pay-cash">Tahsil Edilecek: {{ order.payment_method }}</span>
                     {% endif %}
                 </div>
 
                 {% if order.order_note %}
-                    <div style="margin-top: 10px; background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 10px; border-radius: 4px; font-size: 13px; color: #7f1d1d; font-style: italic;">
-                        <strong>📌 Müşteri Notu:</strong> "{{ order.order_note }}"
+                    <div class="customer-note">
+                        <span>Müşteri Notu</span>
+                        {{ order.order_note }}
                     </div>
                 {% endif %}
 
                 <div class="contact-links">
-                    <a href="tel:{{ order.customer_phone }}" class="contact-btn">📞 Ara</a>
-                    <a href="https://www.google.com/maps/search/?api=1&query={{ order.customer_address }}" target="_blank" class="contact-btn">📍 Yol Tarifi</a>
+                    <a href="tel:{{ order.customer_phone }}" class="contact-btn">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                        Ara
+                    </a>
+                    <a href="https://www.google.com/maps/search/?api=1&query={{ order.customer_address }}" target="_blank" class="contact-btn">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg>
+                        Yol Tarifi
+                    </a>
                 </div>
 
-                <form action="{{ url_for('update_delivery_status') }}" method="POST">
+                <form action="{{ url_for('update_delivery_status') }}" method="POST" style="margin: 0;">
                     <input type="hidden" name="order_id" value="{{ order.order_id }}">
                     <input type="hidden" name="courier_id" value="{{ courier_id }}">
                     
                     {% if order.order_status == 'ready' %}
                         <input type="hidden" name="new_status" value="on_the_way">
-                        <button type="submit" class="action-btn btn-pickup">Paketi Aldım (Yola Çık)</button>
+                        <button type="submit" class="action-btn btn-pickup">Paketi Teslim Aldım</button>
                     {% elif order.order_status == 'on_the_way' %}
                         <input type="hidden" name="new_status" value="delivered">
                         <button type="submit" class="action-btn btn-deliver">Müşteriye Teslim Ettim</button>
@@ -137,8 +197,9 @@
             {% endfor %}
         {% else %}
             <div class="empty-state">
-                <h3>Aktif teslimat bulunmuyor</h3>
-                <p>Tüm siparişleri başarıyla teslim ettin! Biraz mola ver. ☕</p>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+                <h3>Aktif Teslimat Yok</h3>
+                <p>Şu an üzerinde bir paket bulunmuyor.</p>
             </div>
         {% endif %}
     </div>

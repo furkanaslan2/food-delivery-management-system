@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sepetiniz ve Ödeme | Lezzet Kapında</title>
+    <title>Sepetiniz ve Ödeme | YeSende</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/flash.css') }}">
     <style>
@@ -26,23 +26,18 @@
         } 
         
         .back-link { 
-            text-decoration: none; 
-            color: #ffffff; 
-            font-weight: 700; 
-            font-size: 14px; 
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-            display: flex; align-items: center; gap: 8px; 
-            padding: 10px 20px; 
-            border-radius: 20px; 
-            background: #4f46e5; 
+            text-decoration: none; color: #ffffff; font-weight: 700; font-size: 14px; 
+            display: flex; align-items: center; gap: 8px; padding: 10px 20px; 
+            border-radius: 20px; background: #4f46e5; border: 1px solid #4338ca;
             box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);
-            border: 1px solid #4338ca;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.3s, box-shadow 0.3s; 
+            will-change: transform;
+            transform: translateZ(0); 
         }
         .back-link:hover { 
-            background: #4338ca; 
-            color: #ffffff;
-            transform: translateX(-5px) scale(1.02); 
+            background: #4338ca; color: #ffffff;
             box-shadow: 0 8px 15px rgba(79, 70, 229, 0.4); 
+            transform: translateX(-5px) scale(1.02) translateZ(0); 
         }
 
         .container { max-width: 1000px; margin: 40px auto 80px auto; padding: 0 20px; display: grid; grid-template-columns: 1.5fr 1fr; gap: 30px; }
@@ -69,9 +64,22 @@
         .summary-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px; color: #4b5563; font-weight: 500; }
         .summary-total { display: flex; justify-content: space-between; margin-top: 15px; padding-top: 15px; border-top: 2px solid #e5e7eb; font-size: 20px; font-weight: 800; color: #111827; }
         
-        .checkout-btn { width: 100%; padding: 16px; background-color: #10b981; color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 800; cursor: pointer; transition: all 0.2s; margin-top: 20px; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2); }
-        .checkout-btn:hover { background-color: #059669; transform: translateY(-2px); box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3); }
-        .checkout-btn:disabled { background-color: #9ca3af; cursor: not-allowed; box-shadow: none; transform: none; }
+        .checkout-btn { 
+            width: 100%; padding: 16px; background-color: #10b981; color: white; border: none; border-radius: 12px; 
+            font-size: 16px; font-weight: 800; cursor: pointer; margin-top: 20px; 
+            box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2); 
+            transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+            will-change: transform, box-shadow, background-color;
+            transform: translateZ(0);
+        }
+        .checkout-btn:hover { 
+            background-color: #059669; box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3); 
+            transform: translateY(-2px) translateZ(0); 
+        }
+        .checkout-btn:disabled { 
+            background-color: #9ca3af; cursor: not-allowed; box-shadow: none; 
+            transform: translateZ(0); 
+        }
         
         .empty-cart { text-align: center; color: #6b7280; padding: 50px 0; }
     </style>
@@ -80,7 +88,7 @@
 
     <nav class="customer-nav">
         <a href="/" class="nav-brand">
-            <img src="{{ url_for('static', filename='images/icons/logo.svg') }}" alt="Lezzet Kapında">
+            <img src="{{ url_for('static', filename='images/icons/logo.svg') }}" alt="YeSende">
         </a>
         <div style="display: flex; gap: 20px; align-items: center;">   
             {% set back_nav = namespace(url=url_for('index')) %}
@@ -100,7 +108,7 @@
         </div>
     </nav>
 
-    <div class="container">
+    <div class="container" {% if not cart %}style="grid-template-columns: 1fr; max-width: 600px;"{% endif %}>
         <div class="cart-items">
             <h2 class="section-title">🛒 Sipariş Özeti</h2>
             
@@ -119,12 +127,12 @@
                         </div>
                         <div>
                             <p class="item-name">{{ item['food_name'] }}</p>
-                            <p class="item-price">Adet: ${{ item['price'] }}</p>
+                            <p class="item-price">Adet: ₺{{ item['price'] }}</p>
                         </div>
                     </div>
 
                     <div class="item-total" style="display: flex; align-items: center; gap: 20px;">
-                        <span>${{ "%.2f"|format(item['price'] * item['quantity']) }}</span>
+                        <span>₺{{ "%.2f"|format(item['price'] * item['quantity']) }}</span>
                         <form action="{{ url_for('remove_from_cart', menu_id=item['menu_id']) }}" method="POST" style="margin: 0;">
                             <button type="submit" style="background: #fee2e2; border: none; color: #ef4444; cursor: pointer; font-size: 16px; width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; transition: 0.2s;" title="Sepetten Çıkar" onmouseover="this.style.background='#fca5a5'; this.style.color='white';" onmouseout="this.style.background='#fee2e2'; this.style.color='#ef4444';">🗑️</button>
                         </form>
@@ -141,6 +149,7 @@
             {% endif %}
         </div>
 
+        {% if cart %}
         <div class="checkout-box">
             <h2 class="section-title">📦 Teslimat Detayları</h2>
             
@@ -192,12 +201,12 @@
 
                 <div class="summary-row" style="margin-top: 25px;">
                     <span>Ara Toplam</span>
-                    <span>$<span id="ui_subtotal">{{ "%.2f"|format(total_amount) }}</span></span>
+                    <span>₺<span id="ui_subtotal">{{ "%.2f"|format(total_amount) }}</span></span>
                 </div>
                 
                 <div class="summary-row" id="ui_discount_row" style="display: none; color: #10b981; font-weight: 700;">
                     <span>🎟️ İndirim (Kupon)</span>
-                    <span>-$<span id="ui_discount_amount">0.00</span></span>
+                    <span>-₺<span id="ui_discount_amount">0.00</span></span>
                 </div>
                 
                 {% set missing_amount = min_order_amount - total_amount %}
@@ -205,7 +214,7 @@
                 {% if min_order_amount > 0 %}
                 <div class="summary-row" style="font-weight: 600; color: #6b7280;">
                     <span>Minimum Sipariş Tutarı</span>
-                    <span>${{ "%.2f"|format(min_order_amount) }}</span>
+                    <span>₺{{ "%.2f"|format(min_order_amount) }}</span>
                 </div>
                 {% endif %}
 
@@ -215,12 +224,12 @@
                 </div>
                 <div class="summary-total">
                     <span>Toplam Ödenecek</span>
-                    <span>${{ "%.2f"|format(total_amount) }}</span>
+                    <span>₺{{ "%.2f"|format(total_amount) }}</span>
                 </div>
 
                 {% if min_order_amount > 0 and missing_amount > 0 and cart %}
                     <div style="background: #fee2e2; color: #991b1b; padding: 14px; border-radius: 10px; font-size: 14px; font-weight: 700; margin: 20px 0; border: 1px solid #f87171; text-align: center;">
-                        ⚠️ Siparişi tamamlamak için ${{"%.2f"|format(missing_amount)}} tutarında daha ürün eklemelisiniz.
+                        ⚠️ Siparişi tamamlamak için ₺{{"%.2f"|format(missing_amount)}} tutarında daha ürün eklemelisiniz.
                     </div>
                 {% endif %}
 
@@ -234,10 +243,8 @@
                     <button type="button" class="checkout-btn" disabled>Sepetiniz Boş</button>
                 {% endif %}
             </form>
-        </div>
-    </div>
-
-    <div id="flash-messages-container" style="display: none;">
+        </div> {% endif %} 
+        </div> <div id="flash-messages-container" style="display: none;">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}

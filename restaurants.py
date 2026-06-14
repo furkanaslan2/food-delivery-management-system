@@ -435,3 +435,80 @@ def reply_review():
             connection.close()
             
     return jsonify({'success': False, 'message': 'Veritabanı hatası.'}), 500
+
+def delete_restaurant_account():
+    # Sadece restoran sahibi (user) bu işlemi yapabilir
+    if 'logged_in' not in session or session.get('role') != 'user':
+        flash("Yetkisiz işlem.", "danger")
+        return redirect(url_for('login'))
+        
+    restaurant_id = session.get('restaurant_id')
+    user_id = session.get('user_id')
+    
+    connection = get_db_connection()
+    if connection:
+        try:
+            cursor = connection.cursor()
+            
+            # 1. Restoranı pasife al (Soft Delete)
+            cursor.execute("UPDATE restaurants SET is_active = 0 WHERE restaurant_id = %s", (restaurant_id,))
+            
+            # 2. Restoran sahibinin kendi erişimini kesmek için şifresini bozup e-postasını değiştiriyoruz (Anonimleştirme)
+            cursor.execute("""
+                UPDATE users 
+                SET email = CONCAT('closed_', %s, '@anonym.com'), 
+                    password = '' 
+                WHERE user_id = %s
+            """, (user_id, user_id))
+            
+            connection.commit()
+            
+            session.clear()
+            flash("İşletme hesabınız başarıyla kapatıldı. Sizi tekrar aramızda görmeyi umuyoruz!", "success")
+            return redirect(url_for('login'))
+            
+        except Error as e:
+            connection.rollback()
+            flash(f"İşlem sırasında bir hata oluştu: {e}", "danger")
+            return redirect(url_for('restaurant_profile'))
+        finally:
+            if connection.is_connected():
+                cursor.close()
+                connection.close()
+                
+    return redirect(url_for('index'))
+
+def toggle_store_status():
+    if session.get('role') != 'user':
+        return jsonify({'success': False, 'message': 'Yetkisiz işlem'})
+        
+    restaurant_id = session.get('restaurant_id')
+    connection = get_db_connection()
+    
+    if connection:
+        try:
+            cursor = connection.cursor(dictionary=True)
+            
+            # GET İSTEĞİ: Sayfa yüklendiğinde mevcut durumu (Açık/Kapalı) HTML'e söyle
+            if request.method == 'GET':
+                cursor.execute("SELECT is_manually_closed FROM restaurants WHERE restaurant_id = %s", (restaurant_id,))
+                res = cursor.fetchone()
+                return jsonify({'success': True, 'is_manually_closed': bool(res['is_manually_closed'])})
+                
+            # POST İSTEĞİ: Butona tıklandığında durumu tam tersine çevir ve kaydet
+            elif request.method == 'POST':
+                cursor.execute("SELECT is_manually_closed FROM restaurants WHERE restaurant_id = %s", (restaurant_id,))
+                res = cursor.fetchone()
+                
+                new_status = 0 if res['is_manually_closed'] else 1
+                
+                cursor.execute("UPDATE restaurants SET is_manually_closed = %s WHERE restaurant_id = %s", (new_status, restaurant_id))
+                connection.commit()
+                
+                return jsonify({'success': True, 'is_manually_closed': bool(new_status)})
+                
+        finally:
+            cursor.close()
+            connection.close()
+            
+    return jsonify({'success': False})

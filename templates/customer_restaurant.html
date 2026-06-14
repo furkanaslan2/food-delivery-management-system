@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ restaurant['restaurant_name'] }} - Menü | Lezzet Kapında</title>
+    <title>{{ restaurant['restaurant_name'] }} - Menü | YeSende</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/flash.css') }}">
     
@@ -32,7 +32,9 @@
         .nav-links a { text-decoration: none; color: #d1d5db; font-weight: 500; transition: color 0.2s; display: flex; align-items: center; gap: 6px; }
         .nav-links a:hover { color: #ffffff; }
         
-        .nav-address-btn { background: #1f2937; border: 1px solid #374151; padding: 10px 18px; border-radius: 20px; font-family: inherit; font-size: 14px; font-weight: 600; color: #f3f4f6; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s; }
+        .nav-address-btn { background: #1f2937; border: 1px solid #374151; padding: 10px 18px; border-radius: 20px; font-family: inherit; font-size: 14px; font-weight: 600; color: #f3f4f6; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+        transform: translateZ(0); }
+        
         .nav-address-btn:hover { background: #374151; border-color: #4b5563; color: white; }
         
         .cart-btn { background: #4f46e5; color: white !important; padding: 10px 20px; border-radius: 20px; display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; transition: background 0.2s; border: 1px solid #4338ca; }
@@ -45,7 +47,9 @@
         .dropdown::after { content: ''; position: absolute; top: 100%; left: 0; width: 100%; height: 15px; background: transparent; display: none; }
         .dropdown:hover::after { display: block; }
 
-        .dropdown-btn { background-color: #1f2937; color: #f3f4f6; padding: 10px 18px; font-size: 14px; font-weight: 600; border: 1px solid #374151; border-radius: 20px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s; font-family: inherit; }
+        .dropdown-btn { background-color: #1f2937; color: #f3f4f6; padding: 10px 18px; font-size: 14px; font-weight: 600; border: 1px solid #374151; border-radius: 20px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+        transform: translateZ(0); font-family: inherit; }
+
         .dropdown-btn:hover { background-color: #374151; border-color: #4b5563; color: white; }
         .dropdown-content { display: none; position: absolute; right: 0; top: 100%; background-color: #ffffff; min-width: 200px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); border-radius: 12px; overflow: hidden; z-index: 1000; border: 1px solid #e5e7eb; margin-top: 10px; }
         .dropdown-content a { color: #374151; padding: 12px 18px; text-decoration: none; display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; transition: background-color 0.2s; }
@@ -69,8 +73,16 @@
         
         /* Yemek Listesi (Yenilendi) */
         .menu-list { display: flex; flex-direction: column; gap: 15px; }
-        .menu-item { background: white; padding: 20px; border-radius: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03); display: flex; justify-content: space-between; align-items: center; border: 1px solid #f3f4f6; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .menu-item:hover { border-color: #e5e7eb; box-shadow: 0 15px 25px -5px rgba(0,0,0,0.08); transform: translateY(-4px); }
+        .menu-item { 
+            background: white; padding: 20px; border-radius: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03); 
+            display: flex; justify-content: space-between; align-items: center; border: 1px solid #f3f4f6; 
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease, border-color 0.3s ease;
+            will-change: transform, box-shadow; 
+        }
+        .menu-item:hover { 
+            border-color: #e5e7eb; box-shadow: 0 15px 25px -5px rgba(0,0,0,0.08); 
+            transform: translateY(-4px) translateZ(0); 
+        }
         
         .item-info h3 { margin: 0 0 6px 0; font-size: 18px; font-weight: 800; color: #111827; }
         .item-info .type { font-size: 13px; color: #4b5563; margin-bottom: 8px; display: inline-flex; align-items: center; gap: 4px; background: #f3f4f6; padding: 4px 10px; border-radius: 20px; font-weight: 600;}
@@ -80,7 +92,12 @@
         .add-to-cart-form { display: flex; align-items: center; gap: 10px; }
         .qty-input { width: 45px; padding: 12px 8px; border: 1px solid #d1d5db; border-radius: 12px; text-align: center; font-family: inherit; font-weight: 700; outline: none; transition: border-color 0.2s; background: #f9fafb; }
         .qty-input:focus { border-color: #4f46e5; background: #ffffff; }
-        .add-btn { background: #10b981; color: white; border: none; padding: 12px 20px; border-radius: 12px; font-weight: 800; font-size: 14px; cursor: pointer; transition: all 0.2s; font-family: inherit; box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2); display: flex; align-items: center; gap: 6px; }
+        .add-btn { 
+            background: #10b981; color: white; border: none; padding: 12px 20px; border-radius: 12px; font-weight: 800; font-size: 14px; cursor: pointer; font-family: inherit; box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2); display: flex; align-items: center; gap: 6px; 
+            transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+            will-change: transform, box-shadow;
+            transform: translateZ(0);
+        }
         .add-btn:hover { background: #059669; box-shadow: 0 6px 12px rgba(16, 185, 129, 0.3); transform: translateY(-2px); }
 
         /* Kapalı Restoran CSS Kuralları */
@@ -89,9 +106,16 @@
         .add-btn:disabled { background-color: #9ca3af !important; color: #f3f4f6 !important; cursor: not-allowed !important; box-shadow: none !important; transform: none !important; }
         .qty-input:disabled { background-color: #f3f4f6; color: #9ca3af; }
 
-        /* Modallar */
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 24, 39, 0.7); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
-        .modal-content { background: white; width: 90%; max-width: 600px; max-height: 80vh; border-radius: 20px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 24, 39, 0.85); z-index: 2000; justify-content: center; align-items: center; }
+        
+        .modal-content { 
+            background: white; width: 90%; max-width: 600px; max-height: 80vh; border-radius: 20px; 
+            display: flex; flex-direction: column; overflow: hidden; 
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.4); 
+            animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; 
+            will-change: transform, opacity; 
+            transform: translateZ(0);
+        }
         .modal-header { padding: 20px 25px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; background-color: #fff; }
         .modal-header h3 { margin: 0; font-size: 20px; color: #111827; font-weight: 800; }
         .close-btn { background: none; border: none; font-size: 28px; cursor: pointer; color: #9ca3af; transition: color 0.2s; line-height: 1; }
@@ -99,8 +123,12 @@
         .modal-body { padding: 25px; overflow-y: auto; background-color: #f8f9fa; }
         @keyframes slideUp { from { transform: translateY(30px) scale(0.95); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
 
-        /* Favori Butonu */
-        .fav-btn-container { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 50%; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 4px 6px rgba(0,0,0,0.1); padding: 0; }
+        .fav-btn-container { 
+            background: #ffffff; border: 1px solid #e5e7eb; border-radius: 50%; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); padding: 0; 
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s ease, border-color 0.2s ease;
+            will-change: transform;
+            transform: translateZ(0);
+        }
         .fav-btn-container:hover { transform: scale(1.08); border-color: #fca5a5; background-color: #fef2f2; }
         .fav-btn-container:active { transform: scale(0.92); }
         .heart-svg { width: 24px; height: 24px; transition: fill 0.2s ease, stroke 0.2s ease; }
@@ -125,19 +153,10 @@
         .sticky-category-nav::-webkit-scrollbar { display: none; } 
         
         .cat-link {
-            background: #ffffff;
-            border: 1px solid #e5e7eb;
-            padding: 10px 22px;
-            font-size: 14px;
-            font-weight: 700;
-            color: #4b5563;
-            cursor: pointer;
-            border-radius: 30px;
-            white-space: nowrap;
-            transition: all 0.2s;
-            text-decoration: none;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-            display: flex; align-items: center; gap: 6px;
+            background: #ffffff; border: 1px solid #e5e7eb; padding: 10px 22px; font-size: 14px; font-weight: 700; color: #4b5563; cursor: pointer; border-radius: 30px; white-space: nowrap; text-decoration: none; box-shadow: 0 2px 4px rgba(0,0,0,0.02); display: flex; align-items: center; gap: 6px;
+            transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+            will-change: transform;
+            transform: translateZ(0);
         }
         .cat-link:hover { border-color: #d1d5db; background: #f9fafb; transform: translateY(-1px); }
         .cat-link.active { background: #111827; color: white; border-color: #111827; box-shadow: 0 4px 10px rgba(17, 24, 39, 0.2); }
@@ -155,7 +174,7 @@
 
     <nav class="customer-nav" id="main-navbar">
         <a href="/" class="nav-brand">
-            <img src="{{ url_for('static', filename='images/icons/logo.svg') }}" alt="Lezzet Kapında">
+            <img src="{{ url_for('static', filename='images/icons/logo.svg') }}" alt="YeSende">
         </a>
         
         <div class="nav-links">
@@ -189,12 +208,12 @@
                 {% if cart_price.total > 0 %}
                     <span id="nav-cart-total" data-total="{{ cart_price.total }}" 
                           style="font-size: 13px; font-weight: 800; color: #10b981; background: #ecfdf5; padding: 2px 10px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: transform 0.3s;">
-                        ${{ "%.2f"|format(cart_price.total) }}
+                        ₺{{ "%.2f"|format(cart_price.total) }}
                     </span>
                 {% else %}
                     <span id="nav-cart-total" data-total="0" 
                           style="display: none; font-size: 13px; font-weight: 800; color: #10b981; background: #ecfdf5; padding: 2px 10px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: transform 0.3s;">
-                        $0.00
+                        ₺0.00
                     </span>
                 {% endif %}
             </div>
@@ -216,9 +235,9 @@
     
     <div class="restaurant-header {% if restaurant.get('is_open') == False %}closed-header{% endif %}" 
          {% if restaurant['image_url'] and restaurant['image_url'] != 'default_restaurant.jpg' %}
-            style="background: linear-gradient(rgba(17, 24, 39, 0.75), rgba(17, 24, 39, 0.9)), url('{{ bg_image }}') center/cover; color: white; padding: 70px 5%; text-align: center; border-bottom: 5px solid #4f46e5;"
+            style="background: linear-gradient(rgba(17, 24, 39, 0.75), rgba(17, 24, 39, 0.9)), url('{{ bg_image }}') center/cover; color: white; padding: 40px 5%; text-align: center; border-bottom: 5px solid #4f46e5;"
          {% else %}
-            style="background: linear-gradient(135deg, #1f2937, #111827); color: white; padding: 70px 5%; text-align: center; border-bottom: 5px solid #4f46e5;"
+            style="background: linear-gradient(135deg, #1f2937, #111827); color: white; padding: 40px 5%; text-align: center; border-bottom: 5px solid #4f46e5;"
          {% endif %}>
         
         <div style="display: flex; justify-content: center; align-items: center; gap: 15px; margin-bottom: 12px;">
@@ -251,11 +270,11 @@
         {% if active_promos %}
         <div style="margin-bottom: 35px;">
             <h3 style="font-size: 18px; font-weight: 800; margin: 0 0 15px 0; color: #111827; display: flex; align-items: center; gap: 8px;"><i class="ph-fill ph-ticket" style="color: #ec4899; font-size: 24px;"></i> Fırsatları Kaçırma</h3>
-            <div style="display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none;">
+            <div style="display: flex; gap: 15px; overflow-x: auto; padding-top: 5px; padding-left: 2px; scrollbar-width: none;">
                 {% for promo in active_promos %}
                 <div onclick="navigator.clipboard.writeText('{{ promo.code_name }}'); showToast('Kupon kodu kopyalandı: {{ promo.code_name }}', 'success');" 
-                     style="background: linear-gradient(135deg, #4f46e5, #ec4899); color: white; padding: 15px 20px; border-radius: 12px; min-width: max-content; box-shadow: 0 4px 10px rgba(79,70,229,0.25); border: 2px dashed rgba(255,255,255,0.4); cursor: pointer; transition: transform 0.2s;"
-                     onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'"
+                     style="background: linear-gradient(135deg, #4f46e5, #ec4899); color: white; padding: 15px 20px; border-radius: 12px; min-width: max-content; box-shadow: 0 4px 10px rgba(79,70,229,0.25); border: 2px dashed rgba(255,255,255,0.4); cursor: pointer; transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); will-change: transform;"
+                     onmouseover="this.style.transform='translateY(-4px) translateZ(0)'" onmouseout="this.style.transform='translateY(0) translateZ(0)'"
                      title="Kodu kopyalamak için tıkla!">
                     <div style="font-weight: 800; font-size: 18px; letter-spacing: 1px; text-shadow: 0 2px 4px rgba(0,0,0,0.2);">
                         {{ promo.code_name }}
@@ -264,11 +283,11 @@
                         {% if promo.discount_type == 'percentage' %}
                             %{{ promo.discount_value|int }} İndirim
                         {% else %}
-                            ${{ promo.discount_value|int }} İndirim
+                            ₺{{ promo.discount_value|int }} İndirim
                         {% endif %}
                     </div>
                     <div style="font-size: 12px; font-weight: 500; opacity: 0.85; margin-top: 4px;">
-                        {% if promo.min_cart_amount > 0 %}Min. Sepet: ${{ promo.min_cart_amount }}{% else %}Alt limitsiz{% endif %}
+                        {% if promo.min_cart_amount > 0 %}Min. Sepet: ₺{{ promo.min_cart_amount }}{% else %}Alt limitsiz{% endif %}
                     </div>
                 </div>
                 {% endfor %}
@@ -298,16 +317,19 @@
                         {% endif %}
                         <div class="item-info">
                             <h3>{{ item['custom_name'] or item['food_name'] }}</h3>
-                            <p class="price">${{ item['price'] }}</p>
+                            <p class="price">₺{{ item['price'] }}</p>
                         </div>
                     </div>
-                    <form class="add-to-cart-form" action="{{ url_for('add_to_cart') }}" method="POST">
+                    <form class="add-to-cart-form" action="{{ url_for('add_to_cart') }}" method="POST" style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
                         <input type="hidden" name="menu_id" value="{{ item['menu_id'] }}">
                         <input type="hidden" name="restaurant_id" value="{{ restaurant['restaurant_id'] }}">
                         <input type="hidden" name="food_name" value="{{ item['custom_name'] or item['food_name'] }}">
                         <input type="hidden" name="price" value="{{ item['price'] }}">
-                        <input type="number" name="quantity" class="qty-input" value="1" min="1" max="{{ item['stock_quantity'] }}" {% if restaurant.get('is_open') == False %}disabled{% endif %}>
-                        <button type="submit" class="add-btn" {% if restaurant.get('is_open') == False %}disabled{% endif %}><i class="ph-bold ph-plus"></i> Ekle</button>
+                        
+                        <div style="display: flex; gap: 8px;">
+                            <input type="number" name="quantity" class="qty-input" value="1" min="1" max="{{ item['stock_quantity'] }}" {% if restaurant.get('is_open') == False %}disabled{% endif %}>
+                            <button type="submit" class="add-btn" {% if restaurant.get('is_open') == False %}disabled{% endif %}><i class="ph-bold ph-plus"></i> Ekle</button>
+                        </div>
                     </form>
                 </div>
                 {% endfor %}
@@ -327,16 +349,19 @@
                         {% endif %}
                         <div class="item-info">
                             <h3>{{ item['custom_name'] or item['food_name'] }}</h3>
-                            <p class="price">${{ item['price'] }}</p>
+                            <p class="price">₺{{ item['price'] }}</p>
                         </div>
                     </div>
-                    <form class="add-to-cart-form" action="{{ url_for('add_to_cart') }}" method="POST">
+                    <form class="add-to-cart-form" action="{{ url_for('add_to_cart') }}" method="POST" style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
                         <input type="hidden" name="menu_id" value="{{ item['menu_id'] }}">
                         <input type="hidden" name="restaurant_id" value="{{ restaurant['restaurant_id'] }}">
                         <input type="hidden" name="food_name" value="{{ item['custom_name'] or item['food_name'] }}">
                         <input type="hidden" name="price" value="{{ item['price'] }}">
-                        <input type="number" name="quantity" class="qty-input" value="1" min="1" max="{{ item['stock_quantity'] }}" {% if restaurant.get('is_open') == False %}disabled{% endif %}>
-                        <button type="submit" class="add-btn" {% if restaurant.get('is_open') == False %}disabled{% endif %}><i class="ph-bold ph-plus"></i> Ekle</button>
+                        
+                        <div style="display: flex; gap: 8px;">
+                            <input type="number" name="quantity" class="qty-input" value="1" min="1" max="{{ item['stock_quantity'] }}" {% if restaurant.get('is_open') == False %}disabled{% endif %}>
+                            <button type="submit" class="add-btn" {% if restaurant.get('is_open') == False %}disabled{% endif %}><i class="ph-bold ph-plus"></i> Ekle</button>
+                        </div>
                     </form>
                 </div>
                 {% endfor %}
@@ -406,13 +431,15 @@
                 </form>
             </div>
             <div style="padding: 20px 25px; border-top: 1px solid #e5e7eb; background: #f9fafb; display: flex; justify-content: space-between; align-items: center;">
-                <div style="font-size: 20px; font-weight: 800; color: #111827;">Total: $<span id="opt-total-price">0.00</span></div>
+                <div style="font-size: 20px; font-weight: 800; color: #111827;">Toplam: ₺<span id="opt-total-price">0.00</span></div>
                 <button type="button" onclick="submitOptionsToCart()" style="background: #10b981; color: white; border: none; padding: 14px 28px; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 16px; box-shadow: 0 4px 10px rgba(16,185,129,0.25); display: flex; align-items: center; gap: 8px;" onmouseover="this.style.background='#059669'" onmouseout="this.style.background='#10b981'">
                     <i class="ph-bold ph-shopping-cart"></i> Sepete Ekle
                 </button>
             </div>
         </div>
     </div>
+
+    <div id="live-restaurant-data" data-is-open="{{ 'true' if restaurant.get('is_open') else 'false' }}" data-restaurant-id="{{ restaurant['restaurant_id'] }}" style="display: none;"></div>
 
     <div id="flash-messages-container" style="display: none;">
         {% with messages = get_flashed_messages(with_categories=true) %}

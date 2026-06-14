@@ -5,7 +5,7 @@ function showOrderDetails(event, orderId) {
     event.preventDefault();
     document.getElementById('detailModal').style.display = 'flex';
     document.getElementById('modal-items').innerHTML = '<tr><td colspan="3" style="text-align:center; padding: 20px;">Yükleniyor...</td></tr>';
-    document.getElementById('grand-total').innerText = '$0.00';
+    document.getElementById('grand-total').innerText = '₺0.00';
 
     fetch(`/order_details/${orderId}`)
         .then(response => response.json())
@@ -28,7 +28,7 @@ function showOrderDetails(event, orderId) {
                         item.choices.forEach(choice => {
                             let addPrice = parseFloat(choice.additional_price || 0);
                             extrasTotal += addPrice;
-                            let priceText = addPrice > 0 ? ` <strong style="color: #059669;">(+$${addPrice.toFixed(2)})</strong>` : '';
+                            let priceText = addPrice > 0 ? ` <strong style="color: #059669;">(+₺${addPrice.toFixed(2)})</strong>` : '';
                             choicesHtml += `<li>${choice.choice_name}${priceText}</li>`;
                         });
                         choicesHtml += '</ul>';
@@ -39,18 +39,18 @@ function showOrderDetails(event, orderId) {
                     itemsHtml += `
                         <tr style="border-bottom: 1px solid #e5e7eb;">
                             <td style="padding: 12px; color: #111827;">
-                                <div style="font-weight: 600;">${item.item_name} <span style="color: #6b7280; font-weight: 500;">($${basePrice.toFixed(2)})</span></div>
+                                <div style="font-weight: 600;">${item.item_name} <span style="color: #6b7280; font-weight: 500;">(₺${basePrice.toFixed(2)})</span></div>
                                 ${choicesHtml} 
                                 ${item.item_note ? `<div style="font-size: 12px; color: #f59e0b; margin-top: 5px;"><i class="ph-bold ph-note-pencil"></i> Not: ${item.item_note}</div>` : ''}
                             </td>
                             <td style="padding: 12px; text-align: center; font-weight: 600;">${item.quantity}</td>
-                            <td style="padding: 12px; font-weight: 600; color: #059669; text-align: right;">$${total.toFixed(2)}</td>
+                            <td style="padding: 12px; font-weight: 600; color: #059669; text-align: right;">₺${total.toFixed(2)}</td>
                         </tr>
                     `;
                 });
             }
             document.getElementById('modal-items').innerHTML = itemsHtml;
-            document.getElementById('grand-total').innerText = '$' + grandTotal.toFixed(2);
+            document.getElementById('grand-total').innerText = '₺' + grandTotal.toFixed(2);
         });
 }
 
@@ -176,7 +176,7 @@ async function fetchMenuOptions(selectEl, cartIndex) {
                     const inputType = opt.is_multiple ? 'checkbox' : 'radio';
                     const inputName = opt.is_multiple ? `chk_${opt.option_id}_${cartIndex}[]` : `rad_${opt.option_id}_${cartIndex}`;
                     const addPrice = parseFloat(choice.additional_price);
-                    const priceText = addPrice > 0 ? `<strong style="color:#10b981;">(+$${addPrice.toFixed(2)})</strong>` : '';
+                    const priceText = addPrice > 0 ? `<strong style="color:#10b981;">(+₺${addPrice.toFixed(2)})</strong>` : '';
                     
                     html += `
                         <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: #4b5563; cursor: pointer; font-weight: 500;">

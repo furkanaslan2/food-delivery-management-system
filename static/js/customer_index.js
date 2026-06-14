@@ -1,43 +1,25 @@
 document.addEventListener("DOMContentLoaded", function() {
     
     // ==========================================
-    // 1. KATEGORİ FİLTRELEME
+    // 1. KATEGORİ FİLTRELEME (TEK KAYNAK MİMARİSİ)
     // ==========================================
     const catBtns = document.querySelectorAll('.cat-btn');
-    const restCards = document.querySelectorAll('.filterable-card');
+    const filterForm = document.getElementById('sidebar-filter-form');
 
     catBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            // Aktif buton stilini değiştir
-            catBtns.forEach(b => {
-                b.classList.remove('active');
-                const iconDiv = b.querySelector('div');
-                if(iconDiv) {
-                    iconDiv.style.background = '#f3f4f6';
-                    iconDiv.style.color = '#4b5563';
-                }
-            });
-            this.classList.add('active');
-            const activeIconDiv = this.querySelector('div');
-            if(activeIconDiv) {
-                activeIconDiv.style.background = '#374151';
-                activeIconDiv.style.color = 'white';
-            }
-
-            // Kartları filtrele
+        btn.addEventListener('click', function(e) {
+            e.preventDefault(); 
             const filterValue = this.getAttribute('data-filter');
-            restCards.forEach(card => {
-                if (filterValue === 'all') {
-                    card.style.display = 'flex';
-                } else {
-                    const cardCat = card.getAttribute('data-category').toLowerCase();
-                    if (cardCat.includes(filterValue.toLowerCase())) {
-                        card.style.display = 'flex';
-                    } else {
-                        card.style.display = 'none';
-                    }
+            
+            if(filterForm) {
+                // Üstten tıklanana karşılık gelen sol menüdeki radio butonunu bul
+                const radioToSelect = filterForm.querySelector(`input[name="cuisine"][value="${filterValue}"]`);
+                if(radioToSelect) {
+                    radioToSelect.checked = true;
+                    // Yandaki formu sunucuya gönder (Sayfa yenilenip filtrelenmiş gelecek)
+                    filterForm.submit(); 
                 }
-            });
+            }
         });
     });
 
@@ -464,3 +446,147 @@ function submitAddressForm() {
         btn.disabled = false;
     });
 }
+
+// ==========================================
+    // 4. SOL FİLTRE MENÜSÜ OTOMATİK GÖNDERİM
+    // ==========================================
+    const filterForm = document.getElementById('sidebar-filter-form');
+    if(filterForm) {
+        const filterRadios = filterForm.querySelectorAll('.filter-radio');
+        filterRadios.forEach(radio => {
+            radio.addEventListener('change', () => {
+                // Herhangi bir filtreye tıklandığında formu otomatik yolla
+                filterForm.submit();
+            });
+        });
+    }
+
+    // ==========================================
+    // 2. KATEGORİ SÜRÜKLE-BIRAK (KUSURSUZ FİZİK VE TIKLAMA KONTROLÜ)
+    // ==========================================
+    const categorySlider = document.querySelector('.category-filters');
+    let isDown = false;
+    let startX;
+    let scrollLeft;
+    let isDragging = false; 
+
+    if (categorySlider) {
+        // Fareye basıldığında
+        categorySlider.addEventListener('mousedown', (e) => {
+            isDown = true;
+            isDragging = false; // Her yeni dokunuşta sürükleme durumunu sıfırla
+            categorySlider.style.cursor = 'grabbing';
+            startX = e.pageX - categorySlider.offsetLeft;
+            scrollLeft = categorySlider.scrollLeft;
+        });
+        
+        // Fare kutudan dışarı çıkarsa
+        categorySlider.addEventListener('mouseleave', () => {
+            isDown = false;
+            categorySlider.style.cursor = 'grab';
+        });
+        
+        // Fare bırakıldığında
+        categorySlider.addEventListener('mouseup', () => {
+            isDown = false;
+            categorySlider.style.cursor = 'grab';
+        });
+        
+        // Fare basılıyken HAREKET ettirildiğinde
+        categorySlider.addEventListener('mousemove', (e) => {
+            if (!isDown) return;
+            e.preventDefault();
+            
+            const x = e.pageX - categorySlider.offsetLeft;
+            const walk = (x - startX); 
+            
+            // 🔥 YENİ: Eğer fare 3 pikselden fazla hareket ettiyse, bunu kesinlikle "Sürükleme" say
+            if (Math.abs(walk) > 3) {
+                isDragging = true; 
+            }
+            
+            categorySlider.scrollLeft = scrollLeft - walk;
+        });
+
+        // 🔥 YENİ VE KESİN ÇÖZÜM: Tıklama olayını "Capture" (Yakalama) aşamasında durdur
+        categorySlider.addEventListener('click', (e) => {
+            if (isDragging) {
+                // Eğer kullanıcı sürüklediyse, altındaki butonun tıklanmasını engelle
+                e.preventDefault();
+                e.stopPropagation(); 
+            }
+        }, true); // `true` parametresi, bu kontrolün sayfadaki diğer tüm tıklamalardan ÖNCE havada yakalanmasını sağlar!
+    }
+
+// ====================================================
+// CANLI RESTORAN DURUMU (AÇIK/KAPALI) - ANA SAYFA (VİTRİN)
+// ====================================================
+document.addEventListener("DOMContentLoaded", function() {
+    const restaurantCards = document.querySelectorAll('.restaurant-card');
+    if (restaurantCards.length === 0) return;
+
+    // 1. Sayfadaki tüm restoranların ID'lerini bir diziye (array) topla
+    const restaurantIds = Array.from(restaurantCards)
+        .map(card => card.getAttribute('data-rest-id'))
+        .filter(id => id); // Boş olanları filtrele
+
+    if (restaurantIds.length === 0) return;
+
+    // 2. Ana sayfada çok restoran olduğu için sunucuyu yormamak adına 15 saniyede bir kontrol ediyoruz
+    setInterval(() => {
+        fetch('/api/restaurant_statuses', {
+            method: 'POST', 
+            headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
+            body: JSON.stringify({ restaurant_ids: restaurantIds })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && data.statuses) {
+                // 3. Gelen yanıttaki durumlara göre kartları güncelle
+                restaurantCards.forEach(card => {
+                    const id = card.getAttribute('data-rest-id');
+                    if (!id || data.statuses[id] === undefined) return;
+                    
+                    const isOpen = data.statuses[id];
+                    const isCurrentlyClosed = card.classList.contains('closed-restaurant');
+                    const imageContainer = card.querySelector('.card-image');
+                    
+                    // 🔥 DURUM 1: Dükkan az önce KAPANDIYSA
+                    if (!isOpen && !isCurrentlyClosed) {
+                        card.classList.add('closed-restaurant');
+                        
+                        // Kapalı perdesini (overlay) oluştur ve ekle
+                        if (imageContainer && !imageContainer.innerHTML.includes('ŞU AN KAPALI')) {
+                            const overlay = document.createElement('div');
+                            overlay.className = 'live-closed-overlay';
+                            overlay.style.cssText = "position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 15; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(2px); transition: opacity 0.3s; opacity: 0;";
+                            overlay.innerHTML = '<span style="background: #ef4444; color: white; padding: 10px 20px; border-radius: 10px; font-weight: 800; font-size: 14px; letter-spacing: 0.5px; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">ŞU AN KAPALI</span>';
+                            
+                            imageContainer.appendChild(overlay);
+                            
+                            // Tatlı bir fade-in animasyonu için ufak bir gecikme
+                            requestAnimationFrame(() => {
+                                overlay.style.opacity = '1';
+                            });
+                        }
+                    } 
+                    // 🔥 DURUM 2: Dükkan az önce AÇILDIYSA
+                    else if (isOpen && isCurrentlyClosed) {
+                        card.classList.remove('closed-restaurant');
+                        
+                        // Hem HTML'den gelen hem de JS'in koyduğu "ŞU AN KAPALI" perdesini bul ve sil
+                        if (imageContainer) {
+                            Array.from(imageContainer.children).forEach(child => {
+                                if (child.innerHTML.includes('ŞU AN KAPALI') || child.classList.contains('live-closed-overlay')) {
+                                    child.style.opacity = '0'; // Önce görünmez yap (Fade-out)
+                                    setTimeout(() => child.remove(), 300); // 0.3 saniye sonra DOM'dan tamamen sil
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+        })
+        .catch(err => console.log('Ana sayfa canlı durum hatası:', err));
+    }, 15000); // 15 saniye bekleme süresi
+});

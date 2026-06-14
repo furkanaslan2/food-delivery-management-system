@@ -116,3 +116,52 @@ document.addEventListener("DOMContentLoaded", function() {
         .catch(err => console.log('Oto-güncelleme hatası:', err));
     }, 5000); 
 });
+
+// ==========================================
+    // İNTERAKTİF YILDIZ DEĞERLENDİRME SİSTEMİ
+    // ==========================================
+    document.querySelectorAll('.star-rating-container').forEach(container => {
+        const stars = container.querySelectorAll('.star-btn');
+        const orderId = container.getAttribute('data-order-id');
+        const hiddenInput = document.getElementById(`rating-input-${orderId}`);
+        const textDisplay = document.getElementById(`rating-text-${orderId}`);
+
+        const ratingTexts = ["Berbat", "Kötü", "Ortalama", "Çok İyi", "Mükemmel!"];
+
+        stars.forEach((star, index) => {
+            // Fareyle üzerine gelindiğinde
+            star.addEventListener('mouseover', () => {
+                stars.forEach((s, i) => {
+                    s.style.color = i <= index ? '#f59e0b' : '#e5e7eb';
+                    s.style.transform = i <= index ? 'scale(1.15)' : 'scale(1)';
+                });
+                textDisplay.innerText = ratingTexts[index];
+                textDisplay.style.color = '#f59e0b';
+            });
+
+            // Fare çekildiğinde (Seçili olana geri dön)
+            star.addEventListener('mouseout', () => {
+                const currentVal = hiddenInput.value;
+                stars.forEach((s, i) => {
+                    s.style.color = i < currentVal ? '#f59e0b' : '#e5e7eb';
+                    s.style.transform = 'scale(1)';
+                });
+                
+                if(currentVal) {
+                    textDisplay.innerText = ratingTexts[currentVal - 1];
+                    textDisplay.style.color = '#111827';
+                } else {
+                    textDisplay.innerText = "Lütfen puanınızı seçin";
+                    textDisplay.style.color = '#9ca3af';
+                }
+            });
+
+            // Tıklanarak seçildiğinde
+            star.addEventListener('click', () => {
+                hiddenInput.value = index + 1;
+                // Şık bir zıplama animasyonu
+                star.style.transform = 'scale(1.3)';
+                setTimeout(() => { star.style.transform = 'scale(1)'; }, 150);
+            });
+        });
+    });

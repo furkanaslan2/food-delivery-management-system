@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Online Yemek Siparişi - Lezzet Kapında</title>
+    <title>Online Yemek Siparişi - YeSende</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/flash.css') }}">
     
@@ -12,10 +12,8 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <style>
-        /* 🌟 GENEL AYARLAR */
         body { margin: 0; font-family: 'Inter', sans-serif; background-color: #f8f9fa; color: #111827; }
         
-        /* 🌟 LEZZET KAPINDA: MARKA NAVBAR TASARIMI (DARK MODE) */
         .customer-nav { 
             background: #111827; 
             padding: 0 5%; 
@@ -60,76 +58,126 @@
         .cart-badge { position: absolute; top: -6px; right: -6px; background-color: #ef4444; color: white; font-size: 12px; font-weight: 800; border-radius: 50%; display: flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); border: 2px solid #111827; }
 
         .hero-section { 
-            background: linear-gradient(135deg, #111827 0%, #312e81 100%); 
-            padding: 50px 5% 60px 5%; /* İçerik sıkışmasın diye alt boşluğu biraz artırdık */
-            color: white; text-align: center; border-bottom: 1px solid #374151; 
+            background: linear-gradient(rgba(17, 24, 39, 0.6), rgba(17, 24, 39, 0.7)), url("{{ url_for('static', filename='images/hero-bg.jpg') }}") center/cover no-repeat; 
+            padding: 40px 5% 80px 5%; 
+            color: white; 
+            text-align: center; 
+            border-bottom: 1px solid #374151; 
         }
         .hero-section h1 { font-size: 34px; font-weight: 800; margin: 0 0 10px 0; letter-spacing: -1px; }
         .hero-section p { font-size: 16px; color: #d1d5db; margin-bottom: 25px; font-weight: 400; }
 
-        /* 🌟 İÇERİK ALANI & FİLTRELER */
         .container { 
             max-width: 1200px; 
-            margin: 50px auto 40px auto; /* 🪄 SİHİR BURADA: Arama çubuğu aşağı sarktığı için kategorileri 110px aşağı iterek ezilmelerini engelledik! */
+            margin: 40px auto 40px auto; 
             padding: 0 20px; 
         }
         .section-title { font-size: 22px; font-weight: 700; margin-bottom: 20px; color: #111827; display: flex; align-items: center; gap: 10px; }
         
         .category-filters { 
-            display: flex; gap: 12px; margin-bottom: 30px; 
+            display: flex; gap: 15px; margin-bottom: 35px; 
             overflow-x: auto; 
-            padding-bottom: 12px; 
+            padding-top: 5px; 
+            padding-bottom: 10px; 
             -webkit-overflow-scrolling: touch; 
             scrollbar-width: thin; 
-            will-change: transform; 
+            scrollbar-color: #d1d5db transparent; 
+            cursor: grab; 
         }
-
+        
+        .category-filters:active { cursor: grabbing; } 
+        
         .category-filters::-webkit-scrollbar { height: 6px; }
-        .category-filters::-webkit-scrollbar-track { background: transparent; }
-        .category-filters::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
-        .category-filters::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+        .category-filters::-webkit-scrollbar-track { background: #f3f4f6; border-radius: 10px; }
+        .category-filters::-webkit-scrollbar-thumb { background-color: #d1d5db; border-radius: 10px; }
+        .category-filters::-webkit-scrollbar-thumb:hover { background-color: #9ca3af; }
         
         .cat-btn { 
             background: #ffffff; color: #4b5563; border: 1px solid #e5e7eb; 
-            padding: 6px 20px 6px 6px; border-radius: 40px; font-weight: 600; font-size: 14.5px; 
-            cursor: pointer; white-space: nowrap; transition: all 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.03); 
-            display: inline-flex; align-items: center; gap: 10px; flex-shrink: 0; /* Küçülmelerini engeller */
+            padding: 15px 10px 12px 10px; border-radius: 20px; font-weight: 700; font-size: 14px; 
+            cursor: pointer; 
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease, border-color 0.3s ease;
+            will-change: transform;
+            transform: translateZ(0); 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03); 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; 
+            flex-shrink: 0; min-width: 110px; 
         }
-        .cat-photo { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: transform 0.3s; }
-        .cat-btn:hover { border-color: #d1d5db; background: #f9fafb; transform: translateY(-2px); }
-        .cat-btn:hover .cat-photo { transform: scale(1.15) rotate(5deg); }
-        .cat-btn.active { background: #111827 !important; color: white !important; border-color: #111827 !important; box-shadow: 0 6px 12px rgba(17, 24, 39, 0.2); }
+        
+        .cat-photo { 
+            width: 65px; height: 65px; 
+            object-fit: contain; 
+            transition: transform 0.3s; 
+            filter: drop-shadow(0 8px 6px rgba(0,0,0,0.15));
+            -webkit-user-drag: none; 
+        }
+        
+        .cat-btn:hover { border-color: #d1d5db; transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.06); }
+        .cat-btn:hover .cat-photo { transform: scale(1.15) rotate(3deg); }
+        
+        .cat-btn.active { 
+            background: #f8fafc; border-color: #4f46e5 !important; color: #4f46e5 !important; 
+            box-shadow: 0 8px 20px rgba(79, 70, 229, 0.15); 
+        }
 
         .search-container { 
             background: white; 
             padding: 15px 20px; 
-            border-radius: 24px; /* Daha kapsül/modern bir görünüm için köşeleri yumuşattık */
+            border-radius: 24px;
             box-shadow: 0 15px 35px rgba(0,0,0,0.1); 
             border: 1px solid #e5e7eb; 
             max-width: 900px; 
-            margin: 0 auto -80px auto; /* Aşağı sarkma payı */
+            margin: 0 auto -40px auto; 
             position: relative; z-index: 20;
         }
         .search-form { display: flex; gap: 15px; width: 100%; align-items: center; flex-wrap: wrap; }
         .search-input, .search-select { padding: 14px 20px; border: 1px solid #d1d5db; border-radius: 14px; font-size: 15px; outline: none; font-family: inherit; transition: all 0.2s; }
         .search-input:focus, .search-select:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
         
-        /* 🌟 GÜNCELLENDİ: PREMIUM RESTORAN KARTLARI */
-        .restaurant-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; } /* Kartları biraz genişlettik */
+        .restaurant-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; }
         
         .restaurant-card { 
-            background: white; border-radius: 24px; /* Köşeleri iyice yumuşattık */
+            background: white; border-radius: 24px; 
             overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.04); 
-            border: 1px solid #f3f4f6; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            border: 1px solid #f3f4f6; 
             text-decoration: none; color: inherit; display: flex; flex-direction: column; position: relative; 
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease, border-color 0.3s ease;
+            will-change: transform, box-shadow; 
         }
         .restaurant-card:hover { transform: translateY(-8px); box-shadow: 0 20px 35px rgba(0,0,0,0.1); border-color: #e5e7eb; }
         
-        .card-image { width: 100%; height: 200px; background-color: #f9fafb; overflow: hidden; position: relative; } /* Fotoğraf boyunu uzattık */
-        .restaurant-img { width: 100%; height: 100%; background-size: cover; background-position: center; background-repeat: no-repeat; transition: transform 0.6s ease; }
-        .restaurant-card:hover .restaurant-img { transform: scale(1.1); } /* Üzerine gelince sinematik zoom efekti */
+        .card-image { width: 100%; height: 200px; background-color: #f9fafb; overflow: hidden; position: relative; }
+        .restaurant-img { width: 100%; height: 100%; background-size: cover; background-position: center; background-repeat: no-repeat; transition: transform 0.6s ease; will-change: transform; }
+        .restaurant-card:hover .restaurant-img { transform: scale(1.1); } 
         
-        /* 🌟 YENİ: UBER EATS TARZI UÇAN PUAN ROZETİ */
+        .main-page-fav-btn {
+            position: absolute; top: 15px; right: 15px; z-index: 10; 
+            background: #ffffff; border: 1px solid #e5e7eb; border-radius: 50%; 
+            width: 40px; height: 40px; 
+            display: flex; align-items: center; justify-content: center; 
+            cursor: pointer; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-origin: center center;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            transform: translateZ(0); 
+        }
+        
+        .main-page-fav-btn:hover {
+            background-color: #fef2f2 !important; 
+            border-color: #fca5a5 !important; 
+            transform: scale(1.15) translateZ(0) !important; 
+        }
+
+        .main-page-fav-btn svg, .main-page-fav-btn i {
+            width: 22px; height: 22px;
+            font-size: 22px;
+            color: #ef4444;
+            transition: color 0.2s; 
+        }
+        
+
         .rating-floating { 
             position: absolute; bottom: 15px; left: 15px; z-index: 10;
             background: #ffffff; color: #111827; padding: 6px 12px; 
@@ -146,20 +194,32 @@
         
         .cuisine-tag { background: #f3f4f6; color: #4b5563; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 4px; }
         
-        /* 🌟 YENİ: BİLGİ HAPLARI (INFO PILLS) */
         .delivery-info { display: flex; gap: 8px; }
         .info-pill { background: #f9fafb; border: 1px solid #e5e7eb; color: #4b5563; padding: 6px 10px; border-radius: 12px; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 4px; }
-        .info-pill.green { background: #ecfdf5; border-color: #a7f3d0; color: #059669; }
-        
-        /* KAPALI RESTORAN EFEKTİ */
+        .info-pill.green { background: #ecfdf5; border-color: #a7f3d0; color: #059669; }        
+    
         .closed-restaurant { opacity: 0.7; filter: grayscale(70%); }
+
+        .filter-sidebar { width: 260px; flex-shrink: 0; background: white; border-radius: 16px; border: 1px solid #e5e7eb; padding: 22px; position: sticky; top: 95px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); display: none; }
+        @media (min-width: 1024px) { .filter-sidebar { display: block; } } /* Sadece masaüstünde yan menü olarak görünür */
+        
+        .filter-section { border-bottom: 1px solid #f3f4f6; padding-bottom: 18px; margin-bottom: 18px; }
+        .filter-section:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+        .filter-title { font-size: 15px; font-weight: 700; margin: 0 0 12px 0; color: #111827; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        
+        .filter-label { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; cursor: pointer; font-size: 14px; color: #4b5563; transition: color 0.2s; }
+        .filter-label:hover { color: #111827; }
+        
+        .filter-radio { appearance: none; width: 18px; height: 18px; border: 2px solid #d1d5db; border-radius: 50%; outline: none; transition: 0.2s; position: relative; cursor: pointer; margin: 0; flex-shrink: 0;}
+        .filter-radio:checked { border-color: #4f46e5; }
+        .filter-radio:checked::after { content: ''; position: absolute; top: 3px; left: 3px; width: 8px; height: 8px; background: #4f46e5; border-radius: 50%; }
     </style>
 </head>
 <body>
 
     <nav class="customer-nav">
         <a href="/" class="nav-brand">
-            <img src="{{ url_for('static', filename='images/icons/logo.svg') }}" alt="Lezzet Kapında">
+            <img src="{{ url_for('static', filename='images/icons/logo.svg') }}" alt="YeSende">
         </a>
         
         <div class="nav-links">
@@ -202,13 +262,6 @@
                 <div style="flex: 2; min-width: 250px; position: relative;">
                     <i class="ph-bold ph-magnifying-glass" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #6b7280; font-size: 20px;"></i>
                     <input type="text" name="search" class="search-input" placeholder="Restoran, mutfak veya bir yemek arayın (Örn: Lahmacun)..." value="{{ request.args.get('search', '') }}" style="width: 100%; box-sizing: border-box; padding-left: 45px;">
-                </div>
-                <div style="flex: 1; min-width: 200px;">
-                    <select name="min_rating" class="search-select" style="width: 100%; background: white; box-sizing: border-box;">
-                        <option value="0" {% if request.args.get('min_rating') == '0' %}selected{% endif %}>Tüm Puanlar</option>
-                        <option value="4" {% if request.args.get('min_rating') == '4' %}selected{% endif %}>4+ Yıldız ve Üzeri</option>
-                        <option value="4.5" {% if request.args.get('min_rating') == '4.5' %}selected{% endif %}>4.5+ Yıldız (Süper)</option>
-                    </select>
                 </div>
                 <div style="display: flex; gap: 10px; align-items: center;">
                     <button type="submit" style="background: #4f46e5; color: white; border: none; padding: 14px 25px; border-radius: 12px; font-weight: 600; cursor: pointer; font-size: 15px; font-family: inherit; transition: 0.2s; display: flex; align-items: center; gap: 8px;"><i class="ph-bold ph-magnifying-glass"></i> Ara</button>
@@ -258,92 +311,264 @@
 
         {% if session.get('latitude') %}
 
-        <h2 class="section-title"><i class="ph-bold ph-fork-knife" style="color:#4f46e5;"></i> Popüler Kategoriler</h2>
+        <!-- YENİ: İKİLİ IZGARA (GRID) DÜZENİ -->
+        <div style="display: flex; gap: 30px; align-items: flex-start;">
+            
+            <!-- SOL FİLTRE ÇUBUĞU (SIDEBAR) -->
+            <aside class="filter-sidebar">
+                <form id="sidebar-filter-form" action="{{ url_for('index') }}" method="GET">
+                    <input type="hidden" name="search" value="{{ request.args.get('search', '') }}">
+                    
+                    <div class="filter-section">
+                        <h4 class="filter-title">Sıralama <i class="ph-bold ph-caret-up"></i></h4>
+                        <label class="filter-label">
+                            <input type="radio" name="sort_by" value="default" class="filter-radio" {% if request.args.get('sort_by', 'default') == 'default' %}checked{% endif %}> Akıllı Sıralama (Varsayılan)
+                        </label>
+                        <label class="filter-label">
+                            <input type="radio" name="sort_by" value="rating" class="filter-radio" {% if request.args.get('sort_by') == 'rating' %}checked{% endif %}> Restoran Puanı
+                        </label>
+                        <label class="filter-label">
+                            <input type="radio" name="sort_by" value="delivery_time" class="filter-radio" {% if request.args.get('sort_by') == 'delivery_time' %}checked{% endif %}> Teslimat Süresi
+                        </label>
+                        <label class="filter-label">
+                            <input type="radio" name="sort_by" value="review_count" class="filter-radio" {% if request.args.get('sort_by') == 'review_count' %}checked{% endif %}> En Çok Değerlendirilenler
+                        </label>
+                        <label class="filter-label">
+                            <input type="radio" name="sort_by" value="alphabetical" class="filter-radio" {% if request.args.get('sort_by') == 'alphabetical' %}checked{% endif %}> Alfabetik Sıralama
+                        </label>
+                        <label class="filter-label">
+                            <input type="radio" name="sort_by" value="distance" class="filter-radio" {% if request.args.get('sort_by') == 'distance' %}checked{% endif %}> Yakınlık
+                        </label>
+                    </div>
+
+                    <div class="filter-section">
+                        <h4 class="filter-title">Minimum Sepet Tutarı <i class="ph-bold ph-caret-up"></i></h4>
+                        <label class="filter-label">
+                            <input type="radio" name="max_min_order" value="0" class="filter-radio" {% if request.args.get('max_min_order', '0') == '0' %}checked{% endif %}> Tümü
+                        </label>
+                        <label class="filter-label">
+                            <input type="radio" name="max_min_order" value="150" class="filter-radio" {% if request.args.get('max_min_order') == '150' %}checked{% endif %}> 150 TL ve Altı
+                        </label>
+                        <label class="filter-label">
+                            <input type="radio" name="max_min_order" value="200" class="filter-radio" {% if request.args.get('max_min_order') == '200' %}checked{% endif %}> 200 TL ve Altı
+                        </label>
+                        <label class="filter-label">
+                            <input type="radio" name="max_min_order" value="300" class="filter-radio" {% if request.args.get('max_min_order') == '300' %}checked{% endif %}> 300 TL ve Altı
+                        </label>
+                        <label class="filter-label">
+                            <input type="radio" name="max_min_order" value="400" class="filter-radio" {% if request.args.get('max_min_order') == '400' %}checked{% endif %}> 400 TL ve Altı
+                        </label>
+                        <label class="filter-label">
+                            <input type="radio" name="max_min_order" value="500" class="filter-radio" {% if request.args.get('max_min_order') == '500' %}checked{% endif %}> 500 TL ve Altı
+                        </label>
+                    </div>
+
+                    <div class="filter-section">
+                        <h4 class="filter-title">Puan <i class="ph-bold ph-caret-up"></i></h4>
+                        <label class="filter-label">
+                            <input type="radio" name="min_rating" value="0" class="filter-radio" {% if request.args.get('min_rating', '0') == '0' %}checked{% endif %}> Tümü
+                        </label>
+                        <label class="filter-label">
+                            <input type="radio" name="min_rating" value="4.5" class="filter-radio" {% if request.args.get('min_rating') == '4.5' %}checked{% endif %}> <i class="ph-fill ph-star" style="color: #f59e0b;"></i> 4.5 ve Üstü
+                        </label>
+                        <label class="filter-label">
+                            <input type="radio" name="min_rating" value="4.0" class="filter-radio" {% if request.args.get('min_rating') == '4.0' %}checked{% endif %}> <i class="ph-fill ph-star" style="color: #f59e0b;"></i> 4.0 ve Üstü
+                        </label>
+                        <label class="filter-label">
+                            <input type="radio" name="min_rating" value="3.5" class="filter-radio" {% if request.args.get('min_rating') == '3.5' %}checked{% endif %}> <i class="ph-fill ph-star" style="color: #f59e0b;"></i> 3.5 ve Üstü
+                        </label>
+                        <label class="filter-label">
+                            <input type="radio" name="min_rating" value="3.0" class="filter-radio" {% if request.args.get('min_rating') == '3.0' %}checked{% endif %}> <i class="ph-fill ph-star" style="color: #f59e0b;"></i> 3.0 ve Üstü
+                        </label>
+                    </div>
+
+                    <div class="filter-section" style="border-bottom: none; margin-bottom: 0; padding-bottom: 0;">
+                        <h4 class="filter-title">Mutfaklar <i class="ph-bold ph-caret-up"></i></h4>
+                        {% set current_cuisine = request.args.get('cuisine', 'Tümü') %}
+                        
+                        <div style="max-height: 250px; overflow-y: auto; padding-right: 5px;">
+                            <label class="filter-label">
+                                <input type="radio" name="cuisine" value="Tümü" class="filter-radio" {% if current_cuisine == 'Tümü' %}checked{% endif %}> Tümü
+                            </label>
+                            <label class="filter-label">
+                                <input type="radio" name="cuisine" value="Hamburger" class="filter-radio" {% if current_cuisine == 'Hamburger' %}checked{% endif %}> Hamburger
+                            </label>
+                            <label class="filter-label">
+                                <input type="radio" name="cuisine" value="Döner" class="filter-radio" {% if current_cuisine == 'Döner' %}checked{% endif %}> Döner
+                            </label>
+                            <label class="filter-label">
+                                <input type="radio" name="cuisine" value="Pizza" class="filter-radio" {% if current_cuisine == 'Pizza' %}checked{% endif %}> Pizza
+                            </label>
+                            <label class="filter-label">
+                                <input type="radio" name="cuisine" value="Kebap" class="filter-radio" {% if current_cuisine == 'Kebap' %}checked{% endif %}> Kebap
+                            </label>
+                            <label class="filter-label">
+                                <input type="radio" name="cuisine" value="Pide & Lahmacun" class="filter-radio" {% if current_cuisine == 'Pide & Lahmacun' %}checked{% endif %}> Pide & Lahmacun
+                            </label>
+                            <label class="filter-label">
+                                <input type="radio" name="cuisine" value="Çiğ Köfte" class="filter-radio" {% if current_cuisine == 'Çiğ Köfte' %}checked{% endif %}> Çiğ Köfte
+                            </label>
+                            <label class="filter-label">
+                                <input type="radio" name="cuisine" value="Köfte" class="filter-radio" {% if current_cuisine == 'Köfte' %}checked{% endif %}> Köfte
+                            </label>
+                            <label class="filter-label">
+                                <input type="radio" name="cuisine" value="Tavuk" class="filter-radio" {% if current_cuisine == 'Tavuk' %}checked{% endif %}> Tavuk
+                            </label>
+                            <label class="filter-label">
+                                <input type="radio" name="cuisine" value="Tatlı" class="filter-radio" {% if current_cuisine == 'Tatlı' %}checked{% endif %}> Tatlı
+                            </label>
+                            <label class="filter-label">
+                                <input type="radio" name="cuisine" value="Sokak Lezzetleri" class="filter-radio" {% if current_cuisine == 'Sokak Lezzetleri' %}checked{% endif %}> Sokak Lezzetleri
+                            </label>
+                            <label class="filter-label">
+                                <input type="radio" name="cuisine" value="Salata & Sağlık" class="filter-radio" {% if current_cuisine == 'Salata & Sağlık' %}checked{% endif %}> Salata & Sağlık
+                            </label>
+                            <label class="filter-label">
+                                <input type="radio" name="cuisine" value="Mantı & Makarna" class="filter-radio" {% if current_cuisine == 'Mantı & Makarna' %}checked{% endif %}> Mantı & Makarna
+                            </label>
+                            <label class="filter-label">
+                                <input type="radio" name="cuisine" value="Tantuni" class="filter-radio" {% if current_cuisine == 'Tantuni' %}checked{% endif %}> Tantuni
+                            </label>
+                            <label class="filter-label">
+                                <input type="radio" name="cuisine" value="Ev Yemekleri" class="filter-radio" {% if current_cuisine == 'Ev Yemekleri' %}checked{% endif %}> Ev Yemekleri
+                            </label>
+                            <label class="filter-label">
+                                <input type="radio" name="cuisine" value="Tost & Sandviç" class="filter-radio" {% if current_cuisine == 'Tost & Sandviç' %}checked{% endif %}> Tost & Sandviç
+                            </label>
+                            <label class="filter-label">
+                                <input type="radio" name="cuisine" value="Kahve & İçecek" class="filter-radio" {% if current_cuisine == 'Kahve & İçecek' %}checked{% endif %}> Kahve & İçecek
+                            </label>
+                            <label class="filter-label">
+                                <input type="radio" name="cuisine" value="Pastane & Fırın" class="filter-radio" {% if current_cuisine == 'Pastane & Fırın' %}checked{% endif %}> Pastane & Fırın
+                            </label>
+                            <label class="filter-label">
+                                <input type="radio" name="cuisine" value="Çorba" class="filter-radio" {% if current_cuisine == 'Çorba' %}checked{% endif %}> Çorba
+                            </label>
+                            <label class="filter-label">
+                                <input type="radio" name="cuisine" value="Dünya Mutfağı & Cafe" class="filter-radio" {% if current_cuisine == 'Dünya Mutfağı & Cafe' %}checked{% endif %}> Dünya Mutfağı & Cafe
+                            </label>
+                            <label class="filter-label">
+                                <input type="radio" name="cuisine" value="Uzak Doğu" class="filter-radio" {% if current_cuisine == 'Uzak Doğu' %}checked{% endif %}> Uzak Doğu
+                            </label>
+                            <label class="filter-label">
+                                <input type="radio" name="cuisine" value="Balık & Deniz Ürünleri" class="filter-radio" {% if current_cuisine == 'Balık & Deniz Ürünleri' %}checked{% endif %}> Balık & Deniz Ürünleri
+                            </label>
+                            <label class="filter-label">
+                                <input type="radio" name="cuisine" value="Meze" class="filter-radio" {% if current_cuisine == 'Meze' %}checked{% endif %}> Meze
+                            </label>
+                            <label class="filter-label">
+                                <input type="radio" name="cuisine" value="Dondurma" class="filter-radio" {% if current_cuisine == 'Dondurma' %}checked{% endif %}> Dondurma
+                            </label>
+                            <label class="filter-label">
+                                <input type="radio" name="cuisine" value="Steak" class="filter-radio" {% if current_cuisine == 'Steak' %}checked{% endif %}> Steak
+                            </label>
+                            <label class="filter-label">
+                                <input type="radio" name="cuisine" value="Kahvaltı" class="filter-radio" {% if current_cuisine == 'Kahvaltı' %}checked{% endif %}> Kahvaltı
+                            </label>
+                            <label class="filter-label">
+                                <input type="radio" name="cuisine" value="Börek" class="filter-radio" {% if current_cuisine == 'Börek' %}checked{% endif %}> Börek
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </aside>
+
+            <!-- SAĞ İÇERİK (Mevcut Kategoriler ve Restoranlar buranın içine girecek) -->
+            <div style="flex: 1; min-width: 0;">
+
+        <h2 class="section-title"><i class="ph-bold ph-fork-knife" style="color:#4f46e5;"></i> Ne Yesek?</h2>
 
         <div class="category-filters">
-            <button class="cat-btn active" data-filter="all">
-                <div style="width: 44px; height: 44px; background: #374151; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                    <i class="ph-bold ph-squares-four" style="font-size: 22px;"></i>
-                </div>
+            <button class="cat-btn {% if current_cuisine == 'Tümü' %}active{% endif %}" data-filter="Tümü">
+                {% if current_cuisine == 'Tümü' %}
+                    <div style="width: 65px; height: 65px; background: #4f46e5; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: 0.3s;" id="all-category-icon">
+                        <i class="ph-bold ph-squares-four" style="font-size: 32px;"></i>
+                    </div>
+                {% else %}
+                    <div style="width: 65px; height: 65px; background: #f3f4f6; color: #4b5563; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: 0.3s;" id="all-category-icon">
+                        <i class="ph-bold ph-squares-four" style="font-size: 32px;"></i>
+                    </div>
+                {% endif %}
                 Tümü
             </button>
-            <button class="cat-btn" data-filter="hamburger">
-                <img src="{{ url_for('static', filename='images/categories/hamburger.jpg') }}" class="cat-photo" alt="Hamburger"> Hamburger
+            
+            <button class="cat-btn {% if current_cuisine == 'Hamburger' %}active{% endif %}" data-filter="Hamburger">
+                <img src="{{ url_for('static', filename='images/categories/hamburger.png') }}" class="cat-photo" alt="Hamburger"> Hamburger
             </button>
-            <button class="cat-btn" data-filter="döner">
-                <img src="{{ url_for('static', filename='images/categories/döner.jpg') }}" class="cat-photo" alt="Döner"> Döner
+            <button class="cat-btn {% if current_cuisine == 'Döner' %}active{% endif %}" data-filter="Döner">
+                <img src="{{ url_for('static', filename='images/categories/döner.png') }}" class="cat-photo" alt="Döner"> Döner
             </button>
-            <button class="cat-btn" data-filter="pizza">
-                <img src="{{ url_for('static', filename='images/categories/pizza.jpg') }}" class="cat-photo" alt="Pizza"> Pizza
+            <button class="cat-btn {% if current_cuisine == 'Pizza' %}active{% endif %}" data-filter="Pizza">
+                <img src="{{ url_for('static', filename='images/categories/pizza.png') }}" class="cat-photo" alt="Pizza"> Pizza
             </button>
-            <button class="cat-btn" data-filter="kebap">
-                <img src="{{ url_for('static', filename='images/categories/kebap.jpg') }}" class="cat-photo" alt="Kebap"> Kebap
+            <button class="cat-btn {% if current_cuisine == 'Kebap' %}active{% endif %}" data-filter="Kebap">
+                <img src="{{ url_for('static', filename='images/categories/kebap.png') }}" class="cat-photo" alt="Kebap"> Kebap
             </button>
-            <button class="cat-btn" data-filter="pide & lahmacun">
-                <img src="{{ url_for('static', filename='images/categories/pide_lahmacun.jpg') }}" class="cat-photo" alt="Pide & Lahmacun"> Pide & Lahmacun
+            <button class="cat-btn {% if current_cuisine == 'Pide & Lahmacun' %}active{% endif %}" data-filter="Pide & Lahmacun">
+                <img src="{{ url_for('static', filename='images/categories/pide_lahmacun.png') }}" class="cat-photo" alt="Pide & Lahmacun"> Pide & Lahmacun
             </button>
-            <button class="cat-btn" data-filter="çiğ köfte">
-                <img src="{{ url_for('static', filename='images/categories/çiğköfte.jpg') }}" class="cat-photo" alt="Çiğ Köfte"> Çiğ Köfte
+            <button class="cat-btn {% if current_cuisine == 'Çiğ Köfte' %}active{% endif %}" data-filter="Çiğ Köfte">
+                <img src="{{ url_for('static', filename='images/categories/çiğköfte.png') }}" class="cat-photo" alt="Çiğ Köfte"> Çiğ Köfte
             </button>
-            <button class="cat-btn" data-filter="köfte">
-                <img src="{{ url_for('static', filename='images/categories/köfte.jpg') }}" class="cat-photo" alt="Köfte"> Köfte
+            <button class="cat-btn {% if current_cuisine == 'Köfte' %}active{% endif %}" data-filter="Köfte">
+                <img src="{{ url_for('static', filename='images/categories/köfte.png') }}" class="cat-photo" alt="Köfte"> Köfte
             </button>
-            <button class="cat-btn" data-filter="tavuk">
-                <img src="{{ url_for('static', filename='images/categories/tavuk.jpg') }}" class="cat-photo" alt="Tavuk"> Tavuk
+            <button class="cat-btn {% if current_cuisine == 'Tavuk' %}active{% endif %}" data-filter="Tavuk">
+                <img src="{{ url_for('static', filename='images/categories/tavuk.png') }}" class="cat-photo" alt="Tavuk"> Tavuk
             </button>
-            <button class="cat-btn" data-filter="tatlı">
-                <img src="{{ url_for('static', filename='images/categories/tatlı.jpg') }}" class="cat-photo" alt="Tatlı"> Tatlı
+            <button class="cat-btn {% if current_cuisine == 'Tatlı' %}active{% endif %}" data-filter="Tatlı">
+                <img src="{{ url_for('static', filename='images/categories/tatlı.png') }}" class="cat-photo" alt="Tatlı"> Tatlı
             </button>
-            <button class="cat-btn" data-filter="sokak lezzetleri">
-                <img src="{{ url_for('static', filename='images/categories/sokak_lezzetleri.jpg') }}" class="cat-photo" alt="Sokak Lezzetleri"> Sokak Lezzetleri
+            <button class="cat-btn {% if current_cuisine == 'Sokak Lezzetleri' %}active{% endif %}" data-filter="Sokak Lezzetleri">
+                <img src="{{ url_for('static', filename='images/categories/sokak_lezzetleri.png') }}" class="cat-photo" alt="Sokak Lezzetleri"> Sokak Lezzetleri
             </button>
-            <button class="cat-btn" data-filter="salata & sağlık">
-                <img src="{{ url_for('static', filename='images/categories/salata.jpg') }}" class="cat-photo" alt="Salata & Sağlık"> Salata & Sağlık
+            <button class="cat-btn {% if current_cuisine == 'Salata & Sağlık' %}active{% endif %}" data-filter="Salata & Sağlık">
+                <img src="{{ url_for('static', filename='images/categories/salata.png') }}" class="cat-photo" alt="Salata & Sağlık"> Salata & Sağlık
             </button>
-            <button class="cat-btn" data-filter="mantı & makarna">
-                <img src="{{ url_for('static', filename='images/categories/mantı_makarna.jpg') }}" class="cat-photo" alt="Mantı & Makarna"> Mantı & Makarna
+            <button class="cat-btn {% if current_cuisine == 'Mantı & Makarna' %}active{% endif %}" data-filter="Mantı & Makarna">
+                <img src="{{ url_for('static', filename='images/categories/mantı_makarna.png') }}" class="cat-photo" alt="Mantı & Makarna"> Mantı & Makarna
             </button>
-            <button class="cat-btn" data-filter="tantuni">
-                <img src="{{ url_for('static', filename='images/categories/tantuni.jpg') }}" class="cat-photo" alt="Tantuni"> Tantuni
+            <button class="cat-btn {% if current_cuisine == 'Tantuni' %}active{% endif %}" data-filter="Tantuni">
+                <img src="{{ url_for('static', filename='images/categories/tantuni.png') }}" class="cat-photo" alt="Tantuni"> Tantuni
             </button>
-            <button class="cat-btn" data-filter="ev yemekleri">
-                <img src="{{ url_for('static', filename='images/categories/ev_yemekleri.jpg') }}" class="cat-photo" alt="Ev Yemekleri"> Ev Yemekleri
+            <button class="cat-btn {% if current_cuisine == 'Ev Yemekleri' %}active{% endif %}" data-filter="Ev Yemekleri">
+                <img src="{{ url_for('static', filename='images/categories/ev_yemekleri.png') }}" class="cat-photo" alt="Ev Yemekleri"> Ev Yemekleri
             </button>
-            <button class="cat-btn" data-filter="tost & sandviç">
-                <img src="{{ url_for('static', filename='images/categories/tost_sandviç.jpg') }}" class="cat-photo" alt="Tost & Sandviç"> Tost & Sandviç
+            <button class="cat-btn {% if current_cuisine == 'Tost & Sandviç' %}active{% endif %}" data-filter="Tost & Sandviç">
+                <img src="{{ url_for('static', filename='images/categories/tost_sandviç.png') }}" class="cat-photo" alt="Tost & Sandviç"> Tost & Sandviç
             </button>
-            <button class="cat-btn" data-filter="kahve & içecek">
-                <img src="{{ url_for('static', filename='images/categories/kahve_içecek.jpg') }}" class="cat-photo" alt="Kahve & İçecek"> Kahve & İçecek
+            <button class="cat-btn {% if current_cuisine == 'Kahve & İçecek' %}active{% endif %}" data-filter="Kahve & İçecek">
+                <img src="{{ url_for('static', filename='images/categories/kahve_içecek.png') }}" class="cat-photo" alt="Kahve & İçecek"> Kahve & İçecek
             </button>
-            <button class="cat-btn" data-filter="pastane & fırın">
-                <img src="{{ url_for('static', filename='images/categories/pastane_fırın.jpg') }}" class="cat-photo" alt="Pastane & Fırın"> Pastane & Fırın
+            <button class="cat-btn {% if current_cuisine == 'Pastane & Fırın' %}active{% endif %}" data-filter="Pastane & Fırın">
+                <img src="{{ url_for('static', filename='images/categories/pastane_fırın.png') }}" class="cat-photo" alt="Pastane & Fırın"> Pastane & Fırın
             </button>
-            <button class="cat-btn" data-filter="çorba">
-                <img src="{{ url_for('static', filename='images/categories/çorba.jpg') }}" class="cat-photo" alt="Çorba"> Çorba
+            <button class="cat-btn {% if current_cuisine == 'Çorba' %}active{% endif %}" data-filter="Çorba">
+                <img src="{{ url_for('static', filename='images/categories/çorba.png') }}" class="cat-photo" alt="Çorba"> Çorba
             </button>
-            <button class="cat-btn" data-filter="dünya mutfağı & cafe">
-                <img src="{{ url_for('static', filename='images/categories/dünya_mutfağı_cafe.jpg') }}" class="cat-photo" alt="Dünya Mutfağı & Cafe"> Dünya Mutfağı & Cafe
+            <button class="cat-btn {% if current_cuisine == 'Dünya Mutfağı & Cafe' %}active{% endif %}" data-filter="Dünya Mutfağı & Cafe">
+                <img src="{{ url_for('static', filename='images/categories/dünya_mutfağı_cafe.png') }}" class="cat-photo" alt="Dünya Mutfağı & Cafe"> Dünya Mutfağı & Cafe
             </button>
-            <button class="cat-btn" data-filter="uzak doğu">
-                <img src="{{ url_for('static', filename='images/categories/uzakdoğu.jpg') }}" class="cat-photo" alt="Uzak Doğu"> Uzak Doğu
+            <button class="cat-btn {% if current_cuisine == 'Uzak Doğu' %}active{% endif %}" data-filter="Uzak Doğu">
+                <img src="{{ url_for('static', filename='images/categories/uzakdoğu.png') }}" class="cat-photo" alt="Uzak Doğu"> Uzak Doğu
             </button>
-            <button class="cat-btn" data-filter="balık & deniz ürünleri">
-                <img src="{{ url_for('static', filename='images/categories/balık_deniz_ürünleri.jpg') }}" class="cat-photo" alt="Balık & Deniz Ürünleri"> Balık & Deniz ürünleri
+            <button class="cat-btn {% if current_cuisine == 'Balık & Deniz Ürünleri' %}active{% endif %}" data-filter="Balık & Deniz Ürünleri">
+                <img src="{{ url_for('static', filename='images/categories/balık_deniz_ürünleri.png') }}" class="cat-photo" alt="Balık & Deniz Ürünleri"> Balık & Deniz Ürünleri
             </button>
-            <button class="cat-btn" data-filter="meze">
-                <img src="{{ url_for('static', filename='images/categories/meze.jpg') }}" class="cat-photo" alt="Meze"> Meze
+            <button class="cat-btn {% if current_cuisine == 'Meze' %}active{% endif %}" data-filter="Meze">
+                <img src="{{ url_for('static', filename='images/categories/meze.png') }}" class="cat-photo" alt="Meze"> Meze
             </button>
-            <button class="cat-btn" data-filter="dondurma">
-                <img src="{{ url_for('static', filename='images/categories/dondurma.jpg') }}" class="cat-photo" alt="Dondurma"> Dondurma
+            <button class="cat-btn {% if current_cuisine == 'Dondurma' %}active{% endif %}" data-filter="Dondurma">
+                <img src="{{ url_for('static', filename='images/categories/dondurma.png') }}" class="cat-photo" alt="Dondurma"> Dondurma
             </button>
-            <button class="cat-btn" data-filter="steak">
-                <img src="{{ url_for('static', filename='images/categories/steak.jpg') }}" class="cat-photo" alt="Steak"> Steak
+            <button class="cat-btn {% if current_cuisine == 'Steak' %}active{% endif %}" data-filter="Steak">
+                <img src="{{ url_for('static', filename='images/categories/steak.png') }}" class="cat-photo" alt="Steak"> Steak
             </button>
-            <button class="cat-btn" data-filter="kahvaltı">
-                <img src="{{ url_for('static', filename='images/categories/kahvaltı.jpg') }}" class="cat-photo" alt="Kahvaltı"> Kahvaltı
+            <button class="cat-btn {% if current_cuisine == 'Kahvaltı' %}active{% endif %}" data-filter="Kahvaltı">
+                <img src="{{ url_for('static', filename='images/categories/kahvaltı.png') }}" class="cat-photo" alt="Kahvaltı"> Kahvaltı
             </button>
-            <button class="cat-btn" data-filter="börek">
-                <img src="{{ url_for('static', filename='images/categories/börek.jpg') }}" class="cat-photo" alt="Börek"> Börek
+            <button class="cat-btn {% if current_cuisine == 'Börek' %}active{% endif %}" data-filter="Börek">
+                <img src="{{ url_for('static', filename='images/categories/börek.png') }}" class="cat-photo" alt="Börek"> Börek
             </button>
         </div>
         
@@ -352,18 +577,18 @@
             
             <a href="{{ url_for('view_restaurant', restaurant_id=restaurant.get('restaurant_id')) }}" class="restaurant-card filterable-card {% if restaurant.get('is_open') == False %}closed-restaurant{% endif %}" data-category="{{ restaurant.get('cuisine') }}" data-rest-id="{{ restaurant['restaurant_id'] }}">
                 
-                <button class="main-page-fav-btn" data-id="{{ restaurant['restaurant_id'] }}" style="position: absolute; top: 15px; right: 15px; z-index: 10; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 50%; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                <button class="main-page-fav-btn" data-id="{{ restaurant['restaurant_id'] }}">
                     {% if restaurant['restaurant_id'] in favorited_restaurant_ids %}
-                        <svg viewBox="0 0 24 24" class="heart-svg" fill="#ef4444" stroke="#ef4444" stroke-width="2" style="width:20px; height:20px; transition: all 0.2s;"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                        <svg viewBox="0 0 24 24" class="heart-svg" fill="#ef4444" stroke="#ef4444" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
                     {% else %}
-                        <svg viewBox="0 0 24 24" class="heart-svg" fill="none" stroke="#6b7280" stroke-width="2" style="width:20px; height:20px; transition: all 0.2s;"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                        <svg viewBox="0 0 24 24" class="heart-svg" fill="none" stroke="#6b7280" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
                     {% endif %}
                 </button>
                 
                 <div class="card-image">
                     
                     {% if restaurant.get('is_open') == False %}
-                    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 15; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(2px);">
+                    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 24, 39, 0.85); z-index: 15; display: flex; align-items: center; justify-content: center; transform: translateZ(0); will-change: opacity;">
                         <span style="background: #ef4444; color: white; padding: 10px 20px; border-radius: 10px; font-weight: 800; font-size: 14px; letter-spacing: 0.5px; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">ŞU AN KAPALI</span>
                     </div>
                     {% endif %}
@@ -372,11 +597,8 @@
                         {% set card_img_path = url_for('static', filename='images/restaurants/' ~ restaurant['image_url']) %}
                         <div class="restaurant-img" style="background-image: url('{{ card_img_path }}');"></div>
                     {% else %}
-                        <div style="font-size: 65px; color: #9ca3af; display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;">
-                            {% if restaurant['cuisine'] == 'Pizza' %} <i class="ph-fill ph-pizza"></i>
-                            {% elif restaurant['cuisine'] == 'Hamburger' %} <i class="ph-fill ph-hamburger"></i>
-                            {% elif restaurant['cuisine'] == 'Kahve & İçecek' %} <i class="ph-fill ph-coffee"></i>
-                            {% else %} <i class="ph-fill ph-storefront"></i> {% endif %}
+                        <div style="display: flex; justify-content: center; align-items: center; width: 100%; height: 100%; background: #f3f4f6;">
+                            <img src="{{ url_for('static', filename='images/icons/category.png') }}" style="width: 80px; height: 80px; opacity: 0.6; filter: grayscale(20%);">
                         </div>
                     {% endif %}
                     
@@ -396,6 +618,10 @@
                         <span class="cuisine-tag"><i class="ph-bold ph-tag" style="font-size: 14px;"></i> {{ restaurant['cuisine'] }}</span>
                         
                         <div class="delivery-info">
+                            <span class="info-pill" style="color: #ea580c; background: #fff7ed; border-color: #ffedd5;">
+                                <i class="ph-bold ph-wallet"></i> Min. ₺{{ (restaurant.get('min_order_amount') or 0) | int }}
+                            </span>
+
                             {% if restaurant.get('distance') and restaurant.get('distance') != 999 %}
                                 {% set travel_time = (restaurant['distance'] * 4) | round | int %}
                                 {% set min_time = 15 + travel_time %}
@@ -419,6 +645,8 @@
                 {% endfor %}
             </div>
 
+            </div>
+        </div>
         {% else %}
             
             <!-- 🌟 KESİN BARİYER: KONUM YOKSA GÖSTERİLECEK JİLET GİBİ EKRAN -->
@@ -449,7 +677,7 @@
 
     <div id="location-data" data-has-location="{{ 'true' if session.get('latitude') else 'false' }}" style="display:none;"></div>
 
-    <div id="addressListModal" class="modal-overlay" onclick="if(event.target == this) closeAddressModal()" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center; backdrop-filter:blur(4px);">
+    <div id="addressListModal" class="modal-overlay" onclick="if(event.target == this) closeAddressModal()" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(17, 24, 39, 0.85); z-index:9999; justify-content:center; align-items:center;">
         <div class="modal-content" style="background:white; width:90%; max-width:450px; border-radius:16px; padding:25px; box-shadow:0 10px 25px rgba(0,0,0,0.1); display:flex; flex-direction:column; gap:15px;">
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f3f4f6; padding-bottom:10px;">
                 <h3 style="margin:0; font-size:18px; color:#111827;">Adreslerim</h3>
@@ -471,7 +699,7 @@
         </div>
     </div>
 
-    <div id="courierTrackModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10002; justify-content:center; align-items:center; backdrop-filter:blur(4px);">
+    <div id="courierTrackModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(17, 24, 39, 0.85); z-index:10002; justify-content:center; align-items:center;">
         <div class="modal-content" style="background:white; width:90%; max-width:600px; border-radius:16px; padding:20px; box-shadow:0 15px 35px rgba(0,0,0,0.2); display:flex; flex-direction:column; gap:15px;">
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f3f4f6; padding-bottom:10px;">
                 <h3 style="margin:0; font-size:18px; color:#111827; display:flex; align-items:center; gap:8px;">
@@ -556,7 +784,7 @@
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
-    <div id="cancelConfirmModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10000; justify-content:center; align-items:center; backdrop-filter:blur(4px);">
+    <div id="cancelConfirmModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(17, 24, 39, 0.85); z-index:10000; justify-content:center; align-items:center;">
         <div style="background:white; width:90%; max-width:400px; border-radius:16px; padding:25px; box-shadow:0 10px 25px rgba(0,0,0,0.2); text-align:center;">
             <div style="font-size:40px; margin-bottom:10px; color:#ef4444;"><i class="ph-fill ph-warning-circle"></i></div>
             <h3 style="margin:0 0 10px 0; color:#111827; font-size:18px;">Siparişi İptal Et</h3>
@@ -568,7 +796,7 @@
         </div>
     </div>
 
-    <div id="customAlertModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10001; justify-content:center; align-items:center; backdrop-filter:blur(4px);">
+    <div id="customAlertModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(17, 24, 39, 0.85); z-index:10001; justify-content:center; align-items:center;">
         <div style="background:white; width:90%; max-width:400px; border-radius:16px; padding:25px; box-shadow:0 10px 25px rgba(0,0,0,0.2); text-align:center;">
             <div id="customAlertIcon" style="font-size:40px; margin-bottom:10px; color:#3b82f6;"><i class="ph-fill ph-info"></i></div>
             <h3 id="customAlertTitle" style="margin:0 0 10px 0; color:#111827; font-size:18px;">Bilgi</h3>

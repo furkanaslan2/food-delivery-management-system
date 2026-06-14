@@ -11,18 +11,17 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/flash.css') }}">
     
     <style>
-        /* 🛡️ ZIRH: Eski CSS'in paneli bozmasını %100 engelliyoruz */
         body.dashboard-body {
             margin: 0 !important;
             padding: 0 !important;
             font-family: 'Inter', sans-serif !important;
             background-color: #f3f4f6 !important;
             display: flex !important;
-            flex-direction: row !important; /* YENİ: Alt alta yığılmayı engeller, yan yana dizer */
-            justify-content: flex-start !important; /* YENİ: Ortalamayı iptal eder, sola yaslar */
-            align-items: stretch !important; /* YENİ: Yukarıdan aşağıya tam kaplamasını sağlar */
+            flex-direction: row !important; 
+            justify-content: flex-start !important; 
+            align-items: stretch !important; 
             height: 100vh !important;
-            width: 100vw !important; /* YENİ: Ekranı tam kaplamaya zorlar */
+            width: 100vw !important; 
             overflow: hidden !important;
         }
 
@@ -30,17 +29,17 @@
             box-sizing: border-box;
         }
 
-        /* 👈 SOL MENÜ (SIDEBAR) */
         .sidebar {
             width: 260px !important;
-            flex-shrink: 0 !important; /* YENİ: Yan menünün ezilip küçülmesini engeller */
+            flex-shrink: 0 !important;
             background-color: #111827 !important;
             color: white;
             display: flex !important;
             flex-direction: column !important;
-            transition: all 0.3s;
             z-index: 100;
             box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, background-color 0.3s ease;
+            transform: translateZ(0);
         }
 
         .sidebar-header {
@@ -74,7 +73,8 @@
             font-size: 14px;
             font-weight: 500;
             border-radius: 8px;
-            transition: all 0.2s;
+            transition: background-color 0.2s ease, color 0.2s ease;
+            transform: translateZ(0);
         }
 
         .sidebar-menu a:hover {
@@ -87,40 +87,36 @@
             color: white;
         }
 
-        /* 🎨 YAN MENÜ İKONLARI İÇİN SİHİRLİ FİLTRE */
         .sidebar-icon {
             width: 20px;
             height: 20px;
             object-fit: contain;
-            /* Siyah ikonu sol menüye uygun açık gri yapar (#9ca3af rengine benzer) */
             filter: brightness(0) invert(0.7); 
-            transition: all 0.2s;
+            transition: filter 0.2s ease;
+            transform: translateZ(0);
         }
 
-        /* Menünün üstüne gelindiğinde veya o sayfadaysak ikon tam beyaz olsun */
         .sidebar-menu a:hover .sidebar-icon,
         .sidebar-menu a[href="{{ request.path }}"] .sidebar-icon {
             filter: brightness(0) invert(1);
         }
 
-        /* 👉 SAĞ TARAF (ANA İÇERİK) */
         .main-wrapper {
             flex: 1 !important;
-            min-width: 0 !important; /* YENİ: Tabloların ekran dışına taşmasını engeller */
+            min-width: 0 !important; 
             display: flex !important;
             flex-direction: column !important;
             overflow: hidden;
             background-color: #f3f4f6;
         }
 
-        /* 👆 ÜST BAR (TOPBAR) */
         .topbar {
             height: 75px;
             min-height: 75px;
             background: white;
             border-bottom: 1px solid #e5e7eb;
             display: flex !important;
-            flex-direction: row !important; /* YENİ: Üst barın içindeki butonları yatay dizer */
+            flex-direction: row !important; 
             justify-content: space-between !important;
             align-items: center !important;
             padding: 0 30px;
@@ -172,11 +168,12 @@
             text-decoration: none;
             font-size: 13px;
             font-weight: 600;
-            transition: 0.2s;
             border: 1px solid #fecaca;
             display: flex;
             align-items: center;
             gap: 5px;
+            transition: background-color 0.2s ease;
+            transform: translateZ(0);
         }
         
         .logout-btn:hover { 
@@ -256,14 +253,14 @@
         </main>
     </div>
 
-    <div id="global-confirm-modal" style="display: none; position: fixed; z-index: 100000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(17, 24, 39, 0.6); justify-content: center; align-items: center; backdrop-filter: blur(4px);">
+    <div id="global-confirm-modal" style="display: none; position: fixed; z-index: 100000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(17, 24, 39, 0.85); justify-content: center; align-items: center;">
         <div style="background-color: #fff; padding: 30px; border-radius: 12px; width: 90%; max-width: 400px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); text-align: center; animation: slideDown 0.3s ease-out;">
             <div style="font-size: 45px; margin-bottom: 15px;">⚠️</div>
             <h3 style="margin: 0 0 10px 0; color: #111827; font-size: 18px;">Emin misiniz?</h3>
             <p id="global-confirm-message" style="color: #6b7280; font-size: 14px; margin-bottom: 25px;">Bu işlem geri alınamaz.</p>
             <div style="display: flex; gap: 12px; justify-content: center;">
-                <button id="global-confirm-cancel" style="flex: 1; background: #f3f4f6; color: #4b5563; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">İptal</button>
-                <button id="global-confirm-ok" style="flex: 1; background: #ef4444; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 6px rgba(239, 68, 68, 0.2);" onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='#ef4444'">Evet, Onaylıyorum</button>
+                <button id="global-confirm-cancel" style="flex: 1; background: #f3f4f6; color: #4b5563; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background-color 0.2s ease;" onmouseover="this.style.backgroundColor='#e5e7eb'" onmouseout="this.style.backgroundColor='#f3f4f6'">İptal</button>
+                <button id="global-confirm-ok" style="flex: 1; background: #ef4444; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background-color 0.2s ease; box-shadow: 0 4px 6px rgba(239, 68, 68, 0.2);" onmouseover="this.style.backgroundColor='#dc2626'" onmouseout="this.style.backgroundColor='#ef4444'">Evet, Onaylıyorum</button>
             </div>
         </div>
     </div>

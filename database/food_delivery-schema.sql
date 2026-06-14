@@ -32,6 +32,7 @@ CREATE TABLE restaurants (
     opening_time TIME DEFAULT '09:00:00',
     closing_time TIME DEFAULT '23:00:00',
     is_manually_closed BOOLEAN DEFAULT FALSE,
+    is_active TINYINT(1) DEFAULT 1,
     min_order_amount DECIMAL(10,2) DEFAULT 0.00,
     image_url VARCHAR(255) DEFAULT 'default_restaurant.jpg',
     PRIMARY KEY (restaurant_id),

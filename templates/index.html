@@ -24,9 +24,11 @@
         display: flex;
         align-items: center;
         gap: 15px;
-        transition: transform 0.2s;
+        transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        will-change: transform;
+        transform: translateZ(0);
     }
-    .stat-card:hover { transform: translateY(-3px); }
+    .stat-card:hover { transform: translateY(-4px) translateZ(0); }
     .stat-icon {
         width: 55px;
         height: 55px;
@@ -85,15 +87,17 @@
         color: #374151;
         font-weight: 600;
         font-size: 11px; 
-        transition: all 0.2s;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: flex-start; 
+        transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
+        will-change: transform, box-shadow, border-color;
+        transform: translateZ(0);
     }
     
     .quick-card:hover {
-        transform: translateY(-4px);
+        transform: translateY(-4px) translateZ(0);
         border-color: #4f46e5;
         color: #4f46e5;
         box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.1);
@@ -120,6 +124,36 @@
 {% endblock %}
 
 {% block content %}
+
+{% if session['role'] == 'user' %}
+<div id="status-container" style="background: white; border-radius: 16px; padding: 20px 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #e5e7eb; border-left: 5px solid #10b981; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; transition: background-color 0.3s ease, border-color 0.3s ease;">
+    <div style="display: flex; align-items: center; gap: 18px;">
+        <div id="status-pulse" style="width: 14px; height: 14px; background-color: #10b981; border-radius: 50%; box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2); animation: pulse 2s infinite;"></div>
+        <div>
+            <h3 style="margin: 0 0 4px 0; font-size: 17px; color: #111827; font-weight: 800; letter-spacing: -0.3px;">Restoran Durumu</h3>
+            <p id="status-text" style="margin: 0; font-size: 14px; color: #4b5563; font-weight: 500;">Sistem kontrol ediliyor...</p>
+        </div>
+    </div>
+    
+    <button id="toggle-store-btn" style="display: none; background: #ef4444; color: white; border: none; padding: 12px 24px; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease; will-change: transform; transform: translateZ(0); box-shadow: 0 4px 10px rgba(239, 68, 68, 0.25); align-items: center; gap: 8px;" onmouseover="this.style.transform='translateY(-2px) translateZ(0)'" onmouseout="this.style.transform='translateY(0) translateZ(0)'">
+        <span id="toggle-btn-text">İşlem Yapılıyor...</span>
+    </button>
+</div>
+
+<style>
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+        70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+    @keyframes pulse-red {
+        0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+        70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+</style>
+{% endif %}
+
 <div class="stats-grid">
     {% if role == 'admin' %}
     <div class="stat-card">
@@ -297,7 +331,7 @@
                             Masa: {{ order.table_no or '-' }}
                         {% endif %}
                     </td>
-                    <td style="padding: 15px 20px; font-weight: 700; color: #059669;">${{ order.sales_amount }}</td>
+                    <td style="padding: 15px 20px; font-weight: 700; color: #059669;">₺{{ order.sales_amount }}</td>
                     <td style="padding: 15px 20px;">
                         <span class="status-badge status-{{ order.order_status }}">
                             {% if order.order_status == 'pending' %}Onay Bekliyor
@@ -338,4 +372,6 @@
         });
     });
 </script>
+
+<script src="{{ url_for('static', filename='js/index.js') }}"></script>
 {% endblock %}
