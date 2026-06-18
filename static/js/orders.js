@@ -54,20 +54,33 @@ function showOrderDetails(event, orderId) {
         });
 }
 
-// ==========================================
-// ✏️ SİPARİŞ EKLE/DÜZENLE MODALI (GÜNCELLENDİ)
-// ==========================================
 function openOrderModal(isUpdate = false, btn = null) {
     document.getElementById('orderFormModal').style.display = 'flex';
+
+    // 💳 ONLINE ÖDEME GİZLEME/GÖSTERME MANTIĞI
+    const paymentSelectForLogic = document.getElementById('payment_method');
+    if (paymentSelectForLogic) {
+        Array.from(paymentSelectForLogic.options).forEach(opt => {
+            if (opt.value === 'Online Payment') {
+                if (isUpdate && btn && btn.getAttribute('data-payment-method') === 'Online Payment') {
+                    opt.hidden = false;
+                    opt.disabled = false;
+                } else {
+                    opt.hidden = true;
+                    opt.disabled = true;
+                }
+            }
+        });
+    }
     
     if (isUpdate && btn) {
         document.getElementById('orderModalTitle').innerText = 'Siparişi Düzenle';
         document.getElementById('modal-add-btn').style.display = 'none';
         document.getElementById('modal-update-btn').style.display = 'block';
         document.getElementById('update-only-fields').style.display = 'flex';
-        document.getElementById('food-section').style.display = 'none';
         
-        document.getElementById('update-order-id').value = btn.getAttribute('data-id');
+        const orderId = btn.getAttribute('data-id');
+        document.getElementById('update-order-id').value = orderId;
         document.getElementById('order-status').value = btn.getAttribute('data-status');
         
         const dateVal = btn.getAttribute('data-date');
@@ -78,15 +91,28 @@ function openOrderModal(isUpdate = false, btn = null) {
         document.getElementById('customer-name').value = btn.getAttribute('data-customer-name');
         document.getElementById('customer-address').value = btn.getAttribute('data-customer-address');
         document.getElementById('dynamic-courier-list').value = btn.getAttribute('data-courier');
-        document.getElementById('customer-address').value = btn.getAttribute('data-customer-address');
-        document.getElementById('dynamic-courier-list').value = btn.getAttribute('data-courier');
-        document.getElementById('payment_method').value = btn.getAttribute('data-payment-method');
+        
+        const paymentMethod = btn.getAttribute('data-payment-method');
+        document.getElementById('payment_method').value = paymentMethod;
 
         const rawPhone = btn.getAttribute('data-customer-phone') || '';
         if (window.orderPhoneMask) {
             window.orderPhoneMask.unmaskedValue = rawPhone; 
         } else {
-            document.getElementById('customer-phone').value = rawPhone;
+            const phoneInput = document.getElementById('customer-phone');
+            if(phoneInput) phoneInput.value = rawPhone;
+        }
+
+        // 🚀 HİBRİT MODEL: Online ödeme ise yemekleri gizle, değilse aç ve doldur!
+        const foodSection = document.getElementById('food-section');
+        const container = document.getElementById('food-items-container');
+        
+        if (paymentMethod === 'Online Payment') {
+            foodSection.style.display = 'none';
+            container.innerHTML = ''; // Python'a boş gitmesi için içini temizliyoruz (Sadece bilgileri günceller)
+        } else {
+            foodSection.style.display = 'block';
+            loadExistingOrderItems(orderId); // Sihirli fonksiyonumuz eski ürünleri yükleyecek
         }
         
         toggleOrderFields();
@@ -98,18 +124,10 @@ function openOrderModal(isUpdate = false, btn = null) {
         document.getElementById('food-section').style.display = 'block';
         
         document.querySelectorAll('#order-form input[type="text"], #order-form textarea').forEach(el => el.value = '');
-        
         document.querySelectorAll('#order-form select').forEach(el => el.selectedIndex = 0);
         
-        if (window.orderPhoneMask) {
-            window.orderPhoneMask.unmaskedValue = ''; 
-        } else {
-            const phoneInput = document.getElementById('customer-phone');
-            if(phoneInput) phoneInput.value = '';
-        }
-
+        if (window.orderPhoneMask) window.orderPhoneMask.unmaskedValue = ''; 
         document.getElementById('update-order-id').value = '';
-        
         document.getElementById('dine-in-fields').style.display = 'none';
         document.getElementById('delivery-fields').style.display = 'none';
         
@@ -127,8 +145,30 @@ function toggleOrderFields() {
     document.getElementById('delivery-fields').style.display = (type === 'Delivery') ? 'block' : 'none';
 }
 
-// 🚀 DİNAMİK SATIR EKLEME MOTORU (Milimetrik Hizalanmış Tasarım)
-function addFoodRow() {
+function loadExistingOrderItems(orderId) {
+    const container = document.getElementById('food-items-container');
+    container.innerHTML = '<div style="padding: 10px; color: #4f46e5; font-weight: 600;">⏳ Eski sipariş kalemleri yükleniyor...</div>';
+    
+    fetch(`/order_details/${orderId}`)
+        .then(response => response.json())
+        .then(data => {
+            container.innerHTML = '';
+            if(data && data.length > 0 && !data.error) {
+                data.forEach(item => {
+                    addFoodRow(item); 
+                });
+            } else {
+                addFoodRow(); 
+            }
+        })
+        .catch(err => {
+            container.innerHTML = '<div style="color:#ef4444;">Kalemler yüklenirken hata oluştu.</div>';
+            addFoodRow();
+        });
+}
+
+// 🚀 DİNAMİK SATIR EKLEME MOTORU (Eski veriyi de içine alabilecek şekilde güçlendirildi)
+function addFoodRow(existingItem = null) {
     const container = document.getElementById('food-items-container');
     const cartIndex = Date.now() + Math.floor(Math.random() * 1000);
     
@@ -140,7 +180,9 @@ function addFoodRow() {
     rowDiv.className = 'food-row';
     rowDiv.style.cssText = "background: white; padding: 15px; border-radius: 8px; border: 1px solid #d1d5db; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);";
     
-    // 🚀 SİHİRLİ DOKUNUŞ: Konteynera 'height: 45px' ve 'align-items: stretch' verildi. Marginler sıfırlandı.
+    let qtyVal = existingItem ? existingItem.quantity : 1;
+    let noteVal = existingItem ? (existingItem.item_note || '') : '';
+
     rowDiv.innerHTML = `
         <div style="display: flex; gap: 10px; margin-bottom: 12px; align-items: stretch; height: 45px;">
             <input type="hidden" name="cart_index" value="${cartIndex}">
@@ -149,23 +191,31 @@ function addFoodRow() {
                 ${optionsHtml}
             </select>
             
-            <input type="number" name="qty_${cartIndex}" placeholder="Adet" value="1" min="1" style="flex: 0.5; margin: 0; padding: 0 10px; border: 1px solid #d1d5db; border-radius: 6px; font-family:inherit; font-weight:600; font-size: 14px; text-align: center; box-sizing: border-box; outline: none;" required>
+            <input type="number" name="qty_${cartIndex}" placeholder="Adet" value="${qtyVal}" min="1" style="flex: 0.5; margin: 0; padding: 0 10px; border: 1px solid #d1d5db; border-radius: 6px; font-family:inherit; font-weight:600; font-size: 14px; text-align: center; box-sizing: border-box; outline: none;" required>
             
             <button type="button" title="Bu Kalemi Sil" onclick="this.closest('.food-row').remove()" style="flex: 0 0 45px; margin: 0; padding: 0; background: transparent; border: 1px solid #fecaca; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-sizing: border-box; transition: 0.2s;" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='transparent'">
                 <img src="/static/images/icons/delete.png" style="width: 20px; height: 20px; object-fit: contain;">
             </button>
         </div>
         
-        <input type="text" name="note_${cartIndex}" placeholder="Ürün Özel Notu (Örn: Az Pişmiş)" style="width: 100%; height: 42px; margin: 0; padding: 0 12px; border: 1px solid #d1d5db; border-radius: 6px; font-family:inherit; font-size: 13px; outline: none; box-sizing: border-box;">
+        <input type="text" name="note_${cartIndex}" placeholder="Ürün Özel Notu (Örn: Az Pişmiş)" value="${noteVal}" style="width: 100%; height: 42px; margin: 0; padding: 0 12px; border: 1px solid #d1d5db; border-radius: 6px; font-family:inherit; font-size: 13px; outline: none; box-sizing: border-box;">
         
         <div id="options-container-${cartIndex}" style="margin-top: 10px;"></div>
     `;
     
     container.appendChild(rowDiv);
+
+    // Eğer eski bir sipariş yükleniyorsa, yemeği seç ve ekstralarını çek
+    const selectEl = rowDiv.querySelector(`select[name="menu_id_${cartIndex}"]`);
+    if (existingItem) {
+        selectEl.value = existingItem.menu_id;
+        const selectedChoices = existingItem.choices ? existingItem.choices.map(c => String(c.choice_id)) : [];
+        fetchMenuOptions(selectEl, cartIndex, selectedChoices);
+    }
 }
 
-// 🚀 AJAX İLE SEÇENEKLERİ ÇEKME (Gereksiz Yamalar Silindi, Doğru Link Eklendi)
-async function fetchMenuOptions(selectEl, cartIndex) {
+// 🚀 AJAX İLE SEÇENEKLERİ ÇEKME (Seçilmiş ekstraları otomatik işaretleme yeteneği eklendi)
+async function fetchMenuOptions(selectEl, cartIndex, selectedChoices = []) {
     const container = document.getElementById(`options-container-${cartIndex}`);
     const menuId = selectEl.value;
     container.innerHTML = '';
@@ -175,7 +225,6 @@ async function fetchMenuOptions(selectEl, cartIndex) {
     container.innerHTML = '<div style="color:#4f46e5; font-size:13px; font-weight:600; padding: 5px 0;">⏳ Seçenekler yükleniyor...</div>';
     
     try {
-        // Tertemiz, doğrudan api rotası.
         const response = await fetch(`/api/menu_options?menu_id=${menuId}`);
         if (!response.ok) throw new Error("API Yanıt Vermedi");
         
@@ -196,9 +245,12 @@ async function fetchMenuOptions(selectEl, cartIndex) {
                     const addPrice = parseFloat(choice.additional_price);
                     const priceText = addPrice > 0 ? `<strong style="color:#10b981;">(+₺${addPrice.toFixed(2)})</strong>` : '';
                     
+                    // 🚀 SİHİRLİ EŞLEŞTİRME: Eğer bu ekstra eski siparişte varsa direkt işaretle!
+                    const isChecked = selectedChoices.includes(String(choice.choice_id)) ? 'checked' : '';
+                    
                     html += `
                         <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: #4b5563; cursor: pointer; font-weight: 500;">
-                            <input type="${inputType}" name="${inputName}" value="${choice.choice_id}" class="choice-input" data-cart-index="${cartIndex}" style="accent-color: #4f46e5; width: 16px; height: 16px;">
+                            <input type="${inputType}" name="${inputName}" value="${choice.choice_id}" class="choice-input" data-cart-index="${cartIndex}" ${isChecked} style="accent-color: #4f46e5; width: 16px; height: 16px;">
                             <span>${choice.choice_name} ${priceText}</span>
                         </label>
                     `;

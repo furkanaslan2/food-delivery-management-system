@@ -290,6 +290,106 @@ def order_action():
                 flash("Güncellenecek sipariş seçilmedi.", "warning")
                 return redirect(url_for('orders'))
 
+            # 🚀 YENİ EKLENEN BÖLÜM: ÜRÜN LİSTESİ GÜNCELLEMESİ 🚀
+            cart_indices = request.form.getlist('cart_index')
+            
+            # Eğer JS tarafı ürünleri göndermişse (Yani Online Ödeme değilse ve ürün listesi açıksa)
+            if cart_indices:
+                valid_items = []
+                total_qty = 0
+                total_amount = 0
+
+                for idx in cart_indices:
+                    menu_id = request.form.get(f'menu_id_{idx}')
+                    qty_str = request.form.get(f'qty_{idx}', '0')
+                    note = request.form.get(f'note_{idx}', '').strip()
+                    selected_choices = request.form.getlist(f'choices_{idx}[]')
+
+                    if menu_id and qty_str:
+                        try:
+                            qty = int(qty_str)
+                            if qty > 0:
+                                cursor.execute("""
+                                    SELECT m.price, m.food_id, m.stock_quantity, 
+                                           COALESCE(m.custom_name, f.item_name) AS item_name
+                                    FROM menus m
+                                    JOIN foods f ON m.food_id = f.food_id
+                                    WHERE m.menu_id = %s
+                                """, (menu_id,))
+                                menu_item = cursor.fetchone()
+                                
+                                if menu_item:
+                                    base_price = float(menu_item['price'])
+                                    extras_price = 0
+                                    choice_details = []
+                                    
+                                    if selected_choices:
+                                        format_strings = ','.join(['%s'] * len(selected_choices))
+                                        cursor.execute(f"SELECT choice_id, choice_name, additional_price FROM menu_option_choices WHERE choice_id IN ({format_strings})", selected_choices)
+                                        choice_details = cursor.fetchall()
+                                        for row in choice_details:
+                                            if row['additional_price']:
+                                                extras_price += float(row['additional_price'])
+                                    
+                                    unit_price = base_price + extras_price
+                                    total_amount += (unit_price * qty)
+                                    total_qty += qty
+                                    
+                                    valid_items.append({
+                                        'food_id': menu_item['food_id'],
+                                        'menu_id': menu_id,
+                                        'item_name': menu_item['item_name'],
+                                        'quantity': qty,
+                                        'unit_price': unit_price,
+                                        'choice_details': choice_details,
+                                        'cart_index': idx,
+                                        'note': note
+                                    })
+                        except (ValueError, TypeError):
+                            continue
+                            
+                if not valid_items:
+                    flash("Lütfen siparişe en az bir ürün ekleyin!", "warning")
+                    return redirect(url_for('orders'))
+                
+                # 1. Eski siparişin stoklarını iade et
+                cursor.execute("SELECT food_id, quantity FROM order_items WHERE order_id = %s", (update_order_id,))
+                old_items = cursor.fetchall()
+                for old_item in old_items:
+                    cursor.execute("UPDATE menus SET stock_quantity = stock_quantity + %s WHERE food_id = %s", (old_item['quantity'], old_item['food_id']))
+                
+                # 2. Eski kalemleri ve ekstraları tamamen sil
+                cursor.execute("DELETE FROM order_item_choices WHERE order_id = %s", (update_order_id,))
+                cursor.execute("DELETE FROM order_items WHERE order_id = %s", (update_order_id,))
+                
+                # 3. Yeni kalemleri Snapshot (Mühür) ile kaydet
+                for item in valid_items:
+                    item_query = """
+                        INSERT INTO order_items 
+                        (order_id, food_id, menu_id, quantity, unit_price, cart_index, item_note, item_name_snapshot) 
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                    """
+                    cursor.execute(item_query, (update_order_id, item['food_id'], item['menu_id'], item['quantity'], item['unit_price'], item['cart_index'], item['note'], item['item_name']))
+                    
+                    if item['choice_details']:
+                        for choice in item['choice_details']:
+                            cursor.execute("""
+                                INSERT INTO order_item_choices 
+                                (order_id, food_id, choice_id, cart_index, choice_name_snapshot, choice_price_snapshot)
+                                VALUES (%s, %s, %s, %s, %s, %s)
+                            """, (update_order_id, item['food_id'], choice['choice_id'], item['cart_index'], choice['choice_name'], float(choice['additional_price'] or 0.00)))
+                            
+                    # Yeni stokları düşür
+                    cursor.execute("UPDATE menus SET stock_quantity = stock_quantity - %s WHERE food_id = %s", (item['quantity'], item['food_id']))
+
+                # 4. Faturanın ana verilerini güncelle (Yeni Fiyat ve Yeni Adet)
+                cursor.execute("""
+                    UPDATE orders 
+                    SET sales_qty = %s, sales_amount = %s
+                    WHERE order_id = %s
+                """, (total_qty, total_amount, update_order_id))
+
+            # 🚀 HER HALÜKARDA ANA SİPARİŞ BİLGİLERİNİ GÜNCELLE
             query = """
                 UPDATE orders 
                 SET order_status = %s, order_type = %s, table_no = %s, 
@@ -299,7 +399,7 @@ def order_action():
             cursor.execute(query, (order_status, order_type, table_no, customer_name, customer_phone, customer_address, courier_id, payment_method, update_order_id, restaurant_id))
             
             connection.commit()
-            flash("Sipariş detayları başarıyla güncellendi!", "success")
+            flash("Sipariş başarıyla güncellendi!", "success")
 
         elif action == 'filter':
             order_id = request.form.get('order_id')
@@ -377,10 +477,9 @@ def get_order_details(order_id):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     
-    # 🚀 ARTIK MENÜ VE FOODS TABLOLARINA JOIN ATMIYORUZ!
-    # İsmi ve fiyatı direkt kendi sipariş (order_items) tablomuzdaki snapshot'tan alıyoruz.
+    # 🚀 DEĞİŞİKLİK 1: oi.menu_id sütunu eklendi
     query = """
-        SELECT oi.food_id, oi.item_name_snapshot AS item_name, 
+        SELECT oi.food_id, oi.menu_id, oi.item_name_snapshot AS item_name, 
                oi.quantity, oi.unit_price, (oi.quantity * oi.unit_price) as subtotal,
                oi.cart_index, oi.item_note
         FROM order_items oi
@@ -390,16 +489,16 @@ def get_order_details(order_id):
     items = cursor.fetchall()
     
     for item in items:
-        # Ekstraları da kendi sipariş (order_item_choices) tablomuzdaki snapshot'tan okuyoruz.
+        # 🚀 DEĞİŞİKLİK 2: choice_id sütunu eklendi
         if item.get('cart_index'):
             cursor.execute("""
-                SELECT choice_name_snapshot AS choice_name, choice_price_snapshot AS additional_price 
+                SELECT choice_id, choice_name_snapshot AS choice_name, choice_price_snapshot AS additional_price 
                 FROM order_item_choices 
                 WHERE order_id = %s AND cart_index = %s
             """, (order_id, item['cart_index']))
         else:
             cursor.execute("""
-                SELECT choice_name_snapshot AS choice_name, choice_price_snapshot AS additional_price 
+                SELECT choice_id, choice_name_snapshot AS choice_name, choice_price_snapshot AS additional_price 
                 FROM order_item_choices 
                 WHERE order_id = %s AND food_id = %s
             """, (order_id, item['food_id']))
