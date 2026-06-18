@@ -1,5 +1,20 @@
 <!DOCTYPE html>
 <html lang="tr">
+
+<script>
+        // Tarayıcı ekranı çizmeden önce hafızaya bakar ve CSS değişkenlerini ayarlar (Sıfır titreme)
+        (function() {
+            var count = localStorage.getItem('pendingOrdersCount') || "0";
+            if (parseInt(count) > 0) {
+                document.documentElement.style.setProperty('--badge-display', 'flex');
+                document.documentElement.style.setProperty('--badge-count', '"' + count + '"');
+            } else {
+                document.documentElement.style.setProperty('--badge-display', 'none');
+            }
+        })();
+    </script>
+</head>
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -180,12 +195,38 @@
             background: #fecaca; 
         }
 
-        /* 📄 DEĞİŞEN SAYFA İÇERİĞİ */
         .content-area {
             flex: 1;
             padding: 30px;
             overflow-y: auto;
-            display: block !important; /* İçeriğin esnek kutu yüzünden bozulmasını engeller */
+            display: block !important; 
+        }
+
+        .nav-badge {
+            position: absolute;
+            top: -6px;
+            right: -8px;
+            background-color: #ef4444;
+            color: white;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 0 4px;
+            border-radius: 10px;
+            box-shadow: 0 0 0 2px #111827;
+            display: var(--badge-display, none);
+            align-items: center;
+            justify-content: center;
+            min-width: 16px;
+            height: 16px;
+        }
+        
+        .nav-badge::after {
+            content: var(--badge-count, "0");
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
         }
     </style>
 
@@ -200,7 +241,15 @@
         
         <ul class="sidebar-menu">
             <li><a href="{{ url_for('index') }}"><img src="{{ url_for('static', filename='images/icons/home.svg') }}" class="sidebar-icon"> Ana Panel</a></li>
-            <li><a href="{{ url_for('orders') }}"><img src="{{ url_for('static', filename='images/icons/cart-shopping-fast.svg') }}" class="sidebar-icon"> Siparişler</a></li>
+            <li>
+                <a href="{{ url_for('orders') }}">
+                    <div style="position: relative; display: inline-flex;">
+                        <img src="{{ url_for('static', filename='images/icons/cart-shopping-fast.svg') }}" class="sidebar-icon"> 
+                        <span id="nav-orders-badge" class="nav-badge"></span>
+                    </div>
+                    Siparişler
+                </a>
+            </li>
             <li><a href="{{ url_for('menus') }}"><img src="{{ url_for('static', filename='images/icons/menu-food.svg') }}" class="sidebar-icon"> Menü Yönetimi</a></li>
             <li><a href="{{ url_for('foods') }}"><img src="{{ url_for('static', filename='images/icons/food-categories.svg') }}" class="sidebar-icon"> Kategoriler</a></li>
             <li><a href="{{ url_for('couriers') }}"><img src="{{ url_for('static', filename='images/icons/delivery-bike.svg') }}" class="sidebar-icon"> Kuryeler</a></li>
@@ -277,5 +326,47 @@
             {% endif %}
         {% endwith %}
     </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const badge = document.getElementById('nav-orders-badge');
+            let currentCount = localStorage.getItem('pendingOrdersCount') || "0";
+
+            function fetchGlobalNotifications() {
+                fetch('/api/notifications')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success && data.notifications) {
+                            const newCount = data.notifications.pending_orders;
+                            
+                            // Sadece sayı değiştiğinde işlem yap
+                            if (newCount != currentCount) {
+                                if (newCount > 0) {
+                                    // CSS değişkenlerini güncelle
+                                    document.documentElement.style.setProperty('--badge-display', 'flex');
+                                    document.documentElement.style.setProperty('--badge-count', '"' + newCount + '"');
+                                    
+                                    // Animasyonu tetikle
+                                    if(badge) {
+                                        badge.style.animation = 'none';
+                                        void badge.offsetWidth; 
+                                        badge.style.animation = 'popIn 0.3s cubic-bezier(0.16, 1, 0.3, 1)';
+                                    }
+                                } else {
+                                    document.documentElement.style.setProperty('--badge-display', 'none');
+                                }
+                                
+                                currentCount = newCount;
+                                localStorage.setItem('pendingOrdersCount', newCount);
+                            }
+                        }
+                    })
+                    .catch(err => console.log("Bildirim API Hatası:", err));
+            }
+            
+            fetchGlobalNotifications();
+            setInterval(fetchGlobalNotifications, 10000); 
+        });
+    </script>
 </body>
 </html>

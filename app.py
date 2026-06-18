@@ -2,7 +2,7 @@ import os
 from flask import Flask
 from flask_session import Session
 from dotenv import load_dotenv
-from index import index
+from index import index, api_global_notifications
 from auth import login, logout, register, customer_login, customer_register, verify_email_page, verify_email_code, resend_verification_code, forgot_password, reset_password, process_reset, resend_reset_code, delete_customer_account, forgot_password_admin, reset_password_admin, process_reset_admin, resend_reset_code_admin
 from users import users, user_action
 from restaurants import restaurants, restaurant_action, restaurant_analytics, restaurant_profile, restaurant_reviews, reply_review, delete_restaurant_account, toggle_store_status
@@ -108,6 +108,8 @@ app.add_url_rule('/resend_reset_code_admin', 'resend_reset_code_admin', resend_r
 app.add_url_rule('/delete_customer_account', 'delete_customer_account', delete_customer_account, methods=['POST'])
 app.add_url_rule('/delete_restaurant_account', 'delete_restaurant_account', delete_restaurant_account, methods=['POST'])
 app.add_url_rule('/api/toggle_store_status', view_func=toggle_store_status, methods=['GET', 'POST'])
+app.add_url_rule('/api/notifications', view_func=api_global_notifications)
+
 
 if __name__ == '__main__':
     app.run(debug=True)

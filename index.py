@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for, session, flash
+from flask import render_template, request, redirect, url_for, session, flash, jsonify
 import math
 import datetime 
 from db import get_db_connection
@@ -11,6 +11,36 @@ def calculate_distance(lat1, lon1, lat2, lon2):
     a = math.sin(dlat / 2)**2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon / 2)**2
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
     return R * c
+
+def api_global_notifications():
+    if not session.get('logged_in'):
+        return jsonify({'success': False})
+    
+    role = session.get('role')
+    connection = get_db_connection()
+    notifications = {'pending_orders': 0}
+    
+    if connection:
+        try:
+            cursor = connection.cursor(dictionary=True)
+            if role == 'user':
+                # Restoran sahibi için kendi "Onay Bekleyen" siparişleri
+                restaurant_id = session.get('restaurant_id')
+                cursor.execute("SELECT COUNT(*) as count FROM orders WHERE restaurant_id = %s AND order_status = 'pending'", (restaurant_id,))
+                res = cursor.fetchone()
+                notifications['pending_orders'] = res['count'] if res else 0
+            elif role == 'admin':
+                # Admin için sistemdeki tüm "Onay Bekleyen" siparişler
+                cursor.execute("SELECT COUNT(*) as count FROM orders WHERE order_status = 'pending'")
+                res = cursor.fetchone()
+                notifications['pending_orders'] = res['count'] if res else 0
+        except Exception as e:
+            print("Bildirim Hatası:", e)
+        finally:
+            cursor.close()
+            connection.close()
+            
+    return jsonify({'success': True, 'notifications': notifications})
 
 def index():
     if 'logged_in' not in session:
