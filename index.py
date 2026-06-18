@@ -18,22 +18,50 @@ def api_global_notifications():
     
     role = session.get('role')
     connection = get_db_connection()
-    notifications = {'pending_orders': 0}
+    
+    # Tüm rozetler için başlangıç değerleri
+    notifications = {
+        'pending_orders': 0,
+        'kitchen_active': 0,
+        'out_of_stock': 0,
+        'pending_partners': 0,
+        'new_reviews': 0
+    }
     
     if connection:
         try:
             cursor = connection.cursor(dictionary=True)
             if role == 'user':
-                # Restoran sahibi için kendi "Onay Bekleyen" siparişleri
                 restaurant_id = session.get('restaurant_id')
+                
+                # 1. Siparişler (Onay Bekleyenler)
                 cursor.execute("SELECT COUNT(*) as count FROM orders WHERE restaurant_id = %s AND order_status = 'pending'", (restaurant_id,))
-                res = cursor.fetchone()
-                notifications['pending_orders'] = res['count'] if res else 0
+                notifications['pending_orders'] = cursor.fetchone()['count']
+                
+                # 2. Mutfak Ekranı (Bekleyen + Hazırlananlar)
+                cursor.execute("SELECT COUNT(*) as count FROM orders WHERE restaurant_id = %s AND order_status IN ('pending', 'preparing')", (restaurant_id,))
+                notifications['kitchen_active'] = cursor.fetchone()['count']
+                
+                # 3. Menü Yönetimi (Stoğu 0 veya daha az olanlar)
+                cursor.execute("SELECT COUNT(*) as count FROM menus WHERE restaurant_id = %s AND stock_quantity <= 0", (restaurant_id,))
+                notifications['out_of_stock'] = cursor.fetchone()['count']
+                
+                # 4. Değerlendirmeler (Örn: Bugün gelen yorumlar veya durumu okunmadı olanlar. Tablo yapına göre uyarlayabilirsin)
+                # Örnek sorgu:
+                # cursor.execute("SELECT COUNT(*) as count FROM reviews WHERE restaurant_id = %s AND created_at >= CURDATE()", (restaurant_id,))
+                # res = cursor.fetchone()
+                # notifications['new_reviews'] = res['count'] if res else 0
+
             elif role == 'admin':
-                # Admin için sistemdeki tüm "Onay Bekleyen" siparişler
+                # 1. Tüm Bekleyen Siparişler
                 cursor.execute("SELECT COUNT(*) as count FROM orders WHERE order_status = 'pending'")
+                notifications['pending_orders'] = cursor.fetchone()['count']
+                
+                # 2. İş Ortağı Başvuruları (Bekleyenler)
+                cursor.execute("SELECT COUNT(*) as count FROM partner_applications WHERE status = 'pending'") # Tablo adını kontrol et
                 res = cursor.fetchone()
-                notifications['pending_orders'] = res['count'] if res else 0
+                notifications['pending_partners'] = res['count'] if res else 0
+                
         except Exception as e:
             print("Bildirim Hatası:", e)
         finally:

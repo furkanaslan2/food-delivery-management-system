@@ -2,17 +2,19 @@
 <html lang="tr">
 
 <script>
-        // Tarayıcı ekranı çizmeden önce hafızaya bakar ve CSS değişkenlerini ayarlar (Sıfır titreme)
-        (function() {
-            var count = localStorage.getItem('pendingOrdersCount') || "0";
+    (function() {
+        const keys = ['pending_orders', 'kitchen_active', 'out_of_stock', 'pending_partners', 'new_reviews'];
+        keys.forEach(k => {
+            var count = localStorage.getItem('badge_' + k) || "0";
             if (parseInt(count) > 0) {
-                document.documentElement.style.setProperty('--badge-display', 'flex');
-                document.documentElement.style.setProperty('--badge-count', '"' + count + '"');
+                document.documentElement.style.setProperty('--badge-' + k + '-display', 'flex');
+                document.documentElement.style.setProperty('--badge-' + k + '-count', '"' + count + '"');
             } else {
-                document.documentElement.style.setProperty('--badge-display', 'none');
+                document.documentElement.style.setProperty('--badge-' + k + '-display', 'none');
             }
-        })();
-    </script>
+        });
+    })();
+</script>
 </head>
 
 <head>
@@ -213,16 +215,27 @@
             padding: 0 4px;
             border-radius: 10px;
             box-shadow: 0 0 0 2px #111827;
-            display: var(--badge-display, none);
             align-items: center;
             justify-content: center;
             min-width: 16px;
             height: 16px;
         }
-        
-        .nav-badge::after {
-            content: var(--badge-count, "0");
-        }
+
+        /* 🚀 Her rozet kendi özel CSS Değişkeninden beslenecek */
+        #nav-orders-badge { display: var(--badge-pending_orders-display, none); }
+        #nav-orders-badge::after { content: var(--badge-pending_orders-count, "0"); }
+
+        #nav-kitchen-badge { display: var(--badge-kitchen_active-display, none); }
+        #nav-kitchen-badge::after { content: var(--badge-kitchen_active-count, "0"); }
+
+        #nav-menu-badge { display: var(--badge-out_of_stock-display, none); }
+        #nav-menu-badge::after { content: var(--badge-out_of_stock-count, "0"); }
+
+        #nav-partner-badge { display: var(--badge-pending_partners-display, none); }
+        #nav-partner-badge::after { content: var(--badge-pending_partners-count, "0"); }
+
+        #nav-reviews-badge { display: var(--badge-new_reviews-display, none); }
+        #nav-reviews-badge::after { content: var(--badge-new_reviews-count, "0"); }
 
         @keyframes popIn {
             0% { transform: scale(0); opacity: 0; }
@@ -250,7 +263,15 @@
                     Siparişler
                 </a>
             </li>
-            <li><a href="{{ url_for('menus') }}"><img src="{{ url_for('static', filename='images/icons/menu-food.svg') }}" class="sidebar-icon"> Menü Yönetimi</a></li>
+            <li>
+                <a href="{{ url_for('menus') }}">
+                    <div style="position: relative; display: inline-flex;">
+                        <img src="{{ url_for('static', filename='images/icons/menu-food.svg') }}" class="sidebar-icon"> 
+                        <span id="nav-menu-badge" class="nav-badge"></span>
+                    </div>
+                    Menü Yönetimi
+                </a>
+            </li>
             <li><a href="{{ url_for('foods') }}"><img src="{{ url_for('static', filename='images/icons/food-categories.svg') }}" class="sidebar-icon"> Kategoriler</a></li>
             <li><a href="{{ url_for('couriers') }}"><img src="{{ url_for('static', filename='images/icons/delivery-bike.svg') }}" class="sidebar-icon"> Kuryeler</a></li>
             <li><a href="{{ url_for('waiters') }}"><img src="{{ url_for('static', filename='images/icons/holding-hand-dinner.svg') }}" class="sidebar-icon"> Garsonlar</a></li>
@@ -261,14 +282,38 @@
             <li><a href="{{ url_for('restaurants') }}"><img src="{{ url_for('static', filename='images/icons/restaurant-sign.svg') }}" class="sidebar-icon"> {{ 'Restoranım' if session.get('role') == 'user' else 'Restoran Yönetimi' }}</a></li>
             
             {% if session.get('role') == 'admin' %}
-            <li><a href="{{ url_for('partner_applications') }}"><img src="{{ url_for('static', filename='images/icons/inbox-in.svg') }}" class="sidebar-icon"> İş Ortağı Başvuruları</a></li>
+            <li>
+                <a href="{{ url_for('partner_applications') }}">
+                    <div style="position: relative; display: inline-flex;">
+                        <img src="{{ url_for('static', filename='images/icons/inbox-in.svg') }}" class="sidebar-icon"> 
+                        <span id="nav-partner-badge" class="nav-badge"></span>
+                    </div>
+                    İş Ortağı Başvuruları
+                </a>
+            </li>
             {% endif %}
 
             {% if session.get('role') == 'user' %}
             <li><a href="{{ url_for('restaurant_analytics') }}"><img src="{{ url_for('static', filename='images/icons/chart-histogram.svg') }}" class="sidebar-icon"> İş Analizleri</a></li>
             <li><a href="{{ url_for('restaurant_profile') }}"><img src="{{ url_for('static', filename='images/icons/settings.svg') }}" class="sidebar-icon"> Restoran Ayarları</a></li>
-            <li><a href="{{ url_for('restaurant_reviews') }}"><img src="{{ url_for('static', filename='images/icons/feedback-review.svg') }}" class="sidebar-icon"> Değerlendirmeler</a></li>
-            <li><a href="{{ url_for('kitchen_display') }}"><img src="{{ url_for('static', filename='images/icons/hat-chef.svg') }}" class="sidebar-icon"> Mutfak Ekranı</a></li>
+            <li>
+                <a href="{{ url_for('restaurant_reviews') }}">
+                    <div style="position: relative; display: inline-flex;">
+                        <img src="{{ url_for('static', filename='images/icons/feedback-review.svg') }}" class="sidebar-icon"> 
+                        <span id="nav-reviews-badge" class="nav-badge"></span>
+                    </div>
+                    Değerlendirmeler
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('kitchen_display') }}">
+                    <div style="position: relative; display: inline-flex;">
+                        <img src="{{ url_for('static', filename='images/icons/hat-chef.svg') }}" class="sidebar-icon"> 
+                        <span id="nav-kitchen-badge" class="nav-badge"></span>
+                    </div>
+                    Mutfak Ekranı
+                </a>
+            </li>
             {% endif %}
         </ul>
     </aside>
@@ -329,36 +374,42 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            const badge = document.getElementById('nav-orders-badge');
-            let currentCount = localStorage.getItem('pendingOrdersCount') || "0";
+            // Sisteme bağlı olan tüm rozetlerin kimlik kartları
+            const badges = [
+                { id: 'nav-orders-badge', key: 'pending_orders' },
+                { id: 'nav-kitchen-badge', key: 'kitchen_active' },
+                { id: 'nav-menu-badge', key: 'out_of_stock' },
+                { id: 'nav-partner-badge', key: 'pending_partners' },
+                { id: 'nav-reviews-badge', key: 'new_reviews' }
+            ];
 
             function fetchGlobalNotifications() {
                 fetch('/api/notifications')
                     .then(response => response.json())
                     .then(data => {
                         if (data.success && data.notifications) {
-                            const newCount = data.notifications.pending_orders;
-                            
-                            // Sadece sayı değiştiğinde işlem yap
-                            if (newCount != currentCount) {
-                                if (newCount > 0) {
-                                    // CSS değişkenlerini güncelle
-                                    document.documentElement.style.setProperty('--badge-display', 'flex');
-                                    document.documentElement.style.setProperty('--badge-count', '"' + newCount + '"');
-                                    
-                                    // Animasyonu tetikle
-                                    if(badge) {
-                                        badge.style.animation = 'none';
-                                        void badge.offsetWidth; 
-                                        badge.style.animation = 'popIn 0.3s cubic-bezier(0.16, 1, 0.3, 1)';
-                                    }
-                                } else {
-                                    document.documentElement.style.setProperty('--badge-display', 'none');
-                                }
+                            badges.forEach(b => {
+                                const newCount = data.notifications[b.key] || 0;
+                                const currentCount = localStorage.getItem('badge_' + b.key) || "0";
                                 
-                                currentCount = newCount;
-                                localStorage.setItem('pendingOrdersCount', newCount);
-                            }
+                                if (newCount != currentCount) {
+                                    if (newCount > 0) {
+                                        document.documentElement.style.setProperty('--badge-' + b.key + '-display', 'flex');
+                                        document.documentElement.style.setProperty('--badge-' + b.key + '-count', '"' + newCount + '"');
+                                        
+                                        // Animasyon Reflow Hilesi
+                                        const badgeEl = document.getElementById(b.id);
+                                        if(badgeEl) {
+                                            badgeEl.style.animation = 'none';
+                                            void badgeEl.offsetWidth; 
+                                            badgeEl.style.animation = 'popIn 0.3s cubic-bezier(0.16, 1, 0.3, 1)';
+                                        }
+                                    } else {
+                                        document.documentElement.style.setProperty('--badge-' + b.key + '-display', 'none');
+                                    }
+                                    localStorage.setItem('badge_' + b.key, newCount);
+                                }
+                            });
                         }
                     })
                     .catch(err => console.log("Bildirim API Hatası:", err));
