@@ -310,19 +310,6 @@ function cancelOrderAjax(orderId) {
     });
 }
 
-
-// ==========================================
-// 🤖 YAPAY ZEKA GURME ASİSTAN
-// ==========================================
-function toggleChat() {
-    const chatWindow = document.getElementById('ai-chat-window');
-    if (chatWindow.style.display === 'none' || chatWindow.style.display === '') {
-        chatWindow.style.display = 'flex';
-    } else {
-        chatWindow.style.display = 'none';
-    }
-}
-
 function sendChatMessage() {
     const input = document.getElementById('chat-input');
     const message = input.value.trim();
@@ -360,6 +347,25 @@ function sendChatMessage() {
                     ${data.response.replace(/\n/g, '<br>')}
                 </div>
             `;
+
+            if (data.action_taken === 'cart_updated') {
+                let badge = document.getElementById('nav-cart-badge');
+                if (badge) {
+                    badge.innerText = data.total_cart_qty;
+                    badge.style.display = data.total_cart_qty > 0 ? 'flex' : 'none';
+                }
+                
+                let priceTag = document.getElementById('nav-cart-total');
+                if (priceTag) {
+                    priceTag.setAttribute('data-total', data.total_cart_price);
+                    priceTag.innerText = '₺' + parseFloat(data.total_cart_price).toFixed(2);
+                    priceTag.style.display = data.total_cart_price > 0 ? 'inline-block' : 'none';
+                    
+                    priceTag.style.transform = 'scale(1.15)';
+                    setTimeout(() => { priceTag.style.transform = 'scale(1)'; }, 200);
+                }
+            }
+
         } else {
             chatBox.innerHTML += `
                 <div style="align-self: flex-start; background: #fee2e2; color: #dc2626; padding: 12px 16px; border-radius: 16px 16px 16px 4px; font-size: 14px;">
@@ -375,6 +381,86 @@ function sendChatMessage() {
     });
 }
 
+// ==========================================
+// 🤖 YAPAY ZEKA GURME ASİSTAN KONTROLLERİ
+// ==========================================
+function toggleChat() {
+    const chatWindow = document.getElementById('ai-chat-window');
+    const badge = document.getElementById('ai-fab-badge');
+    const icon = document.getElementById('ai-fab-icon');
+    
+    // Eğer kapalıysa aç
+    if (chatWindow.style.display === 'none' || chatWindow.style.display === '') {
+        chatWindow.style.display = 'flex';
+        // 🚀 Açıldığında rozeti gizle, ikonu robota çevir
+        if(badge) badge.style.display = 'none';
+        if(icon) icon.className = 'ph-bold ph-robot';
+    } else {
+        // Zaten açıksa ana butona tıklandığında "Minimize" et
+        minimizeChat();
+    }
+}
+
+function minimizeChat() {
+    // Sadece pencereyi gizler, hafızayı veya yazışmaları SİLMEZ (Aşağı Ok işlemi)
+    document.getElementById('ai-chat-window').style.display = 'none';
+    
+    // 🚀 YENİ: Küçültüldüğünde aktif sohbet olduğunu belirt!
+    const badge = document.getElementById('ai-fab-badge');
+    const icon = document.getElementById('ai-fab-icon');
+    if(badge) badge.style.display = 'block';
+    if(icon) icon.className = 'ph-bold ph-chats'; // İkonu konuşma balonuna çevir
+}
+
+function promptCloseChat() {
+    document.getElementById('ai-close-confirm').style.display = 'flex';
+}
+
+function cancelCloseChat() {
+    document.getElementById('ai-close-confirm').style.display = 'none';
+}
+
+function confirmCloseChat() {
+    const chatBox = document.getElementById('chat-messages');
+    const confirmOverlay = document.getElementById('ai-close-confirm');
+    const chatWindow = document.getElementById('ai-chat-window');
+    
+    confirmOverlay.innerHTML = '<div style="color: #4f46e5; font-size: 30px;"><i class="ph-bold ph-spinner ph-spin"></i></div><h4 style="margin-top:15px; color:#111827;">Sohbet Temizleniyor...</h4>';
+    
+    fetch('/api/ask_ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: '/reset_memory' })
+    })
+    .then(res => res.json())
+    .then(data => {
+        chatBox.innerHTML = `
+            <div style="align-self: flex-start; background: white; padding: 12px 16px; border-radius: 16px 16px 16px 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); font-size: 14px; color: #374151; max-width: 85%; border: 1px solid #f3f4f6; line-height: 1.5;">
+                Merhaba! Ben Gurme Asistan. <i class="ph-fill ph-cooking-pot"></i><br>Bugün canın ne çekiyor? Sana en uygun restoranları ve yemekleri hemen bulabilirim!
+            </div>
+        `;
+        
+        confirmOverlay.innerHTML = `
+            <div style="width: 60px; height: 60px; background: #fee2e2; color: #dc2626; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; margin-bottom: 15px;"><i class="ph-bold ph-warning-circle"></i></div>
+            <h4 style="margin: 0 0 10px 0; color: #111827; font-size: 18px; font-weight: 800;">Sohbeti Sonlandır</h4>
+            <p style="margin: 0 0 25px 0; color: #4b5563; font-size: 14px; font-weight: 500; line-height: 1.5;">Sohbeti kapatırsanız asistan önceki konuştuklarınızı ve seçimlerinizi unutacaktır. Emin misiniz?</p>
+            <div style="display: flex; gap: 10px; width: 100%;">
+                <button onclick="cancelCloseChat()" style="flex: 1; background: #f3f4f6; color: #374151; border: none; padding: 12px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">Vazgeç</button>
+                <button onclick="confirmCloseChat()" style="flex: 1; background: #ef4444; color: white; border: none; padding: 12px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='#ef4444'">Evet, Kapat</button>
+            </div>
+        `;
+        
+        confirmOverlay.style.display = 'none';
+        chatWindow.style.display = 'none';
+        
+        // 🚀 YENİ: İkonu fabrika ayarlarına (Robot) döndür ve rozeti kapat
+        const badge = document.getElementById('ai-fab-badge');
+        const icon = document.getElementById('ai-fab-icon');
+        if(badge) badge.style.display = 'none';
+        if(icon) icon.className = 'ph-bold ph-robot';
+    })
+    .catch(err => console.error("Hafıza temizleme hatası:", err));
+}
 
 // ==========================================
 // 📍 ADRES VE HARİTA (LEAFLET)

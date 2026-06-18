@@ -150,16 +150,6 @@
             </div>
         </div>
 
-        <div style="background: #fee2e2; border: 1px solid #fca5a5; padding: 15px; border-radius: 8px; margin-bottom: 25px;">
-            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; color: #991b1b; font-weight: 700; font-size: 15px; margin-bottom: 0;">
-                <input type="checkbox" name="is_manually_closed" style="width: 20px; height: 20px;" {% if restaurant['is_manually_closed'] %}checked{% endif %}>
-                <img src="{{ url_for('static', filename='images/icons/alert.png') }}" style="width: 24px; height: 24px;"> Dükkanı Acil Durum İçin Kapat
-            </label>
-            <p style="margin: 5px 0 0 34px; font-size: 13px; color: #b91c1c; font-weight: 500; line-height: 1.4;">
-                İşaretlerseniz, çalışma saatiniz içinde olsanız bile müşteriler dükkanınızı "ŞU AN KAPALI" olarak görür.
-            </p>
-        </div>
-
         <h3 class="section-title"><img src="{{ url_for('static', filename='images/icons/location.png') }}" style="width: 24px; height: 24px; margin-right: 5px;"> Restoran Lokasyonu (Harita)</h3>
         <p style="font-size: 13px; color: #6b7280; margin: 0 0 15px 0;">Harita üzerinden dükkanınızın tam konumunu işaretleyin. Bu, siparişlerin 10 KM sınırında çalışabilmesi için <b>zorunludur.</b></p>
         

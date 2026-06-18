@@ -33,10 +33,10 @@
         .nav-links a { text-decoration: none; color: #d1d5db; font-weight: 500; transition: color 0.2s; display: flex; align-items: center; gap: 6px;}
         .nav-links a:hover { color: #ffffff; }
         
-        .nav-address-btn { background: #1f2937; border: 1px solid #374151; padding: 10px 18px; border-radius: 20px; font-family: inherit; font-size: 14px; font-weight: 600; color: #f3f4f6; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s; }
+        .nav-address-btn { background: #1f2937; border: 1px solid #374151; padding: 0 20px; height: 42px; border-radius: 21px; font-family: inherit; font-size: 14px; font-weight: 600; color: #f3f4f6; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; box-sizing: border-box; }
         .nav-address-btn:hover { background: #374151; border-color: #4b5563; color: white; }
         
-        .cart-btn { background: #4f46e5; color: white !important; padding: 10px 20px; border-radius: 20px; display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; transition: background 0.2s; border: 1px solid #4338ca; }
+        .cart-btn { background: #4f46e5; color: white !important; padding: 0 20px; height: 42px; border-radius: 21px; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; font-size: 14px; transition: background 0.2s; border: 1px solid #4338ca; box-sizing: border-box; }
         .cart-btn:hover { background: #4338ca; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3); }
         .cart-btn i { font-size: 18px; }
         
@@ -44,8 +44,9 @@
 
         .dropdown::after { content: ''; position: absolute; top: 100%; left: 0; width: 100%; height: 15px; background: transparent; display: none; }
         .dropdown:hover::after { display: block; }
-        .dropdown-btn { background-color: #1f2937; color: #f3f4f6; padding: 10px 18px; font-size: 14px; font-weight: 600; border: 1px solid #374151; border-radius: 20px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s; font-family: inherit; }
+        .dropdown-btn { background-color: #1f2937; color: #f3f4f6; padding: 0 20px; height: 42px; font-size: 14px; font-weight: 600; border: 1px solid #374151; border-radius: 21px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: inherit; transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease; transform: translateZ(0); box-sizing: border-box; }
         .dropdown-btn:hover { background-color: #374151; border-color: #4b5563; color: white; }
+        .dropdown-btn i { font-size: 18px; }
         
         .dropdown-content { display: none; position: absolute; right: 0; top: 100%; background-color: #ffffff; min-width: 200px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); border-radius: 12px; overflow: hidden; z-index: 1000; border: 1px solid #e5e7eb; margin-top: 10px; }
         .dropdown-content a { color: #374151; padding: 12px 18px; text-decoration: none; display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; transition: background-color 0.2s; }
@@ -235,20 +236,45 @@
             </button>
             {% endif %}
 
-            <a href="{{ url_for('view_cart') }}" class="cart-btn cart-wrapper" style="text-decoration: none;">
-                <i class="ph-bold ph-shopping-cart"></i> Sepet
-                {% set cart_qty = namespace(total=0) %}
-                {% for item in session.get('cart', []) %}
-                    {% set cart_qty.total = cart_qty.total + item['quantity']|int %}
-                {% endfor %}
-                {% if cart_qty.total > 0 %}
-                    <span class="cart-badge">{{ cart_qty.total }}</span>
-                {% endif %}
-            </a>
+            <div style="position: relative; display: flex; align-items: center;">
+                <a href="{{ url_for('view_cart') }}" class="cart-btn cart-wrapper" style="text-decoration: none;">
+                    <i class="ph-bold ph-shopping-cart"></i> Sepet
+                    
+                    {% set cart_qty = namespace(total=0) %}
+                    {% set cart_price = namespace(total=0) %}
+                    
+                    {% if session.get('cart') %}
+                        {% for item in session.get('cart') %}
+                            {% set cart_qty.total = cart_qty.total + item['quantity']|int %}
+                            {% set cart_price.total = cart_price.total + (item['price']|float * item['quantity']|int) %}
+                        {% endfor %}
+                    {% endif %}
+                    
+                    {% if cart_qty.total > 0 %}
+                        <span class="cart-badge" id="nav-cart-badge">{{ cart_qty.total }}</span>
+                    {% else %}
+                        <span class="cart-badge" id="nav-cart-badge" style="display: none;">0</span>
+                    {% endif %}
+                </a>
+                
+                <div style="position: absolute; top: calc(100% + 5px); left: 0; width: 100%; display: flex; justify-content: center; pointer-events: none;">
+                    {% if cart_price.total > 0 %}
+                        <span id="nav-cart-total" data-total="{{ cart_price.total }}" 
+                              style="font-size: 12px; font-weight: 800; color: #10b981; background: #ecfdf5; padding: 2px 10px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: transform 0.3s; display: inline-block;">
+                            ₺{{ "%.2f"|format(cart_price.total) }}
+                        </span>
+                    {% else %}
+                        <span id="nav-cart-total" data-total="0" 
+                              style="font-size: 12px; font-weight: 800; color: #10b981; background: #ecfdf5; padding: 2px 10px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: transform 0.3s; display: none;">
+                            ₺0.00
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
 
             <div class="dropdown">
                 <button class="dropdown-btn"><i class="ph-bold ph-user"></i> Hesabım <i class="ph-bold ph-caret-down" style="font-size:12px;"></i></button>
-                <div class="dropdown-content">                  
+                <div class="dropdown-content">
                     <a href="{{ url_for('customer_orders') }}"><i class="ph-bold ph-package"></i> Siparişlerim</a>
                     <a href="{{ url_for('view_favorites') }}"><i class="ph-bold ph-heart"></i> Favorilerim</a>
                     <a href="{{ url_for('view_profile') }}"><i class="ph-bold ph-gear"></i> Ayarlarım</a>
@@ -809,12 +835,16 @@
         </div>
     </div>
 
-    <button onclick="toggleChat()" style="position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #4f46e5, #ec4899); color: white; border: none; font-size: 28px; box-shadow: 0 10px 25px rgba(79, 70, 229, 0.4); cursor: pointer; z-index: 9999; display: flex; justify-content: center; align-items: center; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
-        <i class="ph-bold ph-robot"></i>
+    <style>@keyframes fab-pulse { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }</style>
+    <button id="ai-fab-btn" onclick="toggleChat()" style="position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #4f46e5, #ec4899); color: white; border: none; font-size: 28px; box-shadow: 0 10px 25px rgba(79, 70, 229, 0.4); cursor: pointer; z-index: 9999; display: flex; justify-content: center; align-items: center; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+        <i id="ai-fab-icon" class="ph-bold ph-robot"></i>
+        <span id="ai-fab-badge" style="display: none; position: absolute; top: 0px; right: 0px; width: 14px; height: 14px; background-color: #10b981; border: 2px solid white; border-radius: 50%; animation: fab-pulse 2s infinite;"></span>
     </button>
 
     <div id="ai-chat-window" style="display: none; position: fixed; bottom: 100px; right: 30px; width: 350px; height: 500px; background: white; border-radius: 16px; box-shadow: 0 15px 35px rgba(0,0,0,0.15); z-index: 9998; flex-direction: column; overflow: hidden; border: 1px solid #e5e7eb; font-family: 'Inter', sans-serif;">
-        <div style="background: linear-gradient(135deg, #4f46e5, #ec4899); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;">
+        
+        <!-- 🌟 YENİ BAŞLIK: Küçült ve Kapat Butonları -->
+        <div style="background: linear-gradient(135deg, #4f46e5, #ec4899); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 11;">
             <div style="display: flex; align-items: center; gap: 10px;">
                 <i class="ph-bold ph-robot" style="font-size: 24px;"></i>
                 <div>
@@ -822,14 +852,35 @@
                     <span style="font-size: 12px; opacity: 0.9;">Yapay Zeka Destekli</span>
                 </div>
             </div>
-            <button onclick="toggleChat()" style="background: none; border: none; color: white; font-size: 24px; cursor: pointer;"><i class="ph-bold ph-x"></i></button>
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <button onclick="minimizeChat()" style="background: none; border: none; color: white; font-size: 20px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'" title="Sohbeti Gizle">
+                    <i class="ph-bold ph-caret-down"></i>
+                </button>
+                <button onclick="promptCloseChat()" style="background: none; border: none; color: white; font-size: 20px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'" title="Sohbeti Sonlandır">
+                    <i class="ph-bold ph-x"></i>
+                </button>
+            </div>
         </div>
-        <div id="chat-messages" style="flex: 1; padding: 20px; overflow-y: auto; background: #f9fafb; display: flex; flex-direction: column; gap: 15px;">
+
+        <div id="ai-close-confirm" style="display: none; position: absolute; inset: 0; background: rgba(255,255,255,0.95); z-index: 20; flex-direction: column; justify-content: center; align-items: center; padding: 25px; text-align: center; backdrop-filter: blur(4px); box-sizing: border-box; border-radius: 16px;">
+            <div style="width: 60px; height: 60px; background: #fee2e2; color: #dc2626; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; margin-bottom: 15px;">
+                <i class="ph-bold ph-warning-circle"></i>
+            </div>
+            <h4 style="margin: 0 0 10px 0; color: #111827; font-size: 18px; font-weight: 800;">Sohbeti Sonlandır</h4>
+            <p style="margin: 0 0 25px 0; color: #4b5563; font-size: 14px; font-weight: 500; line-height: 1.5;">Sohbeti kapatırsanız asistan önceki konuştuklarınızı ve seçimlerinizi unutacaktır. Emin misiniz?</p>
+            <div style="display: flex; gap: 10px; width: 100%;">
+                <button onclick="cancelCloseChat()" style="flex: 1; background: #f3f4f6; color: #374151; border: none; padding: 12px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">Vazgeç</button>
+                <button onclick="confirmCloseChat()" style="flex: 1; background: #ef4444; color: white; border: none; padding: 12px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='#ef4444'">Evet, Kapat</button>
+            </div>
+        </div>
+
+        <div id="chat-messages" style="flex: 1; padding: 20px; overflow-y: auto; background: #f9fafb; display: flex; flex-direction: column; gap: 15px; position: relative; z-index: 10;">
             <div style="align-self: flex-start; background: white; padding: 12px 16px; border-radius: 16px 16px 16px 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); font-size: 14px; color: #374151; max-width: 85%; border: 1px solid #f3f4f6; line-height: 1.5;">
                 Merhaba! Ben Gurme Asistan. <i class="ph-fill ph-cooking-pot"></i><br>Bugün canın ne çekiyor? Sana en uygun restoranları ve yemekleri hemen bulabilirim!
             </div>
         </div>
-        <div style="padding: 15px; background: white; border-top: 1px solid #e5e7eb; display: flex; gap: 10px;">
+        
+        <div style="padding: 15px; background: white; border-top: 1px solid #e5e7eb; display: flex; gap: 10px; position: relative; z-index: 10;">
             <input type="text" id="chat-input" placeholder="Örn: Tatlı krizim tuttu..." style="flex: 1; padding: 10px 15px; border: 1px solid #d1d5db; border-radius: 20px; font-size: 14px; outline: none; font-family: inherit;" onkeypress="if(event.key === 'Enter') sendChatMessage()">
             <button onclick="sendChatMessage()" style="background: #4f46e5; color: white; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.2s;">
                 <i class="ph-bold ph-paper-plane-right" style="font-size: 20px;"></i>

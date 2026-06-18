@@ -363,6 +363,29 @@ def checkout():
             try:
                 cursor = connection.cursor(dictionary=True)
 
+                cursor.execute("SELECT opening_time, closing_time, is_manually_closed FROM restaurants WHERE restaurant_id = %s", (restaurant_id,))
+                res = cursor.fetchone()
+                if res:
+                    from datetime import datetime, timedelta
+                    now = datetime.now().time()
+                    is_open = True
+                    if res.get('is_manually_closed'):
+                        is_open = False
+                    elif res.get('opening_time') is not None and res.get('closing_time') is not None:
+                        op_td = res['opening_time']
+                        cl_td = res['closing_time']
+                        op_time = (datetime.min + op_td).time() if isinstance(op_td, timedelta) else op_td
+                        cl_time = (datetime.min + cl_td).time() if isinstance(cl_td, timedelta) else cl_td
+                        
+                        if op_time < cl_time:
+                            is_open = op_time <= now <= cl_time
+                        else:
+                            is_open = now >= op_time or now <= cl_time
+                            
+                    if not is_open:
+                        flash("Sipariş vermek istediğiniz restoran şu an kapanmıştır. İlginiz için teşekkür ederiz.", "danger")
+                        return redirect(url_for('view_cart'))
+
                 cursor.execute("SELECT order_id FROM orders WHERE customer_id = %s AND order_status = 'awaiting_payment'", (customer_id,))
                 ghost_orders = cursor.fetchall()
                 for ghost in ghost_orders:
@@ -425,11 +448,9 @@ def checkout():
                 
                 new_order_id = cursor.lastrowid 
 
-                # 🚀 1. DEĞİŞİKLİK: FİŞE MÜHÜR VURMA (SNAPSHOT) OPERASYONU BAŞLIYOR 🚀
                 for idx, item in enumerate(cart):
-                    cart_index = f"c_{idx}_{item['menu_id']}" # Eşsiz bir index yaratıyoruz
+                    cart_index = f"c_{idx}_{item['menu_id']}" 
                     
-                    # Ürünün o anki canlı adını ve fiyatını veritabanından çekiyoruz
                     cursor.execute("""
                         SELECT m.food_id, m.price, COALESCE(m.custom_name, f.item_name) AS item_name
                         FROM menus m
@@ -446,7 +467,6 @@ def checkout():
                         extra_price = 0.0
                         choice_details = []
                         
-                        # Eğer müşterinin seçtiği ekstralar varsa onların da canlı fiyat/isimlerini alıyoruz
                         if item.get('choices'):
                             format_strings = ','.join(['%s'] * len(item['choices']))
                             cursor.execute(f"SELECT choice_id, choice_name, additional_price FROM menu_option_choices WHERE choice_id IN ({format_strings})", tuple(item['choices']))
@@ -456,13 +476,11 @@ def checkout():
                                 
                         unit_price = base_price + extra_price
                         
-                        # 1. Mühür (Ana Yemek)
                         cursor.execute("""
                             INSERT INTO order_items (order_id, food_id, menu_id, quantity, unit_price, cart_index, item_note, item_name_snapshot)
                             VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                         """, (new_order_id, food_id, item['menu_id'], item['quantity'], unit_price, cart_index, item.get('item_note', ''), item_name))
 
-                        # 2. Mühür (Ekstra Seçenekler)
                         if choice_details:
                             for c in choice_details:
                                 cursor.execute("""
@@ -1075,7 +1093,6 @@ def api_reorder():
     try:
         cursor = connection.cursor(dictionary=True)
         
-        # Geçmiş siparişteki ürünleri buluyoruz
         cursor.execute("""
             SELECT oi.food_id, oi.quantity, oi.cart_index, oi.item_note, 
                    COALESCE(m.custom_name, f.item_name) AS item_name, m.price, m.restaurant_id, m.menu_id
@@ -1092,12 +1109,32 @@ def api_reorder():
 
         target_restaurant_id = items[0]['restaurant_id']
         
+        cursor.execute("SELECT opening_time, closing_time, is_manually_closed FROM restaurants WHERE restaurant_id = %s", (target_restaurant_id,))
+        res = cursor.fetchone()
+        if res:
+            now = datetime.now().time()
+            is_open = True
+            if res.get('is_manually_closed'):
+                is_open = False
+            elif res.get('opening_time') is not None and res.get('closing_time') is not None:
+                op_td = res['opening_time']
+                cl_td = res['closing_time']
+                op_time = (datetime.min + op_td).time() if isinstance(op_td, timedelta) else op_td
+                cl_time = (datetime.min + cl_td).time() if isinstance(cl_td, timedelta) else cl_td
+                
+                if op_time < cl_time:
+                    is_open = op_time <= now <= cl_time
+                else:
+                    is_open = now >= op_time or now <= cl_time
+                    
+            if not is_open:
+                return {"success": False, "message": "Sipariş vermek istediğiniz restoran şu an kapalıdır!"}, 400
+        
         new_cart = []
         for item in items:
             food_id = item['food_id']
             menu_id = item['menu_id']
             
-            # 🚀 1. DEĞİŞİKLİK: Eski siparişin ID'sini ve Mühürlü İSMİNİ çekiyoruz
             if item.get('cart_index'):
                 cursor.execute("""
                     SELECT choice_id, choice_name_snapshot 
@@ -1117,12 +1154,10 @@ def api_reorder():
             choices_names = []
             extra_price = 0.0
             
-            # 🚀 2. DEĞİŞİKLİK: ZEKİ EŞLEŞTİRME (İsimden Kurtarma)
             for oc in old_choices:
                 old_id = oc['choice_id']
                 snapshot_name = oc['choice_name_snapshot']
                 
-                # Güncel menüde; ya eski ID'si tutan YA DA İSMİ TUTAN aktif seçeneği arıyoruz!
                 cursor.execute("""
                     SELECT moc.choice_id, moc.choice_name, moc.additional_price 
                     FROM menu_option_choices moc
@@ -1133,16 +1168,13 @@ def api_reorder():
                 
                 current_choice = cursor.fetchone()
                 
-                # Eğer seçenek (yeni ID'siyle veya ismiyle) hala menüdeyse sepete ekle
                 if current_choice:
                     choices_list.append(str(current_choice['choice_id']))
                     choices_names.append(current_choice['choice_name'])
                     extra_price += float(current_choice['additional_price'] or 0.0)
 
-            # Ürünün güncel taban fiyatı + ekstraların GÜNCEL fiyatı
             current_total_price = float(item['price']) + extra_price
 
-            # Yemeğin adını sepetteki gibi ekstralarla (Parantez içinde) süslüyoruz
             food_name_with_choices = item['item_name']
             if choices_names:
                 food_name_with_choices += f" ({', '.join(choices_names)})"
@@ -1230,12 +1262,16 @@ def ask_ai():
     if not user_msg:
         return jsonify({'success': False, 'message': 'Boş mesaj gönderilemez.'})
 
-    # --- 🧠 1. HAFIZA (MEMORY) YÖNETİMİ ---
+    if user_msg == '/reset_memory':
+        session.pop('ai_chat_history', None)
+        session.modified = True
+        return jsonify({'success': True, 'response': 'Hafıza temizlendi.'})
+
     if 'ai_chat_history' not in session:
         session['ai_chat_history'] = []
         
     session['ai_chat_history'].append({"role": "MÜŞTERİ", "content": user_msg})
-    session['ai_chat_history'] = session['ai_chat_history'][-8:] # Hafızayı biraz daha uzattık ki adım adım soruları hatırlasın
+    session['ai_chat_history'] = session['ai_chat_history'][-8:] 
     
     history_text = "--- SOHBET GEÇMİŞİ (Son Konuşulanlar) ---\n"
     for chat in session['ai_chat_history']:
@@ -1348,24 +1384,25 @@ def ask_ai():
     {history_text}
     
     DİKKAT! SİPARİŞ ALMA AKIŞI (Bu kurallara harfiyen uy!):
-    Müşteri bir ürün sipariş etmek istediğinde hemen JSON DÖNDÜRME! Önce şu 3 ADIMI kontrol et:
+    Müşteri bir ürün sipariş etmek istediğinde hemen JSON DÖNDÜRME! Önce SOHBET GEÇMİŞİNE bakarak şu 3 ADIMI kontrol et:
     
-    ADIM 1 (ZORUNLU SEÇENEKLER): Müşterinin istediği ürünün "ZORUNLU" olarak belirtilmiş ekstra seçenekleri var mı? Varsa ve müşteri mesajında bunları belirtmediyse, nazikçe bu zorunlu seçenekleri sor. 
-    HAYATİ KURAL: "ZORUNLU" seçenekler ASLA es geçilemez veya boş bırakılamaz! Müşteri zorunlu bir seçeneği reddederse ("istemiyorum", "gerek yok" vb.), işlemin tamamlanması için seçimin şart olduğunu belirt. Eğer müşteri ısrarla reddetmeye devam eder veya sinirlenirse ("allah allah", "yeter" vb.), siparişi İPTAL ET ve "Anlıyorum ancak restoran kuralları gereği bu ürünü bu seçim yapılmadan hazırlayamıyoruz. Dilerseniz size başka bir ürün önerebilirim?" diyerek konuyu kibarca kapat. Asla pes edip zorunlu seçeneği boş bırakarak JSON döndürme!
+    ADIM 1 (ZORUNLU SEÇENEKLER): Müşterinin sipariş etmek istediği ürünün "ZORUNLU" ekstra seçenekleri var mı? Eğer varsa, önce SOHBET GEÇMİŞİNİ oku. Müşteri önceki mesajlarında bu zorunlu seçimleri yaptıysa bu adımı TAMAMLANMIŞ say. Eğer henüz hiçbir mesajda yapmadıysa, nazikçe bu zorunlu seçenekleri sor ve cevabı bekle.
+    HAYATİ KURAL: "ZORUNLU" seçenekler ASLA es geçilemez veya boş bırakılamaz!
     
-    ADIM 2 (İSTEĞE BAĞLI SEÇENEKLER VE NOT): Zorunlu seçenekler eksiksiz tamamlandıysa, üründe "İSTEĞE BAĞLI" seçenekler varsa onları teklif et VE "Eklemek istediğiniz özel bir sipariş notunuz var mı?" diye sor.
+    ADIM 2 (İSTEĞE BAĞLI SEÇENEKLER VE NOT): Tüm zorunlu seçenekler sohbet geçmişinde eksiksiz seçildiyse (veya üründe zorunlu seçenek yoksa), "İSTEĞE BAĞLI" seçenekler varsa onları teklif et VE "Eklemek istediğiniz özel bir sipariş notunuz var mı?" diye sor. Müşteri bunu zaten cevapladıysa bu adımı da atla.
     
-    ADIM 3 (FİNAL ONAYI VE JSON): Eğer tüm "ZORUNLU" seçimler yapıldıysa ve not/isteğe bağlı kısımlar da sorulup cevaplandıysa (veya müşteri başta hepsini tek bir mesajda yazdıysa), İŞTE SADECE O ZAMAN metin cevabını bırakıp aşağıdaki JSON formatını döndür:
+    ADIM 3 (FİNAL ONAYI VE JSON): Eğer tüm "ZORUNLU" seçimler sohbet geçmişinde yapıldıysa ve not/isteğe bağlı kısımlar da sorulup cevaplandıysa, İŞTE SADECE O ZAMAN metin cevabını bırakıp SADECE aşağıdaki JSON formatını döndür:
     
     {{
       "action": "add_to_cart", 
       "menu_id": <URUN_ID>, 
       "quantity": <ADET>, 
-      "choices": [<MUSTERININ_SECIMLERINE_AIT_ID_NUMARALARI_LISTESI>], 
+      "choices": [<MUSTERININ_GECMIS_MESAJLARDA_YAPTIGI_SECIMLERIN_ID_NUMARALARI>], 
       "note": "<MUSTERININ_BELIRTTIGI_NOT_VEYA_BOS_BIRAK>"
     }}
     
     ÖNEMLİ: 
+    - Geçmiş mesajlarda yapılan seçimleri SAKIN UNUTMA! (Örn: Müşteri bir önceki mesajda sos seçtiyse, onu tekrar sorma, doğrudan JSON'daki 'choices' listesine ID'lerini ekle).
     - JSON döndürürken başına veya sonuna ASLA metin yazma.
     - Müşteri sadece sohbet ediyorsa JSON kullanma, normal cevap ver.
     """
@@ -1450,7 +1487,17 @@ def ask_ai():
                     cursor.close()
                     conn.close()
                     
-                    return jsonify({'success': True, 'response': success_msg, 'action_taken': 'cart_updated'})
+                    total_cart_qty = sum(int(c_item['quantity']) for c_item in session.get('cart', []))
+                    total_cart_price = sum(float(c_item['price']) * int(c_item['quantity']) for c_item in session.get('cart', []))
+                    
+                    return jsonify({
+                        'success': True, 
+                        'response': success_msg, 
+                        'action_taken': 'cart_updated',
+                        'total_cart_qty': total_cart_qty,      
+                        'total_cart_price': total_cart_price, 
+                        'cart_cleared': cart_cleared
+                    })
                     
             except Exception as e:
                 print("Aksiyon Yakalama Hatası:", e)

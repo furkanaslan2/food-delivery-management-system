@@ -32,12 +32,10 @@
         .nav-links a { text-decoration: none; color: #d1d5db; font-weight: 500; transition: color 0.2s; display: flex; align-items: center; gap: 6px; }
         .nav-links a:hover { color: #ffffff; }
         
-        .nav-address-btn { background: #1f2937; border: 1px solid #374151; padding: 10px 18px; border-radius: 20px; font-family: inherit; font-size: 14px; font-weight: 600; color: #f3f4f6; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
-        transform: translateZ(0); }
-        
+        .nav-address-btn { background: #1f2937; border: 1px solid #374151; padding: 0 20px; height: 42px; border-radius: 21px; font-family: inherit; font-size: 14px; font-weight: 600; color: #f3f4f6; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; box-sizing: border-box; }
         .nav-address-btn:hover { background: #374151; border-color: #4b5563; color: white; }
         
-        .cart-btn { background: #4f46e5; color: white !important; padding: 10px 20px; border-radius: 20px; display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; transition: background 0.2s; border: 1px solid #4338ca; }
+        .cart-btn { background: #4f46e5; color: white !important; padding: 0 20px; height: 42px; border-radius: 21px; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; font-size: 14px; transition: background 0.2s; border: 1px solid #4338ca; box-sizing: border-box; }
         .cart-btn:hover { background: #4338ca; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3); }
         .cart-btn i { font-size: 18px; }
         
@@ -47,10 +45,9 @@
         .dropdown::after { content: ''; position: absolute; top: 100%; left: 0; width: 100%; height: 15px; background: transparent; display: none; }
         .dropdown:hover::after { display: block; }
 
-        .dropdown-btn { background-color: #1f2937; color: #f3f4f6; padding: 10px 18px; font-size: 14px; font-weight: 600; border: 1px solid #374151; border-radius: 20px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
-        transform: translateZ(0); font-family: inherit; }
-
+        .dropdown-btn { background-color: #1f2937; color: #f3f4f6; padding: 0 20px; height: 42px; font-size: 14px; font-weight: 600; border: 1px solid #374151; border-radius: 21px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: inherit; transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease; transform: translateZ(0); box-sizing: border-box; }
         .dropdown-btn:hover { background-color: #374151; border-color: #4b5563; color: white; }
+        .dropdown-btn i { font-size: 18px; }
         .dropdown-content { display: none; position: absolute; right: 0; top: 100%; background-color: #ffffff; min-width: 200px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); border-radius: 12px; overflow: hidden; z-index: 1000; border: 1px solid #e5e7eb; margin-top: 10px; }
         .dropdown-content a { color: #374151; padding: 12px 18px; text-decoration: none; display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; transition: background-color 0.2s; }
         .dropdown-content a i { font-size: 18px; color: #6b7280; }
@@ -184,7 +181,7 @@
             </button>
             {% endif %}
 
-            <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; margin-top: 5px;">
+            <div style="position: relative; display: flex; align-items: center;">
                 <a href="{{ url_for('view_cart') }}" class="cart-btn cart-wrapper" style="text-decoration: none;">
                     <i class="ph-bold ph-shopping-cart"></i> Sepet
                     
@@ -205,17 +202,19 @@
                     {% endif %}
                 </a>
                 
-                {% if cart_price.total > 0 %}
-                    <span id="nav-cart-total" data-total="{{ cart_price.total }}" 
-                          style="font-size: 13px; font-weight: 800; color: #10b981; background: #ecfdf5; padding: 2px 10px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: transform 0.3s;">
-                        ₺{{ "%.2f"|format(cart_price.total) }}
-                    </span>
-                {% else %}
-                    <span id="nav-cart-total" data-total="0" 
-                          style="display: none; font-size: 13px; font-weight: 800; color: #10b981; background: #ecfdf5; padding: 2px 10px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: transform 0.3s;">
-                        ₺0.00
-                    </span>
-                {% endif %}
+                <div style="position: absolute; top: calc(100% + 5px); left: 0; width: 100%; display: flex; justify-content: center; pointer-events: none;">
+                    {% if cart_price.total > 0 %}
+                        <span id="nav-cart-total" data-total="{{ cart_price.total }}" 
+                              style="font-size: 12px; font-weight: 800; color: #10b981; background: #ecfdf5; padding: 2px 10px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: transform 0.3s; display: inline-block;">
+                            ₺{{ "%.2f"|format(cart_price.total) }}
+                        </span>
+                    {% else %}
+                        <span id="nav-cart-total" data-total="0" 
+                              style="font-size: 12px; font-weight: 800; color: #10b981; background: #ecfdf5; padding: 2px 10px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: transform 0.3s; display: none;">
+                            ₺0.00
+                        </span>
+                    {% endif %}
+                </div>
             </div>
 
             <div class="dropdown">
@@ -254,11 +253,14 @@
         
         <p style="text-shadow: 0 2px 4px rgba(0,0,0,0.5);"><i class="ph-bold ph-map-pin"></i> {{ restaurant['cuisine'] }} • {{ restaurant['restaurant_address'] }}</p>
         
-        {% if restaurant.get('is_open') == False %}
-            <div style="background-color: #ef4444; color: white; padding: 8px 20px; border-radius: 30px; font-weight: 800; font-size: 15px; display: inline-block; margin-top: 20px; box-shadow: 0 4px 10px rgba(239,68,68,0.4);">
-                ŞU AN KAPALI - SİPARİŞ ALINMIYOR
-            </div>
-        {% endif %}
+        <div id="restaurant-closed-badge" 
+             {% if restaurant.get('is_open') == False %}
+             style="background-color: #ef4444; color: white; padding: 8px 20px; border-radius: 30px; font-weight: 800; font-size: 15px; display: inline-block; margin-top: 20px; box-shadow: 0 4px 10px rgba(239,68,68,0.4); transition: opacity 0.3s ease;"
+             {% else %}
+             style="background-color: #ef4444; color: white; padding: 8px 20px; border-radius: 30px; font-weight: 800; font-size: 15px; display: none; margin-top: 20px; box-shadow: 0 4px 10px rgba(239,68,68,0.4); transition: opacity 0.3s ease;"
+             {% endif %}>
+            ŞU AN KAPALI - SİPARİŞ ALINMIYOR
+        </div>
 
         <div class="rating" onclick="document.getElementById('reviewsModal').style.display='flex'" style="cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.3);" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
             {{ restaurant['rating'] }} <i class="ph-fill ph-star" style="color: #f59e0b;"></i> ({{ restaurant['rating_count'] }}) - Yorumları Gör

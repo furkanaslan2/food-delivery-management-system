@@ -323,6 +323,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     let isRestaurantOpen = dataElement.getAttribute('data-is-open') === 'true';
     const currentRestaurantId = dataElement.getAttribute('data-restaurant-id');
+    const closedBadge = document.getElementById('restaurant-closed-badge'); 
 
     setInterval(() => {
         fetch('/api/restaurant_statuses', {
@@ -340,6 +341,9 @@ document.addEventListener("DOMContentLoaded", function() {
                     document.querySelectorAll('.menu-item').forEach(item => item.classList.add('closed-menu-item'));
                     document.querySelectorAll('.add-btn').forEach(btn => btn.disabled = true);
                     document.querySelectorAll('.qty-input').forEach(input => input.disabled = true);
+                    
+                    if(closedBadge) closedBadge.style.display = 'inline-block'; 
+                    
                     if (typeof showToast === "function") showToast("Üzgünüz, restoran şu an kapandığı için yeni sipariş alamıyor.", "error");
                 } 
                 else if (newStatus === true && !isRestaurantOpen) {
@@ -348,6 +352,9 @@ document.addEventListener("DOMContentLoaded", function() {
                     document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('closed-menu-item'));
                     document.querySelectorAll('.add-btn').forEach(btn => btn.disabled = false);
                     document.querySelectorAll('.qty-input').forEach(input => input.disabled = false);
+                    
+                    if(closedBadge) closedBadge.style.display = 'none'; 
+                    
                     if (typeof showToast === "function") showToast("Harika! Restoran tekrar sipariş almaya başladı.", "success");
                 }
             }

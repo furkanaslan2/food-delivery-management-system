@@ -316,7 +316,6 @@ def restaurant_profile():
                 opening_time = request.form.get('opening_time')
                 closing_time = request.form.get('closing_time')
                 min_order_amount = request.form.get('min_order_amount')
-                is_manually_closed = 1 if request.form.get('is_manually_closed') else 0 
                 latitude = request.form.get('latitude')
                 longitude = request.form.get('longitude')
                 image_file = request.files.get('restaurant_image')
@@ -328,11 +327,10 @@ def restaurant_profile():
                         opening_time = %s,
                         closing_time = %s,
                         min_order_amount = %s,
-                        is_manually_closed = %s,
                         latitude = %s,
                         longitude = %s
                 """
-                params = [name, cuisine, opening_time, closing_time, min_order_amount, is_manually_closed, latitude, longitude]
+                params = [name, cuisine, opening_time, closing_time, min_order_amount, latitude, longitude]
                 
                 # Resim yüklenmişse sorguya ekle
                 if image_file and image_file.filename != '':
@@ -487,25 +485,49 @@ def toggle_store_status():
     
     if connection:
         try:
+            from datetime import datetime, timedelta
             cursor = connection.cursor(dictionary=True)
             
-            # GET İSTEĞİ: Sayfa yüklendiğinde mevcut durumu (Açık/Kapalı) HTML'e söyle
+            cursor.execute("SELECT is_manually_closed, opening_time, closing_time FROM restaurants WHERE restaurant_id = %s", (restaurant_id,))
+            res = cursor.fetchone()
+            
+            if not res:
+                return jsonify({'success': False, 'message': 'Restoran bulunamadı.'})
+            
+            # 🚀 AKILLI RADAR: Şu an mesai saati içinde miyiz?
+            now = datetime.now().time()
+            is_within_schedule = True
+            
+            if res.get('opening_time') is not None and res.get('closing_time') is not None:
+                op_td = res['opening_time']
+                cl_td = res['closing_time']
+                op_time = (datetime.min + op_td).time() if isinstance(op_td, timedelta) else op_td
+                cl_time = (datetime.min + cl_td).time() if isinstance(cl_td, timedelta) else cl_td
+                
+                if op_time < cl_time:
+                    is_within_schedule = op_time <= now <= cl_time
+                else:
+                    is_within_schedule = now >= op_time or now <= cl_time
+            
             if request.method == 'GET':
-                cursor.execute("SELECT is_manually_closed FROM restaurants WHERE restaurant_id = %s", (restaurant_id,))
-                res = cursor.fetchone()
-                return jsonify({'success': True, 'is_manually_closed': bool(res['is_manually_closed'])})
+                if not is_within_schedule:
+                    return jsonify({'success': True, 'status': 'out_of_hours'})
+                elif res['is_manually_closed']:
+                    return jsonify({'success': True, 'status': 'manually_closed'})
+                else:
+                    return jsonify({'success': True, 'status': 'open'})
                 
-            # POST İSTEĞİ: Butona tıklandığında durumu tam tersine çevir ve kaydet
             elif request.method == 'POST':
-                cursor.execute("SELECT is_manually_closed FROM restaurants WHERE restaurant_id = %s", (restaurant_id,))
-                res = cursor.fetchone()
+                # 🛑 MESAİ SAATİ DIŞINDAYSA BUTONU ENGELLE!
+                if not is_within_schedule:
+                    return jsonify({'success': False, 'message': 'Şu an çalışma saatleri dışındasınız! Dükkanı açmak için Ayarlar sayfasından çalışma saatinizi güncelleyin.'})
                 
+                # Mesai saatindeyse normal şekilde fren yap veya freni bırak
                 new_status = 0 if res['is_manually_closed'] else 1
-                
                 cursor.execute("UPDATE restaurants SET is_manually_closed = %s WHERE restaurant_id = %s", (new_status, restaurant_id))
                 connection.commit()
                 
-                return jsonify({'success': True, 'is_manually_closed': bool(new_status)})
+                return jsonify({'success': True, 'status': 'manually_closed' if new_status else 'open'})
                 
         finally:
             cursor.close()
