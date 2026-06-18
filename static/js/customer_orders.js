@@ -165,3 +165,27 @@ document.addEventListener("DOMContentLoaded", function() {
             });
         });
     });
+
+    // ==========================================
+    // 🛡️ YORUM GÖNDERME MASTER KONTROL (AKILLI DOĞRULAMA)
+    // ==========================================
+    document.addEventListener('submit', function(e) {
+        // Eğer gönderilen form bir "review-form" (değerlendirme formu) ise
+        if (e.target && e.target.classList.contains('review-form')) {
+            const form = e.target;
+            const orderId = form.querySelector('input[name="order_id"]').value;
+            const ratingInput = document.getElementById(`rating-input-${orderId}`);
+            
+            // Puan (Yıldız) seçilmemişse
+            if (!ratingInput || !ratingInput.value) {
+                e.preventDefault(); // Formu durdur (Sayfa yenilenmez, yazılan yorum silinmez)
+                
+                if (typeof window.showToast === 'function') {
+                    window.showToast("Lütfen değerlendirmeyi göndermeden önce yıldızlara tıklayarak bir puan seçin.", "error");
+                } else {
+                    alert("Lütfen bir puan seçin.");
+                }
+            }
+            // Hata yoksa form normal şekilde Python'a gider
+        }
+    });

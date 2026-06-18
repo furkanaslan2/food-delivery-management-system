@@ -189,14 +189,14 @@
             <span style="font-size: 24px; cursor: pointer; color: #9ca3af;" onclick="document.getElementById('foodFormModal').style.display='none'">&times;</span>
         </div>
 
-        <form id="food-form" action="{{ url_for('food_action') }}" method="POST">
+        <form id="food-form" action="{{ url_for('food_action') }}" method="POST" novalidate>
             <input type="hidden" name="action" id="modal-action" value="add">
             <input type="hidden" name="update_food_id" id="update-food-id">
             <input type="hidden" name="food_id" id="food-id">
 
             <div style="margin-bottom: 20px;">
                 <label style="font-size: 13px; font-weight: 600; color: #374151;">Kategori Adı (Örn: Vegan, Meksika)</label>
-                <input type="text" id="food-name" name="name" class="form-input" required>
+                <input type="text" id="food-name" name="name" class="form-input">
             </div>
 
             <div style="display: flex; gap: 10px; justify-content: flex-end; border-top: 1px solid #e5e7eb; padding-top: 15px;">

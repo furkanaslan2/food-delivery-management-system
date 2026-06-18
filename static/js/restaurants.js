@@ -58,3 +58,63 @@ function openRestaurantModal(isUpdate = false, id = '', userid = '', name = '', 
         document.getElementById('restaurant-id').value = '';
     }
 }
+
+// ==========================================
+// 🛡️ RESTORAN FORMU MASTER KONTROL (AKILLI DOĞRULAMA)
+// ==========================================
+document.addEventListener("DOMContentLoaded", function() {
+    const restaurantForm = document.getElementById('restaurant-form');
+    
+    if (restaurantForm) {
+        restaurantForm.addEventListener('submit', function(e) {
+            let hasError = false;
+            let errorMessage = "";
+
+            const userIdInput = document.getElementById('user-id');
+            const name = document.getElementById('restaurant-name-input').value.trim();
+            const city = document.getElementById('restaurant-city').value.trim();
+            const cuisine = document.getElementById('restaurant-cuisine').value;
+            const tables = document.getElementById('restaurant-table-count').value.trim();
+            const address = document.getElementById('restaurant-address').value.trim();
+
+            // Admin ekranındaysa User ID kontrolü yap (Hidden değilse ekranda demektir)
+            if (userIdInput && userIdInput.type !== "hidden") {
+                const userId = userIdInput.value.trim();
+                if (!userId || parseInt(userId) <= 0) {
+                    hasError = true;
+                    errorMessage = "Lütfen geçerli bir Kullanıcı ID (Sahibi) girin.";
+                }
+            }
+
+            if (!hasError && !name) {
+                hasError = true;
+                errorMessage = "Lütfen restoranın adını girin.";
+            } else if (!hasError && !city) {
+                hasError = true;
+                errorMessage = "Lütfen restoranın bulunduğu şehri girin.";
+            } else if (!hasError && (!cuisine || cuisine === "")) {
+                hasError = true;
+                errorMessage = "Lütfen bir mutfak türü seçin.";
+            } else if (!hasError && (!tables || parseInt(tables) < 1)) {
+                hasError = true;
+                errorMessage = "Lütfen geçerli bir masa kapasitesi girin (en az 1 olmalıdır).";
+            } else if (!hasError && !address) {
+                hasError = true;
+                errorMessage = "Lütfen restoranın tam adresini girin.";
+            }
+
+            // ❌ HATA VARSA: Formu durdur ve şık bildirim (Toast) göster
+            if (hasError) {
+                e.preventDefault();
+                if (typeof window.showToast === 'function') {
+                    window.showToast(errorMessage, "error");
+                } else {
+                    alert(errorMessage);
+                }
+                return false;
+            }
+            
+            // ✅ HATA YOKSA: Form sorunsuzca Python'a gider
+        });
+    }
+});

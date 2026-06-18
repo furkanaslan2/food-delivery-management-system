@@ -88,3 +88,62 @@ document.addEventListener("DOMContentLoaded", function() {
         gpsControl.addTo(map);
     }
 });
+
+// ==========================================
+// 🛡️ RESTORAN PROFİLİ MASTER KONTROL (AKILLI DOĞRULAMA)
+// ==========================================
+document.addEventListener("DOMContentLoaded", function() {
+    const profileForm = document.getElementById('restaurant-profile-form');
+    
+    if (profileForm) {
+        profileForm.addEventListener('submit', function(e) {
+            let hasError = false;
+            let errorMessage = "";
+
+            // Formdaki değerleri isimleriyle (name) yakalıyoruz
+            const name = document.querySelector('[name="restaurant_name"]').value.trim();
+            const cuisine = document.querySelector('[name="cuisine"]').value;
+            const openTime = document.querySelector('[name="opening_time"]').value.trim();
+            const closeTime = document.querySelector('[name="closing_time"]').value.trim();
+            const minOrder = document.querySelector('[name="min_order_amount"]').value.trim();
+            
+            // Harita koordinatlarını ID ile yakalıyoruz
+            const lat = document.getElementById('latitude').value.trim();
+            const lon = document.getElementById('longitude').value.trim();
+
+            if (!name) {
+                hasError = true;
+                errorMessage = "Lütfen restoranınızın adını girin.";
+            } else if (!cuisine) {
+                hasError = true;
+                errorMessage = "Lütfen mutfak türünü (Kategori) seçin.";
+            } else if (!openTime) {
+                hasError = true;
+                errorMessage = "Lütfen restoranınızın açılış saatini belirleyin.";
+            } else if (!closeTime) {
+                hasError = true;
+                errorMessage = "Lütfen restoranınızın kapanış saatini belirleyin.";
+            } else if (!minOrder || parseFloat(minOrder) < 0) {
+                hasError = true;
+                errorMessage = "Lütfen geçerli bir minimum sipariş tutarı girin (0 veya daha büyük olmalıdır).";
+            } else if (!lat || !lon) {
+                // 🚀 HARİTA KONTROLÜ: Eğer koordinatlar yoksa durdur!
+                hasError = true;
+                errorMessage = "Lütfen harita üzerinden restoranınızın tam konumunu işaretleyin. Bu, kurye sistemi için zorunludur.";
+            }
+
+            // ❌ HATA VARSA: Formu durdur ve şık bildirim (Toast) göster
+            if (hasError) {
+                e.preventDefault();
+                if (typeof window.showToast === 'function') {
+                    window.showToast(errorMessage, "error");
+                } else {
+                    alert(errorMessage);
+                }
+                return false;
+            }
+            
+            // ✅ HATA YOKSA: Form sorunsuzca Python'a gider
+        });
+    }
+});

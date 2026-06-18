@@ -94,17 +94,17 @@
         <h2>Hoş Geldiniz</h2>
         <p class="subtitle">Favori lezzetlerine kavuşmana çok az kaldı.</p>
 
-        <form action="{{ url_for('customer_login') }}" method="POST">
+        <form id="customer-login-form" action="{{ url_for('customer_login') }}" method="POST" novalidate>
             <div class="form-group">
                 <label for="email">E-posta Adresi</label>
-                <input type="email" name="email" id="email" class="form-control" placeholder="ornek@mail.com" required>
+                <input type="email" name="email" id="email" class="form-control" placeholder="ornek@mail.com">
             </div>
             <div class="form-group">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                     <label for="password" style="margin-bottom: 0;">Şifre</label>
                     <a href="{{ url_for('forgot_password') }}" style="font-size: 13px; color: #4f46e5; text-decoration: none; font-weight: 600; transition: color 0.2s;" onmouseover="this.style.color='#312e81'; this.style.textDecoration='underline';" onmouseout="this.style.color='#4f46e5'; this.style.textDecoration='none';">Şifremi Unuttum?</a>
                 </div>
-                <input type="password" name="password" id="password" class="form-control" placeholder="••••••••" required>
+                <input type="password" name="password" id="password" class="form-control" placeholder="••••••••">
             </div>
             <button type="submit" class="submit-btn">Giriş Yap</button>
         </form>
@@ -124,5 +124,44 @@
         {% endwith %}
     </div>
     <script src="{{ url_for('static', filename='js/common.js') }}"></script>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const loginForm = document.getElementById('customer-login-form');
+        
+        if (loginForm) {
+            loginForm.addEventListener('submit', function(e) {
+                let hasError = false;
+                let errorMessage = "";
+
+                const email = document.getElementById('email').value.trim();
+                const password = document.getElementById('password').value.trim();
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+                if (!email || !emailRegex.test(email)) {
+                    hasError = true;
+                    errorMessage = "Lütfen kayıtlı ve geçerli bir e-posta adresi girin.";
+                } else if (!password) {
+                    hasError = true;
+                    errorMessage = "Lütfen şifrenizi girin.";
+                }
+
+                // ❌ HATA VARSA: Formu durdur ve şık bildirim (Toast) göster
+                if (hasError) {
+                    e.preventDefault();
+                    // Eğer sayfanın altında Toast fonksiyonu tanımlıysa onu çağır
+                    if (typeof window.showToast === 'function') {
+                        window.showToast(errorMessage, "error");
+                    } else {
+                        alert(errorMessage);
+                    }
+                    return false;
+                }
+                
+                // ✅ HATA YOKSA: Form sorunsuzca Python'a (Login'e) gider
+            });
+        }
+    });
+    </script>
 </body>
 </html>

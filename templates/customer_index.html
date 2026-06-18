@@ -745,15 +745,15 @@
             </div>
             
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                <div><label style="font-size:12px; font-weight:600;">İl *</label><input type="text" id="addr-city" class="form-control" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box;" required></div>
-                <div><label style="font-size:12px; font-weight:600;">İlçe *</label><input type="text" id="addr-district" class="form-control" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box;" required></div>
+                <div><label style="font-size:12px; font-weight:600;">İl *</label><input type="text" id="addr-city" class="form-control" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box;"></div>
+                <div><label style="font-size:12px; font-weight:600;">İlçe *</label><input type="text" id="addr-district" class="form-control" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box;"></div>
             </div>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                <div><label style="font-size:12px; font-weight:600;">Mahalle *</label><input type="text" id="addr-neighborhood" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box;" required></div>
-                <div><label style="font-size:12px; font-weight:600;">Sokak/Cadde *</label><input type="text" id="addr-street" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box;" required></div>
+                <div><label style="font-size:12px; font-weight:600;">Mahalle *</label><input type="text" id="addr-neighborhood" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box;"></div>
+                <div><label style="font-size:12px; font-weight:600;">Sokak/Cadde *</label><input type="text" id="addr-street" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box;"></div>
             </div>
             <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;">
-                <div><label style="font-size:12px; font-weight:600;">Bina No *</label><input type="text" id="addr-building" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box;" required></div>
+                <div><label style="font-size:12px; font-weight:600;">Bina No *</label><input type="text" id="addr-building" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box;"></div>
                 <div><label style="font-size:12px; font-weight:600;">Kat</label><input type="text" id="addr-floor" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box;"></div>
                 <div><label style="font-size:12px; font-weight:600;">Daire No</label><input type="text" id="addr-apt" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box;"></div>
             </div>
@@ -763,16 +763,16 @@
             </div>
             <div>
                 <label style="font-size:12px; font-weight:600;">Adres Başlığı * (Örn: Ev, İş)</label>
-                <input type="text" id="addr-title" placeholder="Örn: Evim" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box;" required>
+                <input type="text" id="addr-title" placeholder="Örn: Evim" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box;">
             </div>
             
             <div style="border-top:1px dashed #ddd; padding-top:10px;">
                 <span style="font-size:13px; font-weight:700; color:#4f46e5; display:flex; align-items:center; gap:6px; margin-bottom:8px;"><i class="ph-bold ph-user"></i> İletişim Bilgileri</span>
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                    <div><label style="font-size:12px; font-weight:600;">Ad Soyad *</label><input type="text" id="addr-cname" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box;" required></div>
+                    <div><label style="font-size:12px; font-weight:600;">Ad Soyad *</label><input type="text" id="addr-cname" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box;"></div>
                     <div>
                         <label style="font-size:12px; font-weight:600;">Telefon *</label>
-                        <input type="tel" id="addr-cphone" placeholder="05XX..." maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box;" required>
+                        <input type="tel" id="addr-cphone" placeholder="0 (5__) ___ __ __" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box;">
                     </div>
                 </div>
             </div>
@@ -845,5 +845,7 @@
 
     <script src="{{ url_for('static', filename='js/common.js') }}"></script>
     <script src="{{ url_for('static', filename='js/customer_index.js') }}"></script>
+    <script src="https://unpkg.com/imask"></script>
+
 </body>
 </html>

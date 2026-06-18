@@ -44,7 +44,7 @@
                         <input type="text" id="reply-input-{{ review.order_id }}" placeholder="Müşteriye kibar bir yanıt yazın..." style="flex: 1; height: 42px; margin: 0; padding: 0 15px; box-sizing: border-box; border: 1px solid #d1d5db; border-radius: 6px; font-family: inherit; outline: none;">
                         
                         <button onclick="submitReply('{{ review.order_id }}')" style="height: 42px; margin: 0; padding: 0 20px; box-sizing: border-box; background: #4f46e5; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: background-color 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 8px;" onmouseover="this.style.backgroundColor='#4338ca'" onmouseout="this.style.backgroundColor='#4f46e5'">
-                            Yanıtla <img src="{{ url_for('static', filename='images/icons/send.png') }}" style="width: 18px; height: 18px; filter: brightness(0) invert(1);">
+                            Yanıtla <img src="{{ url_for('static', filename='images/icons/send.png') }}" style="width: 18px; height: 18px;">
                         </button>
                     </div>
                 {% endif %}
@@ -63,37 +63,6 @@
     {% endif %}
 </div>
 
-<script>
-function submitReply(orderId) {
-    const replyInput = document.getElementById(`reply-input-${orderId}`);
-    const replyText = replyInput.value.trim();
-    
-    if (!replyText) {
-        alert("Lütfen bir yanıt yazın.");
-        return;
-    }
+<script src="{{ url_for('static', filename='js/restaurant_reviews.js') }}"></script>
 
-    fetch('/api/reply_review', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ order_id: orderId, reply_text: replyText })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            // Başarılı olursa ekranı anında güncelle (Sayfayı yenilemeden)
-            const container = document.getElementById(`reply-container-${orderId}`);
-            container.innerHTML = `
-                <div style="background: #e0f2fe; padding: 15px; border-radius: 8px; border-left: 4px solid #0ea5e9; animation: fadeIn 0.4s ease;">
-                    <span style="font-size: 12px; font-weight: 700; color: #0284c7; text-transform: uppercase;">Restoranınızın Yanıtı:</span>
-                    <p style="margin: 5px 0 0 0; color: #0f172a; font-size: 15px;">${replyText}</p>
-                </div>
-            `;
-        } else {
-            alert("Hata: " + data.message);
-        }
-    })
-    .catch(err => console.error("Hata:", err));
-}
-</script>
 {% endblock %}

@@ -224,7 +224,7 @@
                         <div style="padding: 25px 24px; background-color: #f9fafb; border-top: 1px dashed #e5e7eb;">
                             <h4 style="margin-top: 0; margin-bottom: 15px; font-size: 16px; font-weight: 800; color: #111827; display: flex; align-items: center; gap: 8px;"><i class="ph-fill ph-star" style="color: #f59e0b; font-size: 20px;"></i> Siparişi Değerlendir</h4>
                             
-                            <form action="{{ url_for('submit_review') }}" method="POST" style="display: flex; flex-direction: column; gap: 15px;">
+                            <form class="review-form" action="{{ url_for('submit_review') }}" method="POST" style="display: flex; flex-direction: column; gap: 15px;" novalidate>
                                 <input type="hidden" name="order_id" value="{{ order['order_id'] }}">
                                 <input type="hidden" name="restaurant_id" value="{{ order['restaurant_id'] }}">
                                 
@@ -236,7 +236,7 @@
                                         <i class="ph-fill ph-star star-btn" data-val="4" style="font-size: 36px; color: #e5e7eb; cursor: pointer; transition: 0.2s;"></i>
                                         <i class="ph-fill ph-star star-btn" data-val="5" style="font-size: 36px; color: #e5e7eb; cursor: pointer; transition: 0.2s;"></i>
                                         
-                                        <input type="hidden" name="rating" id="rating-input-{{ order['order_id'] }}" required>
+                                        <input type="hidden" name="rating" id="rating-input-{{ order['order_id'] }}">
                                     </div>
                                     <span class="rating-text" id="rating-text-{{ order['order_id'] }}" style="font-size: 13px; font-weight: 700; color: #9ca3af; margin-left: 5px;">Lütfen puanınızı seçin</span>
                                 </div>

@@ -2,6 +2,7 @@ from flask import render_template, request, redirect, url_for, session, flash
 from db import get_db_connection
 from mysql.connector import Error
 from werkzeug.security import generate_password_hash
+import re
 
 def view_profile():
     if not session.get('logged_in'):
@@ -73,18 +74,24 @@ def update_profile():
         if role == 'customer':
             customer_id = session.get('customer_id')
             name = request.form.get('name')
-            phone = request.form.get('phone')
+            raw_phone = request.form.get('phone', '') 
             password = request.form.get('password') 
+
+            clean_phone = re.sub(r'\D', '', raw_phone)
+            
+            if clean_phone and not re.match(r'^05\d{9}$', clean_phone):
+                flash("Lütfen geçerli bir cep telefonu numarası girin (Örn: 05xx xxx xx xx)", "error")
+                return redirect(url_for('view_profile'))
 
             if password:
                 hashed_password = generate_password_hash(password)
                 cursor.execute("""
                     UPDATE customers SET name = %s, phone = %s, password = %s WHERE customer_id = %s
-                """, (name, phone, hashed_password, customer_id))
+                """, (name, clean_phone, hashed_password, customer_id)) 
             else:
                 cursor.execute("""
                     UPDATE customers SET name = %s, phone = %s WHERE customer_id = %s
-                """, (name, phone, customer_id))
+                """, (name, clean_phone, customer_id)) 
                 
             connection.commit()
             flash("Profil bilgileriniz başarıyla güncellendi! ✨", "success")

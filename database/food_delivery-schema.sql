@@ -68,7 +68,7 @@ CREATE TABLE menus (
     menu_id INT AUTO_INCREMENT,
     restaurant_id INT NOT NULL,
     food_id INT,
-    custom_name VARCHAR(255) NULL
+    custom_name VARCHAR(255) NULL,
     price DECIMAL(10, 2) NOT NULL CHECK (price > 0),
     stock_quantity INT DEFAULT 0 CHECK (stock_quantity >= 0),
     image_url VARCHAR(255) DEFAULT NULL,
@@ -139,13 +139,16 @@ CREATE TABLE customers (
 CREATE TABLE order_items (
     item_id INT AUTO_INCREMENT PRIMARY KEY,
     order_id INT NOT NULL,
-    food_id INT NOT NULL,
+    food_id INT, 
+    menu_id INT, 
+    item_name_snapshot VARCHAR(255) NOT NULL, 
     quantity INT NOT NULL,
-    unit_price DECIMAL(10,2) NOT NULL,
+    unit_price DECIMAL(10,2) NOT NULL, 
     cart_index VARCHAR(50) DEFAULT NULL,
     item_note TEXT DEFAULT NULL,
     FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE,
-    FOREIGN KEY (food_id) REFERENCES foods(food_id)
+    FOREIGN KEY (food_id) REFERENCES foods(food_id) ON DELETE SET NULL,
+    FOREIGN KEY (menu_id) REFERENCES menus(menu_id) ON DELETE SET NULL
 );
 
 CREATE TABLE reviews (
@@ -214,12 +217,14 @@ CREATE TABLE menu_option_choices (
 CREATE TABLE order_item_choices (
     id INT AUTO_INCREMENT PRIMARY KEY,
     order_id INT NOT NULL,
-    food_id INT NOT NULL,
-    choice_id INT NOT NULL,
+    food_id INT, 
+    choice_id INT, 
+    choice_name_snapshot VARCHAR(255) NOT NULL, 
+    choice_price_snapshot DECIMAL(10, 2) DEFAULT 0.00, 
     cart_index VARCHAR(50) DEFAULT NULL,
     FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE,
-    FOREIGN KEY (food_id) REFERENCES foods(food_id) ON DELETE CASCADE,
-    FOREIGN KEY (choice_id) REFERENCES menu_option_choices(choice_id) ON DELETE CASCADE
+    FOREIGN KEY (food_id) REFERENCES foods(food_id) ON DELETE SET NULL,
+    FOREIGN KEY (choice_id) REFERENCES menu_option_choices(choice_id) ON DELETE SET NULL 
 );
 
 CREATE TABLE promo_codes (

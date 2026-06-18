@@ -246,7 +246,7 @@
             <span style="font-size: 24px; cursor: pointer; color: #9ca3af;" onclick="closeMenuModal()">&times;</span>
         </div>
 
-        <form id="menu-form" action="{{ url_for('menus_action') }}" method="post" enctype="multipart/form-data">
+        <form id="menu-form" action="{{ url_for('menus_action') }}" method="post" enctype="multipart/form-data" novalidate>
             <input type="hidden" id="menu-id" name="menu_id">
             <input type="hidden" id="update-menu-id" name="update_menu_id">
             <input type="hidden" id="menu-restaurant-id" name="restaurant_id" value="{{ session.get('restaurant_id', '') }}">
@@ -266,7 +266,7 @@
 
             <div style="margin-bottom: 15px;">
                 <label style="font-size: 13px; font-weight: 600; color: #374151;">Ana Ürün Tipi (Kategori)</label>
-                <select id="food-name" name="food_id" class="form-input" style="background-color: white; cursor: pointer;" required>
+                <select id="food-name" name="food_id" class="form-input" style="background-color: white; cursor: pointer;">
                     <option value="" hidden>Kategori ve Yemek Seçiniz...</option>
                     {% set current_cat = [] %}
                     {% for food in foods %}
@@ -284,17 +284,17 @@
             
             <div style="margin-bottom: 15px;">
                 <label style="font-size: 13px; font-weight: 600; color: #374151;">Menüdeki Özel Adı (Havalı İsim)</label>
-                <input type="text" id="menu-custom-name" name="custom_name" class="form-input" placeholder="Örn: 🔥 Texas Smokehouse BBQ Burger" required>
+                <input type="text" id="menu-custom-name" name="custom_name" class="form-input" placeholder="Örn: 🔥 Texas Smokehouse BBQ Burger">
             </div>
 
             <div style="display: flex; gap: 15px; margin-bottom: 25px;">
                 <div style="flex: 1;">
                     <label style="font-size: 13px; font-weight: 600; color: #374151;">Fiyat (₺)</label>
-                    <input type="number" step="0.01" id="menu-price" name="price" class="form-input" placeholder="0.00" required>
+                    <input type="number" step="0.01" id="menu-price" name="price" class="form-input" placeholder="0.00">
                 </div>
                 <div style="flex: 1;">
                     <label style="font-size: 13px; font-weight: 600; color: #374151;">Stok Adedi</label>
-                    <input type="number" id="menu-stock" name="stock_quantity" class="form-input" placeholder="Örn: 50" required>
+                    <input type="number" id="menu-stock" name="stock_quantity" class="form-input" placeholder="Örn: 50">
                 </div>
             </div>
 

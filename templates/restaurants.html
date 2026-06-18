@@ -214,7 +214,7 @@
             <span style="font-size: 24px; cursor: pointer; color: #9ca3af;" onclick="document.getElementById('restaurantFormModal').style.display='none'">&times;</span>
         </div>
 
-        <form id="restaurant-form" action="{{ url_for('restaurant_action') }}" method="POST">
+        <form id="restaurant-form" action="{{ url_for('restaurant_action') }}" method="POST" novalidate>
             <input type="hidden" name="action" id="modal-action" value="add">
             <input type="hidden" name="update_restaurant_id" id="update-restaurant-id">
             <input type="hidden" name="restaurant_id" id="restaurant-id">
@@ -222,7 +222,7 @@
             {% if session['role'] == 'admin' %}
             <div style="margin-bottom: 15px;">
                 <label style="font-size: 13px; font-weight: 600; color: #dc2626;">Kullanıcı ID (Sahibi)</label>
-                <input type="number" id="user-id" name="user_id" class="form-input" style="border-color: #fca5a5;" required>
+                <input type="number" id="user-id" name="user_id" class="form-input" style="border-color: #fca5a5;">
             </div>
             {% else %}
                 <input type="hidden" id="user-id" name="user_id" value="{{ session.get('user_id', '') }}">
@@ -230,17 +230,17 @@
 
             <div style="margin-bottom: 15px;">
                 <label style="font-size: 13px; font-weight: 600; color: #374151;">Restoran Adı</label>
-                <input type="text" id="restaurant-name-input" name="restaurant_name" class="form-input" required>
+                <input type="text" id="restaurant-name-input" name="restaurant_name" class="form-input">
             </div>
 
             <div style="display: flex; gap: 15px; margin-bottom: 15px;">
                 <div style="flex: 1;">
                     <label style="font-size: 13px; font-weight: 600; color: #374151;">Şehir</label>
-                    <input type="text" id="restaurant-city" name="city" class="form-input" required>
+                    <input type="text" id="restaurant-city" name="city" class="form-input">
                 </div>
                 <div style="flex: 1;">
                     <label style="font-size: 13px; font-weight: 600; color: #374151;">Mutfak Türü</label>
-                    <select id="restaurant-cuisine" name="cuisine" class="form-input" style="background-color: white; cursor: pointer;" required>
+                    <select id="restaurant-cuisine" name="cuisine" class="form-input" style="background-color: white; cursor: pointer;">
                         <option value="" hidden>Seçiniz...</option>
                         <option value="Hamburger">Hamburger</option>
                         <option value="Döner">Döner</option>
@@ -274,12 +274,12 @@
 
             <div style="margin-bottom: 15px;">
                 <label style="font-size: 13px; font-weight: 600; color: #374151;">Masa Kapasitesi</label>
-                <input type="number" id="restaurant-table-count" name="table_count" class="form-input" min="1" required>
+                <input type="number" id="restaurant-table-count" name="table_count" class="form-input" min="1">
             </div>
 
             <div style="margin-bottom: 20px;">
                 <label style="font-size: 13px; font-weight: 600; color: #374151;">Tam Adres</label>
-                <input type="text" id="restaurant-address" name="restaurant_address" class="form-input" required>
+                <input type="text" id="restaurant-address" name="restaurant_address" class="form-input">
             </div>
 
             <div style="display: flex; gap: 10px; justify-content: flex-end; border-top: 1px solid #e5e7eb; padding-top: 15px;">

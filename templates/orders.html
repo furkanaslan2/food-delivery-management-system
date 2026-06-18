@@ -244,6 +244,7 @@
                             data-customer-name="{{ order['customer_name'] or '' }}"
                             data-customer-phone="{{ order['customer_phone'] or '' }}"
                             data-customer-address="{{ order['customer_address'] or '' }}"
+                            data-payment-method="{{ order['payment_method'] or '' }}"
                             data-courier="{{ order['courier_id'] or '' }}"
                             onclick="openOrderModal(true, this)" style="background: transparent; border: none; padding: 4px;">
                             <img src="{{ url_for('static', filename='images/icons/edit.png') }}" style="width: 24px; height: 24px; object-fit: contain;">
@@ -324,7 +325,7 @@
             <span style="font-size: 24px; cursor: pointer; color: #9ca3af;" onclick="closeOrderModal()">&times;</span>
         </div>
 
-        <form id="order-form" class="order-form" action="{{ url_for('order_action') }}" method="post">
+        <form id="order-form" class="order-form" action="{{ url_for('order_action') }}" method="post" novalidate>
             <input type="hidden" id="order-id" name="order_id">
             <input type="hidden" id="order-restaurant-id" name="restaurant_id">
             <input type="hidden" id="add-order-restaurant-id" name="add_restaurant_id">
@@ -360,8 +361,17 @@
 
             <div id="delivery-fields" style="display: none; width:100%; background: #f9fafb; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb; margin-bottom: 15px;">
                 <input type="text" id="customer-name" name="customer_name" placeholder="Müşteri Adı Soyadı" style="width: 100%; margin-bottom: 10px; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-family:inherit;">
-                <input type="text" id="customer-phone" name="customer_phone" placeholder="Telefon Numarası" style="width: 100%; margin-bottom: 10px; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-family:inherit;">
+                <input type="tel" id="customer-phone" name="customer_phone" placeholder="0 (5__) ___ __ __" style="width: 100%; margin-bottom: 10px; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-family:inherit;">
                 <input type="text" id="customer-address" name="customer_address" placeholder="Teslimat Adresi" style="width: 100%; margin-bottom: 10px; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-family:inherit;">
+
+                <div style="margin-bottom: 10px;">
+                    <select id="payment_method" name="payment_method" class="form-control" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #d1d5db; font-family: inherit;">
+                        <option value="" hidden>Ödeme Yöntemi Seçin...</option>
+                        <option value="Online Payment">Online Ödeme (Kredi/Banka Kartı)</option>
+                        <option value="Credit Card">Kapıda Kredi Kartı</option>
+                        <option value="Cash">Kapıda Nakit Ödeme</option>
+                    </select>
+                </div>
                 
                 <select id="dynamic-courier-list" name="courier_id" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-family:inherit;">
                     <option value="">Kurye Ata (Opsiyonel)...</option>
@@ -437,5 +447,6 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://unpkg.com/imask"></script>
 <script src="{{ url_for('static', filename='js/orders.js') }}"></script>
 {% endblock %}

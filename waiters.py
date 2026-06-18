@@ -250,8 +250,9 @@ def waiter_create_order():
             selected_choices = request.form.getlist(f'choices_{idx}[]')
 
             if qty > 0:
+                # 🚀 DEĞİŞİKLİK 1: Yemeğin güncel mühürlük ismini çekiyoruz
                 cursor.execute('''
-                    SELECT m.price, m.food_id, m.stock_quantity, m.custom_name, f.item_name 
+                    SELECT m.price, m.food_id, m.stock_quantity, COALESCE(m.custom_name, f.item_name) AS item_name 
                     FROM menus m JOIN foods f ON m.food_id = f.food_id WHERE m.menu_id = %s
                 ''', (menu_id,))
                 result = cursor.fetchone()
@@ -259,11 +260,14 @@ def waiter_create_order():
                 if result:
                     base_price = float(result['price'])
                     extras_price = 0
+                    choice_details = [] # Seçenek detaylarını mühürlemek için tutuyoruz
                     
                     if selected_choices:
                         format_strings = ','.join(['%s'] * len(selected_choices))
-                        cursor.execute(f"SELECT choice_name, additional_price FROM menu_option_choices WHERE choice_id IN ({format_strings})", selected_choices)
-                        for row in cursor.fetchall():
+                        # 🚀 DEĞİŞİKLİK 2: Seçeneğin adını ve fiyatını da çekiyoruz
+                        cursor.execute(f"SELECT choice_id, choice_name, additional_price FROM menu_option_choices WHERE choice_id IN ({format_strings})", tuple(selected_choices))
+                        choice_details = cursor.fetchall()
+                        for row in choice_details:
                             if row['additional_price']:
                                 extras_price += float(row['additional_price'])
                     
@@ -272,8 +276,9 @@ def waiter_create_order():
                     total_qty += qty
                     
                     order_details.append({
-                        'food_id': result['food_id'], 'quantity': qty, 'price': unit_price,
-                        'choices': selected_choices, 'cart_index': idx, 'note': note
+                        'food_id': result['food_id'], 'menu_id': menu_id, 'item_name': result['item_name'],
+                        'quantity': qty, 'price': unit_price,
+                        'choices': choice_details, 'cart_index': idx, 'note': note
                     })
 
         if total_qty > 0:
@@ -282,24 +287,24 @@ def waiter_create_order():
             order_id = cursor.lastrowid
             flash(f"Masa {table_no} için yeni lezzetler mutfağa iletildi. 🍽️", "success")
             
+            # 🚀 DEĞİŞİKLİK 3: Veritabanına mühürlü isimleri ve fiyatları kaydediyoruz
             for item in order_details:
-                # Ürünleri kendi sepet ID'si ve kendi özel notuyla ekliyoruz!
                 cursor.execute("""
-                    INSERT INTO order_items (order_id, food_id, quantity, unit_price, cart_index, item_note)
-                    VALUES (%s, %s, %s, %s, %s, %s)
-                """, (order_id, item['food_id'], item['quantity'], item['price'], item['cart_index'], item['note']))
+                    INSERT INTO order_items (order_id, food_id, menu_id, quantity, unit_price, cart_index, item_note, item_name_snapshot)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                """, (order_id, item['food_id'], item['menu_id'], item['quantity'], item['price'], item['cart_index'], item['note'], item['item_name']))
                 
                 if item['choices']:
-                    for choice_id in item['choices']:
-                        # Seçenekleri de o satıra ait sepet ID'sine bağlıyoruz!
+                    for choice in item['choices']:
                         cursor.execute("""
-                            INSERT INTO order_item_choices (order_id, food_id, choice_id, cart_index)
-                            VALUES (%s, %s, %s, %s)
-                        """, (order_id, item['food_id'], choice_id, item['cart_index']))
+                            INSERT INTO order_item_choices (order_id, food_id, choice_id, cart_index, choice_name_snapshot, choice_price_snapshot)
+                            VALUES (%s, %s, %s, %s, %s, %s)
+                        """, (order_id, item['food_id'], choice['choice_id'], item['cart_index'], choice['choice_name'], float(choice['additional_price'] or 0.00)))
             
             connection.commit()
     except Error as e:
         connection.rollback() 
+        print("Adisyon Hatası:", e)
     finally:
         if connection.is_connected(): cursor.close(); connection.close()
     return redirect(url_for('waiter_dashboard'))
@@ -395,29 +400,29 @@ def waiter_receipt(order_id):
         cursor.execute("SELECT order_id, order_date, sales_amount, table_no FROM orders WHERE order_id = %s AND restaurant_id = %s", (order_id, restaurant_id))
         order = cursor.fetchone()
 
-        # 🚀 Gruplamayı (GROUP BY) kaldırdık! Adana acılı ve acısız alt alta iki satır olarak çıkar
+        # 🚀 DEĞİŞİKLİK: Fiş ekranında sadece faturadaki (order_items tablosu) snapshot'ları okuyoruz.
+        # Böylece canlı foods / menus tablolarıyla bağlantı kesildi ve fatura güvene alındı.
         cursor.execute("""
-            SELECT f.food_id, COALESCE(m.custom_name, f.item_name) AS item_name, 
+            SELECT oi.food_id, oi.item_name_snapshot AS item_name, 
                    oi.quantity, oi.unit_price, oi.cart_index, oi.item_note
             FROM order_items oi
-            JOIN foods f ON oi.food_id = f.food_id
-            LEFT JOIN menus m ON oi.food_id = m.food_id AND m.restaurant_id = %s
             WHERE oi.order_id = %s
-        """, (restaurant_id, order_id))
+        """, (order_id,))
         items = cursor.fetchall()
 
         for item in items:
             if item['cart_index']:
                 cursor.execute("""
-                    SELECT moc.choice_name, moc.additional_price FROM order_item_choices oic
-                    JOIN menu_option_choices moc ON oic.choice_id = moc.choice_id
-                    WHERE oic.order_id = %s AND oic.cart_index = %s
+                    SELECT choice_name_snapshot AS choice_name, choice_price_snapshot AS additional_price 
+                    FROM order_item_choices 
+                    WHERE order_id = %s AND cart_index = %s
                 """, (order_id, item['cart_index']))
             else:
+                # Geriye dönük uyumluluk (Eski siparişleri de bozmamak için)
                 cursor.execute("""
-                    SELECT moc.choice_name, moc.additional_price FROM order_item_choices oic
-                    JOIN menu_option_choices moc ON oic.choice_id = moc.choice_id
-                    WHERE oic.order_id = %s AND oic.food_id = %s
+                    SELECT choice_name_snapshot AS choice_name, choice_price_snapshot AS additional_price 
+                    FROM order_item_choices 
+                    WHERE order_id = %s AND food_id = %s
                 """, (order_id, item['food_id']))
             item['choices'] = cursor.fetchall()
 

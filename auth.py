@@ -6,11 +6,11 @@ from functools import wraps
 import os
 import smtplib
 import random
+import re
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 def send_otp_email(to_email, otp_code):
-    # .env dosyasından e-posta bilgilerini çekiyoruz
     sender_email = os.getenv('MAIL_USERNAME')
     sender_password = os.getenv('MAIL_PASSWORD')
 
@@ -18,11 +18,11 @@ def send_otp_email(to_email, otp_code):
         print("HATA: .env dosyasında MAIL_USERNAME veya MAIL_PASSWORD eksik!")
         return False
 
-    subject = "Lezzet Kapında - E-posta Doğrulama Kodu"
+    subject = "YeSende - E-posta Doğrulama Kodu"
     body = f"""
     Merhaba,
     
-    Lezzet Kapında'ya kayıt olduğunuz için teşekkür ederiz!
+    YeSende'ya kayıt olduğunuz için teşekkür ederiz!
     Hesabınızı doğrulamak için tek kullanımlık güvenlik kodunuz:
     
     GÜVENLİK KODU: {otp_code}
@@ -30,7 +30,7 @@ def send_otp_email(to_email, otp_code):
     Bu kod 3 dakika boyunca geçerlidir. Lütfen bu kodu kimseyle paylaşmayın.
     
     İyi günler dileriz,
-    Lezzet Kapında Ekibi
+    YeSende Ekibi
     """
     
     msg = MIMEMultipart()
@@ -40,7 +40,6 @@ def send_otp_email(to_email, otp_code):
     msg.attach(MIMEText(body, 'plain', 'utf-8'))
 
     try:
-        # Gmail SMTP sunucusuna bağlanıyoruz
         server = smtplib.SMTP('smtp.gmail.com', 587)
         server.starttls()
         server.login(sender_email, sender_password)
@@ -54,9 +53,7 @@ def send_otp_email(to_email, otp_code):
 def nocache(view):
     @wraps(view)
     def no_cache_wrapped(*args, **kwargs):
-        # Fonksiyonu çalıştır ve sonucunu al
         response = make_response(view(*args, **kwargs))
-        # Kalkan ayarlarını ekle
         response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
         response.headers['Pragma'] = 'no-cache'
         response.headers['Expires'] = '-1'
@@ -77,7 +74,6 @@ def login():
         try:
             cursor = connection.cursor(dictionary=True)
             
-            # 🕵️‍♂️ 1. KONTROL: Bu kişi bir ADMIN mi?
             cursor.execute('SELECT * FROM admins WHERE email = %s', (email,))
             admin = cursor.fetchone()
             if admin and check_password_hash(admin['password'], password):
@@ -86,7 +82,6 @@ def login():
                 flash("Yönetici girişi başarılı!", "success") 
                 return redirect(url_for('index'))
 
-            # 🕵️‍♂️ 2. KONTROL: Bu kişi bir RESTORAN SAHİBİ mi?
             cursor.execute('SELECT * FROM users WHERE email = %s', (email,))
             user = cursor.fetchone()
             if user and check_password_hash(user['password'], password):
@@ -104,7 +99,6 @@ def login():
                     flash("Hesabınıza bağlı bir restoran bulunamadı.", "danger")
                     return redirect(url_for('login'))
                     
-            # 🕵️‍♂️ 3. KONTROL: Bu kişi bir GARSON mu?
             cursor.execute('SELECT * FROM waiters WHERE email = %s', (email,))
             waiter = cursor.fetchone()
             if waiter and check_password_hash(waiter['password'], password):
@@ -139,29 +133,31 @@ def login():
     return render_template('login.html')
     
 def logout():
-    # 1. Oturumu temizlemeden önce kullanıcının rolünü hafızaya alıyoruz
     role = session.get('role')
     
-    # 2. Artık güvenle TÜM oturum verilerini silebiliriz
     session.clear()
     
     flash("Başarıyla çıkış yaptınız!", "success") 
     
-    # 3. Yönlendirme Mantığı (Kuryeyi de genel portala gönderiyoruz)
     if role == 'customer':
         return redirect(url_for('customer_login')) 
     else:
-        # Garson, Kurye, Restoran Sahibi, Admin -> Hepsi Personel Portalına (login) döner!
         return redirect(url_for('login'))
 
 @nocache
 def register():
     if request.method == 'POST':
-        # Yeni HTML formundan gelen başvuru bilgilerini yakalıyoruz
         restaurant_name = request.form['restaurant_name']
         contact_name = request.form['name']
-        phone = request.form['phone']
+        raw_phone = request.form['phone'] 
         email = request.form['email']
+
+        clean_phone = re.sub(r'\D', '', raw_phone)
+
+        if not re.match(r'^05\d{9}$', clean_phone):
+            flash("Lütfen geçerli bir cep telefonu numarası girin (Örn: 05xx xxx xx xx)", "danger")
+            return redirect(url_for('register'))
+        # ----------------------------------------------------
 
         connection = get_db_connection()
         if connection is None:
@@ -170,19 +166,16 @@ def register():
 
         try:
             cursor = connection.cursor()
-            
-            # ADIM 1: Gelen verileri geçici "Başvuru Havuzuna" (restaurant_applications) kaydediyoruz
-            # Durumu otomatik olarak 'pending' (beklemede) oluyor.
+
             cursor.execute(
                 '''INSERT INTO restaurant_applications 
                    (restaurant_name, contact_name, email, phone, status) 
                    VALUES (%s, %s, %s, %s, 'pending')''',
-                (restaurant_name, contact_name, email, phone)
+                (restaurant_name, contact_name, email, clean_phone) 
             )
             
             connection.commit()
             
-            # Başarılı başvuru sonrası anında sisteme almıyoruz, login'e yönlendirip bilgi veriyoruz
             flash("Başvurunuz başarıyla alındı! Ekibimiz en kısa sürede sizinle iletişime geçecektir. 🤝", "success")
             return redirect(url_for('login'))
             
@@ -195,7 +188,6 @@ def register():
                 cursor.close()
                 connection.close()
 
-    # Eğer GET isteğiyle (linke tıklayarak) geldiyse sadece başvuru formunu göster
     return render_template('register.html')
 
 @nocache

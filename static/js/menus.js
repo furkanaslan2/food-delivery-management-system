@@ -97,7 +97,7 @@ function openMenuModalFromBtn(btn) {
                             
                             <div style="display: flex; gap: 15px; margin-bottom: 15px; padding-right: 30px;">
                                 <div style="flex: 2;">
-                                    <input type="text" name="option_names[]" value="${opt.option_name}" class="form-input" style="margin: 0; font-weight: 600;" required>
+                                    <input type="text" name="option_names[]" value="${opt.option_name}" class="form-input" style="margin: 0; font-weight: 600;">
                                 </div>
                                 <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 8px; background: white; padding: 8px 12px; border-radius: 6px; border: 1px solid #e5e7eb;">
                                     <label style="font-size: 12px; font-weight: 600; color: #374151; display: flex; align-items: center; gap: 6px; cursor: pointer;">
@@ -112,8 +112,8 @@ function openMenuModalFromBtn(btn) {
                             <div class="choices-container" id="choices-${groupId}" style="display: flex; flex-direction: column; gap: 8px;">
                                 ${opt.choices.map(ch => `
                                     <div style="display: flex; gap: 10px; align-items: center;">
-                                        <input type="text" name="choice_names_${groupId}[]" value="${ch.choice_name}" class="form-input" style="margin: 0; padding: 8px 12px; font-size: 13px;" required>
-                                        <input type="number" step="0.01" name="additional_prices_${groupId}[]" value="${ch.additional_price}" class="form-input" style="margin: 0; padding: 8px 12px; font-size: 13px; width: 120px;" required>
+                                        <input type="text" name="choice_names_${groupId}[]" value="${ch.choice_name}" class="form-input" style="margin: 0; padding: 8px 12px; font-size: 13px;">
+                                        <input type="number" step="0.01" name="additional_prices_${groupId}[]" value="${ch.additional_price}" class="form-input" style="margin: 0; padding: 8px 12px; font-size: 13px; width: 120px;">
                                         <button type="button" onclick="this.parentElement.remove()" style="background: none; border: none; color: #9ca3af; cursor: pointer; font-size: 18px; transition: 0.2s;" onmouseover="this.style.color='#dc2626'" onmouseout="this.style.color='#9ca3af'">&times;</button>
                                     </div>
                                 `).join('')}
@@ -149,7 +149,7 @@ function addOptionGroup() {
             <button type="button" onclick="document.getElementById('group-${groupId}').remove()" style="position: absolute; top: 12px; right: 12px; background: #fee2e2; color: #dc2626; border: none; width: 26px; height: 26px; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; display: flex; align-items: center; justify-content: center; transition: 0.2s;" onmouseover="this.style.background='#fca5a5'" onmouseout="this.style.background='#fee2e2'" title="Grubu Sil">&times;</button>
             <div style="display: flex; gap: 15px; margin-bottom: 15px; padding-right: 30px;">
                 <div style="flex: 2;">
-                    <input type="text" name="option_names[]" placeholder="Seçenek Grubu (Örn: Ekstra Malzemeler, Hamur Tipi)" class="form-input" style="margin: 0; font-weight: 600;" required>
+                    <input type="text" name="option_names[]" placeholder="Seçenek Grubu (Örn: Ekstra Malzemeler, Hamur Tipi)" class="form-input" style="margin: 0; font-weight: 600;">
                 </div>
                 <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 8px; background: white; padding: 8px 12px; border-radius: 6px; border: 1px solid #e5e7eb;">
                     <label style="font-size: 12px; font-weight: 600; color: #374151; display: flex; align-items: center; gap: 6px; cursor: pointer;">
@@ -162,7 +162,7 @@ function addOptionGroup() {
             </div>
             <div class="choices-container" id="choices-${groupId}" style="display: flex; flex-direction: column; gap: 8px;">
                 <div style="display: flex; gap: 10px; align-items: center;">
-                    <input type="text" name="choice_names_${groupId}[]" placeholder="Seçenek Adı (Örn: Kaşar Peyniri)" class="form-input" style="margin: 0; padding: 8px 12px; font-size: 13px;" required>
+                    <input type="text" name="choice_names_${groupId}[]" placeholder="Seçenek Adı (Örn: Kaşar Peyniri)" class="form-input" style="margin: 0; padding: 8px 12px; font-size: 13px;">
                     <input type="number" step="0.01" name="additional_prices_${groupId}[]" placeholder="+ Ücret (Ücretsizse boş bırakın)" class="form-input" style="margin: 0; padding: 8px 12px; font-size: 13px; width: 220px;">
                     <button type="button" onclick="this.parentElement.remove()" style="background: none; border: none; color: #9ca3af; cursor: pointer; font-size: 18px; transition: 0.2s;" onmouseover="this.style.color='#dc2626'" onmouseout="this.style.color='#9ca3af'">&times;</button>
                 </div>
@@ -179,7 +179,7 @@ function addChoice(groupId) {
     const container = document.getElementById(`choices-${groupId}`);
     const choiceHTML = `
         <div style="display: flex; gap: 10px; align-items: center;">
-            <input type="text" name="choice_names_${groupId}[]" placeholder="Seçenek Adı (Örn: Sucuk)" class="form-input" style="margin: 0; padding: 8px 12px; font-size: 13px;" required>
+            <input type="text" name="choice_names_${groupId}[]" placeholder="Seçenek Adı (Örn: Sucuk)" class="form-input" style="margin: 0; padding: 8px 12px; font-size: 13px;">
             <input type="number" step="0.01" name="additional_prices_${groupId}[]" placeholder="+ Ücret (Ücretsizse boş bırakın)" class="form-input" style="margin: 0; padding: 8px 12px; font-size: 13px; width: 220px;">
             <button type="button" onclick="this.parentElement.remove()" style="background: none; border: none; color: #9ca3af; cursor: pointer; font-size: 18px; transition: 0.2s;" onmouseover="this.style.color='#dc2626'" onmouseout="this.style.color='#9ca3af'">&times;</button>
         </div>
@@ -282,3 +282,79 @@ function togglePromo(id, newStatus) {
         } 
     });
 }
+
+// ==========================================
+// 🛡️ MENÜ FORMU MASTER KONTROL (AKILLI DOĞRULAMA)
+// ==========================================
+document.addEventListener("DOMContentLoaded", function() {
+    const menuForm = document.getElementById('menu-form');
+    
+    if (menuForm) {
+        menuForm.addEventListener('submit', function(e) {
+            let hasError = false;
+            let errorMessage = "";
+
+            const foodId = document.getElementById('food-name').value;
+            const customName = document.getElementById('menu-custom-name').value.trim();
+            const price = document.getElementById('menu-price').value.trim();
+            const stock = document.getElementById('menu-stock').value.trim();
+
+            if (!foodId || foodId === "None") {
+                hasError = true;
+                errorMessage = "Lütfen Ana Ürün Tipi (Kategori) seçin.";
+            } else if (!customName) {
+                hasError = true;
+                errorMessage = "Lütfen menüdeki özel adı girin.";
+            } else if (!price || parseFloat(price) <= 0) {
+                hasError = true;
+                errorMessage = "Lütfen geçerli bir fiyat girin (0'dan büyük olmalı).";
+            } else if (!stock || parseInt(stock) < 0) {
+                hasError = true;
+                errorMessage = "Lütfen geçerli bir stok adedi girin (0 veya daha büyük olmalı).";
+            }
+
+            // 2. Dinamik Seçenek (Opsiyon) Kontrolleri
+            if (!hasError) {
+                const optionGroups = document.querySelectorAll('.option-group');
+                for (let i = 0; i < optionGroups.length; i++) {
+                    const group = optionGroups[i];
+                    const groupNameInput = group.querySelector('input[name="option_names[]"]');
+                    
+                    if (!groupNameInput || groupNameInput.value.trim() === "") {
+                        hasError = true;
+                        errorMessage = "Lütfen eklediğiniz tüm seçenek gruplarına bir isim verin (Örn: Soslar) veya boş grubu silin.";
+                        break;
+                    }
+
+                    const choiceInputs = group.querySelectorAll('input[name^="choice_names_"]');
+                    
+                    if (choiceInputs.length === 0) {
+                        hasError = true;
+                        errorMessage = `"${groupNameInput.value.trim()}" grubu için en az bir seçenek (şık) eklemelisiniz.`;
+                        break;
+                    }
+
+                    for(let j=0; j < choiceInputs.length; j++) {
+                        if(choiceInputs[j].value.trim() === "") {
+                            hasError = true;
+                            errorMessage = `"${groupNameInput.value.trim()}" grubundaki boş seçenek adlarını doldurun veya o satırı silin.`;
+                            break;
+                        }
+                    }
+                    if(hasError) break;
+                }
+            }
+
+            if (hasError) {
+                e.preventDefault();
+                if (typeof window.showToast === 'function') {
+                    window.showToast(errorMessage, "error");
+                } else {
+                    alert(errorMessage);
+                }
+                return false;
+            }
+            
+        });
+    }
+});

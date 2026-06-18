@@ -2,6 +2,7 @@ from flask import render_template, request, redirect, url_for, session, flash, j
 from db import get_db_connection
 from mysql.connector import Error
 from datetime import date
+import re
 
 def orders():
     if not session.get('logged_in'):
@@ -83,23 +84,35 @@ def order_action():
             restaurant_id = restaurant_id_session if role == 'user' else request.form.get('restaurant_id')
 
             customer_name = request.form.get('customer_name')
-            customer_phone = request.form.get('customer_phone')
             customer_address = request.form.get('customer_address')
+            payment_method = request.form.get('payment_method') 
             courier_id = request.form.get('courier_id') or None
             table_no = request.form.get('table_no') or None
 
+            raw_phone = request.form.get('customer_phone', '')
+            clean_phone = re.sub(r'\D', '', raw_phone) if raw_phone else None
+            if clean_phone == '05':
+                clean_phone = None
+            
             if order_type == 'Delivery':
                 table_no = None
-                if not customer_name or not customer_phone or not customer_address:
-                    flash("Paket servis için müşteri bilgileri zorunludur!", "warning")
+                if not customer_name or not clean_phone or not customer_address:
+                    flash("Paket servis için müşteri bilgileri (telefon dahil) zorunludur!", "warning")
+                    return redirect(url_for('orders'))
+                if not re.match(r'^05\d{9}$', clean_phone):
+                    flash("Lütfen geçerli bir cep telefonu numarası girin (Örn: 05xx xxx xx xx)", "danger")
                     return redirect(url_for('orders'))
             
             if order_type == 'Dine-in':
                 if not table_no:
                     flash("Masa siparişi için lütfen Masa Numarası girin!", "warning")
                     return redirect(url_for('orders'))
+                if clean_phone and not re.match(r'^05\d{9}$', clean_phone):
+                    flash("Lütfen geçerli bir cep telefonu numarası girin (Örn: 05xx xxx xx xx)", "danger")
+                    return redirect(url_for('orders'))
 
-            # 🚀 YENİ POS SEPET SİSTEMİ (Garson paneliyle birebir aynı mantık)
+            customer_phone = clean_phone
+
             cart_indices = request.form.getlist('cart_index')
             
             valid_items = []
@@ -116,7 +129,14 @@ def order_action():
                     try:
                         qty = int(qty_str)
                         if qty > 0:
-                            cursor.execute("SELECT price, food_id, stock_quantity FROM menus WHERE menu_id = %s", (menu_id,))
+                            # 🚀 1. DEĞİŞİKLİK: Sadece fiyatı değil, yemeğin anlık adını da (custom_name veya item_name) çekiyoruz!
+                            cursor.execute("""
+                                SELECT m.price, m.food_id, m.stock_quantity, 
+                                       COALESCE(m.custom_name, f.item_name) AS item_name
+                                FROM menus m
+                                JOIN foods f ON m.food_id = f.food_id
+                                WHERE m.menu_id = %s
+                            """, (menu_id,))
                             menu_item = cursor.fetchone()
                             
                             if menu_item:
@@ -127,11 +147,15 @@ def order_action():
                                 
                                 base_price = float(menu_item['price'])
                                 extras_price = 0
+                                choice_details = [] # Ekstraların detaylarını (isim ve fiyat) tutacağımız yeni liste
                                 
                                 if selected_choices:
                                     format_strings = ','.join(['%s'] * len(selected_choices))
-                                    cursor.execute(f"SELECT additional_price FROM menu_option_choices WHERE choice_id IN ({format_strings})", selected_choices)
-                                    for row in cursor.fetchall():
+                                    # 🚀 2. DEĞİŞİKLİK: Ekstraların da sadece ID'sini değil, isim ve fiyatlarını da çekiyoruz!
+                                    cursor.execute(f"SELECT choice_id, choice_name, additional_price FROM menu_option_choices WHERE choice_id IN ({format_strings})", selected_choices)
+                                    choice_details = cursor.fetchall()
+                                    
+                                    for row in choice_details:
                                         if row['additional_price']:
                                             extras_price += float(row['additional_price'])
                                 
@@ -141,9 +165,11 @@ def order_action():
                                 
                                 valid_items.append({
                                     'food_id': menu_item['food_id'],
+                                    'menu_id': menu_id, # Tekrar sipariş için lazım olacak
+                                    'item_name': menu_item['item_name'], # Mühürlenecek İsim!
                                     'quantity': qty,
                                     'unit_price': unit_price,
-                                    'choices': selected_choices,
+                                    'choice_details': choice_details, # Mühürlenecek Ekstra Listesi!
                                     'cart_index': idx,
                                     'note': note
                                 })
@@ -163,23 +189,29 @@ def order_action():
             query = """
                 INSERT INTO orders 
                 (restaurant_id, order_date, order_status, sales_qty, sales_amount, 
-                 order_type, table_no, customer_name, customer_phone, customer_address, courier_id)
-                VALUES (%s, NOW(), %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                 order_type, table_no, customer_name, customer_phone, customer_address, courier_id, payment_method)
+                VALUES (%s, NOW(), %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
             cursor.execute(query, (restaurant_id, order_status, total_qty, total_amount, 
-                                   order_type, table_no, customer_name, customer_phone, customer_address, courier_id))
+                                   order_type, table_no, customer_name, customer_phone, customer_address, courier_id, payment_method))
             final_order_id = cursor.lastrowid
 
+            # 🚀 3. DEĞİŞİKLİK: Fişe mühür (Snapshot) vurma operasyonu!
             for item in valid_items:
-                item_query = "INSERT INTO order_items (order_id, food_id, quantity, unit_price, cart_index, item_note) VALUES (%s, %s, %s, %s, %s, %s)"
-                cursor.execute(item_query, (final_order_id, item['food_id'], item['quantity'], item['unit_price'], item['cart_index'], item['note']))
+                item_query = """
+                    INSERT INTO order_items 
+                    (order_id, food_id, menu_id, quantity, unit_price, cart_index, item_note, item_name_snapshot) 
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                """
+                cursor.execute(item_query, (final_order_id, item['food_id'], item['menu_id'], item['quantity'], item['unit_price'], item['cart_index'], item['note'], item['item_name']))
                 
-                if item['choices']:
-                    for choice_id in item['choices']:
+                if item['choice_details']:
+                    for choice in item['choice_details']:
                         cursor.execute("""
-                            INSERT INTO order_item_choices (order_id, food_id, choice_id, cart_index)
-                            VALUES (%s, %s, %s, %s)
-                        """, (final_order_id, item['food_id'], choice_id, item['cart_index']))
+                            INSERT INTO order_item_choices 
+                            (order_id, food_id, choice_id, cart_index, choice_name_snapshot, choice_price_snapshot)
+                            VALUES (%s, %s, %s, %s, %s, %s)
+                        """, (final_order_id, item['food_id'], choice['choice_id'], item['cart_index'], choice['choice_name'], choice['additional_price'] or 0.00))
 
             for item in valid_items:
                 cursor.execute("""
@@ -229,13 +261,30 @@ def order_action():
             
             restaurant_id = restaurant_id_session if role == 'user' else request.form.get('restaurant_id')
 
-            if order_type == 'Delivery':
-                table_no = None  
-            
             customer_name = request.form.get('customer_name')
-            customer_phone = request.form.get('customer_phone')
             customer_address = request.form.get('customer_address')
             courier_id = request.form.get('courier_id') or None
+            payment_method = request.form.get('payment_method')
+
+            raw_phone = request.form.get('customer_phone', '')
+            clean_phone = re.sub(r'\D', '', raw_phone) if raw_phone else None
+            if clean_phone == '05':
+                clean_phone = None
+
+            if order_type == 'Delivery':
+                table_no = None  
+                if not customer_name or not clean_phone or not customer_address or not payment_method:
+                    flash("Paket servis için müşteri bilgileri (telefon dahil) ve ödeme yöntemi zorunludur!", "warning")
+                    return redirect(url_for('orders'))
+                if not re.match(r'^05\d{9}$', clean_phone):
+                    flash("Lütfen geçerli bir cep telefonu numarası girin (Örn: 05xx xxx xx xx)", "danger")
+                    return redirect(url_for('orders'))
+            
+            if order_type == 'Dine-in' and clean_phone and not re.match(r'^05\d{9}$', clean_phone):
+                flash("Lütfen geçerli bir cep telefonu numarası girin (Örn: 05xx xxx xx xx)", "danger")
+                return redirect(url_for('orders'))
+
+            customer_phone = clean_phone
 
             if not update_order_id:
                 flash("Güncellenecek sipariş seçilmedi.", "warning")
@@ -244,10 +293,10 @@ def order_action():
             query = """
                 UPDATE orders 
                 SET order_status = %s, order_type = %s, table_no = %s, 
-                    customer_name = %s, customer_phone = %s, customer_address = %s, courier_id = %s
+                    customer_name = %s, customer_phone = %s, customer_address = %s, courier_id = %s, payment_method = %s
                 WHERE order_id = %s AND restaurant_id = %s
             """
-            cursor.execute(query, (order_status, order_type, table_no, customer_name, customer_phone, customer_address, courier_id, update_order_id, restaurant_id))
+            cursor.execute(query, (order_status, order_type, table_no, customer_name, customer_phone, customer_address, courier_id, payment_method, update_order_id, restaurant_id))
             
             connection.commit()
             flash("Sipariş detayları başarıyla güncellendi!", "success")
@@ -328,38 +377,36 @@ def get_order_details(order_id):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     
+    # 🚀 ARTIK MENÜ VE FOODS TABLOLARINA JOIN ATMIYORUZ!
+    # İsmi ve fiyatı direkt kendi sipariş (order_items) tablomuzdaki snapshot'tan alıyoruz.
     query = """
-        SELECT f.food_id, COALESCE(m.custom_name, f.item_name) AS item_name, 
+        SELECT oi.food_id, oi.item_name_snapshot AS item_name, 
                oi.quantity, oi.unit_price, (oi.quantity * oi.unit_price) as subtotal,
                oi.cart_index, oi.item_note
         FROM order_items oi
-        JOIN orders o ON oi.order_id = o.order_id
-        JOIN foods f ON oi.food_id = f.food_id
-        LEFT JOIN menus m ON oi.food_id = m.food_id AND o.restaurant_id = m.restaurant_id
         WHERE oi.order_id = %s
     """
     cursor.execute(query, (order_id,))
     items = cursor.fetchall()
     
     for item in items:
-        # Eğer yeni sistemden geldiyse karışmaması için cart_index üzerinden arıyoruz!
+        # Ekstraları da kendi sipariş (order_item_choices) tablomuzdaki snapshot'tan okuyoruz.
         if item.get('cart_index'):
             cursor.execute("""
-                SELECT moc.choice_name, moc.additional_price 
-                FROM order_item_choices oic
-                JOIN menu_option_choices moc ON oic.choice_id = moc.choice_id
-                WHERE oic.order_id = %s AND oic.cart_index = %s
+                SELECT choice_name_snapshot AS choice_name, choice_price_snapshot AS additional_price 
+                FROM order_item_choices 
+                WHERE order_id = %s AND cart_index = %s
             """, (order_id, item['cart_index']))
         else:
             cursor.execute("""
-                SELECT moc.choice_name, moc.additional_price 
-                FROM order_item_choices oic
-                JOIN menu_option_choices moc ON oic.choice_id = moc.choice_id
-                WHERE oic.order_id = %s AND oic.food_id = %s
+                SELECT choice_name_snapshot AS choice_name, choice_price_snapshot AS additional_price 
+                FROM order_item_choices 
+                WHERE order_id = %s AND food_id = %s
             """, (order_id, item['food_id']))
         item['choices'] = cursor.fetchall()
     
-    cursor.close(); conn.close()
+    cursor.close()
+    conn.close()
     return jsonify(items)
 
 def get_restaurant_details(restaurant_id):
@@ -453,39 +500,33 @@ def kitchen_display():
             orders_list = cursor.fetchall()
 
             for order in orders_list:
-                # 🚀 DÜZELTME: foods ve menus tablolarını birleştirip, yeni cart_index ve item_note verilerini de çekiyoruz
+                # 🚀 SADECE SİPARİŞ TABLOSUNDAKİ MÜHÜRLÜ İSMİ ÇEKİYORUZ
                 cursor.execute("""
-                    SELECT oi.*, COALESCE(m.custom_name, f.item_name) AS item_name 
+                    SELECT oi.*, oi.item_name_snapshot AS item_name 
                     FROM order_items oi
-                    JOIN foods f ON oi.food_id = f.food_id
-                    LEFT JOIN menus m ON oi.food_id = m.food_id AND m.restaurant_id = %s
                     WHERE oi.order_id = %s
-                """, (order['restaurant_id'], order['order_id']))
+                """, (order['order_id'],))
                 items = cursor.fetchall()
 
                 for item in items:
-                    # 🚀 YENİ ZIRH: Eğer ürün yeni sepet sistemiyle (cart_index) eklendiyse sadece kendi satırındaki ekstraları çek
                     if item.get('cart_index'):
                         cursor.execute("""
-                            SELECT moc.choice_name 
-                            FROM order_item_choices oic
-                            JOIN menu_option_choices moc ON oic.choice_id = moc.choice_id
-                            WHERE oic.order_id = %s AND oic.cart_index = %s
+                            SELECT choice_name_snapshot AS choice_name 
+                            FROM order_item_choices 
+                            WHERE order_id = %s AND cart_index = %s
                         """, (order['order_id'], item['cart_index']))
                     else:
-                        # Eski siparişler için geriye dönük uyumluluk
                         cursor.execute("""
-                            SELECT moc.choice_name 
-                            FROM order_item_choices oic
-                            JOIN menu_option_choices moc ON oic.choice_id = moc.choice_id
-                            WHERE oic.order_id = %s AND oic.food_id = %s
+                            SELECT choice_name_snapshot AS choice_name 
+                            FROM order_item_choices 
+                            WHERE order_id = %s AND food_id = %s
                         """, (order['order_id'], item['food_id']))
                         
                     choices = cursor.fetchall()
                     
                     if choices:
                         names = [c['choice_name'] for c in choices]
-                        # Eğer custom_name veritabanında NULL ise ekranda "None" yazmasını engelliyoruz
+                        # İsimsiz kalma ihtimaline karşı güvenlik bariyeri
                         current_name = item['item_name'] if item['item_name'] else "İsimsiz Menü"
                         item['item_name'] = f"{current_name} ({', '.join(names)})"
                 

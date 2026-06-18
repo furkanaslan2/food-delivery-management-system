@@ -94,18 +94,18 @@
         <h2>Aramıza Katıl</h2>
         <p class="subtitle">Lezzet dolu bir dünyaya adım at.</p>
 
-        <form action="{{ url_for('customer_register') }}" method="POST">
+        <form id="customer-register-form" action="{{ url_for('customer_register') }}" method="POST" novalidate>
             <div class="form-group">
                 <label for="name">Ad Soyad</label>
-                <input type="text" name="name" id="name" class="form-control" placeholder="Örn: Ahmet Yılmaz" required>
+                <input type="text" name="name" id="name" class="form-control" placeholder="Örn: Ahmet Yılmaz">
             </div>
             <div class="form-group">
                 <label for="email">E-posta Adresi</label>
-                <input type="email" name="email" id="email" class="form-control" placeholder="ornek@mail.com" required>
+                <input type="email" name="email" id="email" class="form-control" placeholder="ornek@mail.com">
             </div>
             <div class="form-group">
                 <label for="password">Şifre Belirle</label>
-                <input type="password" name="password" id="password" class="form-control" placeholder="••••••••" required>
+                <input type="password" name="password" id="password" class="form-control" placeholder="••••••••">
             </div>
 
             <button type="submit" class="submit-btn">Kayıt Ol ve Başla</button>
@@ -126,5 +126,51 @@
         {% endwith %}
     </div>
     <script src="{{ url_for('static', filename='js/common.js') }}"></script>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const registerForm = document.getElementById('customer-register-form');
+        
+        if (registerForm) {
+            registerForm.addEventListener('submit', function(e) {
+                let hasError = false;
+                let errorMessage = "";
+
+                const name = document.getElementById('name').value.trim();
+                const email = document.getElementById('email').value.trim();
+                const password = document.getElementById('password').value.trim();
+                
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+                if (!name) {
+                    hasError = true;
+                    errorMessage = "Lütfen adınızı ve soyadınızı girin.";
+                } else if (!email || !emailRegex.test(email)) {
+                    hasError = true;
+                    errorMessage = "Lütfen geçerli bir e-posta adresi girin.";
+                } else if (!password) {
+                    hasError = true;
+                    errorMessage = "Lütfen hesabınız için bir şifre belirleyin.";
+                } else if (password.length < 6) {
+                    hasError = true;
+                    errorMessage = "Güvenliğiniz için şifreniz en az 6 karakter olmalıdır.";
+                }
+
+                // ❌ HATA VARSA: Formu durdur ve şık bildirim (Toast) göster
+                if (hasError) {
+                    e.preventDefault();
+                    if (typeof window.showToast === 'function') {
+                        window.showToast(errorMessage, "error");
+                    } else {
+                        alert(errorMessage);
+                    }
+                    return false;
+                }
+                
+                // ✅ HATA YOKSA: Form sorunsuzca Python'a (Kayıt işlemine) gider
+            });
+        }
+    });
+    </script>
 </body>
 </html>

@@ -158,6 +158,12 @@
                 <div class="payment-info">
                     {% if order.payment_method == 'Online Payment' %}
                         <span class="payment-pill pay-online">Online Ödendi</span>
+                    {% elif order.payment_method == 'Cash' %}
+                        <span class="payment-pill pay-cash">Tahsil Edilecek: Nakit</span>
+                    {% elif order.payment_method == 'Credit Card' %}
+                        <span class="payment-pill pay-cash">Tahsil Edilecek: Kredi Kartı</span>
+                    {% elif not order.payment_method or order.payment_method == 'None' %}
+                        <span class="payment-pill pay-cash">Tahsil Edilecek: Belirtilmedi</span>
                     {% else %}
                         <span class="payment-pill pay-cash">Tahsil Edilecek: {{ order.payment_method }}</span>
                     {% endif %}

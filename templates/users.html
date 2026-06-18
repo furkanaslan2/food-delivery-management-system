@@ -146,18 +146,18 @@
             <span style="font-size: 24px; cursor: pointer; color: #9ca3af;" onclick="document.getElementById('userFormModal').style.display='none'">&times;</span>
         </div>
 
-        <form id="user-form" action="{{ url_for('user_action') }}" method="POST">
+        <form id="user-form" action="{{ url_for('user_action') }}" method="POST" novalidate>
             <input type="hidden" name="action" id="modal-action" value="add">
             <input type="hidden" name="update_user_id" id="update-user-id">
 
             <div style="margin-bottom: 15px;">
                 <label style="font-size: 13px; font-weight: 600; color: #374151;">Ad Soyad</label>
-                <input type="text" id="user-name" name="name" class="form-input" required>
+                <input type="text" id="user-name" name="name" class="form-input">
             </div>
 
             <div style="margin-bottom: 15px;">
                 <label style="font-size: 13px; font-weight: 600; color: #374151;">Email Adresi</label>
-                <input type="email" id="user-email" name="email" class="form-input" required>
+                <input type="email" id="user-email" name="email" class="form-input">
             </div>
 
             <div style="margin-bottom: 20px;">

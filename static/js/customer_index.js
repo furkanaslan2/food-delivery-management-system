@@ -159,18 +159,18 @@ function checkOrderStatus() {
 // ==========================================
 let trackMap = null;
 let courierMarker = null;
+let restMarker = null; // 🔥 KAYIP: Restoran Pini Geri Döndü
+let custMarker = null; // 🔥 KAYIP: Ev (Müşteri) Pini Geri Döndü
 let trackingInterval = null;
 
 function openTrackModal(orderId) {
     const modal = document.getElementById('courierTrackModal');
     if (modal) modal.style.display = 'flex';
     
-    // Modalın açılma animasyonunu bekle ve haritayı çiz (Gri ekran hatasını çözer)
     setTimeout(() => {
         initTrackMap();
-        fetchCourierLocation(orderId); // İlk konumu anında çek
+        fetchCourierLocation(orderId);
         
-        // Her 5 saniyede bir kuryenin konumunu arka planda güncelle
         trackingInterval = setInterval(() => {
             fetchCourierLocation(orderId);
         }, 5000);
@@ -181,7 +181,6 @@ function closeTrackModal() {
     const modal = document.getElementById('courierTrackModal');
     if (modal) modal.style.display = 'none';
     
-    // Modalı kapatınca interneti yormamak için arka plandaki sorguyu durdur
     if (trackingInterval) {
         clearInterval(trackingInterval);
         trackingInterval = null;
@@ -193,23 +192,12 @@ function initTrackMap() {
     if (!mapEl) return; 
 
     if (!trackMap) {
-        // Haritayı doğru ID'nin içine çiz
         trackMap = L.map('live-tracking-map').setView([41.0082, 28.9784], 13);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap'
+        // Eski şık (Voyager) harita temasını geri getirdik
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            attribution: '© OpenStreetMap & CARTO'
         }).addTo(trackMap);
-        
-        // Kurye İkonu
-        const courierIcon = L.divIcon({
-            html: '<div style="background:#10b981; color:white; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:3px solid white; box-shadow:0 2px 5px rgba(0,0,0,0.3);"><i class="ph-bold ph-moped" style="font-size:20px;"></i></div>',
-            className: '',
-            iconSize: [34, 34],
-            iconAnchor: [17, 17]
-        });
-
-        courierMarker = L.marker([41.0082, 28.9784], {icon: courierIcon}).addTo(trackMap);
     } else {
-        // Harita zaten açıksa boyutlarını tazele 
         trackMap.invalidateSize();
     }
 }
@@ -223,17 +211,61 @@ function fetchCourierLocation(orderId) {
     .then(res => res.json())
     .then(data => {
         if (data.success && data.lat && data.lon) {
-            const newPos = [data.lat, data.lon];
+            const courierLatLng = new L.LatLng(data.lat, data.lon);
             
-            // Kurye pin'ini yeni konuma taşı
-            if(courierMarker) {
-                courierMarker.setLatLng(newPos);
-                courierMarker.bindPopup(`<b>${data.name}</b><br>Kurye hızla yaklaşıyor!`).openPopup();
+            // 🔥 KAYIP: İkon Tasarımları Geri Döndü
+            const courierIcon = L.divIcon({ html: '<div style="background:#10b981; color:white; width:36px; height:36px; border-radius:50%; display:flex; justify-content:center; align-items:center; box-shadow:0 4px 6px rgba(0,0,0,0.3); border:2px solid white;"><i class="ph-bold ph-moped" style="font-size:20px;"></i></div>', className: '', iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -20] });
+            const restIcon = L.divIcon({ html: '<div style="background:#4f46e5; color:white; width:32px; height:32px; border-radius:50%; display:flex; justify-content:center; align-items:center; box-shadow:0 4px 6px rgba(0,0,0,0.3); border:2px solid white;"><i class="ph-bold ph-storefront" style="font-size:16px;"></i></div>', className: '', iconSize: [36, 36], iconAnchor: [18, 18], popupAnchor: [0, -18] });
+            const homeIcon = L.divIcon({ html: '<div style="background:#f59e0b; color:white; width:32px; height:32px; border-radius:50%; display:flex; justify-content:center; align-items:center; box-shadow:0 4px 6px rgba(0,0,0,0.3); border:2px solid white;"><i class="ph-bold ph-house" style="font-size:16px;"></i></div>', className: '', iconSize: [36, 36], iconAnchor: [18, 18], popupAnchor: [0, -18] });
+
+            // Restoran ve Ev Pinlerini haritaya ekle (Eğer yoklarsa)
+            if (!restMarker && data.rest_lat && data.rest_lon) { 
+                restMarker = L.marker([data.rest_lat, data.rest_lon], {icon: restIcon}).addTo(trackMap); 
+                restMarker.bindPopup(`<b>${data.rest_name}</b><br>Siparişi Hazırlayan`); 
+            }
+            if (!custMarker && data.cust_lat && data.cust_lon) { 
+                custMarker = L.marker([data.cust_lat, data.cust_lon], {icon: homeIcon}).addTo(trackMap); 
+                custMarker.bindPopup(`<b>Teslimat Adresiniz</b>`); 
             }
             
-            // Harita kamerasını yumuşak bir şekilde kuryeye kaydır
-            if(trackMap) {
-                trackMap.flyTo(newPos, 16, { animate: true, duration: 1.5 });
+            // Kurye Pini ve Otomatik Odaklama (fitBounds) mantığı
+            if (!courierMarker) {
+                courierMarker = L.marker(courierLatLng, {icon: courierIcon}).addTo(trackMap); 
+                courierMarker.bindPopup(`<b>${data.name}</b><br>Size doğru geliyor!`).openPopup();
+                
+                // 🔥 KAYIP: İlk açılışta 3 pini birden ekrana sığdıracak şekilde kamerayı ayarla!
+                const group = new L.featureGroup([restMarker, custMarker, courierMarker].filter(Boolean)); 
+                trackMap.fitBounds(group.getBounds(), {padding: [40, 40]});
+            } else { 
+                // Kurye zaten varsa sadece yerini yumuşakça güncelle
+                courierMarker.setLatLng(courierLatLng); 
+                // Kuryeyi takip etmesi için kamerayı kaydır
+                trackMap.flyTo(courierLatLng, 16, { animate: true, duration: 1.5 });
+            }
+
+            // 🔥 KAYIP: Sipariş Teslim Edilince Çalışan UI Animasyonları Geri Döndü!
+            if (data.order_status === 'delivered') {
+                clearInterval(trackingInterval);
+                document.getElementById('modal-progress-line').style.width = '100%';
+                document.getElementById('modal-step-2').style.animation = 'none';
+                document.getElementById('modal-step-2').style.boxShadow = 'none';
+                document.getElementById('modal-text-2').style.color = '#374151';
+                
+                const step3 = document.getElementById('modal-step-3'); 
+                if(step3) {
+                    step3.style.background = '#10b981'; 
+                    step3.style.color = 'white'; 
+                    step3.style.borderColor = '#10b981'; 
+                    step3.innerHTML = '<i class="ph-bold ph-check"></i>';
+                }
+                
+                const text3 = document.getElementById('modal-text-3');
+                if(text3) text3.style.color = '#10b981';
+                
+                const title = document.getElementById('track-modal-title');
+                if(title) title.innerText = 'Sipariş Teslim Edildi! Afiyet olsun.';
+                
+                setTimeout(() => { closeTrackModal(); window.location.reload(); }, 4000);
             }
         }
     })
@@ -347,75 +379,267 @@ function sendChatMessage() {
 // ==========================================
 // 📍 ADRES VE HARİTA (LEAFLET)
 // ==========================================
-let map;
-let marker;
+let map = null;
+let marker = null;
+let gpsControl = null; // YENİ (Geri getirildi)
+let selectedLat = null; // YENİ (Geri getirildi)
+let selectedLon = null; // YENİ (Geri getirildi)
+let editingAddressId = null; // YENİ (Geri getirildi)
+
+// Adresleri düzenlerken formda göstermek için global değişkende tutacağız
+window.globalAddresses = [];
 
 function openAddressModal() {
     document.getElementById('addressListModal').style.display = 'flex';
+    
+    const container = document.getElementById('addresses-container');
+    container.innerHTML = '<div style="text-align: center; padding: 20px;"><i class="ph-bold ph-spinner ph-spin" style="font-size: 24px;"></i> Yükleniyor...</div>';
+    
+    // Sunucudan müşterinin adreslerini çekiyoruz
+    fetch('/api/get_addresses')
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            window.globalAddresses = data.addresses; 
+            
+            container.innerHTML = '';
+            if (data.addresses.length === 0) {
+                container.innerHTML = '<div style="text-align:center; color:#6b7280; padding:15px; font-weight: 500;">Henüz kayıtlı bir adresiniz yok.</div>';
+                return;
+            }
+            
+            data.addresses.forEach(addr => {
+                const isActive = addr.is_active ? 'border-color: #4f46e5; background: #eef2ff;' : 'border-color: #e5e7eb; background: white;';
+                const activeIcon = addr.is_active ? '<i class="ph-fill ph-check-circle" style="color: #4f46e5; font-size: 28px;"></i>' : '<i class="ph-bold ph-circle" style="color:#d1d5db; font-size:28px;"></i>';
+                
+                container.innerHTML += `
+                    <div style="border: 2px solid; ${isActive} border-radius: 12px; padding: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.2s;" onclick="selectAddress(${addr.address_id})">
+                        <div>
+                            <div style="font-weight: 800; color: #111827; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+                                <i class="ph-bold ph-map-pin" style="color: #4f46e5;"></i> ${addr.title}
+                            </div>
+                            <div style="font-size: 13px; color: #4b5563; line-height: 1.4;">
+                                ${addr.neighborhood} Mah. ${addr.street} Sok. No: ${addr.building_no}
+                                ${addr.floor_no ? 'Kat: ' + addr.floor_no : ''} ${addr.apt_no ? 'Daire: ' + addr.apt_no : ''}<br>
+                                <strong>${addr.district} / ${addr.city}</strong>
+                            </div>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <button onclick="startEditingAddress(event, ${addr.address_id})" style="background:#f3f4f6; border:1px solid #d1d5db; border-radius:8px; padding:6px 10px; font-size:18px; cursor:pointer; transition:0.2s; color:#4b5563; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'" title="Adresi Düzenle">
+                                <i class="ph-bold ph-pencil-simple"></i>
+                            </button>
+                            ${activeIcon}
+                        </div>
+                    </div>
+                `;
+            });
+        } else {
+            container.innerHTML = `<div style="text-align:center; color:#ef4444; padding:15px;">${data.message}</div>`;
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        container.innerHTML = '<div style="text-align:center; color:#ef4444; padding:15px;">Adresler yüklenirken bir hata oluştu.</div>';
+    });
 }
 
 function closeAddressModal() {
     document.getElementById('addressListModal').style.display = 'none';
 }
 
-function openNewAddressModal() {
-    document.getElementById('addressListModal').style.display = 'none';
-    document.getElementById('addressFormModal').style.display = 'flex';
-    document.getElementById('addressMapModal').style.display = 'flex';
-    
-    setTimeout(() => { initMap(); }, 300);
+// 🔥 KAYIP: Adres Seçme (Aktif yapma) Fonksiyonu Geri Döndü
+function selectAddress(addressId) {
+    fetch('/api/select_address', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address_id: addressId })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.success) {
+            window.location.reload(); 
+        } else {
+            if(typeof window.showToast === 'function') window.showToast(data.message, "error");
+        }
+    });
 }
 
-function initMap() {
-    if (map) { map.invalidateSize(); return; }
+// 🔥 KAYIP: Haritada GPS (Mevcut Konum) Butonu Geri Döndü
+function addGpsButtonToMap() {
+    if(gpsControl) return; 
+    gpsControl = L.control({position: 'topleft'});
+    gpsControl.onAdd = function(map) {
+        let btn = L.DomUtil.create('button', 'leaflet-bar leaflet-control');
+        btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-top:3px;"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><circle cx="12" cy="12" r="8"></circle></svg>';
+        btn.style.backgroundColor = 'white'; btn.style.width = '34px'; btn.style.height = '34px'; btn.style.cursor = 'pointer'; btn.style.display = 'flex'; btn.style.justifyContent = 'center'; btn.style.alignItems = 'center'; btn.title = "Mevcut Konumumu Bul";
+        
+        btn.onclick = function(e) {
+            e.preventDefault(); e.stopPropagation();
+            if(navigator.geolocation) {
+                btn.style.opacity = '0.5'; 
+                navigator.geolocation.getCurrentPosition(function(pos) {
+                    let lat = pos.coords.latitude; let lon = pos.coords.longitude;
+                    map.setView([lat, lon], 16); marker.setLatLng([lat, lon]); btn.style.opacity = '1';
+                }, function() { 
+                    if(typeof window.showToast === 'function') window.showToast("Konum alınamadı. Tarayıcı izinlerini kontrol edin.", "error"); 
+                    btn.style.opacity = '1'; 
+                });
+            } else { 
+                if(typeof window.showToast === 'function') window.showToast("Tarayıcınız konum özelliğini desteklemiyor.", "error"); 
+            }
+        };
+        return btn;
+    };
+    gpsControl.addTo(map);
+}
+
+function openNewAddressModal() {
+    editingAddressId = null; 
     
-    map = L.map('address-picker-map').setView([41.0082, 28.9784], 13);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
-
-    marker = L.marker([41.0082, 28.9784], {draggable: true}).addTo(map);
-
-    map.on('click', function(e) {
-        marker.setLatLng(e.latlng);
-    });
-
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(position => {
-            const lat = position.coords.latitude;
-            const lon = position.coords.longitude;
-            map.setView([lat, lon], 15);
-            marker.setLatLng([lat, lon]);
-        });
+    document.getElementById('map-modal-title').innerText = "Yeni Harita Konumu Seçin";
+    document.getElementById('form-modal-title').innerText = "Yeni Adres Ekle";
+    document.getElementById('form-submit-btn').innerText = "Adresi Kaydet ve Kullan";
+    
+    document.querySelectorAll('#addressFormModal input[type="text"], #addressFormModal textarea').forEach(el => el.value = '');
+    if (window.addrPhoneMask) {
+        window.addrPhoneMask.unmaskedValue = ''; 
+    } else {
+        document.getElementById('addr-cphone').value = '';
     }
+    
+    document.getElementById('addressListModal').style.display = 'none';
+    document.getElementById('addressMapModal').style.display = 'flex';
+    
+    setTimeout(() => { 
+        if (!map) {
+            map = L.map('address-picker-map').setView([41.0082, 28.9784], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+            marker = L.marker([41.0082, 28.9784], {draggable: true}).addTo(map);
+            
+            map.on('click', function(e) { marker.setLatLng(e.latlng); });
+            addGpsButtonToMap(); 
+        } else {
+            map.invalidateSize(); 
+        }
+        
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(position => {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+                map.setView([lat, lon], 15);
+                marker.setLatLng([lat, lon]);
+            });
+        }
+    }, 300);
+}
+
+function startEditingAddress(event, id) {
+    event.stopPropagation(); 
+    editingAddressId = id; 
+    
+    const addr = window.globalAddresses.find(a => a.address_id === id);
+    if(!addr) return;
+    
+    document.getElementById('map-modal-title').innerText = "Konumu Güncelleyin";
+    document.getElementById('form-modal-title').innerText = "Adresi Düzenle";
+    document.getElementById('form-submit-btn').innerText = "Değişiklikleri Kaydet";
+    
+    document.getElementById('addr-title').value = addr.title; 
+    document.getElementById('addr-city').value = addr.city; 
+    document.getElementById('addr-district').value = addr.district; 
+    document.getElementById('addr-neighborhood').value = addr.neighborhood; 
+    document.getElementById('addr-street').value = addr.street; 
+    document.getElementById('addr-building').value = addr.building_no; 
+    document.getElementById('addr-floor').value = addr.floor_no || ''; 
+    document.getElementById('addr-apt').value = addr.apt_no || ''; 
+    document.getElementById('addr-directions').value = addr.directions || ''; 
+    document.getElementById('addr-cname').value = addr.contact_name || ''; 
+    
+    if (window.addrPhoneMask) {
+        window.addrPhoneMask.unmaskedValue = addr.contact_phone || '';
+    } else {
+        document.getElementById('addr-cphone').value = addr.contact_phone || '';
+    }
+    
+    selectedLat = addr.latitude; 
+    selectedLon = addr.longitude;
+    
+    closeAddressModal(); 
+    document.getElementById('addressMapModal').style.display = 'flex';
+    
+    setTimeout(() => {
+        if (!map) {
+            map = L.map('address-picker-map').setView([selectedLat, selectedLon], 16);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+            marker = L.marker([selectedLat, selectedLon], {draggable: true}).addTo(map);
+            map.on('click', function(e) { marker.setLatLng(e.latlng); });
+            addGpsButtonToMap(); 
+        } else {
+            map.setView([selectedLat, selectedLon], 16); 
+            marker.setLatLng([selectedLat, selectedLon]); 
+            map.invalidateSize();
+        }
+    }, 300);
 }
 
 function confirmMapLocation() {
     const pos = marker.getLatLng();
-    document.getElementById('addr-lat').value = pos.lat;
-    document.getElementById('addr-lon').value = pos.lng;
+    selectedLat = pos.lat;
+    selectedLon = pos.lng;
+    
+    document.getElementById('addr-lat').value = selectedLat;
+    document.getElementById('addr-lon').value = selectedLon;
     document.getElementById('addressMapModal').style.display = 'none';
+    document.getElementById('addressFormModal').style.display = 'flex';
 }
 
 function submitAddressForm() {
-    const data = {
-        city: document.getElementById('addr-city').value,
-        district: document.getElementById('addr-district').value,
-        neighborhood: document.getElementById('addr-neighborhood').value,
-        street: document.getElementById('addr-street').value,
-        building_no: document.getElementById('addr-building').value,
-        floor_no: document.getElementById('addr-floor').value,
-        apt_no: document.getElementById('addr-apt').value,
-        directions: document.getElementById('addr-directions').value,
-        title: document.getElementById('addr-title').value,
-        contact_name: document.getElementById('addr-cname').value,
-        contact_phone: document.getElementById('addr-cphone').value,
-        latitude: document.getElementById('addr-lat').value,
-        longitude: document.getElementById('addr-lon').value
+    const payload = {
+        city: document.getElementById('addr-city').value.trim(),
+        district: document.getElementById('addr-district').value.trim(),
+        neighborhood: document.getElementById('addr-neighborhood').value.trim(),
+        street: document.getElementById('addr-street').value.trim(),
+        building_no: document.getElementById('addr-building').value.trim(),
+        floor_no: document.getElementById('addr-floor').value.trim(),
+        apt_no: document.getElementById('addr-apt').value.trim(),
+        directions: document.getElementById('addr-directions').value.trim(),
+        title: document.getElementById('addr-title').value.trim(),
+        contact_name: document.getElementById('addr-cname').value.trim(),
+        contact_phone: document.getElementById('addr-cphone').value.trim(),
+        latitude: selectedLat,
+        longitude: selectedLon
     };
 
-    if(!data.city || !data.district || !data.neighborhood || !data.street || !data.building_no || !data.title || !data.contact_name || !data.contact_phone) {
-        if(typeof window.showToast === 'function') window.showToast("Lütfen zorunlu alanları doldurun.", "error");
+    // ==========================================
+    // 🛡️ ADRES FORMU MASTER KONTROL (AKILLI DOĞRULAMA)
+    // ==========================================
+    let hasError = false;
+    let errorMessage = "";
+
+    const isPhoneEmpty = (payload.contact_phone === '' || payload.contact_phone === '0 (5__) ___ __ __');
+
+    if (!payload.city || !payload.district || !payload.neighborhood || !payload.street || !payload.building_no) {
+        hasError = true;
+        errorMessage = "Lütfen İl, İlçe, Mahalle, Sokak ve Bina No gibi temel adres detaylarını eksiksiz girin.";
+    } else if (!payload.title) {
+        hasError = true;
+        errorMessage = "Lütfen bu adres için bir başlık belirleyin (Örn: Evim, İş Yerim).";
+    } else if (!payload.contact_name) {
+        hasError = true;
+        errorMessage = "Lütfen teslimat için ad ve soyad bilgisini girin.";
+    } else if (isPhoneEmpty || payload.contact_phone.includes('_') || payload.contact_phone.length < 15) {
+        hasError = true;
+        errorMessage = "Lütfen iletişim numaranızı tam ve eksiksiz girin.";
+    }
+
+    if (hasError) {
+        if(typeof window.showToast === 'function') {
+            window.showToast(errorMessage, "error");
+        } else {
+            alert(errorMessage);
+        }
         return;
     }
 
@@ -424,10 +648,16 @@ function submitAddressForm() {
     btn.innerHTML = "Kaydediliyor...";
     btn.disabled = true;
 
-    fetch('/api/add_address', {
+    let apiEndpoint = '/api/add_address';
+    if(editingAddressId !== null) { 
+        payload.address_id = editingAddressId; 
+        apiEndpoint = '/api/update_address'; 
+    }
+
+    fetch(apiEndpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
+        body: JSON.stringify(payload)
     })
     .then(res => res.json())
     .then(data => {
@@ -447,23 +677,16 @@ function submitAddressForm() {
     });
 }
 
-// ==========================================
-    // 4. SOL FİLTRE MENÜSÜ OTOMATİK GÖNDERİM
-    // ==========================================
     const filterForm = document.getElementById('sidebar-filter-form');
     if(filterForm) {
         const filterRadios = filterForm.querySelectorAll('.filter-radio');
         filterRadios.forEach(radio => {
             radio.addEventListener('change', () => {
-                // Herhangi bir filtreye tıklandığında formu otomatik yolla
                 filterForm.submit();
             });
         });
     }
 
-    // ==========================================
-    // 2. KATEGORİ SÜRÜKLE-BIRAK (KUSURSUZ FİZİK VE TIKLAMA KONTROLÜ)
-    // ==========================================
     const categorySlider = document.querySelector('.category-filters');
     let isDown = false;
     let startX;
@@ -471,28 +694,24 @@ function submitAddressForm() {
     let isDragging = false; 
 
     if (categorySlider) {
-        // Fareye basıldığında
         categorySlider.addEventListener('mousedown', (e) => {
             isDown = true;
-            isDragging = false; // Her yeni dokunuşta sürükleme durumunu sıfırla
+            isDragging = false; 
             categorySlider.style.cursor = 'grabbing';
             startX = e.pageX - categorySlider.offsetLeft;
             scrollLeft = categorySlider.scrollLeft;
         });
         
-        // Fare kutudan dışarı çıkarsa
         categorySlider.addEventListener('mouseleave', () => {
             isDown = false;
             categorySlider.style.cursor = 'grab';
         });
         
-        // Fare bırakıldığında
         categorySlider.addEventListener('mouseup', () => {
             isDown = false;
             categorySlider.style.cursor = 'grab';
         });
         
-        // Fare basılıyken HAREKET ettirildiğinde
         categorySlider.addEventListener('mousemove', (e) => {
             if (!isDown) return;
             e.preventDefault();
@@ -500,7 +719,6 @@ function submitAddressForm() {
             const x = e.pageX - categorySlider.offsetLeft;
             const walk = (x - startX); 
             
-            // 🔥 YENİ: Eğer fare 3 pikselden fazla hareket ettiyse, bunu kesinlikle "Sürükleme" say
             if (Math.abs(walk) > 3) {
                 isDragging = true; 
             }
@@ -508,31 +726,24 @@ function submitAddressForm() {
             categorySlider.scrollLeft = scrollLeft - walk;
         });
 
-        // 🔥 YENİ VE KESİN ÇÖZÜM: Tıklama olayını "Capture" (Yakalama) aşamasında durdur
         categorySlider.addEventListener('click', (e) => {
             if (isDragging) {
-                // Eğer kullanıcı sürüklediyse, altındaki butonun tıklanmasını engelle
                 e.preventDefault();
                 e.stopPropagation(); 
             }
-        }, true); // `true` parametresi, bu kontrolün sayfadaki diğer tüm tıklamalardan ÖNCE havada yakalanmasını sağlar!
+        }, true); 
     }
 
-// ====================================================
-// CANLI RESTORAN DURUMU (AÇIK/KAPALI) - ANA SAYFA (VİTRİN)
-// ====================================================
 document.addEventListener("DOMContentLoaded", function() {
     const restaurantCards = document.querySelectorAll('.restaurant-card');
     if (restaurantCards.length === 0) return;
 
-    // 1. Sayfadaki tüm restoranların ID'lerini bir diziye (array) topla
     const restaurantIds = Array.from(restaurantCards)
         .map(card => card.getAttribute('data-rest-id'))
-        .filter(id => id); // Boş olanları filtrele
+        .filter(id => id); 
 
     if (restaurantIds.length === 0) return;
 
-    // 2. Ana sayfada çok restoran olduğu için sunucuyu yormamak adına 15 saniyede bir kontrol ediyoruz
     setInterval(() => {
         fetch('/api/restaurant_statuses', {
             method: 'POST', 
@@ -542,7 +753,6 @@ document.addEventListener("DOMContentLoaded", function() {
         .then(res => res.json())
         .then(data => {
             if (data.success && data.statuses) {
-                // 3. Gelen yanıttaki durumlara göre kartları güncelle
                 restaurantCards.forEach(card => {
                     const id = card.getAttribute('data-rest-id');
                     if (!id || data.statuses[id] === undefined) return;
@@ -551,11 +761,9 @@ document.addEventListener("DOMContentLoaded", function() {
                     const isCurrentlyClosed = card.classList.contains('closed-restaurant');
                     const imageContainer = card.querySelector('.card-image');
                     
-                    // 🔥 DURUM 1: Dükkan az önce KAPANDIYSA
                     if (!isOpen && !isCurrentlyClosed) {
                         card.classList.add('closed-restaurant');
                         
-                        // Kapalı perdesini (overlay) oluştur ve ekle
                         if (imageContainer && !imageContainer.innerHTML.includes('ŞU AN KAPALI')) {
                             const overlay = document.createElement('div');
                             overlay.className = 'live-closed-overlay';
@@ -564,22 +772,19 @@ document.addEventListener("DOMContentLoaded", function() {
                             
                             imageContainer.appendChild(overlay);
                             
-                            // Tatlı bir fade-in animasyonu için ufak bir gecikme
                             requestAnimationFrame(() => {
                                 overlay.style.opacity = '1';
                             });
                         }
                     } 
-                    // 🔥 DURUM 2: Dükkan az önce AÇILDIYSA
                     else if (isOpen && isCurrentlyClosed) {
                         card.classList.remove('closed-restaurant');
                         
-                        // Hem HTML'den gelen hem de JS'in koyduğu "ŞU AN KAPALI" perdesini bul ve sil
                         if (imageContainer) {
                             Array.from(imageContainer.children).forEach(child => {
                                 if (child.innerHTML.includes('ŞU AN KAPALI') || child.classList.contains('live-closed-overlay')) {
                                     child.style.opacity = '0'; // Önce görünmez yap (Fade-out)
-                                    setTimeout(() => child.remove(), 300); // 0.3 saniye sonra DOM'dan tamamen sil
+                                    setTimeout(() => child.remove(), 300); 
                                 }
                             });
                         }
@@ -588,5 +793,23 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         })
         .catch(err => console.log('Ana sayfa canlı durum hatası:', err));
-    }, 15000); // 15 saniye bekleme süresi
+    }, 15000); 
+});
+
+document.addEventListener("DOMContentLoaded", function() {
+    var phoneInput = document.getElementById('addr-cphone');
+    if (phoneInput) {
+        window.addrPhoneMask = IMask(phoneInput, {
+            mask: '\\0 (500) 000 00 00',
+            lazy: false,  
+            placeholderChar: '_' 
+        });
+                
+        phoneInput.addEventListener('click', function() {
+            var firstEmptyIndex = phoneInput.value.indexOf('_');
+            if (firstEmptyIndex !== -1) {
+                phoneInput.setSelectionRange(firstEmptyIndex, firstEmptyIndex);
+            }
+        });
+    }
 });

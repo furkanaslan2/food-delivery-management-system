@@ -139,7 +139,7 @@
                 <p>Şahsi bilgilerinizi ve güvenlik ayarlarınızı yönetin.</p>
             </div>
 
-            <form action="{{ url_for('update_profile') }}" method="POST">
+            <form id="profile-form" action="{{ url_for('update_profile') }}" method="POST" novalidate>
                 
                 <div class="form-group">
                     <label>E-posta Adresi</label>
@@ -152,7 +152,7 @@
                 <div class="form-group">
                     <label>Ad Soyad</label>
                     <div class="input-with-icon">
-                        <input type="text" name="name" class="form-control icon-padded" value="{{ user_data.get('name') or '' }}" placeholder="Örn: Ahmet Yılmaz" required>
+                        <input type="text" name="name" class="form-control icon-padded" value="{{ user_data.get('name') or '' }}" placeholder="Örn: Ahmet Yılmaz">
                         <i class="ph-bold ph-user"></i>
                     </div>
                 </div>
@@ -160,7 +160,7 @@
                 <div class="form-group">
                     <label>Telefon Numarası</label>
                     <div class="input-with-icon">
-                        <input type="tel" name="phone" class="form-control icon-padded" value="{{ user_data.get('phone') or '' }}" placeholder="05XX..." maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                        <input type="tel" name="phone" id="phone" class="form-control icon-padded" value="{{ user_data.get('phone') or '' }}" placeholder="0 (5__) ___ __ __">
                         <i class="ph-bold ph-phone"></i>
                     </div>
                 </div>
@@ -234,16 +234,73 @@
             {% endif %}
         {% endwith %}
     </div>
+
+    <script src="{{ url_for('static', filename='js/common.js') }}"></script>
+
+    <script src="https://unpkg.com/imask"></script>
+    
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            const flashElements = document.querySelectorAll('.flash-message-data');
-            flashElements.forEach((el, index) => {
-                let msgType = el.getAttribute('data-category');
-                let msgText = el.getAttribute('data-message');
-                if (msgType === 'danger' || msgType === 'warning') msgType = 'error';
-                setTimeout(() => { if (typeof showToast === "function") showToast(msgText, msgType); }, 100 + (index * 150)); 
-            });
+            var phoneInput = document.getElementById('phone');
+            if (phoneInput) {
+                var phoneMask = IMask(phoneInput, {
+                    mask: '\\0 (500) 000 00 00',
+                    lazy: false,  
+                    placeholderChar: '_' 
+                });
+                
+                // UX Dokunuşu: İmleci ilk boşluğa fırlat
+                phoneInput.addEventListener('click', function() {
+                    var firstEmptyIndex = phoneInput.value.indexOf('_');
+                    if (firstEmptyIndex !== -1) {
+                        phoneInput.setSelectionRange(firstEmptyIndex, firstEmptyIndex);
+                    }
+                });
+            }
         });
+    </script>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const profileForm = document.getElementById('profile-form');
+        
+        if (profileForm) {
+            profileForm.addEventListener('submit', function(e) {
+                let hasError = false;
+                let errorMessage = "";
+
+                const name = document.querySelector('input[name="name"]').value.trim();
+                const phone = document.getElementById('phone').value.trim();
+                const password = document.querySelector('input[name="password"]').value.trim();
+
+                const isPhoneEmpty = (phone === '' || phone === '0 (5__) ___ __ __');
+
+                if (!name) {
+                    hasError = true;
+                    errorMessage = "Lütfen adınızı ve soyadınızı girin.";
+                } else if (!isPhoneEmpty && (phone.includes('_') || phone.length < 15)) {
+                    hasError = true;
+                    errorMessage = "Lütfen telefon numaranızı tam ve eksiksiz girin.";
+                } else if (password && password.length < 6) {
+                    hasError = true;
+                    errorMessage = "Güvenliğiniz için yeni şifreniz en az 6 karakter olmalıdır.";
+                }
+
+                // ❌ HATA VARSA: Formu durdur ve şık bildirim (Toast) göster
+                if (hasError) {
+                    e.preventDefault();
+                    if (typeof window.showToast === 'function') {
+                        window.showToast(errorMessage, "error");
+                    } else {
+                        alert(errorMessage);
+                    }
+                    return false;
+                }
+                
+                // ✅ HATA YOKSA: Form sorunsuzca Python'a gider
+            });
+        }
+    });
     </script>
 </body>
 </html>

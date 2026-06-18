@@ -76,9 +76,18 @@ function openOrderModal(isUpdate = false, btn = null) {
         document.getElementById('order-type').value = btn.getAttribute('data-type');
         document.getElementById('order-table-no').value = btn.getAttribute('data-table');
         document.getElementById('customer-name').value = btn.getAttribute('data-customer-name');
-        document.getElementById('customer-phone').value = btn.getAttribute('data-customer-phone');
         document.getElementById('customer-address').value = btn.getAttribute('data-customer-address');
         document.getElementById('dynamic-courier-list').value = btn.getAttribute('data-courier');
+        document.getElementById('customer-address').value = btn.getAttribute('data-customer-address');
+        document.getElementById('dynamic-courier-list').value = btn.getAttribute('data-courier');
+        document.getElementById('payment_method').value = btn.getAttribute('data-payment-method');
+
+        const rawPhone = btn.getAttribute('data-customer-phone') || '';
+        if (window.orderPhoneMask) {
+            window.orderPhoneMask.unmaskedValue = rawPhone; 
+        } else {
+            document.getElementById('customer-phone').value = rawPhone;
+        }
         
         toggleOrderFields();
     } else {
@@ -88,13 +97,22 @@ function openOrderModal(isUpdate = false, btn = null) {
         document.getElementById('update-only-fields').style.display = 'none';
         document.getElementById('food-section').style.display = 'block';
         
-        document.getElementById('order-form').reset();
+        document.querySelectorAll('#order-form input[type="text"], #order-form textarea').forEach(el => el.value = '');
+        
+        document.querySelectorAll('#order-form select').forEach(el => el.selectedIndex = 0);
+        
+        if (window.orderPhoneMask) {
+            window.orderPhoneMask.unmaskedValue = ''; 
+        } else {
+            const phoneInput = document.getElementById('customer-phone');
+            if(phoneInput) phoneInput.value = '';
+        }
+
         document.getElementById('update-order-id').value = '';
         
         document.getElementById('dine-in-fields').style.display = 'none';
         document.getElementById('delivery-fields').style.display = 'none';
         
-        // Modal açıldığında sepeti temizle ve 1 tane boş satır ekle
         document.getElementById('food-items-container').innerHTML = '';
         addFoodRow();
     }
@@ -197,59 +215,6 @@ async function fetchMenuOptions(selectEl, cartIndex) {
         container.innerHTML = '<div style="color:#ef4444; font-size:12px;">Seçenekler yüklenemedi.</div>';
     }
 }
-
-// 🚀 FORM GÖNDERİLİRKEN ZORUNLU ALANLARI KONTROL ET VE SEÇİMLERİ PAKETLE
-document.addEventListener("DOMContentLoaded", function() {
-    const orderForm = document.getElementById('order-form');
-    if (orderForm) {
-        orderForm.addEventListener('submit', function(e) {
-            // Sadece "Yeni Sipariş Ekle" modundaysak doğrulama yap (Düzenleme ekranında seçenek olmaz)
-            if (document.getElementById('food-section').style.display === 'none') {
-                return; 
-            }
-
-            let isValid = true;
-            
-            // Zorunlu alanların işaretlenip işaretlenmediğine bak
-            document.querySelectorAll('.admin-option-group').forEach(group => {
-                const isRequired = group.getAttribute('data-required');
-                if (isRequired === "1" || isRequired === "true") {
-                    const checkedCount = group.querySelectorAll('.choice-input:checked').length;
-                    if (checkedCount === 0) {
-                        isValid = false;
-                        group.style.borderLeft = '4px solid #ef4444';
-                        group.style.paddingLeft = '10px';
-                        group.style.backgroundColor = '#fef2f2';
-                    } else {
-                        group.style.borderLeft = 'none';
-                        group.style.paddingLeft = '0';
-                        group.style.backgroundColor = 'transparent';
-                    }
-                }
-            });
-
-            if (!isValid) {
-                e.preventDefault();
-                if(typeof window.showToast === 'function') window.showToast("Lütfen kırmızı renkle işaretlenen zorunlu seçenekleri belirleyin!", "error");
-                else alert("Lütfen zorunlu seçenekleri işaretleyin!");
-                return;
-            }
-
-            // Temizlik yap ve seçili olan ekstra opsiyonları arka planda Python'ın okuyabileceği formata çevir
-            document.querySelectorAll('.dynamic-choice-hidden').forEach(el => el.remove());
-            
-            document.querySelectorAll('.choice-input:checked').forEach(input => {
-                const cartIndex = input.getAttribute('data-cart-index');
-                const hidden = document.createElement('input');
-                hidden.type = 'hidden';
-                hidden.name = `choices_${cartIndex}[]`;
-                hidden.value = input.value;
-                hidden.className = 'dynamic-choice-hidden';
-                this.appendChild(hidden);
-            });
-        });
-    }
-});
 
 // ==========================================
 // 🛵 KURYE ATAMA MODALI (HTML'DEN TAŞINDI)
@@ -366,50 +331,128 @@ document.addEventListener("DOMContentLoaded", function() {
     setInterval(checkAndRefreshTable, 5000);
 });
 
-// 🚀 FORM GÖNDERİLİRKEN ZORUNLU ALANLARI KONTROL ET VE SEÇİMLERİ PAKETLE
-document.getElementById('order-form').addEventListener('submit', function(e) {
-    // Sadece "Yeni Sipariş Ekle" modundaysak doğrulama yap (Düzenleme ekranında seçenek olmaz)
-    if (document.getElementById('food-section').style.display === 'none') {
-        return; 
-    }
-
-    let isValid = true;
-    
-    // Zorunlu alanların işaretlenip işaretlenmediğine bak
-    document.querySelectorAll('.admin-option-group').forEach(group => {
-        const isRequired = group.getAttribute('data-required');
-        if (isRequired === "1" || isRequired === "true") {
-            const checkedCount = group.querySelectorAll('.choice-input:checked').length;
-            if (checkedCount === 0) {
-                isValid = false;
-                group.style.borderLeft = '4px solid #ef4444';
-                group.style.paddingLeft = '10px';
-                group.style.backgroundColor = '#fef2f2';
-            } else {
-                group.style.borderLeft = 'none';
-                group.style.paddingLeft = '0';
-                group.style.backgroundColor = 'transparent';
+document.addEventListener("DOMContentLoaded", function() {
+    var phoneInput = document.getElementById('customer-phone');
+    if (phoneInput) {
+        window.orderPhoneMask = IMask(phoneInput, {
+            mask: '\\0 (500) 000 00 00',
+            lazy: false,  
+            placeholderChar: '_' 
+        });
+            
+        phoneInput.addEventListener('click', function() {
+            var firstEmptyIndex = phoneInput.value.indexOf('_');
+            if (firstEmptyIndex !== -1) {
+                phoneInput.setSelectionRange(firstEmptyIndex, firstEmptyIndex);
             }
-        }
-    });
-
-    if (!isValid) {
-        e.preventDefault();
-        if(typeof window.showToast === 'function') window.showToast("Lütfen kırmızı renkle işaretlenen zorunlu seçenekleri belirleyin!", "error");
-        else alert("Lütfen zorunlu seçenekleri işaretleyin!");
-        return;
+        });
     }
+});
 
-    // Temizlik yap ve seçili olan ekstra opsiyonları arka planda Python'ın okuyabileceği formata (choices_IDX[]) çevir
-    document.querySelectorAll('.dynamic-choice-hidden').forEach(el => el.remove());
+// ==========================================
+// 🛡️ FORM GÖNDERİLMEDEN ÖNCE MASTER KONTROL (TÜM FORMU KAPSAR)
+// ==========================================
+document.addEventListener("DOMContentLoaded", function() {
+    const orderForm = document.getElementById('order-form');
     
-    document.querySelectorAll('.choice-input:checked').forEach(input => {
-        const cartIndex = input.getAttribute('data-cart-index');
-        const hidden = document.createElement('input');
-        hidden.type = 'hidden';
-        hidden.name = `choices_${cartIndex}[]`;
-        hidden.value = input.value;
-        hidden.className = 'dynamic-choice-hidden';
-        this.appendChild(hidden);
-    });
+    if (orderForm) {
+        orderForm.addEventListener('submit', function(e) {
+            let hasError = false;
+            let errorMessage = "";
+
+            const orderType = document.querySelector('[name="order_type"]').value;
+            if (!orderType && !document.getElementById('update-only-fields').style.display.includes('flex')) {
+                hasError = true;
+                errorMessage = "Lütfen sipariş türünü (Masaya veya Paket) seçin.";
+            }
+
+            const foodSection = document.getElementById('food-section');
+            if (!hasError && foodSection && foodSection.style.display !== 'none') {
+                const addedFoods = document.querySelectorAll('.food-row');
+                if (addedFoods.length === 0) {
+                    hasError = true;
+                    errorMessage = "Lütfen siparişe en az bir ürün ekleyin.";
+                } else {
+                    addedFoods.forEach(row => {
+                        const select = row.querySelector('select');
+                        const qty = row.querySelector('input[type="number"]');
+                        if (!select.value || select.value === "None" || select.value === "") {
+                            hasError = true;
+                            errorMessage = "Lütfen eklediğiniz satırlarda bir ürün seçin.";
+                        }
+                        if (!qty.value || parseInt(qty.value) < 1) {
+                            hasError = true;
+                            errorMessage = "Lütfen geçerli bir ürün adedi girin.";
+                        }
+                    });
+                }
+            }
+
+            if (!hasError && orderType === 'Delivery') {
+                const name = document.querySelector('[name="customer_name"]').value.trim();
+                const phone = document.querySelector('[name="customer_phone"]').value.trim();
+                const address = document.querySelector('[name="customer_address"]').value.trim();
+                const payment = document.querySelector('[name="payment_method"]');
+                const paymentVal = payment ? payment.value.trim() : 'Cash'; 
+
+                if (!name || !phone || !address || (payment && !paymentVal)) {
+                    hasError = true;
+                    errorMessage = "Lütfen müşteri bilgilerini ve ödeme yöntemini eksiksiz doldurun.";
+                } else if (phone.includes('_') || phone.length < 15) {
+                    hasError = true;
+                    errorMessage = "Lütfen telefon numarasını tam ve eksiksiz girin.";
+                }
+            } 
+            else if (!hasError && orderType === 'Dine-in') {
+                const tableNo = document.querySelector('[name="table_no"]').value.trim();
+                if (!tableNo) {
+                    hasError = true;
+                    errorMessage = "Masa siparişleri için lütfen Masa Numarasını girin.";
+                }
+            }
+
+            if (!hasError && foodSection && foodSection.style.display !== 'none') {
+                document.querySelectorAll('.admin-option-group').forEach(group => {
+                    const isRequired = group.getAttribute('data-required');
+                    if (isRequired === "1" || isRequired === "true") {
+                        const checkedCount = group.querySelectorAll('.choice-input:checked').length;
+                        if (checkedCount === 0) {
+                            hasError = true;
+                            errorMessage = "Lütfen kırmızı renkle işaretlenen zorunlu seçenekleri belirleyin!";
+                            group.style.borderLeft = '4px solid #ef4444';
+                            group.style.paddingLeft = '10px';
+                            group.style.backgroundColor = '#fef2f2';
+                        } else {
+                            group.style.borderLeft = 'none';
+                            group.style.paddingLeft = '0';
+                            group.style.backgroundColor = 'transparent';
+                        }
+                    }
+                });
+            }
+
+            if (hasError) {
+                e.preventDefault();
+                if (typeof window.showToast === 'function') {
+                    window.showToast(errorMessage, "error");
+                } else {
+                    alert(errorMessage);
+                }
+                return false;
+            }
+
+            if (foodSection && foodSection.style.display !== 'none') {
+                document.querySelectorAll('.dynamic-choice-hidden').forEach(el => el.remove());
+                document.querySelectorAll('.choice-input:checked').forEach(input => {
+                    const cartIndex = input.getAttribute('data-cart-index');
+                    const hidden = document.createElement('input');
+                    hidden.type = 'hidden';
+                    hidden.name = `choices_${cartIndex}[]`;
+                    hidden.value = input.value;
+                    hidden.className = 'dynamic-choice-hidden';
+                    orderForm.appendChild(hidden);
+                });
+            }
+        });
+    }
 });

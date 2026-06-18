@@ -39,7 +39,11 @@
         
         .table-input-group { display: flex; align-items: center; gap: 12px; background: #f9fafb; padding: 10px 15px; border-radius: 12px; border: 1px solid #e5e7eb;}
         .table-input-group label { font-weight: 800; color: #111827; font-size: 15px; }
-        .table-input-group input { width: 60px; padding: 8px; border: 2px solid #d1d5db; border-radius: 8px; font-size: 16px; font-weight: 800; text-align: center; outline: none; transition: 0.2s; font-family: inherit; color: #4f46e5;}
+        .table-input-group input { 
+            width: 70px; padding: 8px; border: none; background: transparent; 
+            font-size: 18px; font-weight: 800; text-align: left; outline: none; 
+            font-family: inherit; color: #4f46e5;
+        }
 
         .btn-group { display: flex; gap: 10px; flex-wrap: wrap; }
         .btn { padding: 14px 24px; border: none; border-radius: 12px; font-size: 15px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 8px; color: white; font-family: inherit; 
@@ -81,6 +85,35 @@
         @keyframes scaleUpModal { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-5px);} 75% {transform: translateX(5px);} }
         .error-shake { animation: shake 0.3s ease-in-out; }
+
+        .menu-add-icon { position: absolute; right: 15px; bottom: 15px; width: 34px; height: 34px; background: #eef2ff; color: #4f46e5; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; transition: 0.2s; }
+        .menu-card:hover .menu-add-icon { background: #4f46e5; color: white; transform: rotate(90deg); }
+
+        .pos-desktop-layout { 
+            display: flex; 
+            flex-direction: column-reverse;  
+        }
+        
+        .btn-group { display: flex; gap: 10px; flex-wrap: wrap; flex: 1; }
+
+        @media (max-width: 768px) {
+            .action-bar { flex-direction: column; align-items: stretch; padding: 15px; }
+            .table-input-group { justify-content: flex-start; gap: 10px; margin-bottom: 15px; }
+            .btn-group { flex-direction: column; width: 100%; }
+            .btn-group .btn { width: 100%; justify-content: center; }
+            
+            .navbar-brand span { display: none; } 
+        }
+
+        @media (min-width: 1024px) {
+            .pos-desktop-layout { flex-direction: row; align-items: flex-start; gap: 20px }
+            .pos-main-area { flex: 1; }
+            .pos-sidebar { width: 380px; position: sticky; top: 85px; }
+            .action-bar { position: static; margin-top: 55px; margin-bottom: 20px; flex-direction: column; align-items: stretch; padding: 20px; } 
+            .table-input-group { justify-content: left; }
+            .btn-group { flex-direction: column; width: 100%; }
+            .btn-group .btn { width: 100%; justify-content: center; }
+        }
     </style>
 </head>
 <body>
@@ -106,46 +139,51 @@
             <div class="legend-item"><div class="legend-dot" style="background: #10b981;"></div> Boş Masa</div>
         </div>
 
-        <form action="{{ url_for('waiter_create_order') }}" method="POST" id="order-form">
+        <form action="{{ url_for('waiter_create_order') }}" method="POST" id="order-form" class="pos-desktop-layout">
             
-            <div class="action-bar">
-                <div class="table-input-group">
-                    <label for="table_no"><i class="ph-bold ph-chair"></i> Masa No:</label>
-                    <input type="number" id="table_no" name="table_no" required min="1" max="{{ total_tables }}" placeholder="Örn: 5">
-                </div>
-
-                <div class="btn-group">
-                    <button type="submit" class="btn btn-submit"><i class="ph-bold ph-check-circle"></i> Siparişi Onayla</button>
-                    <button type="button" class="btn btn-close-bill" onclick="openConfirmModal()"><i class="ph-bold ph-credit-card"></i> Hesabı Kapat</button>
+            <div class="pos-main-area">
+                <h2 class="section-title"><i class="ph-bold ph-list-dashes" style="color: #4f46e5; font-size: 24px;"></i> Menü Listesi</h2>
+                <div class="menu-grid">
+                    {% for menu in menus %}
+                    {% set is_sold_out = menu.stock_quantity <= 0 %}
+                    {% set safe_name = (menu.custom_name or menu.item_name)|replace("'", "\\'") %}
+                    
+                    <div class="menu-card {{ 'sold-out' if is_sold_out else '' }}" onclick="openPosModal('{{ menu.menu_id }}', '{{ safe_name }}', '{{ menu.price }}')">
+                        {% if is_sold_out %}<div class="sold-out-badge">Tükendi</div>{% endif %}
+                        <h3 class="menu-name">{{ menu.custom_name or menu.item_name }}</h3>
+                        <p class="menu-price">₺{{ menu.price }}</p>
+                        <div class="menu-add-icon"><i class="ph-bold ph-plus"></i></div>
+                    </div>
+                    {% else %}
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 40px; background: white; border-radius: 16px; border: 2px dashed #d1d5db; color: #6b7280; font-weight: 600;">
+                        Menü bulunamadı.
+                    </div>
+                    {% endfor %}
                 </div>
             </div>
 
-            <div id="cart-panel" style="display: none; background: white; padding: 25px; border-radius: 16px; margin-bottom: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.06); border: 1px solid #e5e7eb;">
-                <h3 style="margin: 0 0 15px 0; color: #111827; display: flex; justify-content: space-between; align-items: center;">
-                    <span><i class="ph-bold ph-receipt" style="color: #4f46e5;"></i> Adisyon Özeti</span>
-                    <span id="cart-total-display" style="color: #059669; font-size: 22px;">₺0.00</span>
-                </h3>
-                <div id="order-cart-items" style="display: flex; flex-direction: column; gap: 10px;"></div>
+            <div class="pos-sidebar">
+                <div class="action-bar">
+                    <div class="table-input-group">
+                        <label for="table_no"><i class="ph-bold ph-chair"></i> Masa No:</label>
+                        <input type="number" id="table_no" name="table_no" required min="1" max="{{ total_tables }}">
+                    </div>
+
+                    <div class="btn-group">
+                        <button type="submit" class="btn btn-submit"><i class="ph-bold ph-check-circle"></i> Siparişi Onayla</button>
+                        <button type="button" class="btn btn-close-bill" onclick="openConfirmModal()"><i class="ph-bold ph-credit-card"></i> Hesabı Kapat</button>
+                    </div>
+                </div>
+
+                <div id="cart-panel" style="display: none; background: white; padding: 25px; border-radius: 16px; margin-bottom: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.06); border: 1px solid #e5e7eb;">
+                    <h3 style="margin: 0 0 15px 0; color: #111827; display: flex; justify-content: space-between; align-items: center;">
+                        <span><i class="ph-bold ph-receipt" style="color: #4f46e5;"></i> Adisyon Özeti</span>
+                        <span id="cart-total-display" style="color: #059669; font-size: 22px;">₺0.00</span>
+                    </h3>
+                    <div id="order-cart-items" style="display: flex; flex-direction: column; gap: 10px;"></div>
+                </div>
             </div>
 
-            <h2 class="section-title"><i class="ph-bold ph-list-dashes" style="color: #4f46e5; font-size: 24px;"></i> Menü Listesi</h2>
-            <div class="menu-grid">
-                {% for menu in menus %}
-                {% set is_sold_out = menu.stock_quantity <= 0 %}
-                {% set safe_name = (menu.custom_name or menu.item_name)|replace("'", "\\'") %}
-                
-                <div class="menu-card {{ 'sold-out' if is_sold_out else '' }}" onclick="openPosModal('{{ menu.menu_id }}', '{{ safe_name }}', '{{ menu.price }}')">
-                    {% if is_sold_out %}<div class="sold-out-badge">Tükendi</div>{% endif %}
-                    <h3 class="menu-name">{{ menu.custom_name or menu.item_name }}</h3>
-                    <p class="menu-price">₺{{ menu.price }}</p>
-                    <div style="margin-top: 10px; color: #4f46e5; font-size: 13px; font-weight: 700;"><i class="ph-bold ph-plus-circle"></i> Tıkla ve Seçenekleri Gör</div>
-                </div>
-                {% else %}
-                <div style="grid-column: 1 / -1; text-align: center; padding: 40px; background: white; border-radius: 16px; border: 2px dashed #d1d5db; color: #6b7280; font-weight: 600;">
-                    Menü bulunamadı.
-                </div>
-                {% endfor %}
-            </div>
         </form>
     </div>
 
@@ -179,9 +217,9 @@
                 <div style="margin-bottom: 25px; background: #f9fafb; padding: 15px; border-radius: 16px; border: 1px solid #e5e7eb;">
                     <label style="display: block; font-size: 13px; font-weight: 800; color: #374151; margin-bottom: 15px; text-transform: uppercase;">Adet</label>
                     <div style="display: flex; align-items: center; justify-content: space-between;">
-                        <button type="button" onclick="changeModalQty(-1)" style="width: 65px; height: 50px; border-radius: 12px; background: white; border: 2px solid #d1d5db; font-size: 24px; font-weight: 800; color: #374151; cursor: pointer;">-</button>
+                        <button type="button" onclick="changeModalQty(-1)" style="width: 65px; height: 50px; border-radius: 12px; background: #f3f4f6; border: none; font-size: 24px; font-weight: 800; color: #4b5563; cursor: pointer; transition: background-color 0.2s ease;" onmouseover="this.style.backgroundColor='#e5e7eb'" onmouseout="this.style.backgroundColor='#f3f4f6'">-</button>
                         <span id="modal-qty" style="font-size: 28px; font-weight: 800; color: #111827; width: 60px; text-align: center;">1</span>
-                        <button type="button" onclick="changeModalQty(1)" style="width: 65px; height: 50px; border-radius: 12px; background: #eef2ff; border: 2px solid #a5b4fc; font-size: 24px; font-weight: 800; color: #4f46e5; cursor: pointer;">+</button>
+                        <button type="button" onclick="changeModalQty(1)" style="width: 65px; height: 50px; border-radius: 12px; background: #4f46e5; border: none; font-size: 24px; font-weight: 800; color: white; cursor: pointer; transition: background-color 0.2s ease, transform 0.2s ease;" onmouseover="this.style.backgroundColor='#4338ca'" onmouseout="this.style.backgroundColor='#4f46e5'" onmousedown="this.style.transform='scale(0.95)'" onmouseup="this.style.transform='scale(1)'">+</button>
                     </div>
                 </div>
 
@@ -364,8 +402,8 @@
                 <div style="font-weight: 800; color: #059669; font-size: 16px; margin: 0 15px;">
                     ₺${lineTotal.toFixed(2)}
                 </div>
-                <button type="button" onclick="removeCartItem(this, ${lineTotal})" style="background: white; color: #ef4444; border: 2px solid #fecaca; width: 40px; height: 40px; border-radius: 10px; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.2s;" onmouseover="this.style.background='#fef2f2'">
-                    <i class="ph-bold ph-trash" style="font-size: 18px;"></i>
+                <button type="button" onclick="removeCartItem(this, ${lineTotal})" style="background: transparent; color: #ef4444; border: none; cursor: pointer; display: flex; justify-content: center; align-items: center; padding: 5px; opacity: 0.6; transition: opacity 0.2s ease, transform 0.2s ease; transform: translateZ(0);" onmouseover="this.style.opacity='1'; this.style.transform='scale(1.1) translateZ(0)'" onmouseout="this.style.opacity='0.6'; this.style.transform='scale(1) translateZ(0)'">
+                    <i class="ph-bold ph-trash" style="font-size: 22px;"></i>
                 </button>
                 
                 <input type="hidden" name="cart_index" value="${cartIndex}">

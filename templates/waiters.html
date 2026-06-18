@@ -185,7 +185,7 @@
             <span style="font-size: 24px; cursor: pointer; color: #9ca3af;" onclick="document.getElementById('waiterFormModal').style.display='none'">&times;</span>
         </div>
 
-        <form id="waiter-form" action="{{ url_for('waiter_action') }}" method="POST">
+        <form id="waiter-form" action="{{ url_for('waiter_action') }}" method="POST" novalidate>
             <input type="hidden" name="action" id="modal-action" value="add">
             <input type="hidden" name="update_waiter_id" id="update-waiter-id">
             <input type="hidden" name="waiter_id" id="waiter-id">
@@ -193,7 +193,7 @@
             {% if session['role'] == 'admin' %}
             <div style="margin-bottom: 15px;">
                 <label style="font-size: 13px; font-weight: 600; color: #dc2626;">Restoran ID</label>
-                <input type="number" id="waiter-restaurant-id" name="restaurant_id" class="form-input" style="border-color: #fca5a5;" required>
+                <input type="number" id="waiter-restaurant-id" name="restaurant_id" class="form-input" style="border-color: #fca5a5;">
             </div>
             {% else %}
                 <input type="hidden" id="waiter-restaurant-id" name="restaurant_id" value="{{ session.get('restaurant_id', '') }}">
@@ -201,12 +201,12 @@
 
             <div style="margin-bottom: 15px;">
                 <label style="font-size: 13px; font-weight: 600; color: #374151;">Ad Soyad</label>
-                <input type="text" id="waiter-name" name="name" class="form-input" required>
+                <input type="text" id="waiter-name" name="name" class="form-input">
             </div>
 
             <div style="margin-bottom: 15px;">
                 <label style="font-size: 13px; font-weight: 600; color: #374151;">Email Adresi</label>
-                <input type="email" id="waiter-email" name="email" class="form-input" required>
+                <input type="email" id="waiter-email" name="email" class="form-input">
             </div>
 
             <div style="margin-bottom: 20px;">
