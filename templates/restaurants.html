@@ -138,6 +138,7 @@
                 <th>Mutfak</th>
                 <th>Masa Kapasitesi</th>
                 <th>Puan</th>
+                <th>Değerlendirme Sayısı</th>
                 <th style="text-align: center; width: 140px; min-width: 140px;">İşlemler</th>
             </tr>
         </thead>
@@ -165,7 +166,11 @@
                     <div class="rating-badge">
                         ⭐ {{ restaurant['rating'] }} 
                     </div>
-                    <div style="font-size: 11px; color: #9ca3af; margin-top: 3px;">{{ restaurant['rating_count'] }}</div>
+                </td>
+                <td>
+                    <div style="font-size: 13px; font-weight: 700; color: #4b5563;">
+                        {{ restaurant['rating_count'] }} <span style="font-size: 11px; font-weight: 500; color: #9ca3af;">Değerlendirme</span>
+                    </div>
                 </td>
                 <td style="text-align: center; vertical-align: middle;">
                     <div style="display: flex; justify-content: center; gap: 8px; align-items: center;">

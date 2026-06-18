@@ -83,13 +83,18 @@
         .card-title { font-size: 19px; font-weight: 800; margin: 0 0 6px 0; color: #111827; letter-spacing: -0.3px; }
         .card-info { color: #6b7280; font-size: 13.5px; margin-bottom: 18px; font-weight: 500; display: flex; align-items: center; gap: 6px; }
         
-        .card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 15px; border-top: 2px dashed #f3f4f6; } 
+        .card-footer { 
+            display: flex; flex-wrap: wrap; gap: 8px; align-items: center; 
+            margin-top: auto; padding-top: 15px; border-top: 2px dashed #f3f4f6; 
+        }
         
-        .cuisine-tag { background: #f3f4f6; color: #4b5563; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 4px; }
-        
-        /* BİLGİ HAPLARI (INFO PILLS) */
-        .delivery-info { display: flex; gap: 8px; }
-        .info-pill { background: #f9fafb; border: 1px solid #e5e7eb; color: #4b5563; padding: 6px 10px; border-radius: 12px; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 4px; }
+        .info-pill { 
+            background: #f3f4f6; border: 1px solid #e5e7eb; color: #4b5563; 
+            padding: 6px 10px; border-radius: 10px; font-size: 12px; font-weight: 700; 
+            display: inline-flex; align-items: center; gap: 4px; 
+            white-space: nowrap; 
+        }
+        .info-pill.orange { background: #fff7ed; border-color: #ffedd5; color: #ea580c; }
         .info-pill.green { background: #ecfdf5; border-color: #a7f3d0; color: #059669; }
 
         .closed-restaurant { opacity: 0.7; filter: grayscale(70%); }
@@ -185,38 +190,36 @@
                         </div>
                     {% endif %}
                     
-                    <!-- UÇAN ROZET -->
                     <div class="rating-floating">
-                        {{ restaurant['rating'] }} <i class="ph-fill ph-star" style="color: #f59e0b; font-size: 16px;"></i>
+                        <i class="ph-fill ph-star" style="color: #f59e0b; font-size: 16px;"></i> {{ restaurant['rating'] }} 
+                        <span style="font-size: 12px; font-weight: 600; color: #6b7280; margin-left: -2px;">({{ restaurant['rating_count'] or 'Yeni' }})</span>
                     </div>
                 </div>
                 
                 <div class="card-content">
                     <div class="card-title">{{ restaurant['restaurant_name'] }}</div>
                     
-                    <div class="card-info">
-                        <i class="ph-bold ph-map-pin" style="color: #9ca3af;"></i> {{ restaurant['city'] }} • {{ restaurant['restaurant_address'] }}
-                    </div>
-                    
                     <div class="card-footer">
-                        <span class="cuisine-tag"><i class="ph-bold ph-tag" style="font-size: 14px;"></i> {{ restaurant['cuisine'] }}</span>
+                        <span class="info-pill">
+                            <i class="ph-bold ph-tag"></i> {{ restaurant['cuisine'] }}
+                        </span>
                         
-                        <div class="delivery-info">
-                            <span class="info-pill" style="color: #ea580c; background: #fff7ed; border-color: #ffedd5;">
-                                <i class="ph-bold ph-wallet"></i> Min. ₺{{ (restaurant.get('min_order_amount') or 0) | int }}
-                            </span>
+                        <span class="info-pill orange">
+                            <i class="ph-bold ph-wallet"></i> Min. ₺{{ (restaurant.get('min_order_amount') or 0) | int }}
+                        </span>
 
-                            {% if restaurant.get('distance') and restaurant.get('distance') != 999 %}
-                                {% set travel_time = (restaurant['distance'] * 4) | round | int %}
-                                {% set min_time = 15 + travel_time %}
-                                {% set max_time = min_time + 10 %}
-                                <span class="info-pill"><i class="ph-bold ph-path"></i> {{ restaurant['distance'] }} km</span>
-                                <span class="info-pill green"><i class="ph-bold ph-moped"></i> {{ min_time }}-{{ max_time }} dk</span>
-                            {% else %}
-                                <span class="info-pill green"><i class="ph-bold ph-moped"></i> 30-45 dk</span>
-                            {% endif %}
-                        </div>
+                        {% if restaurant.get('distance') and restaurant.get('distance') != 999 %}
+                            {% set travel_time = (restaurant['distance'] * 4) | round | int %}
+                            {% set min_time = 15 + travel_time %}
+                            {% set max_time = min_time + 10 %}
+                            
+                            <span class="info-pill"><i class="ph-bold ph-path"></i> {{ restaurant['distance'] }} km</span>
+                            <span class="info-pill green"><i class="ph-bold ph-moped"></i> {{ min_time }}-{{ max_time }} dk</span>
+                        {% else %}
+                            <span class="info-pill green"><i class="ph-bold ph-moped"></i> 30-45 dk</span>
+                        {% endif %}
                     </div>
+                </div>
                 </div>
             </a>
             {% else %}

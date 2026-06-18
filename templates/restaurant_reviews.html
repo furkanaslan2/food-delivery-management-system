@@ -9,6 +9,12 @@
 {% block content %}
 <div style="max-width: 900px; margin: 0 auto;">
     {% if reviews %}
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
+            <span style="font-size: 14px; font-weight: 700; color: white; background: linear-gradient(135deg, #4f46e5, #3b82f6); padding: 8px 20px; border-radius: 30px; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3); display: flex; align-items: center; gap: 8px; letter-spacing: 0.3px;">
+                <span style="font-size: 18px; line-height: 1;">💬</span> 
+                Toplam {{ reviews|length }} Değerlendirme
+            </span>
+        </div>
         {% for review in reviews %}
         <div style="background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid #e5e7eb; margin-bottom: 20px; padding: 25px;">
             
