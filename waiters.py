@@ -166,8 +166,11 @@ def waiter_action():
             return redirect(url_for('waiters'))
 
     except Error as e:
-        flash(f"Bir hata oluştu: {e}", "danger")
         connection.rollback()
+        if "Duplicate entry" in str(e):
+            flash("Bu e-posta adresi zaten başka bir personel tarafından kullanılıyor!", "danger")
+        else:
+            flash(f"Bir hata oluştu: {str(e)}", "danger")
     finally:
         if connection.is_connected():
             cursor.close()

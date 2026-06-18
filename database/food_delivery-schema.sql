@@ -4,7 +4,7 @@ USE food_delivery;
 
 CREATE TABLE admins (
     admin_id INT AUTO_INCREMENT,
-    email VARCHAR(150) NOT NULL CHECK (LENGTH(email) >= 5 AND email LIKE '%@%'),
+    email VARCHAR(150) UNIQUE NOT NULL CHECK (LENGTH(email) >= 5 AND email LIKE '%@%'),
     password VARCHAR(255) NOT NULL,
     PRIMARY KEY (admin_id)
 );
@@ -12,7 +12,7 @@ CREATE TABLE admins (
 CREATE TABLE users (
     user_id INT AUTO_INCREMENT,
     name VARCHAR(100) NOT NULL,
-    email VARCHAR(150) NOT NULL CHECK (LENGTH(email) >= 5 AND email LIKE '%@%'),
+    email VARCHAR(150) UNIQUE NOT NULL CHECK (LENGTH(email) >= 5 AND email LIKE '%@%'),
     password VARCHAR(255) NOT NULL,
     PRIMARY KEY (user_id)
 );
@@ -115,7 +115,7 @@ CREATE TABLE orders (
 CREATE TABLE waiters (
     waiter_id INT AUTO_INCREMENT,
     name VARCHAR(100) NOT NULL,
-    email VARCHAR(150) NOT NULL CHECK (LENGTH(email) >= 5 AND email LIKE '%@%'),
+    email VARCHAR(150) UNIQUE NOT NULL CHECK (LENGTH(email) >= 5 AND email LIKE '%@%'),
     password VARCHAR(255) NOT NULL,
     restaurant_id INT NOT NULL,
     PRIMARY KEY (waiter_id),
@@ -243,7 +243,7 @@ CREATE TABLE restaurant_applications (
     application_id INT AUTO_INCREMENT PRIMARY KEY,
     restaurant_name VARCHAR(255) NOT NULL,
     contact_name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
     phone VARCHAR(20) NOT NULL,
     status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
     applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

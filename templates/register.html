@@ -213,6 +213,53 @@
             });
         }
     });
+
+    // ==========================================
+    // 🚀 E-POSTA CANLI KONTROL SİSTEMİ (AJAX)
+    // ==========================================
+    document.addEventListener("DOMContentLoaded", function() {
+        const emailInput = document.getElementById('email');
+        if (!emailInput) return;
+
+        const emailWarning = document.createElement('span');
+        emailWarning.style.fontSize = '12px';
+        emailWarning.style.fontWeight = '600';
+        emailWarning.style.marginTop = '5px';
+        emailWarning.style.display = 'block';
+        emailInput.parentNode.insertBefore(emailWarning, emailInput.nextSibling);
+
+        emailInput.addEventListener('blur', function() {
+            const email = this.value.trim();
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            
+            if (email && emailRegex.test(email)) {
+                fetch('/api/check_email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email, type: 'partner' }) 
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.available === false) {
+                        emailInput.style.borderColor = '#ef4444';
+                        emailInput.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.2)';
+                        emailWarning.innerText = 'Bu e-posta adresi zaten kullanımda! ❌';
+                        emailWarning.style.color = '#ef4444';
+                    } else {
+                        emailInput.style.borderColor = '#10b981';
+                        emailInput.style.boxShadow = '0 0 0 3px rgba(16, 185, 129, 0.2)';
+                        emailWarning.innerText = 'Bu e-posta kullanılabilir. ✅';
+                        emailWarning.style.color = '#10b981';
+                    }
+                }).catch(err => console.log('Mail kontrol hatası:', err));
+            } else {
+                emailInput.style.borderColor = '';
+                emailInput.style.boxShadow = '';
+                emailWarning.innerText = '';
+            }
+        });
+    });
     </script>
+
 </body>
 </html>

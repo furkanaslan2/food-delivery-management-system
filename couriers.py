@@ -175,7 +175,10 @@ def courier_action():
 
     except Error as e:
         connection.rollback()
-        flash(f"Bir hata oluştu: {str(e)}", "danger")
+        if "Duplicate entry" in str(e):
+            flash("Bu e-posta adresi zaten başka bir personel tarafından kullanılıyor!", "danger")
+        else:
+            flash(f"Bir hata oluştu: {str(e)}", "danger")
     finally:
         if connection.is_connected():
             cursor.close()
@@ -184,7 +187,6 @@ def courier_action():
     return redirect(url_for('couriers'))
 
 def api_check_courier_orders():
-    # Güvenlik: Sadece kurye ID'si olanlar burayı sorgulayabilir
     if 'courier_id' not in session:
         return jsonify({'has_changes': False})
 

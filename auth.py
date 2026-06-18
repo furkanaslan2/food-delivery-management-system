@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for, session, flash, make_response
+from flask import render_template, request, redirect, url_for, session, flash, make_response, jsonify
 from werkzeug.security import check_password_hash, generate_password_hash 
 from db import get_db_connection
 from mysql.connector import Error
@@ -157,7 +157,6 @@ def register():
         if not re.match(r'^05\d{9}$', clean_phone):
             flash("Lütfen geçerli bir cep telefonu numarası girin (Örn: 05xx xxx xx xx)", "danger")
             return redirect(url_for('register'))
-        # ----------------------------------------------------
 
         connection = get_db_connection()
         if connection is None:
@@ -165,7 +164,18 @@ def register():
             return redirect(url_for('register'))
 
         try:
-            cursor = connection.cursor()
+            cursor = connection.cursor(dictionary=True) 
+
+            # 🛡️ 1. KONTROL: Bu e-posta ile bekleyen bir başvuru var mı?
+            cursor.execute("SELECT * FROM restaurant_applications WHERE email = %s", (email,))
+            if cursor.fetchone():
+                flash("Bu e-posta adresiyle yapılmış bir başvuru zaten bulunuyor! Lütfen onaylanmasını bekleyin.", "warning")
+                return redirect(url_for('register'))
+                
+            cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
+            if cursor.fetchone():
+                flash("Bu e-posta adresi zaten sistemde kayıtlı. Lütfen giriş yapın.", "danger")
+                return redirect(url_for('login'))
 
             cursor.execute(
                 '''INSERT INTO restaurant_applications 
@@ -181,7 +191,10 @@ def register():
             
         except Error as e:
             connection.rollback() 
-            flash(f"Başvuru sırasında bir hata oluştu: {e}", "danger")
+            if "Duplicate entry" in str(e):
+                flash("Bu e-posta adresi sistemde zaten kayıtlı!", "danger")
+            else:
+                flash(f"Başvuru sırasında bir hata oluştu: {e}", "danger")
             return redirect(url_for('register'))
         finally:
             if connection.is_connected():
@@ -205,18 +218,14 @@ def customer_register():
         try:
             cursor = connection.cursor(dictionary=True)
             
-            # 🕵️‍♂️ 1. KONTROL: Bu e-posta zaten kayıtlı mı?
             cursor.execute('SELECT * FROM customers WHERE email = %s', (email,))
             if cursor.fetchone():
                 flash("Bu e-posta adresi zaten kullanımda! Lütfen giriş yapın.", "danger")
                 return redirect(url_for('customer_login'))
             
-            # 🚀 2. KAYITLI DEĞİLSE: OTP (Kod) Üret
             otp_code = str(random.randint(100000, 999999))
             
-            # 📨 3. MAİL GÖNDER
             if send_otp_email(email, otp_code):
-                # Başarılıysa: Veritabanına YAZMA, geçici olarak Session'a at!
                 hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
                 session['pending_name'] = name
                 session['pending_email'] = email
@@ -240,7 +249,6 @@ def customer_register():
 
 @nocache
 def verify_email_page():
-    # Eğer bekleyen bir doğrulama işlemi yoksa kayıt sayfasına geri at
     if 'pending_email' not in session:
         return redirect(url_for('customer_register'))
     return render_template('verify_email.html')
@@ -248,12 +256,10 @@ def verify_email_page():
 @nocache
 def verify_email_code():
     if request.method == 'POST':
-        # AJAX (JSON) isteği mi kontrol et
         data = request.get_json(silent=True) or {}
         entered_code = data.get('verification_code') or request.form.get('verification_code')
         real_code = session.get('otp_code')
         
-        # 🎯 KOD DOĞRUYSA
         if entered_code and real_code and entered_code == real_code:
             connection = get_db_connection()
             if connection:
@@ -272,7 +278,6 @@ def verify_email_code():
                     
                     flash("Hesabınız başarıyla doğrulandı! 🎉 Lütfen giriş yapın.", "success")
                     
-                    # AJAX'a Başarılı Yanıtı Dön
                     return {'success': True, 'redirect': url_for('customer_login')}
                     
                 except Error as e:
@@ -283,7 +288,6 @@ def verify_email_code():
                         cursor.close()
                         connection.close()
         else:
-            # ❌ KOD YANLIŞSA (Sayfa yenilemeden hata döndür)
             return {'success': False, 'message': 'Hatalı veya süresi geçmiş kod girdiniz!'}
             
     return redirect(url_for('verify_email_page'))
@@ -295,7 +299,6 @@ def resend_verification_code():
         otp_code = str(random.randint(100000, 999999))
         if send_otp_email(email, otp_code):
             session['otp_code'] = otp_code
-            # Flash yerine direkt JSON mesajı dönüyoruz
             return {'success': True, 'message': 'Yeni doğrulama kodu gönderildi! 📨'}
         else:
             return {'success': False, 'message': 'Kod gönderilemedi, lütfen tekrar deneyin.'}
@@ -636,3 +639,49 @@ def resend_reset_code_admin():
             return {'success': False, 'message': 'Kod gönderilemedi, lütfen tekrar deneyin.'}
             
     return {'success': False, 'message': 'Bekleyen bir işlem bulunamadı.'}
+
+def check_email_availability():
+    data = request.get_json(silent=True) or {}
+    email = data.get('email', '').strip()
+    role_type = data.get('type', 'customer') 
+    exclude_email = data.get('exclude_email', '').strip() 
+    
+    if not email:
+        return jsonify({'available': False})
+        
+    if email == exclude_email:
+        return jsonify({'available': True})
+        
+    connection = get_db_connection()
+    if connection:
+        try:
+            cursor = connection.cursor()
+            
+            if role_type == 'customer':
+                cursor.execute("SELECT 1 FROM customers WHERE email = %s", (email,))
+                if cursor.fetchone(): return jsonify({'available': False})
+                
+            elif role_type == 'partner':
+                cursor.execute("SELECT 1 FROM users WHERE email = %s", (email,))
+                if cursor.fetchone(): return jsonify({'available': False})
+                cursor.execute("SELECT 1 FROM restaurant_applications WHERE email = %s", (email,))
+                if cursor.fetchone(): return jsonify({'available': False})
+                
+            elif role_type == 'courier':
+                cursor.execute("SELECT 1 FROM couriers WHERE email = %s", (email,))
+                if cursor.fetchone(): return jsonify({'available': False})
+                
+            elif role_type == 'waiter':
+                cursor.execute("SELECT 1 FROM waiters WHERE email = %s", (email,))
+                if cursor.fetchone(): return jsonify({'available': False})
+
+            return jsonify({'available': True})
+            
+        except Error as e:
+            return jsonify({'available': False, 'error': str(e)})
+        finally:
+            if connection.is_connected():
+                cursor.close()
+                connection.close()
+                
+    return jsonify({'available': False})

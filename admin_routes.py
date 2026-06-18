@@ -2,6 +2,10 @@ from flask import render_template, request, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash
 from db import get_db_connection
 from mysql.connector import Error
+import os
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 def partner_applications():
     # Sadece Admin girebilir
@@ -38,7 +42,6 @@ def approve_application(app_id):
     try:
         cursor = connection.cursor(dictionary=True)
         
-        # 1. Başvuruyu Bul
         cursor.execute("SELECT * FROM restaurant_applications WHERE application_id = %s AND status = 'pending'", (app_id,))
         app_data = cursor.fetchone()
         
@@ -46,33 +49,33 @@ def approve_application(app_id):
             flash("Başvuru bulunamadı veya zaten işlenmiş.", "danger")
             return redirect(url_for('partner_applications'))
 
-        # 2. Rastgele Kurumsal Şifre Üret (Örn: RestoranAdı2026)
         raw_password = f"{app_data['restaurant_name'].replace(' ', '')[:6]}2026!"
         hashed_password = generate_password_hash(raw_password, method='pbkdf2:sha256')
 
-        # 3. Adamı Restoran Sahibi (users) olarak kaydet
         cursor.execute(
             'INSERT INTO users (name, email, password) VALUES (%s, %s, %s)', 
             (app_data['contact_name'], app_data['email'], hashed_password)
         )
         new_user_id = cursor.lastrowid 
 
-        # 4. Adamın Restoran Profilini (restaurants) kur
         cursor.execute('''
             INSERT INTO restaurants 
             (user_id, restaurant_name, city, rating, rating_count, cuisine, restaurant_address, table_count) 
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         ''', (
-            new_user_id, app_data['restaurant_name'], 'Belirtilmedi', 0.0, 'Too Few Ratings', 'Belirtilmedi', 'Belirtilmedi', 10
+            new_user_id, app_data['restaurant_name'], 'Belirtilmedi', 0.0, 'Yeni', 'Belirtilmedi', 'Belirtilmedi', 10
         ))
 
-        # 5. Başvuruyu "Onaylandı" olarak işaretle (Bir daha ekranda görünmesin)
         cursor.execute("UPDATE restaurant_applications SET status = 'approved' WHERE application_id = %s", (app_id,))
 
         connection.commit()
         
-        # Admin'e mesaj ver (Gerçekte bu şifre mail olarak gider, şimdilik ekrana basıyoruz)
-        flash(f"✅ {app_data['restaurant_name']} başarıyla eklendi! Giriş E-postası: {app_data['email']}, Şifresi: {raw_password}", "success")
+        mail_sent = send_approval_email(app_data['email'], app_data['restaurant_name'], raw_password)
+        
+        if mail_sent:
+            flash(f"✅ {app_data['restaurant_name']} onaylandı ve giriş şifresi e-posta adresine başarıyla gönderildi!", "success")
+        else:
+            flash(f"✅ {app_data['restaurant_name']} onaylandı ANCAK e-posta gönderilemedi. Lütfen şifreyi manuel iletin: {raw_password}", "warning")
         
     except Error as e:
         connection.rollback()
@@ -114,3 +117,46 @@ def reject_application(app_id):
             connection.close()
 
     return redirect(url_for('partner_applications'))
+
+def send_approval_email(to_email, restaurant_name, password):
+    sender_email = os.getenv('MAIL_USERNAME')
+    sender_password = os.getenv('MAIL_PASSWORD')
+
+    if not sender_email or not sender_password:
+        print("HATA: .env dosyasında MAIL_USERNAME veya MAIL_PASSWORD eksik!")
+        return False
+
+    subject = "Tebrikler! YeSende Restoran Başvurunuz Onaylandı 🎉"
+    body = f"""
+    Merhaba,
+    
+    Tebrikler! {restaurant_name} için yapmış olduğunuz YeSende iş ortağı başvurunuz onaylanmıştır.
+    
+    Sisteme giriş yaparak menünüzü oluşturabilir, çalışma saatlerinizi ayarlayabilir ve hemen sipariş almaya başlayabilirsiniz.
+    
+    Giriş Bağlantısı: http://127.0.0.1:5000/login
+    Giriş E-postanız: {to_email}
+    Geçici Şifreniz: {password}
+    
+    Güvenliğiniz için lütfen giriş yaptıktan sonra 'Ayarlar' bölümünden şifrenizi değiştirmeyi unutmayın.
+    
+    Aramıza hoş geldiniz!
+    YeSende Ekibi
+    """
+    
+    msg = MIMEMultipart()
+    msg['From'] = sender_email
+    msg['To'] = to_email
+    msg['Subject'] = subject
+    msg.attach(MIMEText(body, 'plain', 'utf-8'))
+
+    try:
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()
+        server.login(sender_email, sender_password)
+        server.send_message(msg)
+        server.quit()
+        return True
+    except Exception as e:
+        print(f"Onay maili gönderme hatası: {e}")
+        return False

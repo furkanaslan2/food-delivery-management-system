@@ -448,18 +448,33 @@ def checkout():
                 
                 new_order_id = cursor.lastrowid 
 
+                # 🚀 1. DEĞİŞİKLİK: STOK DÜŞME VE FİŞE MÜHÜR VURMA OPERASYONU BAŞLIYOR 🚀
                 for idx, item in enumerate(cart):
                     cart_index = f"c_{idx}_{item['menu_id']}" 
                     
+                    # Ürünün o anki canlı adını, fiyatını VE STOĞUNU çekiyoruz (FOR UPDATE kilitler)
                     cursor.execute("""
-                        SELECT m.food_id, m.price, COALESCE(m.custom_name, f.item_name) AS item_name
+                        SELECT m.food_id, m.price, m.stock_quantity, COALESCE(m.custom_name, f.item_name) AS item_name
                         FROM menus m
                         JOIN foods f ON m.food_id = f.food_id
-                        WHERE m.menu_id = %s
+                        WHERE m.menu_id = %s FOR UPDATE
                     """, (item['menu_id'],))
                     menu_data = cursor.fetchone()
                     
                     if menu_data:
+                        # --- 🛡️ STOK KONTROLÜ VE DÜŞÜMÜ ---
+                        current_stock = int(menu_data['stock_quantity'])
+                        requested_qty = int(item['quantity'])
+                        
+                        if current_stock < requested_qty:
+                            connection.rollback() # Sepetin geri kalanını da iptal et
+                            flash(f"Üzgünüz, '{menu_data['item_name']}' için yeterli stok kalmamış. (Kalan Stok: {current_stock}) Lütfen sepetinizi güncelleyin.", "danger")
+                            return redirect(url_for('view_cart'))
+                            
+                        # Müşteri siparişi verdiği an stoğu veritabanından anında düşüyoruz!
+                        cursor.execute("UPDATE menus SET stock_quantity = stock_quantity - %s WHERE menu_id = %s", (requested_qty, item['menu_id']))
+                        # -----------------------------------
+
                         food_id = menu_data['food_id']
                         item_name = menu_data['item_name']
                         base_price = float(menu_data['price'])
@@ -467,6 +482,7 @@ def checkout():
                         extra_price = 0.0
                         choice_details = []
                         
+                        # Eğer müşterinin seçtiği ekstralar varsa onların da canlı fiyat/isimlerini alıyoruz
                         if item.get('choices'):
                             format_strings = ','.join(['%s'] * len(item['choices']))
                             cursor.execute(f"SELECT choice_id, choice_name, additional_price FROM menu_option_choices WHERE choice_id IN ({format_strings})", tuple(item['choices']))
@@ -476,11 +492,13 @@ def checkout():
                                 
                         unit_price = base_price + extra_price
                         
+                        # 1. Mühür (Ana Yemek)
                         cursor.execute("""
                             INSERT INTO order_items (order_id, food_id, menu_id, quantity, unit_price, cart_index, item_note, item_name_snapshot)
                             VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                         """, (new_order_id, food_id, item['menu_id'], item['quantity'], unit_price, cart_index, item.get('item_note', ''), item_name))
 
+                        # 2. Mühür (Ekstra Seçenekler)
                         if choice_details:
                             for c in choice_details:
                                 cursor.execute("""
@@ -1001,9 +1019,14 @@ def cancel_order():
             order = cursor.fetchone()
 
             if order:
-                # 2. Sadece beklemede (pending) olan siparişler iptal edilebilir!
                 if order['order_status'] == 'pending':
                     cursor.execute("UPDATE orders SET order_status = 'canceled' WHERE order_id = %s", (order_id,))
+                    
+                    cursor.execute("SELECT menu_id, quantity FROM order_items WHERE order_id = %s", (order_id,))
+                    canceled_items = cursor.fetchall()
+                    for c_item in canceled_items:
+                        cursor.execute("UPDATE menus SET stock_quantity = stock_quantity + %s WHERE menu_id = %s", (c_item['quantity'], c_item['menu_id']))
+                        
                     connection.commit()
                     return jsonify({'success': True, 'message': 'Siparişiniz başarıyla iptal edildi.'})
                 else:

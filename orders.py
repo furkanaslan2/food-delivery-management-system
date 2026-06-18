@@ -217,8 +217,8 @@ def order_action():
                 cursor.execute("""
                     UPDATE menus 
                     SET stock_quantity = stock_quantity - %s 
-                    WHERE food_id = %s
-                """, (item['quantity'], item['food_id']))
+                    WHERE menu_id = %s
+                """, (item['quantity'], item['menu_id']))
 
             connection.commit()
             flash(f"Sipariş başarıyla eklendi! Toplam: ₺{total_amount:.2f} (ID: {final_order_id})", "success")
@@ -231,16 +231,18 @@ def order_action():
 
             ids_list = selected_ids.split(',')
 
-            # Silinen siparişlerin stoklarını iade et
             for o_id in ids_list:
-                cursor.execute("SELECT food_id, quantity FROM order_items WHERE order_id = %s", (o_id,))
-                items_to_return = cursor.fetchall()
-                for item in items_to_return:
-                    cursor.execute("""
-                        UPDATE menus 
-                        SET stock_quantity = stock_quantity + %s 
-                        WHERE food_id = %s
-                    """, (item['quantity'], item['food_id']))
+                cursor.execute("SELECT order_status FROM orders WHERE order_id = %s", (o_id,))
+                old_order = cursor.fetchone()
+                if old_order and old_order['order_status'] != 'canceled':
+                    cursor.execute("SELECT menu_id, quantity FROM order_items WHERE order_id = %s", (o_id,))
+                    items_to_return = cursor.fetchall()
+                    for item in items_to_return:
+                        cursor.execute("""
+                            UPDATE menus 
+                            SET stock_quantity = stock_quantity + %s 
+                            WHERE menu_id = %s
+                        """, (item['quantity'], item['menu_id']))
 
             format_strings = ','.join(['%s'] * len(ids_list))
             if role == 'user':
@@ -353,10 +355,10 @@ def order_action():
                     return redirect(url_for('orders'))
                 
                 # 1. Eski siparişin stoklarını iade et
-                cursor.execute("SELECT food_id, quantity FROM order_items WHERE order_id = %s", (update_order_id,))
+                cursor.execute("SELECT menu_id, quantity FROM order_items WHERE order_id = %s", (update_order_id,))
                 old_items = cursor.fetchall()
                 for old_item in old_items:
-                    cursor.execute("UPDATE menus SET stock_quantity = stock_quantity + %s WHERE food_id = %s", (old_item['quantity'], old_item['food_id']))
+                    cursor.execute("UPDATE menus SET stock_quantity = stock_quantity + %s WHERE menu_id = %s", (old_item['quantity'], old_item['menu_id']))
                 
                 # 2. Eski kalemleri ve ekstraları tamamen sil
                 cursor.execute("DELETE FROM order_item_choices WHERE order_id = %s", (update_order_id,))
@@ -380,7 +382,7 @@ def order_action():
                             """, (update_order_id, item['food_id'], choice['choice_id'], item['cart_index'], choice['choice_name'], float(choice['additional_price'] or 0.00)))
                             
                     # Yeni stokları düşür
-                    cursor.execute("UPDATE menus SET stock_quantity = stock_quantity - %s WHERE food_id = %s", (item['quantity'], item['food_id']))
+                    cursor.execute("UPDATE menus SET stock_quantity = stock_quantity - %s WHERE menu_id = %s", (item['quantity'], item['menu_id']))
 
                 # 4. Faturanın ana verilerini güncelle (Yeni Fiyat ve Yeni Adet)
                 cursor.execute("""
@@ -389,7 +391,18 @@ def order_action():
                     WHERE order_id = %s
                 """, (total_qty, total_amount, update_order_id))
 
-            # 🚀 HER HALÜKARDA ANA SİPARİŞ BİLGİLERİNİ GÜNCELLE
+            if not cart_indices:
+                cursor.execute("SELECT order_status FROM orders WHERE order_id = %s", (update_order_id,))
+                old_order = cursor.fetchone()
+                if old_order and old_order['order_status'] != 'canceled' and order_status == 'canceled':
+                    cursor.execute("SELECT menu_id, quantity FROM order_items WHERE order_id = %s", (update_order_id,))
+                    for item in cursor.fetchall():
+                        cursor.execute("UPDATE menus SET stock_quantity = stock_quantity + %s WHERE menu_id = %s", (item['quantity'], item['menu_id']))
+                elif old_order and old_order['order_status'] == 'canceled' and order_status != 'canceled':
+                    cursor.execute("SELECT menu_id, quantity FROM order_items WHERE order_id = %s", (update_order_id,))
+                    for item in cursor.fetchall():
+                        cursor.execute("UPDATE menus SET stock_quantity = stock_quantity - %s WHERE menu_id = %s", (item['quantity'], item['menu_id']))
+
             query = """
                 UPDATE orders 
                 SET order_status = %s, order_type = %s, table_no = %s, 
@@ -638,9 +651,6 @@ def kitchen_display():
 
     return render_template('kitchen.html', orders=orders_data)
 
-# ==========================================
-# 🧑‍🍳 MUTFAK EKRANI GÜVENLİ İŞLEM (API)
-# ==========================================
 def kitchen_order_action():
     if session.get('role') != 'user':
         return redirect(url_for('login'))
@@ -652,9 +662,22 @@ def kitchen_order_action():
     connection = get_db_connection()
     if connection:
         try:
-            cursor = connection.cursor()
-            # 📍 MÜKEMMEL ÇÖZÜM: Sadece durumu (order_status) güncelliyoruz. 
-            # Müşteri bilgileri, kurye, adres vb. HİÇBİR ŞEYE dokunmuyoruz!
+            cursor = connection.cursor(dictionary=True)
+            
+            cursor.execute("SELECT order_status FROM orders WHERE order_id = %s AND restaurant_id = %s", (order_id, restaurant_id))
+            old_order = cursor.fetchone()
+            
+            if old_order:
+                old_status = old_order['order_status']
+                if old_status != 'canceled' and new_status == 'canceled':
+                    cursor.execute("SELECT menu_id, quantity FROM order_items WHERE order_id = %s", (order_id,))
+                    for item in cursor.fetchall():
+                        cursor.execute("UPDATE menus SET stock_quantity = stock_quantity + %s WHERE menu_id = %s", (item['quantity'], item['menu_id']))
+                elif old_status == 'canceled' and new_status != 'canceled':
+                    cursor.execute("SELECT menu_id, quantity FROM order_items WHERE order_id = %s", (order_id,))
+                    for item in cursor.fetchall():
+                        cursor.execute("UPDATE menus SET stock_quantity = stock_quantity - %s WHERE menu_id = %s", (item['quantity'], item['menu_id']))
+
             cursor.execute("""
                 UPDATE orders 
                 SET order_status = %s 
@@ -665,5 +688,4 @@ def kitchen_order_action():
             cursor.close()
             connection.close()
 
-    # İşlem bitince Mutfak Ekranına geri dön
     return redirect(url_for('kitchen_display'))

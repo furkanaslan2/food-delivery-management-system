@@ -302,6 +302,7 @@
                 const password = document.querySelector('input[name="password"]').value.trim();
 
                 const isPhoneEmpty = (phone === '' || phone === '0 (5__) ___ __ __');
+                const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$/;
 
                 if (!name) {
                     hasError = true;
@@ -309,12 +310,11 @@
                 } else if (!isPhoneEmpty && (phone.includes('_') || phone.length < 15)) {
                     hasError = true;
                     errorMessage = "Lütfen telefon numaranızı tam ve eksiksiz girin.";
-                } else if (password && password.length < 6) {
+                } else if (password && !passwordRegex.test(password)) { 
                     hasError = true;
-                    errorMessage = "Güvenliğiniz için yeni şifreniz en az 6 karakter olmalıdır.";
+                    errorMessage = "Yeni şifreniz en az 8 karakter olmalı; en az 1 büyük harf, 1 küçük harf ve 1 rakam içermelidir.";
                 }
 
-                // ❌ HATA VARSA: Formu durdur ve şık bildirim (Toast) göster
                 if (hasError) {
                     e.preventDefault();
                     if (typeof window.showToast === 'function') {
