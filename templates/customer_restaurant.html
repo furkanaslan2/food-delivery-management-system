@@ -309,7 +309,7 @@
 
         {% if popular_items %}
         <div id="cat-popular" class="menu-section">
-            <h2>🔥 Çok Satanlar</h2>
+            <h2 style="display: flex; align-items: center; gap: 8px;"><i class="ph-fill ph-fire" style="color: #ef4444;"></i> Çok Satanlar</h2>
             <div class="menu-list">
                 {% for item in popular_items %}
                 <div class="menu-item {% if restaurant.get('is_open') == False %}closed-menu-item{% endif %}">

@@ -4,10 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Adisyon Fişi #{{ order.order_id }}</title>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <style>
-        /* Ekran Tasarımı (Web'de nasıl görünecek) */
         body { background-color: #f3f4f6; font-family: 'Courier New', Courier, monospace; display: flex; flex-direction: column; align-items: center; padding: 40px 20px; margin: 0; }
-        
         .receipt-box { background: #ffffff; width: 360px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.06); border: 1px solid #e5e7eb; border-radius: 4px; box-sizing: border-box; }
         
         .restaurant-title { font-size: 18px; font-weight: bold; text-align: center; text-transform: uppercase; margin: 0 0 5px 0; }
@@ -22,17 +21,21 @@
         
         .total-line { font-size: 16px; font-weight: bold; display: flex; justify-content: space-between; margin-top: 10px; }
         
-        /* Buton Alanı */
         .actions-container { display: flex; gap: 10px; width: 360px; margin-top: 25px; }
         .btn { flex: 1; padding: 12px; font-family: 'Segoe UI', sans-serif; font-size: 14px; font-weight: 600; text-align: center; border-radius: 8px; cursor: pointer; border: none; text-decoration: none; transition: opacity 0.2s; }
         .btn-print { background-color: #4f46e5; color: white; }
         .btn-back { background-color: #e5e7eb; color: #374151; }
         .btn:hover { opacity: 0.9; }
 
-        /* 🔥 SİHİRLİ DOKUNUŞ: Yazıcı Çıktı Tasarımı */
         @media print {
-            body { background-color: #ffffff; padding: 0; margin: 0; }
-            .receipt-box { box-shadow: none; border: none; width: 100%; padding: 0; }
+            @page { margin: 0; size: auto; } 
+            
+            body { background-color: #ffffff; padding: 15px; margin: 0; display: block; }
+            .receipt-box { 
+                box-shadow: none; border: none; width: 100%; 
+                max-width: 80mm; 
+                padding: 0; margin: 0 auto; 
+            }
             .actions-container { display: none !important; }
         }
     </style>
@@ -49,7 +52,7 @@
         </div>
         <div class="info-line">
             <span>Adisyon No: #{{ order.order_id }}</span>
-            <span>Durum: ÖDENDİ 💳</span>
+            <span style="display: flex; align-items: center; gap: 4px;">Durum: ÖDENDİ <i class="ph-bold ph-credit-card"></i></span>
         </div>
         
         <div class="divider"></div>
@@ -109,8 +112,12 @@
     </div>
 
     <div class="actions-container">
-        <button onclick="window.print();" class="btn btn-print">🖨️ Fişi Yazdır</button>
-        <a href="{{ url_for('waiter_dashboard') }}" class="btn btn-back">↩️ Panele Dön</a>
+        <button onclick="window.print();" class="btn btn-print" style="display: flex; align-items: center; justify-content: center; gap: 6px;">
+            <i class="ph-bold ph-printer"></i> Fişi Yazdır
+        </button>
+        <a href="{{ url_for('waiter_dashboard') }}" class="btn btn-back" style="display: flex; align-items: center; justify-content: center; gap: 6px;">
+            <i class="ph-bold ph-arrow-left"></i> Panele Dön
+        </a>
     </div>
 
 </body>

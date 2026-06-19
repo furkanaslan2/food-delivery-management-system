@@ -5,12 +5,10 @@ from db import get_db_connection
 def courier_dashboard(courier_id):
     logged_in_courier_id = session.get('courier_id')
     
-    # 1. Kontrol: Session'da courier_id yoksa login'e at
     if not logged_in_courier_id:
         flash("Lütfen paneli görüntülemek için giriş yapın.", "warning")
         return redirect(url_for('login')) 
         
-    # 2. Kontrol: Session'daki ID ile URL'deki ID eşleşmiyorsa kendi paneline geri fırlat
     if int(logged_in_courier_id) != int(courier_id):
         flash("Yetkisiz erişim! Sadece kendi panelinizi görüntüleyebilirsiniz.", "danger")
         return redirect(url_for('courier_dashboard', courier_id=logged_in_courier_id))
@@ -23,11 +21,12 @@ def courier_dashboard(courier_id):
         try:
             cursor = connection.cursor(dictionary=True)
             
-            # Kuryenin adını çek
-            cursor.execute("SELECT name FROM couriers WHERE courier_id = %s", (courier_id,))
+            cursor.execute("SELECT name, is_online FROM couriers WHERE courier_id = %s", (courier_id,))
             courier = cursor.fetchone()
+            is_online = True
             if courier:
                 courier_name = courier['name']
+                is_online = courier.get('is_online', True)
             
             cursor.execute("""
                 SELECT order_id, order_date, customer_name, customer_phone, customer_address, sales_amount, order_status, payment_method, order_note 
@@ -37,6 +36,41 @@ def courier_dashboard(courier_id):
             """, (courier_id,))
             active_orders = cursor.fetchall()
             
+            for order in active_orders:
+                cursor.execute("""
+                    SELECT quantity, item_name_snapshot AS item_name, cart_index, food_id
+                    FROM order_items 
+                    WHERE order_id = %s
+                """, (order['order_id'],))
+                items = cursor.fetchall()
+                
+                for item in items:
+                    if item.get('cart_index'):
+                        cursor.execute("SELECT choice_name_snapshot AS choice_name FROM order_item_choices WHERE order_id = %s AND cart_index = %s", (order['order_id'], item['cart_index']))
+                    else:
+                        cursor.execute("SELECT choice_name_snapshot AS choice_name FROM order_item_choices WHERE order_id = %s AND food_id = %s", (order['order_id'], item['food_id']))
+                        
+                    choices = cursor.fetchall()
+                    if choices:
+                        names = [c['choice_name'] for c in choices]
+                        current_name = item['item_name'] if item['item_name'] else "İsimsiz Menü"
+                        item['item_name'] = f"{current_name} ({', '.join(names)})"
+                        
+                order['products'] = items
+
+            cursor.execute("""
+                SELECT payment_method, sales_amount 
+                FROM orders 
+                WHERE courier_id = %s AND order_status = 'delivered' AND DATE(order_date) = CURDATE()
+            """, (courier_id,))
+            todays_delivered = cursor.fetchall()
+            
+            daily_stats = {
+                'total_packages': len(todays_delivered),
+                'cash_total': sum(float(o['sales_amount']) for o in todays_delivered if o['payment_method'] == 'Cash'),
+                'online_total': sum(float(o['sales_amount']) for o in todays_delivered if o['payment_method'] in ['Online Payment', 'Credit Card'])
+            }
+            
         except Exception as e:
             flash(f"Panel yüklenirken hata oluştu: {e}", "danger")
         finally:
@@ -44,7 +78,7 @@ def courier_dashboard(courier_id):
                 cursor.close()
                 connection.close()
 
-    return render_template('courier_dashboard.html', orders=active_orders, courier_name=courier_name, courier_id=courier_id)
+    return render_template('courier_dashboard.html', orders=active_orders, courier_name=courier_name, courier_id=courier_id, daily_stats=daily_stats, is_online=is_online)
 
 def update_delivery_status():
     if request.method == 'POST':
@@ -56,10 +90,9 @@ def update_delivery_status():
         if connection:
             try:
                 cursor = connection.cursor()
-                # Siparişin durumunu ("Yolda" veya "Teslim Edildi" olarak) güncelle
                 cursor.execute("UPDATE orders SET order_status = %s WHERE order_id = %s", (new_status, order_id))
                 connection.commit()
-                flash("Sipariş durumu başarıyla güncellendi! 🛵", "success")
+                flash("Sipariş durumu başarıyla güncellendi!", "success")
             except Exception as e:
                 connection.rollback()
                 flash(f"Durum güncellenirken hata oluştu: {e}", "danger")
@@ -71,7 +104,6 @@ def update_delivery_status():
         return redirect(url_for('courier_dashboard', courier_id=courier_id))
     
 def api_update_courier_location():
-    # Sadece giriş yapmış kuryeler konum gönderebilir
     courier_id = session.get('courier_id')
     if not courier_id:
         return jsonify({'success': False, 'message': 'Yetkisiz erişim'})
@@ -87,7 +119,6 @@ def api_update_courier_location():
     if connection:
         try:
             cursor = connection.cursor()
-            # Kuryenin güncel konumunu veritabanına yazıyoruz
             cursor.execute("""
                 UPDATE couriers 
                 SET current_lat = %s, current_lon = %s 
@@ -103,4 +134,28 @@ def api_update_courier_location():
                 cursor.close()
                 connection.close()
 
+    return jsonify({'success': False, 'message': 'Veritabanı bağlantı hatası'})
+
+def api_toggle_courier_status():
+    courier_id = session.get('courier_id')
+    if not courier_id:
+        return jsonify({'success': False, 'message': 'Yetkisiz erişim'})
+        
+    data = request.get_json(silent=True) or {}
+    new_status = data.get('is_online')
+    
+    connection = get_db_connection()
+    if connection:
+        try:
+            cursor = connection.cursor()
+            cursor.execute("UPDATE couriers SET is_online = %s WHERE courier_id = %s", (new_status, courier_id))
+            connection.commit()
+            return jsonify({'success': True, 'is_online': new_status})
+        except Exception as e:
+            return jsonify({'success': False, 'message': str(e)})
+        finally:
+            if connection.is_connected():
+                cursor.close()
+                connection.close()
+                
     return jsonify({'success': False, 'message': 'Veritabanı bağlantı hatası'})

@@ -162,7 +162,7 @@ window.showToast = function(message, type = 'success') {
     const isSuccess = (type === 'success');
     const themeColor = isSuccess ? '#10b981' : '#ef4444'; 
     const iconClass = isSuccess ? 'ph-fill ph-check-circle' : 'ph-fill ph-warning-circle';
-    const titleText = isSuccess ? 'Harika! 🎉' : 'Bir Sorun Var 😔';
+    const titleText = isSuccess ? 'Harika! <i class="ph-bold ph-confetti"></i>' : 'Bir Sorun Var <i class="ph-bold ph-smiley-sad"></i>';
 
     // 4. Toast HTML Elementini İnşa Et (DARK MODE UYARLI)
     const toast = document.createElement('div');

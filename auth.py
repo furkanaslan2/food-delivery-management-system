@@ -186,7 +186,7 @@ def register():
             
             connection.commit()
             
-            flash("Başvurunuz başarıyla alındı! Ekibimiz en kısa sürede sizinle iletişime geçecektir. 🤝", "success")
+            flash("Başvurunuz başarıyla alındı! Ekibimiz en kısa sürede sizinle iletişime geçecektir. <i class='ph-bold ph-handshake'></i>", "success")
             return redirect(url_for('login'))
             
         except Error as e:
@@ -276,7 +276,7 @@ def verify_email_code():
                     session.pop('pending_password', None)
                     session.pop('otp_code', None)
                     
-                    flash("Hesabınız başarıyla doğrulandı! 🎉 Lütfen giriş yapın.", "success")
+                    flash("Hesabınız başarıyla doğrulandı! <i class='ph-bold ph-confetti'></i> Lütfen giriş yapın.", "success")
                     
                     return {'success': True, 'redirect': url_for('customer_login')}
                     
@@ -299,7 +299,7 @@ def resend_verification_code():
         otp_code = str(random.randint(100000, 999999))
         if send_otp_email(email, otp_code):
             session['otp_code'] = otp_code
-            return {'success': True, 'message': 'Yeni doğrulama kodu gönderildi! 📨'}
+            return {'success': True, 'message': 'Yeni doğrulama kodu gönderildi! <i class=\'ph-bold ph-envelope-simple\'></i>'}
         else:
             return {'success': False, 'message': 'Kod gönderilemedi, lütfen tekrar deneyin.'}
             
@@ -445,7 +445,7 @@ def process_reset():
                     session.pop('reset_email', None)
                     session.pop('reset_otp', None)
                     
-                    flash("Şifreniz başarıyla yenilendi! 🎉 Artık giriş yapabilirsiniz.", "success")
+                    flash("Şifreniz başarıyla yenilendi! <i class='ph-bold ph-confetti'></i> Artık giriş yapabilirsiniz.", "success")
                     return {'success': True, 'redirect': url_for('customer_login')}
                 except Error as e:
                     connection.rollback()
@@ -466,7 +466,7 @@ def resend_reset_code():
         otp_code = str(random.randint(100000, 999999))
         if send_reset_email(email, otp_code):
             session['reset_otp'] = otp_code
-            return {'success': True, 'message': 'Yeni doğrulama kodu gönderildi! 📨'}
+            return {'success': True, 'message': 'Yeni doğrulama kodu gönderildi! <i class=\'ph-bold ph-envelope-simple\'></i>'}
         else:
             return {'success': False, 'message': 'Kod gönderilemedi, lütfen tekrar deneyin.'}
             
@@ -612,7 +612,7 @@ def process_reset_admin():
                     session.pop('admin_reset_otp', None)
                     session.pop('admin_reset_table', None)
                     
-                    flash("Şifreniz başarıyla yenilendi! 🎉 Artık sisteme giriş yapabilirsiniz.", "success")
+                    flash("Şifreniz başarıyla yenilendi! <i class='ph-bold ph-confetti'></i> Artık sisteme giriş yapabilirsiniz.", "success")
                     return {'success': True, 'redirect': url_for('login')}
                     
                 except Error as e:
@@ -634,7 +634,7 @@ def resend_reset_code_admin():
         otp_code = str(random.randint(100000, 999999))
         if send_reset_email(email, otp_code):
             session['admin_reset_otp'] = otp_code
-            return {'success': True, 'message': 'Yeni doğrulama kodu gönderildi! 📨'}
+            return {'success': True, 'message': 'Yeni doğrulama kodu gönderildi! <i class=\'ph-bold ph-envelope-simple\'></i>'}
         else:
             return {'success': False, 'message': 'Kod gönderilemedi, lütfen tekrar deneyin.'}
             

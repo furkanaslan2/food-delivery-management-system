@@ -155,7 +155,7 @@ function checkOrderStatus() {
 }
 
 // ==========================================
-// 🛵 KURYE CANLI TAKİP HARİTASI (LEAFLET)
+//  KURYE CANLI TAKİP HARİTASI (LEAFLET)
 // ==========================================
 let trackMap = null;
 let courierMarker = null;

@@ -141,7 +141,7 @@
                 {% if session['role'] == 'admin' %}
                 <td>
                     <span style="background-color: #e0e7ff; color: #4338ca; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700;">
-                        🏪 {{ waiter['restaurant_name'] or 'Bilinmiyor' }}
+                        <i class="ph-bold ph-storefront"></i> {{ waiter['restaurant_name'] or 'Bilinmiyor' }}
                     </span>
                 </td>
                 {% endif %}

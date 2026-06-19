@@ -197,10 +197,7 @@ def api_check_courier_orders():
     if connection:
         try:
             cursor = connection.cursor(dictionary=True)
-            
-            # ASIL ÇÖZÜM BURASI:
-            # Sadece 'preparing' veya 'on_the_way' durumlarını değil,
-            # 'delivered' veya 'canceled' OLMAYAN tüm aktif paketleri sayıyoruz!
+
             cursor.execute("""
                 SELECT COUNT(*) as active_count 
                 FROM orders 
@@ -210,11 +207,10 @@ def api_check_courier_orders():
             result = cursor.fetchone()
             db_active_count = result['active_count'] if result else 0
             
-            # Veritabanındaki aktif paket sayısı ekrandakinden fazlaysa bildirim gönder
             if db_active_count > client_order_count:
-                return jsonify({'has_changes': True, 'message': '📦 YENİ PAKET GELDİ!'})
+                return jsonify({'has_changes': True, 'message': '<i class="ph-bold ph-package"></i> YENİ PAKET GELDİ!'})
             elif db_active_count < client_order_count:
-                return jsonify({'has_changes': True, 'message': '🔄 Paket durumu değişti.'})
+                return jsonify({'has_changes': True, 'message': '<i class="ph-bold ph-arrows-clockwise"></i> Paket durumu değişti.'})
                 
         except Exception as e:
             print(f"Kurye API hatası: {e}")

@@ -34,7 +34,7 @@ function openMenuModal() {
     // Görsel önizlemeyi sıfırla
     const previewBox = document.getElementById('menu-image-preview');
     if(previewBox) {
-        previewBox.innerHTML = '<span style="color: #9ca3af; font-size: 30px;">🍲</span>';
+        previewBox.innerHTML = '<i class="ph-fill ph-cooking-pot" style="color: #9ca3af; font-size: 32px;"></i>';
     }
 
     // 🛠️ Opsiyon ekleme alanını göster ve formdaki eski kalıntıları temizle
@@ -70,7 +70,7 @@ function openMenuModalFromBtn(btn) {
     if (image && image.trim() !== '') {
         previewBox.innerHTML = `<img src="/static/images/menus/${image}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">`;
     } else {
-        previewBox.innerHTML = '<span style="color: #9ca3af; font-size: 30px;">🍲</span>';
+        previewBox.innerHTML = '<i class="ph-fill ph-cooking-pot" style="color: #9ca3af; font-size: 32px;"></i>';
     }
 
     // 🛠️ OPSİYONLARI VERİTABANINDAN ÇEKİP EKRANA ÇİZME KISMI
@@ -78,7 +78,7 @@ function openMenuModalFromBtn(btn) {
     if(optionsSection) optionsSection.style.display = 'block'; 
     
     const optionsContainer = document.getElementById('options-container');
-    optionsContainer.innerHTML = '<div style="padding: 15px; text-align: center; color: #6b7280; font-weight: 600;">⏳ Mevcut seçenekler yükleniyor...</div>';
+    optionsContainer.innerHTML = '<div style="padding: 15px; text-align: center; color: #6b7280; font-weight: 600;"><i class="ph-bold ph-hourglass-high"></i> Mevcut seçenekler yükleniyor...</div>';
     optionGroupIndex = 0; 
 
     fetch('/api/menu_options?menu_id=' + menuId)
@@ -129,7 +129,7 @@ function openMenuModalFromBtn(btn) {
             }
         })
         .catch(err => {
-            optionsContainer.innerHTML = '<div style="padding: 15px; text-align: center; color: #dc2626; font-weight: 600;">❌ Seçenekler yüklenemedi.</div>';
+            optionsContainer.innerHTML = '<div style="padding: 15px; text-align: center; color: #dc2626; font-weight: 600;"><i class="ph-bold ph-x-circle"></i> Seçenekler yüklenemedi.</div>';
             console.error("Seçenekler çekilirken hata:", err);
             if(typeof window.showToast === 'function') window.showToast("Seçenekler yüklenirken hata oluştu.", "error");
         });
@@ -213,10 +213,10 @@ function loadPromos() {
                     <td>
                         <button onclick="togglePromo(${p.promo_id}, ${p.is_active ? 0 : 1})" 
                             style="background:${p.is_active ? '#dcfce3' : '#f3f4f6'}; color:${p.is_active ? '#16a34a' : '#6b7280'}; border:none; padding:4px 8px; border-radius:4px; font-weight:bold; font-size:11px; cursor:pointer;">
-                            ${p.is_active ? '✅ Aktif' : '❌ Pasif'}
+                            ${p.is_active ? '<i class="ph-bold ph-check-circle"></i> Aktif' : '<i class="ph-bold ph-x-circle"></i> Pasif'}
                         </button>
                     </td>
-                    <td><button onclick="deletePromo(${p.promo_id})" style="background:none; border:none; color:#dc2626; font-size:16px; cursor:pointer;">🗑️</button></td>
+                    <td><button onclick="deletePromo(${p.promo_id})" style="background:none; border:none; color:#dc2626; font-size:18px; cursor:pointer;"><i class="ph-bold ph-trash"></i></button></td>
                 </tr>
             `).join('');
         } else {

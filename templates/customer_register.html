@@ -6,6 +6,7 @@
     <title>Kayıt Ol | YeSende</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/flash.css') }}">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <style>
         body { 
             margin: 0; 
@@ -201,12 +202,12 @@
                     if (data.available === false) {
                         emailInput.style.borderColor = '#ef4444';
                         emailInput.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.2)';
-                        emailWarning.innerText = 'Bu e-posta adresi zaten kullanımda! ❌';
+                        emailWarning.innerHTML = '<i class="ph-bold ph-x-circle"></i> Bu e-posta adresi zaten kullanımda!';
                         emailWarning.style.color = '#ef4444';
                     } else {
                         emailInput.style.borderColor = '#10b981';
                         emailInput.style.boxShadow = '0 0 0 3px rgba(16, 185, 129, 0.2)';
-                        emailWarning.innerText = 'Bu e-posta kullanılabilir. ✅';
+                        emailWarning.innerHTML = '<i class="ph-bold ph-check-circle"></i> Bu e-posta kullanılabilir.';
                         emailWarning.style.color = '#10b981';
                     }
                 }).catch(err => console.log('Mail kontrol hatası:', err));

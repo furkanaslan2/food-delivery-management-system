@@ -111,7 +111,7 @@ document.addEventListener("DOMContentLoaded", function() {
         if (email && emailRegex.test(email)) {
             if (email === excludeEmail) {
                 emailInput.style.borderColor = '#10b981';
-                emailWarning.innerText = 'Mevcut e-posta değişmedi. ✅';
+                emailWarning.innerHTML = 'Mevcut e-posta değişmedi. <i class="ph-bold ph-check-circle"></i>';
                 emailWarning.style.color = '#10b981';
                 return;
             }
@@ -125,11 +125,11 @@ document.addEventListener("DOMContentLoaded", function() {
             .then(data => {
                 if (data.available === false) {
                     emailInput.style.borderColor = '#ef4444';
-                    emailWarning.innerText = 'Bu e-posta başka bir hesap tarafından kullanılıyor! ❌';
+                    emailWarning.innerHTML = 'Bu e-posta başka bir hesap tarafından kullanılıyor! <i class="ph-bold ph-x-circle"></i>';
                     emailWarning.style.color = '#ef4444';
                 } else {
                     emailInput.style.borderColor = '#10b981';
-                    emailWarning.innerText = 'Bu e-posta kullanılabilir. ✅';
+                    emailWarning.innerHTML = 'Bu e-posta kullanılabilir. <i class="ph-bold ph-check-circle"></i>';
                     emailWarning.style.color = '#10b981';
                 }
             }).catch(err => console.log('Mail kontrol hatası:', err));

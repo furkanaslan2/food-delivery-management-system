@@ -253,7 +253,6 @@ def waiter_create_order():
             selected_choices = request.form.getlist(f'choices_{idx}[]')
 
             if qty > 0:
-                # 🚀 DEĞİŞİKLİK 1: Yemeğin güncel mühürlük ismini çekiyoruz
                 cursor.execute('''
                     SELECT m.price, m.food_id, m.stock_quantity, COALESCE(m.custom_name, f.item_name) AS item_name 
                     FROM menus m JOIN foods f ON m.food_id = f.food_id WHERE m.menu_id = %s
@@ -263,11 +262,10 @@ def waiter_create_order():
                 if result:
                     base_price = float(result['price'])
                     extras_price = 0
-                    choice_details = [] # Seçenek detaylarını mühürlemek için tutuyoruz
+                    choice_details = [] 
                     
                     if selected_choices:
                         format_strings = ','.join(['%s'] * len(selected_choices))
-                        # 🚀 DEĞİŞİKLİK 2: Seçeneğin adını ve fiyatını da çekiyoruz
                         cursor.execute(f"SELECT choice_id, choice_name, additional_price FROM menu_option_choices WHERE choice_id IN ({format_strings})", tuple(selected_choices))
                         choice_details = cursor.fetchall()
                         for row in choice_details:
@@ -288,9 +286,8 @@ def waiter_create_order():
             query = 'INSERT INTO orders (order_date, sales_qty, sales_amount, restaurant_id, order_status, table_no, order_type) VALUES (NOW(), %s, %s, %s, %s, %s, %s)'
             cursor.execute(query, (total_qty, total_amount, restaurant_id, 'pending', table_no, 'Dine-in'))
             order_id = cursor.lastrowid
-            flash(f"Masa {table_no} için yeni lezzetler mutfağa iletildi. 🍽️", "success")
+            flash(f"Masa {table_no} için yeni lezzetler mutfağa iletildi.", "success")
             
-            # 🚀 DEĞİŞİKLİK 3: Veritabanına mühürlü isimleri ve fiyatları kaydediyoruz
             for item in order_details:
                 cursor.execute("""
                     INSERT INTO order_items (order_id, food_id, menu_id, quantity, unit_price, cart_index, item_note, item_name_snapshot)
@@ -403,8 +400,6 @@ def waiter_receipt(order_id):
         cursor.execute("SELECT order_id, order_date, sales_amount, table_no FROM orders WHERE order_id = %s AND restaurant_id = %s", (order_id, restaurant_id))
         order = cursor.fetchone()
 
-        # 🚀 DEĞİŞİKLİK: Fiş ekranında sadece faturadaki (order_items tablosu) snapshot'ları okuyoruz.
-        # Böylece canlı foods / menus tablolarıyla bağlantı kesildi ve fatura güvene alındı.
         cursor.execute("""
             SELECT oi.food_id, oi.item_name_snapshot AS item_name, 
                    oi.quantity, oi.unit_price, oi.cart_index, oi.item_note

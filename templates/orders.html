@@ -124,19 +124,19 @@
 
 <div id="sound-unlock-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 24, 39, 0.8); z-index: 99999; display: none; justify-content: center; align-items: center;">
     <div style="background: white; padding: 35px; border-radius: 16px; text-align: center; max-width: 400px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); animation: slideUp 0.4s ease-out;">
-        <div style="font-size: 50px; margin-bottom: 15px; animation: bounce 2s infinite;">🔔</div>
+        <div style="font-size: 50px; margin-bottom: 15px; animation: bounce 2s infinite;"><i class="ph-fill ph-bell-ringing" style="color: #f59e0b;"></i></div>
         <h3 style="margin: 0 0 10px 0; color: #111827; font-size: 20px;">Sipariş Ekranı Hazır!</h3>
         <p style="color: #6b7280; margin: 0 0 25px 0; font-size: 15px; line-height: 1.5;">
             Yeni sipariş geldiğinde anında sesli bildirim alabilmek için lütfen sistemi başlatın.
         </p>
         <button id="start-system-btn" style="background: #10b981; color: white; border: none; padding: 14px 24px; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 16px; width: 100%; transition: background 0.2s; box-shadow: 0 4px 6px rgba(16, 185, 129, 0.3);" onmouseover="this.style.background='#059669'" onmouseout="this.style.background='#10b981'">
-            🚀 Sistemi Başlat ve Sipariş Al
+            <i class="ph-bold ph-rocket-launch"></i> Sistemi Başlat ve Sipariş Al
         </button>
     </div>
 </div>
 
 <div id="new-order-alert" style="display: none; position: fixed; top: 30px; left: 50%; transform: translateX(-50%); background-color: #3b82f6; color: white; padding: 12px 25px; border-radius: 30px; font-weight: 600; font-size: 15px; box-shadow: 0 10px 25px rgba(59, 130, 246, 0.4); cursor: pointer; z-index: 10000; transition: transform 0.2s;" onclick="this.style.display='none';">
-    🔔 Yeni sipariş listeye eklendi! (Kapat)
+    <i class="ph-bold ph-bell-ringing"></i> Yeni sipariş listeye eklendi! (Kapat)
 </div>
 
 <div class="toolbar">
@@ -184,7 +184,7 @@
                 {% if session['role'] == 'admin' %}
                 <td>
                     <span style="background-color: #e0e7ff; color: #4338ca; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700;">
-                        🏪 {{ order['restaurant_name'] or 'Bilinmiyor' }}
+                        <i class="ph-bold ph-storefront"></i> {{ order['restaurant_name'] or 'Bilinmiyor' }}
                     </span>
                 </td>
                 {% endif %}
@@ -376,7 +376,9 @@
                 <select id="dynamic-courier-list" name="courier_id" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-family:inherit;">
                     <option value="">Kurye Ata (Opsiyonel)...</option>
                     {% for courier in couriers %}
-                        <option value="{{ courier.courier_id }}">{{ courier.name }}</option>
+                        <option value="{{ courier.courier_id }}" {% if courier.is_online == 0 %}disabled{% endif %}>
+                            {{ courier.name }} {% if courier.is_online == 0 %}(- Molada){% endif %}
+                        </option>
                     {% endfor %}
                 </select>
             </div>
@@ -407,7 +409,7 @@
     <div style="background-color: #fff; padding: 25px; border-radius: 12px; width: 90%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: slideDown 0.3s ease-out;">
         
         <h3 style="margin: 0 0 10px 0; color: #111827; font-size: 18px; display: flex; align-items: center; gap: 8px;">
-            🛵 Teslimat İçin Kurye Seçin
+            <i class="ph-bold ph-moped"></i> Teslimat İçin Kurye Seçin
         </h3>
         <p style="color: #6b7280; font-size: 14px; margin-bottom: 20px;">
             <strong id="modal-display-order-id" style="color: #111827;"></strong> numaralı sipariş mutfaktan çıktı ve teslime hazır.
@@ -421,7 +423,9 @@
             <select name="courier_id" required style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; margin-bottom: 20px; font-size: 15px; outline: none; font-weight: 500;">
                 <option value="" hidden>Atanacak Kuryeyi Seçin...</option>
                 {% for courier in couriers %}
-                    <option value="{{ courier.courier_id }}">{{ courier.name }}</option>
+                    <option value="{{ courier.courier_id }}" {% if courier.is_online == 0 %}disabled{% endif %}>
+                        {{ courier.name }} {% if courier.is_online == 0 %}(🔴 Molada){% endif %}
+                    </option>
                 {% endfor %}
             </select>
             
@@ -430,7 +434,7 @@
                     İptal
                 </button>
                 <button type="submit" style="flex: 2; background: #10b981; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background-color 0.2s ease;" onmouseover="this.style.background='#059669'" onmouseout="this.style.background='#10b981'">
-                    🚀 Yola Çıkar
+                    <i class="ph-bold ph-moped"></i> Yola Çıkar
                 </button>
             </div>
         </form>

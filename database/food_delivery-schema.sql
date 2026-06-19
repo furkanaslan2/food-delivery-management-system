@@ -58,6 +58,7 @@ CREATE TABLE couriers (
     restaurant_id INT,
     current_lat DECIMAL(10, 8) NULL,
     current_lon DECIMAL(11, 8) NULL,
+    is_online BOOLEAN DEFAULT TRUE,
     PRIMARY KEY (courier_id),
     FOREIGN KEY (restaurant_id) REFERENCES restaurants(restaurant_id)
     ON DELETE SET NULL

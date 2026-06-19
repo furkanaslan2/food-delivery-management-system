@@ -670,7 +670,7 @@
                     <div style="grid-column: 1 / -1; text-align: center; color: #6b7280; padding: 80px 20px; background: white; border-radius: 24px; border: 1px dashed #d1d5db;">
                         <i class="ph-fill ph-storefront" style="font-size: 70px; color: #e5e7eb; margin-bottom: 20px; display: block;"></i>
                         <h3 style="margin: 0 0 10px 0; color: #111827; font-size: 20px;">Çevrenizde restoran bulunamadı</h3>
-                        <p style="margin: 0; font-size: 15px;">Şu an için seçtiğiniz bölgede hizmet veren restoranımız bulunmuyor. 😔</p>
+                        <p style="margin: 0; font-size: 15px;">Şu an için seçtiğiniz bölgede hizmet veren restoranımız bulunmuyor. <i class="ph-bold ph-smiley-sad"></i></p>
                     </div>
                 {% endfor %}
             </div>
@@ -684,7 +684,7 @@
                 <div style="width: 120px; height: 120px; background: #eef2ff; border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 25px auto; color: #4f46e5; box-shadow: 0 0 0 15px rgba(79, 70, 229, 0.05);">
                     <i class="ph-fill ph-map-pin" style="font-size: 60px;"></i>
                 </div>
-                <h2 style="margin: 0 0 12px 0; color: #111827; font-size: 28px; font-weight: 800; letter-spacing: -0.5px;">Hadi Lezzetleri Keşfedelim! 🚀</h2>
+                <h2 style="margin: 0 0 12px 0; color: #111827; font-size: 28px; font-weight: 800; letter-spacing: -0.5px;">Hadi Lezzetleri Keşfedelim! <i class="ph-bold ph-rocket-launch"></i></h2>
                 <p style="color: #6b7280; font-size: 16px; max-width: 500px; margin: 0 auto 30px auto; line-height: 1.6; font-weight: 500;">Çevrenizdeki en iyi restoranları, size özel fırsatları ve net teslimat sürelerini görebilmek için önce konumunuzu belirlemeliyiz.</p>
                 
                 {% if session.get('logged_in') and session.get('role') == 'customer' %}

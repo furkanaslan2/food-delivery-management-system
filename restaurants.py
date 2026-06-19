@@ -209,7 +209,6 @@ def restaurant_analytics():
         trend_labels = [row['order_day'].strftime('%d %b') for row in revenue_trend]
         trend_data = [float(row['daily_revenue']) for row in revenue_trend]
 
-        # 🛵 3. GRAFİK: KURYE PERFORMANSI (Son 30 Günde En Çok Atanlar)
         cursor.execute("""
             SELECT c.name as courier_name, COUNT(o.order_id) as total_deliveries
             FROM orders o

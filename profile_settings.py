@@ -108,7 +108,7 @@ def update_profile():
                 cursor.execute("UPDATE waiters SET name = %s WHERE waiter_id = %s", (name, waiter_id))
                 
             connection.commit()
-            flash("Garson profil bilgileriniz güncellendi! 🔐", "success")
+            flash("Garson profil bilgileriniz güncellendi! <i class='ph-bold ph-lock-key'></i>", "success")
 
         elif role in ['user', 'admin']:
             user_id = session.get('user_id')
@@ -123,7 +123,7 @@ def update_profile():
                 cursor.execute("UPDATE users SET name = %s, email = %s WHERE user_id = %s", (name, email, user_id))
             
             connection.commit()
-            flash("Hesap ayarlarınız başarıyla güncellendi! 🚀", "success")
+            flash("Hesap ayarlarınız başarıyla güncellendi! <i class='ph-bold ph-rocket-launch'></i>", "success")
 
     except Error as e:
         connection.rollback()

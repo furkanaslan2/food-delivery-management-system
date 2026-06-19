@@ -57,7 +57,29 @@ function showOrderDetails(event, orderId) {
 function openOrderModal(isUpdate = false, btn = null) {
     document.getElementById('orderFormModal').style.display = 'flex';
 
-    // 💳 ONLINE ÖDEME GİZLEME/GÖSTERME MANTIĞI
+    const courierSelect = document.getElementById('dynamic-courier-list');
+    if (courierSelect) {
+        courierSelect.innerHTML = '<option value="">Kuryeler yükleniyor...</option>';
+        fetch('/api/get_couriers')
+            .then(res => res.json())
+            .then(data => {
+                let options = '<option value="">Kurye Ata (Opsiyonel)...</option>';
+                if(data.success && data.couriers) {
+                    data.couriers.forEach(c => {
+                        const isOffline = (c.is_online === 0 || c.is_online === false);
+                        options += `<option value="${c.courier_id}" ${isOffline ? 'disabled' : ''}>
+                            ${c.name} ${isOffline ? '- [Molada]' : ''}
+                        </option>`;
+                    });
+                }
+                courierSelect.innerHTML = options;
+                
+                if (isUpdate && btn) {
+                    courierSelect.value = btn.getAttribute('data-courier');
+                }
+            });
+    }
+
     const paymentSelectForLogic = document.getElementById('payment_method');
     if (paymentSelectForLogic) {
         Array.from(paymentSelectForLogic.options).forEach(opt => {
@@ -147,7 +169,7 @@ function toggleOrderFields() {
 
 function loadExistingOrderItems(orderId) {
     const container = document.getElementById('food-items-container');
-    container.innerHTML = '<div style="padding: 10px; color: #4f46e5; font-weight: 600;">⏳ Eski sipariş kalemleri yükleniyor...</div>';
+    container.innerHTML = '<div style="padding: 10px; color: #4f46e5; font-weight: 600; display: flex; align-items: center; gap: 6px;"><i class="ph-bold ph-hourglass-high"></i> Eski sipariş kalemleri yükleniyor...</div>';
     
     fetch(`/order_details/${orderId}`)
         .then(response => response.json())
@@ -222,7 +244,7 @@ async function fetchMenuOptions(selectEl, cartIndex, selectedChoices = []) {
     
     if (!menuId || menuId === "None") return;
     
-    container.innerHTML = '<div style="color:#4f46e5; font-size:13px; font-weight:600; padding: 5px 0;">⏳ Seçenekler yükleniyor...</div>';
+    container.innerHTML = '<div style="color:#4f46e5; font-size:13px; font-weight:600; padding: 5px 0; display: flex; align-items: center; gap: 6px;"><i class="ph-bold ph-hourglass-high"></i> Seçenekler yükleniyor...</div>';
     
     try {
         const response = await fetch(`/api/menu_options?menu_id=${menuId}`);
@@ -269,15 +291,39 @@ async function fetchMenuOptions(selectEl, cartIndex, selectedChoices = []) {
 }
 
 // ==========================================
-// 🛵 KURYE ATAMA MODALI (HTML'DEN TAŞINDI)
+//  KURYE ATAMA MODALI (CANLI VERİ ÇEKER)
 // ==========================================
 function openCourierModal(orderId) {
     const inputEl = document.getElementById('courier-modal-order-id');
     const displayEl = document.getElementById('modal-display-order-id');
     const modalEl = document.getElementById('courierAssignModal');
+    const selectEl = modalEl.querySelector('select[name="courier_id"]');
     
     if (inputEl) inputEl.value = orderId;
     if (displayEl) displayEl.innerText = "#" + orderId;
+    
+    if (selectEl) {
+        selectEl.innerHTML = '<option value="" hidden>Kurye durumları güncelleniyor...</option>';
+        
+        fetch('/api/get_couriers')
+            .then(res => res.json())
+            .then(data => {
+                let options = '<option value="" hidden>Atanacak Kuryeyi Seçin...</option>';
+                if(data.success && data.couriers) {
+                    data.couriers.forEach(c => {
+                        const isOffline = (c.is_online === 0 || c.is_online === false);
+                        options += `<option value="${c.courier_id}" ${isOffline ? 'disabled' : ''}>
+                            ${c.name} ${isOffline ? '(🔴 Molada)' : ' (🟢 Müsait)'}
+                        </option>`;
+                    });
+                }
+                selectEl.innerHTML = options;
+            })
+            .catch(err => {
+                selectEl.innerHTML = '<option value="" hidden>Hata oluştu, sayfayı yenileyin.</option>';
+            });
+    }
+
     if (modalEl) modalEl.style.display = 'flex';
 }
 

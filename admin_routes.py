@@ -73,9 +73,9 @@ def approve_application(app_id):
         mail_sent = send_approval_email(app_data['email'], app_data['restaurant_name'], raw_password)
         
         if mail_sent:
-            flash(f"✅ {app_data['restaurant_name']} onaylandı ve giriş şifresi e-posta adresine başarıyla gönderildi!", "success")
+            flash(f"<i class='ph-bold ph-check-circle'></i> {app_data['restaurant_name']} onaylandı ve giriş şifresi e-posta adresine başarıyla gönderildi!", "success")
         else:
-            flash(f"✅ {app_data['restaurant_name']} onaylandı ANCAK e-posta gönderilemedi. Lütfen şifreyi manuel iletin: {raw_password}", "warning")
+            flash(f"<i class='ph-bold ph-check-circle'></i> {app_data['restaurant_name']} onaylandı ANCAK e-posta gönderilemedi. Lütfen şifreyi manuel iletin: {raw_password}", "warning")
         
     except Error as e:
         connection.rollback()
@@ -99,14 +99,11 @@ def reject_application(app_id):
 
     try:
         cursor = connection.cursor()
-        
-        # Başvuruyu veritabanından tamamen silmek için DELETE kullanıyoruz.
-        # (Eğer veritabanında log olarak tutmak istersen DELETE yerine 
-        # "UPDATE restaurant_applications SET status = 'rejected' WHERE application_id = %s" kullanabilirsin)
+
         cursor.execute("DELETE FROM restaurant_applications WHERE application_id = %s", (app_id,))
         connection.commit()
         
-        flash("❌ İş ortağı başvurusu reddedildi ve sistemden silindi.", "success")
+        flash("<i class='ph-bold ph-x-circle'></i> İş ortağı başvurusu reddedildi ve sistemden silindi.", "success")
         
     except Error as e:
         connection.rollback()

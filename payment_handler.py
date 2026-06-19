@@ -133,11 +133,10 @@ def payment_callback():
 
                 connection.commit()
                 
-                # Bazı tarayıcılarda kalmış olabilecek çerezleri temizle
                 session.pop('cart', None)
                 session.pop('current_order_id', None)
                 
-                flash("Ödemeniz başarıyla alındı! Siparişiniz restoranın ekranına düştü. 🍕", "success")
+                flash("Ödemeniz başarıyla alındı! Siparişiniz restoranın ekranına düştü. <i class='ph-bold ph-pizza'></i>", "success")
                 return redirect(url_for('customer_orders'))
                 
             except Exception as e:

@@ -129,7 +129,6 @@ def order_action():
                     try:
                         qty = int(qty_str)
                         if qty > 0:
-                            # 🚀 1. DEĞİŞİKLİK: Sadece fiyatı değil, yemeğin anlık adını da (custom_name veya item_name) çekiyoruz!
                             cursor.execute("""
                                 SELECT m.price, m.food_id, m.stock_quantity, 
                                        COALESCE(m.custom_name, f.item_name) AS item_name
@@ -147,11 +146,10 @@ def order_action():
                                 
                                 base_price = float(menu_item['price'])
                                 extras_price = 0
-                                choice_details = [] # Ekstraların detaylarını (isim ve fiyat) tutacağımız yeni liste
+                                choice_details = [] 
                                 
                                 if selected_choices:
                                     format_strings = ','.join(['%s'] * len(selected_choices))
-                                    # 🚀 2. DEĞİŞİKLİK: Ekstraların da sadece ID'sini değil, isim ve fiyatlarını da çekiyoruz!
                                     cursor.execute(f"SELECT choice_id, choice_name, additional_price FROM menu_option_choices WHERE choice_id IN ({format_strings})", selected_choices)
                                     choice_details = cursor.fetchall()
                                     
@@ -196,7 +194,6 @@ def order_action():
                                    order_type, table_no, customer_name, customer_phone, customer_address, courier_id, payment_method))
             final_order_id = cursor.lastrowid
 
-            # 🚀 3. DEĞİŞİKLİK: Fişe mühür (Snapshot) vurma operasyonu!
             for item in valid_items:
                 item_query = """
                     INSERT INTO order_items 
@@ -292,7 +289,6 @@ def order_action():
                 flash("Güncellenecek sipariş seçilmedi.", "warning")
                 return redirect(url_for('orders'))
 
-            # 🚀 YENİ EKLENEN BÖLÜM: ÜRÜN LİSTESİ GÜNCELLEMESİ 🚀
             cart_indices = request.form.getlist('cart_index')
             
             # Eğer JS tarafı ürünleri göndermişse (Yani Online Ödeme değilse ve ürün listesi açıksa)
@@ -461,6 +457,12 @@ def order_action():
                 flash("Lütfen yola çıkarmak için bir kurye seçin.", "warning")
                 return redirect(url_for('orders'))
 
+            cursor.execute("SELECT is_online FROM couriers WHERE courier_id = %s", (courier_id,))
+            courier_status = cursor.fetchone()
+            if courier_status and courier_status.get('is_online') == 0:
+                flash("Seçtiğiniz kurye şu anda molada! Lütfen çevrimiçi bir kurye seçin.", "danger")
+                return redirect(url_for('orders'))
+
             cursor.execute("""
                 UPDATE orders 
                 SET order_status = 'ready', courier_id = %s 
@@ -468,7 +470,7 @@ def order_action():
             """, (courier_id, assign_order_id))
             
             connection.commit()
-            flash("Kurye başarıyla atandı ve sipariş yola çıktı! 🚀", "success")
+            flash("Kurye başarıyla atandı ve sipariş yola çıktı!", "success")
 
         elif action == 'clear':
             return redirect(url_for('orders'))
@@ -490,7 +492,6 @@ def get_order_details(order_id):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     
-    # 🚀 DEĞİŞİKLİK 1: oi.menu_id sütunu eklendi
     query = """
         SELECT oi.food_id, oi.menu_id, oi.item_name_snapshot AS item_name, 
                oi.quantity, oi.unit_price, (oi.quantity * oi.unit_price) as subtotal,
@@ -502,7 +503,6 @@ def get_order_details(order_id):
     items = cursor.fetchall()
     
     for item in items:
-        # 🚀 DEĞİŞİKLİK 2: choice_id sütunu eklendi
         if item.get('cart_index'):
             cursor.execute("""
                 SELECT choice_id, choice_name_snapshot AS choice_name, choice_price_snapshot AS additional_price 
@@ -603,7 +603,6 @@ def kitchen_display():
     if connection:
         try:
             cursor = connection.cursor(dictionary=True)
-            # SADECE pending (bekliyor) ve preparing (hazırlanıyor) olan siparişleri, ESKİDEN YENİYE sırala (İlk giren ilk çıkar)
             cursor.execute("""
                 SELECT * FROM orders 
                 WHERE restaurant_id = %s AND order_status IN ('pending', 'preparing')
@@ -612,7 +611,6 @@ def kitchen_display():
             orders_list = cursor.fetchall()
 
             for order in orders_list:
-                # 🚀 SADECE SİPARİŞ TABLOSUNDAKİ MÜHÜRLÜ İSMİ ÇEKİYORUZ
                 cursor.execute("""
                     SELECT oi.*, oi.item_name_snapshot AS item_name 
                     FROM order_items oi
@@ -689,3 +687,27 @@ def kitchen_order_action():
             connection.close()
 
     return redirect(url_for('kitchen_display'))
+
+def api_get_couriers():
+    if 'logged_in' not in session:
+        return jsonify({'success': False})
+        
+    restaurant_id = session.get('restaurant_id')
+    role = session.get('role')
+    
+    connection = get_db_connection()
+    couriers = []
+    if connection:
+        try:
+            cursor = connection.cursor(dictionary=True)
+            if role == 'user' and restaurant_id:
+                cursor.execute("SELECT courier_id, name, is_online FROM couriers WHERE restaurant_id = %s", (restaurant_id,))
+            else:
+                cursor.execute("SELECT courier_id, name, is_online FROM couriers")
+            couriers = cursor.fetchall()
+        finally:
+            if connection.is_connected():
+                cursor.close()
+                connection.close()
+                
+    return jsonify({'success': True, 'couriers': couriers})

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kurye Operasyon Paneli</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; margin: 0; color: #111827; -webkit-tap-highlight-color: transparent; }
         
@@ -52,6 +53,12 @@
         .point-details .sub-text { font-size: 14px; color: #6b7280; font-weight: 500; margin-top: 2px; }
 
         .payment-info { margin-top: 20px; padding-top: 15px; border-top: 1px dashed #e5e7eb; }
+        .section-title { font-size: 12px; color: #6b7280; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 10px 0; }
+        .order-items-container { margin-top: 20px; padding-top: 15px; border-top: 1px dashed #e5e7eb; }
+        .order-items-list { list-style: none; padding: 0; margin: 0; }
+        .order-items-list li { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; font-size: 14px; color: #111827; font-weight: 600; line-height: 1.4; }
+        .order-items-list li:last-child { margin-bottom: 0; }
+        .item-qty { background: #f3f4f6; color: #4f46e5; padding: 3px 8px; border-radius: 6px; font-size: 13px; font-weight: 800; min-width: 20px; text-align: center; border: 1px solid #e0e7ff; }
         .payment-pill { display: inline-block; padding: 6px 10px; border-radius: 6px; font-size: 13px; font-weight: 700; }
         .pay-online { color: #059669; background: #dcfce3; }
         .pay-cash { color: #b45309; background: #fef3c7; }
@@ -80,6 +87,27 @@
         .empty-state svg { width: 48px; height: 48px; color: #d1d5db; margin-bottom: 15px; }
         .empty-state h3 { margin: 0 0 8px 0; color: #111827; font-size: 18px; font-weight: 800; }
         .empty-state p { margin: 0; color: #6b7280; font-size: 14px; font-weight: 500; }
+
+        .stats-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 25px; }
+        .stat-card { background: white; padding: 18px; border-radius: 16px; box-shadow: 0 4px 10px rgba(0,0,0,0.03); border: 1px solid #e5e7eb; display: flex; flex-direction: column; gap: 6px; }
+        .stat-card.full-width { grid-column: span 2; background: linear-gradient(135deg, #111827 0%, #1f2937 100%); color: white; border: none; box-shadow: 0 8px 15px rgba(17, 24, 39, 0.2); }
+        .stat-card .stat-title { font-size: 12px; color: #6b7280; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-card.full-width .stat-title { color: #9ca3af; }
+        .stat-card .stat-value { font-size: 20px; font-weight: 800; color: #111827; }
+        .stat-card.full-width .stat-value { color: #10b981; font-size: 30px; letter-spacing: -0.5px; }
+
+        .status-toggle { border: none; padding: 10px 14px; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
+        .status-toggle.online { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .status-toggle.offline { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .status-toggle:active { transform: scale(0.95); }
+
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 4px; }
+        .status-dot.online { background-color: #10b981; box-shadow: 0 0 8px rgba(16, 185, 129, 0.6); animation: pulse-green 2s infinite; }
+        .status-dot.offline { background-color: #ef4444; }
+        @keyframes pulse-green { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); } 70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
+        
+        .action-btn { display: flex; justify-content: center; align-items: center; gap: 8px; }
+        .section-title { display: flex; align-items: center; gap: 6px; }
     </style>
 </head>
 <body>
@@ -89,7 +117,16 @@
             <h1>Kurye Paneli</h1>
             <span>{{ courier_name }}</span>
         </div>
-        <a href="{{ url_for('logout') }}" class="logout-btn">Çıkış Yap</a>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <button id="status-toggle-btn" onclick="toggleCourierStatus()" class="status-toggle {% if is_online %}online{% else %}offline{% endif %}">
+                {% if is_online %}
+                    <div class="status-dot online"></div> Çevrimiçi
+                {% else %}
+                    <div class="status-dot offline"></div> Molada
+                {% endif %}
+            </button>
+            <a href="{{ url_for('logout') }}" class="logout-btn">Çıkış Yap</a>
+        </div>
     </div>
 
     {% set ns = namespace(active_delivery='false') %}
@@ -123,6 +160,25 @@
             {% endif %}
         {% endwith %}
 
+        <div class="stats-container">
+            <div class="stat-card full-width">
+                <span class="stat-title"><i class="ph-bold ph-money"></i> Nakit Kasa</span>
+                <span class="stat-value">₺{{ "%.2f"|format(daily_stats.cash_total) }}</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-title"><i class="ph-bold ph-package"></i> Teslimat</span>
+                <span class="stat-value">{{ daily_stats.total_packages }} Paket</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-title"><i class="ph-bold ph-credit-card"></i> Online / Kart</span>
+                <span class="stat-value">₺{{ "%.2f"|format(daily_stats.online_total) }}</span>
+            </div>
+        </div>
+        
+        <h3 style="margin: 0 0 15px 0; font-size: 18px; font-weight: 800; color: #111827; display: flex; align-items: center; gap: 8px;">
+            <i class="ph-bold ph-moped" style="color: #4f46e5; font-size: 24px;"></i> Aktif Görevler
+        </h3>
+
         {% if orders %}
             {% for order in orders %}
             <div class="order-card">
@@ -154,6 +210,17 @@
                         </div>
                     </div>
                 </div>
+                
+                <div class="order-items-container">
+                    <h4 class="section-title"><i class="ph-bold ph-package"></i> Sipariş İçeriği (Poşet Kontrolü)</h4>
+                    <ul class="order-items-list">
+                        {% for item in order.products %} <li>
+                            <span class="item-qty">{{ item.quantity }}x</span> 
+                            <span class="item-name">{{ item.item_name }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
 
                 <div class="payment-info">
                     {% if order.payment_method == 'Online Payment' %}
@@ -171,7 +238,7 @@
 
                 {% if order.order_note %}
                     <div class="customer-note">
-                        <span>Müşteri Notu</span>
+                        <h4 class="section-title"><i class="ph-bold ph-note-pencil"></i> Müşteri Notu</h4>
                         {{ order.order_note }}
                     </div>
                 {% endif %}
@@ -187,16 +254,20 @@
                     </a>
                 </div>
 
-                <form action="{{ url_for('update_delivery_status') }}" method="POST" style="margin: 0;">
+                <form id="status-form-{{ order.order_id }}" action="{{ url_for('update_delivery_status') }}" method="POST" style="margin: 0;">
                     <input type="hidden" name="order_id" value="{{ order.order_id }}">
                     <input type="hidden" name="courier_id" value="{{ courier_id }}">
                     
                     {% if order.order_status == 'ready' %}
                         <input type="hidden" name="new_status" value="on_the_way">
-                        <button type="submit" class="action-btn btn-pickup">Paketi Teslim Aldım</button>
+                        <button type="button" class="action-btn btn-pickup" onclick="confirmCourierAction('{{ order.order_id }}', 'pickup')">
+                            <i class="ph-bold ph-package"></i> Paketi Teslim Aldım
+                        </button>
                     {% elif order.order_status == 'on_the_way' %}
                         <input type="hidden" name="new_status" value="delivered">
-                        <button type="submit" class="action-btn btn-deliver">Müşteriye Teslim Ettim</button>
+                        <button type="button" class="action-btn btn-deliver" onclick="confirmCourierAction('{{ order.order_id }}', 'deliver')">
+                            <i class="ph-bold ph-check-circle"></i> Müşteriye Teslim Ettim
+                        </button>
                     {% endif %}
                 </form>
             </div>
@@ -208,6 +279,17 @@
                 <p>Şu an üzerinde bir paket bulunmuyor.</p>
             </div>
         {% endif %}
+    </div>
+
+    <div id="courier-confirm-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 24, 39, 0.95); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; padding: 20px; box-sizing: border-box; text-align: center; backdrop-filter: blur(8px);">
+        <div id="confirm-icon" style="font-size: 65px; margin-bottom: 15px; animation: slideUp 0.3s ease;">📦</div>
+        <h2 id="confirm-title" style="color: white; margin: 0 0 10px 0; font-size: 24px; font-weight: 800;">Emin misiniz?</h2>
+        <p id="confirm-desc" style="color: #9ca3af; font-size: 15px; margin: 0 0 35px 0; max-width: 280px; line-height: 1.5;">Bu işlemi onaylamak üzeresiniz.</p>
+        
+        <div style="display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 320px;">
+            <button id="confirm-yes-btn" style="width: 100%; padding: 18px; border: none; border-radius: 14px; font-size: 17px; font-weight: 800; color: white; cursor: pointer; box-shadow: 0 10px 20px rgba(0,0,0,0.3);">Evet, Onaylıyorum</button>
+            <button onclick="closeCourierConfirm()" style="width: 100%; padding: 18px; border: none; border-radius: 14px; font-size: 16px; font-weight: 700; background: #374151; color: white; cursor: pointer;">Vazgeç</button>
+        </div>
     </div>
 
     <script src="{{ url_for('static', filename='js/courier_dashboard.js') }}"></script>

@@ -6,6 +6,7 @@
     <title>Sepetiniz ve Ödeme | YeSende</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/flash.css') }}">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <style>
         body { margin: 0; font-family: 'Inter', sans-serif; background-color: #f8f9fa; color: #111827; }
         
@@ -110,7 +111,7 @@
 
     <div class="container" {% if not cart %}style="grid-template-columns: 1fr; max-width: 600px;"{% endif %}>
         <div class="cart-items">
-            <h2 class="section-title">🛒 Sipariş Özeti</h2>
+            <h2 class="section-title"><i class="ph-bold ph-shopping-cart"></i> Sipariş Özeti</h2>
             
             {% if cart %}
                 {% for item in cart %}
@@ -134,14 +135,14 @@
                     <div class="item-total" style="display: flex; align-items: center; gap: 20px;">
                         <span>₺{{ "%.2f"|format(item['price'] * item['quantity']) }}</span>
                         <form action="{{ url_for('remove_from_cart', menu_id=item['menu_id']) }}" method="POST" style="margin: 0;">
-                            <button type="submit" style="background: #fee2e2; border: none; color: #ef4444; cursor: pointer; font-size: 16px; width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; transition: 0.2s;" title="Sepetten Çıkar" onmouseover="this.style.background='#fca5a5'; this.style.color='white';" onmouseout="this.style.background='#fee2e2'; this.style.color='#ef4444';">🗑️</button>
+                            <button type="submit" style="background: #fee2e2; border: none; color: #ef4444; cursor: pointer; font-size: 16px; width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; transition: 0.2s;" title="Sepetten Çıkar" onmouseover="this.style.background='#fca5a5'; this.style.color='white';" onmouseout="this.style.background='#fee2e2'; this.style.color='#ef4444';"><i class="ph-bold ph-trash"></i></button>
                         </form>
                     </div>
                 </div>
                 {% endfor %}
             {% else %}
                 <div class="empty-cart">
-                    <div style="font-size: 60px; margin-bottom: 15px;">🛒</div>
+                    <div style="font-size: 60px; margin-bottom: 15px; color: #d1d5db;"><i class="ph-fill ph-shopping-cart"></i></div>
                     <h3 style="margin: 0 0 10px 0; color: #111827;">Sepetiniz boş</h3>
                     <p style="margin: 0;">Henüz lezzetli bir şeyler eklememişsiniz gibi görünüyor.</p>
                     <a href="/" style="display: inline-block; margin-top: 20px; background: #4f46e5; color: white; padding: 12px 24px; border-radius: 10px; text-decoration: none; font-weight: 600;">Hemen Lezzetleri Keşfet</a>
@@ -151,12 +152,12 @@
 
         {% if cart %}
         <div class="checkout-box">
-            <h2 class="section-title">📦 Teslimat Detayları</h2>
+            <h2 class="section-title"><i class="ph-bold ph-package"></i> Teslimat Detayları</h2>
             
             {% if active_address %}
             <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 25px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                    <strong style="font-size: 16px; color: #1f2937;">📍 {{ active_address.title }}</strong>
+                    <strong style="font-size: 16px; color: #1f2937;"><i class="ph-bold ph-map-pin"></i> {{ active_address.title }}</strong>
                     <a href="/" style="font-size: 13px; color: #4f46e5; text-decoration: none; font-weight: 700; background: #e0e7ff; padding: 4px 10px; border-radius: 6px;">Değiştir</a>
                 </div>
                 <p style="margin: 0 0 10px 0; font-size: 14px; color: #4b5563; line-height: 1.5;">
@@ -166,13 +167,13 @@
                     {{ active_address.district }}/{{ active_address.city }}
                 </p>
                 <div style="font-size: 13px; color: #6b7280; display: flex; gap: 15px; margin-top: 15px; border-top: 1px dashed #d1d5db; padding-top: 15px; font-weight: 500;">
-                    <span style="display: flex; align-items: center; gap: 5px;">👤 {{ active_address.contact_name }}</span>
-                    <span style="display: flex; align-items: center; gap: 5px;">📞 {{ active_address.contact_phone }}</span>
+                    <span style="display: flex; align-items: center; gap: 5px;"><i class="ph-bold ph-user"></i> {{ active_address.contact_name }}</span>
+                    <span style="display: flex; align-items: center; gap: 5px;"><i class="ph-bold ph-phone"></i> {{ active_address.contact_phone }}</span>
                 </div>
             </div>
             {% else %}
             <div style="background: #fee2e2; border: 1px solid #f87171; border-radius: 12px; padding: 20px; margin-bottom: 25px; color: #991b1b; text-align: center;">
-                <p style="margin: 0; font-weight: 600; font-size: 15px;">⚠️ Teslimat adresi seçilmedi.</p>
+                <p style="margin: 0; font-weight: 600; font-size: 15px;"><i class="ph-bold ph-warning"></i> Teslimat adresi seçilmedi.</p>
                 <a href="/" style="display: inline-block; margin-top: 12px; background: #ef4444; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: 700; box-shadow: 0 2px 4px rgba(239,68,68,0.3);">Adres Seçmek İçin Dön</a>
             </div>
             {% endif %}
@@ -205,7 +206,7 @@
                 </div>
                 
                 <div class="summary-row" id="ui_discount_row" style="display: none; color: #10b981; font-weight: 700;">
-                    <span>🎟️ İndirim (Kupon)</span>
+                    <span><i class="ph-bold ph-ticket"></i> İndirim (Kupon)</span>
                     <span>-₺<span id="ui_discount_amount">0.00</span></span>
                 </div>
                 
@@ -229,7 +230,7 @@
 
                 {% if min_order_amount > 0 and missing_amount > 0 and cart %}
                     <div style="background: #fee2e2; color: #991b1b; padding: 14px; border-radius: 10px; font-size: 14px; font-weight: 700; margin: 20px 0; border: 1px solid #f87171; text-align: center;">
-                        ⚠️ Siparişi tamamlamak için ₺{{"%.2f"|format(missing_amount)}} tutarında daha ürün eklemelisiniz.
+                        <i class="ph-bold ph-warning"></i> Siparişi tamamlamak için ₺{{"%.2f"|format(missing_amount)}} tutarında daha ürün eklemelisiniz.
                     </div>
                 {% endif %}
 

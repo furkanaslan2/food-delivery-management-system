@@ -513,7 +513,7 @@ def checkout():
                     return redirect(url_for('checkout_payment')) 
                 else:
                     session.pop('cart', None) 
-                    flash("🎉 Siparişiniz başarıyla alındı! Restoran hazırlanıyor.", "success")
+                    flash("<i class='ph-bold ph-confetti'></i> Siparişiniz başarıyla alındı! Restoran hazırlanıyor.", "success")
                     return redirect(url_for('index'))
 
             except Exception as e:
@@ -658,7 +658,7 @@ def submit_review():
                 cursor.execute(update_query, (new_rating, new_rating_count, restaurant_id))
                 
                 connection.commit()
-                flash("Değerlendirmeniz başarıyla kaydedildi! 🌟", "success")
+                flash("Değerlendirmeniz başarıyla kaydedildi! <i class='ph-bold ph-star'></i>", "success")
                 
             except Error as e:
                 connection.rollback()
@@ -1449,7 +1449,7 @@ def ask_ai():
                 if not isinstance(choices, list): choices = []
                 note = str(action_data.get('note', '')).strip()
                 if not note:
-                    note = "Yapay Zeka Asistanı Ekledi 🤖"
+                    note = "Yapay Zeka Asistanı Ekledi <i class='ph-bold ph-robot'></i>"
                 
                 conn = get_db_connection()
                 cursor = conn.cursor(dictionary=True)
@@ -1500,7 +1500,7 @@ def ask_ai():
                         })
                     session.modified = True
                     
-                    success_msg = f"Talebiniz üzerine **{qty} adet {food_name}** sepetinize eklendi! Başka bir arzunuz var mı? 😋"
+                    success_msg = f"Talebiniz üzerine **{qty} adet {food_name}** sepetinize eklendi! Başka bir arzunuz var mı? <i class='ph-bold ph-smiley'></i>"
                     if cart_cleared:
                         success_msg += "\n*(Farklı bir restorandan ürün seçtiğiniz için önceki sepetiniz temizlendi.)*"
                         
@@ -1535,7 +1535,7 @@ def ask_ai():
         
     except Exception as e:
         print("Gemini İletişim Hatası:", e)
-        error_text = 'Şu an mutfakta biraz yoğunum, lütfen birazdan tekrar dener misin? 🧑‍🍳'
+        error_text = 'Şu an mutfakta biraz yoğunum, lütfen birazdan tekrar dener misin? <i class=\'ph-bold ph-chef-hat\'></i>'
         return jsonify({'success': False, 'response': error_text, 'message': error_text})
     
 def api_get_courier_location():

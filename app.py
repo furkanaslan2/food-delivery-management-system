@@ -8,11 +8,11 @@ from users import users, user_action
 from restaurants import restaurants, restaurant_action, restaurant_analytics, restaurant_profile, restaurant_reviews, reply_review, delete_restaurant_account, toggle_store_status
 from couriers import couriers, courier_action, api_check_courier_orders
 from menus import menus, menus_action, manage_menu_options, upload_menu_image, manage_promos
-from orders import orders, order_action, get_order_details, get_restaurant_details, api_check_new_orders, kitchen_display, kitchen_order_action
+from orders import orders, order_action, get_order_details, get_restaurant_details, api_check_new_orders, kitchen_display, kitchen_order_action, api_get_couriers
 from foods import foods, food_action
 from waiters import waiter_dashboard, waiter_create_order, waiters, waiter_action, waiter_close_bill, waiter_receipt
 from customer import view_restaurant, add_to_cart, view_cart, checkout, customer_orders, set_location, remove_from_cart, increase_cart_item, decrease_cart_item, submit_review, get_active_order_status, toggle_favorite, view_favorites, get_addresses, add_address, select_address, update_address, cancel_order, apply_promo, ask_ai, api_reorder,api_restaurant_statuses, api_get_courier_location
-from courier_panel import courier_dashboard, update_delivery_status, api_update_courier_location
+from courier_panel import courier_dashboard, update_delivery_status, api_update_courier_location,api_toggle_courier_status
 from payment_handler import checkout_payment, payment_callback
 from profile_settings import view_profile, update_profile
 from admin_routes import partner_applications, approve_application, reject_application
@@ -110,6 +110,8 @@ app.add_url_rule('/delete_restaurant_account', 'delete_restaurant_account', dele
 app.add_url_rule('/api/toggle_store_status', view_func=toggle_store_status, methods=['GET', 'POST'])
 app.add_url_rule('/api/notifications', view_func=api_global_notifications)
 app.add_url_rule('/api/check_email', view_func=check_email_availability, methods=['POST'])
+app.add_url_rule('/api/toggle_courier_status', view_func=api_toggle_courier_status, methods=['POST'])
+app.add_url_rule('/api/get_couriers', view_func=api_get_couriers, methods=['GET'])
 
 
 if __name__ == '__main__':
