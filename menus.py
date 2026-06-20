@@ -3,6 +3,7 @@ from db import get_db_connection
 from mysql.connector import Error
 import os
 from werkzeug.utils import secure_filename
+from PIL import Image
 
 def menus():
     if not session.get('logged_in'):
@@ -107,13 +108,23 @@ def menus_action():
                 return redirect(url_for('menus'))
 
             try:
-                # GÖRSEL YÜKLEME İŞLEMİ
                 if image_file and image_file.filename != '':
+                    ext = image_file.filename.rsplit('.', 1)[-1].lower()
+                    if ext not in ['jpg', 'jpeg', 'png', 'webp']:
+                        flash("Hata: Sadece JPG, PNG ve WEBP formatları yüklenebilir!", "danger")
+                        return redirect(url_for('menus'))
+
                     filename = secure_filename(image_file.filename)
                     upload_folder = os.path.join('static', 'images', 'menus')
                     os.makedirs(upload_folder, exist_ok=True) 
                     file_path = os.path.join(upload_folder, filename)
-                    image_file.save(file_path)
+                    
+                    img = Image.open(image_file)
+                    img.thumbnail((600, 600)) 
+                    if img.mode != 'RGB' and ext != 'png':
+                        img = img.convert('RGB')
+                    img.save(file_path, optimize=True, quality=80)
+                    
                     image_url = filename
 
                 cursor.execute("SELECT COUNT(*) as count FROM restaurants WHERE restaurant_id = %s", (restaurant_id,))
@@ -262,11 +273,21 @@ def menus_action():
                 params = [food_id, category_id, custom_name, price, restaurant_id, stock_quantity]
 
                 if image_file and image_file.filename != '':
+                    ext = image_file.filename.rsplit('.', 1)[-1].lower()
+                    if ext not in ['jpg', 'jpeg', 'png', 'webp']:
+                        flash("Hata: Sadece JPG, PNG ve WEBP formatları yüklenebilir!", "danger")
+                        return redirect(url_for('menus'))
+
                     filename = secure_filename(image_file.filename)
                     upload_folder = os.path.join('static', 'images', 'menus')
                     os.makedirs(upload_folder, exist_ok=True) 
                     file_path = os.path.join(upload_folder, filename)
-                    image_file.save(file_path)
+                    
+                    img = Image.open(image_file)
+                    img.thumbnail((600, 600))
+                    if img.mode != 'RGB' and ext != 'png':
+                        img = img.convert('RGB')
+                    img.save(file_path, optimize=True, quality=80)
                     
                     update_query += ", image_url = %s"
                     params.append(filename)
@@ -545,9 +566,17 @@ def upload_menu_image():
         os.makedirs(upload_folder, exist_ok=True)
         
         filepath = os.path.join(upload_folder, filename)
-        file.save(filepath)
+        
+        ext = filename.rsplit('.', 1)[-1].lower()
+        if ext not in ['jpg', 'jpeg', 'png', 'webp']:
+            return jsonify({'success': False, 'message': 'Sadece JPG, PNG veya WEBP!'}), 400
+            
+        img = Image.open(file)
+        img.thumbnail((600, 600))
+        if img.mode != 'RGB' and ext != 'png':
+            img = img.convert('RGB')
+        img.save(filepath, optimize=True, quality=80)
 
-        # Veritabanını güncelle
         connection = get_db_connection()
         if connection:
             try:

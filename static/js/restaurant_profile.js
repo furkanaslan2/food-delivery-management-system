@@ -5,22 +5,38 @@
 document.addEventListener("DOMContentLoaded", function() {
     
     // ----------------------------------------------------
-    // 1. FOTOĞRAF YÜKLEME ÖNİZLEMESİ
+    // 1. FOTOĞRAF YÜKLEME VE GÜVENLİK KONTROLÜ
     // ----------------------------------------------------
     const imageInput = document.querySelector('input[name="restaurant_image"]');
     if (imageInput) {
         imageInput.addEventListener('change', function(event) {
             const file = event.target.files[0];
-            if (file && file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const previewContainer = document.querySelector('.image-preview');
-                    if (previewContainer) {
-                        previewContainer.innerHTML = `<img src="${e.target.result}" alt="Yeni Kapak">`;
-                    }
-                }
-                reader.readAsDataURL(file);
+            if (!file) return;
+
+            const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+            if (!validTypes.includes(file.type)) {
+                if (typeof window.showToast === 'function') window.showToast("Sadece JPG, PNG veya WEBP formatında resim yükleyebilirsiniz.", "error");
+                else alert("Sadece JPG, PNG veya WEBP formatında resim yükleyebilirsiniz.");
+                this.value = ''; 
+                return;
             }
+
+            const maxSizeInBytes = 3 * 1024 * 1024; 
+            if (file.size > maxSizeInBytes) {
+                if (typeof window.showToast === 'function') window.showToast("Fotoğraf boyutu 3 MB'dan küçük olmalıdır. Lütfen görseli küçültüp tekrar deneyin.", "error");
+                else alert("Fotoğraf boyutu 3 MB'dan küçük olmalıdır. Lütfen görseli küçültüp tekrar deneyin.");
+                this.value = ''; 
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const previewContainer = document.querySelector('.image-preview');
+                if (previewContainer) {
+                    previewContainer.innerHTML = `<img src="${e.target.result}" alt="Yeni Kapak">`;
+                }
+            }
+            reader.readAsDataURL(file);
         });
     }
 

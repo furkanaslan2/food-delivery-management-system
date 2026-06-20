@@ -1,19 +1,36 @@
 document.addEventListener("DOMContentLoaded", function() {
-    // 📷 FOTOĞRAF SEÇİLDİĞİNDE CANLI ÖNİZLEME YAPMA
+    // 📷 FOTOĞRAF YÜKLEME, GÜVENLİK KONTROLÜ VE CANLI ÖNİZLEME
     const fileInput = document.querySelector('input[name="menu_image"]');
-    if(fileInput) {
+    
+    if (fileInput) {
         fileInput.addEventListener('change', function(event) {
             const file = event.target.files[0];
-            if (file && file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const previewBox = document.getElementById('menu-image-preview');
-                    if(previewBox) {
-                        previewBox.innerHTML = `<img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">`;
-                    }
-                }
-                reader.readAsDataURL(file);
+            if (!file) return;
+
+            const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+            if (!validTypes.includes(file.type)) {
+                if (typeof window.showToast === 'function') window.showToast("Sadece JPG, PNG veya WEBP yükleyebilirsiniz.", "error");
+                else alert("Sadece JPG, PNG veya WEBP formatında resim yükleyebilirsiniz.");
+                this.value = ''; 
+                return;
             }
+
+            const maxSizeInBytes = 3 * 1024 * 1024; 
+            if (file.size > maxSizeInBytes) {
+                if (typeof window.showToast === 'function') window.showToast("Yemek fotoğrafı 3 MB'dan küçük olmalıdır. Lütfen görseli küçültüp tekrar deneyin.", "error");
+                else alert("Yemek fotoğrafı 3 MB'dan küçük olmalıdır. Lütfen görseli küçültüp tekrar deneyin.");
+                this.value = ''; 
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const previewBox = document.getElementById('menu-image-preview');
+                if (previewBox) {
+                    previewBox.innerHTML = `<img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px; animation: fadeIn 0.3s ease;">`;
+                }
+            }
+            reader.readAsDataURL(file);
         });
     }
 });

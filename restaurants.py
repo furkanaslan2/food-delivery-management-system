@@ -4,6 +4,7 @@ from mysql.connector import Error
 import json
 import os
 from werkzeug.utils import secure_filename
+from PIL import Image
 
 def restaurants():
     if not session.get('logged_in'):
@@ -340,16 +341,40 @@ def restaurant_profile():
                 """
                 params = [name, cuisine, city, table_count, opening_time, closing_time, min_order_amount, latitude, longitude, restaurant_address] 
                 
-                # Resim yüklenmişse sorguya ekle
+                # Resim yüklenmişse güvenlik ve optimizasyon kontrolü yap
                 if image_file and image_file.filename != '':
+                    # 1. Uzantı Kontrolü (Güvenlik Duvarı)
+                    ext = image_file.filename.rsplit('.', 1)[-1].lower()
+                    if ext not in ['jpg', 'jpeg', 'png', 'webp']:
+                        flash("Hata: Sadece JPG, PNG ve WEBP formatları yüklenebilir!", "danger")
+                        return redirect(url_for('restaurant_profile'))
+
                     filename = secure_filename(image_file.filename)
                     upload_folder = os.path.join('static', 'images', 'restaurants')
                     os.makedirs(upload_folder, exist_ok=True) 
                     file_path = os.path.join(upload_folder, filename)
-                    image_file.save(file_path)
                     
-                    update_query += ", image_url = %s"
-                    params.append(filename)
+                    # 🚀 YENİ: Pillow (PIL) ile Görsel Sıkıştırma ve Optimizasyon
+                    try:
+                        img = Image.open(image_file)
+                        
+                        # Eğer fotoğraf çok büyükse maksimum 800x800 olacak şekilde orantılı küçült
+                        img.thumbnail((800, 800))
+                        
+                        # Bazı PNG'lerde şeffaflık (Alpha) kanalı vardır, JPG'ye uyumlu hale getirmek için RGB'ye çevir
+                        if img.mode != 'RGB' and ext != 'png':
+                            img = img.convert('RGB')
+                            
+                        # Dosyayı optimize ederek (boyutunu ufaltarak) %80 kaliteyle kaydet
+                        img.save(file_path, optimize=True, quality=80)
+                        
+                        update_query += ", image_url = %s"
+                        params.append(filename)
+                        
+                    except Exception as e:
+                        print(f"Görsel işleme hatası: {e}")
+                        flash("Fotoğraf işlenirken teknik bir hata oluştu, lütfen başka bir fotoğraf deneyin.", "danger")
+                        return redirect(url_for('restaurant_profile'))
                 
                 update_query += " WHERE restaurant_id = %s"
                 params.append(restaurant_id)

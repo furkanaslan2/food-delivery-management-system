@@ -9,7 +9,8 @@
 | `pip install flask-session`          | Enables server-side session management.                                         |
 | `pip install python-dotenv`          | Reads key-value pairs from a .env file and sets them as environment variables.  |
 | `pip install iyzipay`                |                                                                                 |
-| `pip install google-genai python-dotenv`                |                                                                                 |
+| `pip install google-genai python-dotenv`                                                                               |
+| `pip install Pillow`                                                                                                   |
 
 ### Environment Variables (.env) Setup
 
