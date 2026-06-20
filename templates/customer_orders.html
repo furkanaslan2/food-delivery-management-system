@@ -135,7 +135,7 @@
                     {% if cart_price.total > 0 %}
                         <span id="nav-cart-total" data-total="{{ cart_price.total }}" 
                               style="font-size: 12px; font-weight: 800; color: #10b981; background: #ecfdf5; padding: 2px 10px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: transform 0.3s; display: inline-block;">
-                            ₺{{ "%.2f"|format(cart_price.total) }}
+                            ₺{{ cart_price.total | format_price }}
                         </span>
                     {% else %}
                         <span id="nav-cart-total" data-total="0" 
@@ -200,7 +200,7 @@
                             <span class="item-qty">{{ item['quantity'] }}x</span> 
                             <span>{{ item['custom_name'] or item['item_name'] }}</span>
                         </div>
-                        <span style="font-weight: 800;">₺{{ "%.2f"|format(item['unit_price'] * item['quantity']) }}</span>
+                        <span style="font-weight: 800;">₺{{ (item['unit_price'] * item['quantity']) | format_price }}</span>
                     </div>
                     {% else %}
                         <div class="item-row"><span style="color:#9ca3af; font-style:italic;">Sipariş detayı bulunamadı.</span></div>
@@ -210,7 +210,7 @@
                 <div class="order-footer">
                     <div style="display: flex; flex-direction: column;">
                         <span style="color: #6b7280; font-weight: 600; font-size: 13px; margin-bottom: 2px;">Toplam Tutar</span>
-                        <span class="total-price" style="font-size: 22px;">₺{{ "%.2f"|format(order['sales_amount']) }}</span>
+                        <span class="total-price" style="font-size: 22px;">₺{{ order['sales_amount'] | format_price }}</span>
                     </div>
                     <div style="display: flex; align-items: center; gap: 15px;">
                         

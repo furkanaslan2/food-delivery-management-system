@@ -128,12 +128,12 @@
                         </div>
                         <div>
                             <p class="item-name">{{ item['food_name'] }}</p>
-                            <p class="item-price">Adet: ₺{{ item['price'] }}</p>
+                            <p class="item-price">Adet: ₺{{ item['price'] | format_price }}</p>
                         </div>
                     </div>
 
                     <div class="item-total" style="display: flex; align-items: center; gap: 20px;">
-                        <span>₺{{ "%.2f"|format(item['price'] * item['quantity']) }}</span>
+                        <span>₺{{ (item['price'] * item['quantity']) | format_price }}</span>
                         <form action="{{ url_for('remove_from_cart', menu_id=item['menu_id']) }}" method="POST" style="margin: 0;">
                             <button type="submit" style="background: #fee2e2; border: none; color: #ef4444; cursor: pointer; font-size: 16px; width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; transition: 0.2s;" title="Sepetten Çıkar" onmouseover="this.style.background='#fca5a5'; this.style.color='white';" onmouseout="this.style.background='#fee2e2'; this.style.color='#ef4444';"><i class="ph-bold ph-trash"></i></button>
                         </form>
@@ -215,7 +215,7 @@
                 {% if min_order_amount > 0 %}
                 <div class="summary-row" style="font-weight: 600; color: #6b7280;">
                     <span>Minimum Sipariş Tutarı</span>
-                    <span>₺{{ "%.2f"|format(min_order_amount) }}</span>
+                    <span>₺{{ min_order_amount | format_price }}</span>
                 </div>
                 {% endif %}
 
@@ -225,12 +225,12 @@
                 </div>
                 <div class="summary-total">
                     <span>Toplam Ödenecek</span>
-                    <span>₺{{ "%.2f"|format(total_amount) }}</span>
+                    <span>₺{{ total_amount | format_price }}</span>
                 </div>
 
                 {% if min_order_amount > 0 and missing_amount > 0 and cart %}
                     <div style="background: #fee2e2; color: #991b1b; padding: 14px; border-radius: 10px; font-size: 14px; font-weight: 700; margin: 20px 0; border: 1px solid #f87171; text-align: center;">
-                        <i class="ph-bold ph-warning"></i> Siparişi tamamlamak için ₺{{"%.2f"|format(missing_amount)}} tutarında daha ürün eklemelisiniz.
+                        <i class="ph-bold ph-warning"></i> Siparişi tamamlamak için ₺{{ missing_amount | format_price }} tutarında daha ürün eklemelisiniz.
                     </div>
                 {% endif %}
 

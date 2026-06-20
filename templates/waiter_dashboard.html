@@ -151,7 +151,7 @@
                     <div class="menu-card {{ 'sold-out' if is_sold_out else '' }}" onclick="openPosModal('{{ menu.menu_id }}', '{{ safe_name }}', '{{ menu.price }}')">
                         {% if is_sold_out %}<div class="sold-out-badge">Tükendi</div>{% endif %}
                         <h3 class="menu-name">{{ menu.custom_name or menu.item_name }}</h3>
-                        <p class="menu-price">₺{{ menu.price }}</p>
+                        <p class="menu-price">₺{{ menu.price | format_price }}</p>
                         <div class="menu-add-icon"><i class="ph-bold ph-plus"></i></div>
                     </div>
                     {% else %}

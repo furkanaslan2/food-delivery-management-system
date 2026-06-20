@@ -43,7 +43,6 @@ function openRestaurantModal(isUpdate = false, id = '', userid = '', name = '', 
         // Form alanlarını doldur
         document.getElementById('restaurant-name-input').value = name;
         document.getElementById('restaurant-city').value = city;
-        document.getElementById('restaurant-address').value = address;
         document.getElementById('restaurant-cuisine').value = cuisine;
         document.getElementById('restaurant-table-count').value = tables;
     } else {
@@ -75,9 +74,7 @@ document.addEventListener("DOMContentLoaded", function() {
             const city = document.getElementById('restaurant-city').value.trim();
             const cuisine = document.getElementById('restaurant-cuisine').value;
             const tables = document.getElementById('restaurant-table-count').value.trim();
-            const address = document.getElementById('restaurant-address').value.trim();
 
-            // Admin ekranındaysa User ID kontrolü yap (Hidden değilse ekranda demektir)
             if (userIdInput && userIdInput.type !== "hidden") {
                 const userId = userIdInput.value.trim();
                 if (!userId || parseInt(userId) <= 0) {
@@ -98,12 +95,8 @@ document.addEventListener("DOMContentLoaded", function() {
             } else if (!hasError && (!tables || parseInt(tables) < 1)) {
                 hasError = true;
                 errorMessage = "Lütfen geçerli bir masa kapasitesi girin (en az 1 olmalıdır).";
-            } else if (!hasError && !address) {
-                hasError = true;
-                errorMessage = "Lütfen restoranın tam adresini girin.";
             }
-
-            // ❌ HATA VARSA: Formu durdur ve şık bildirim (Toast) göster
+        
             if (hasError) {
                 e.preventDefault();
                 if (typeof window.showToast === 'function') {

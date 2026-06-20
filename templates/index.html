@@ -331,7 +331,7 @@
                             Masa: {{ order.table_no or '-' }}
                         {% endif %}
                     </td>
-                    <td style="padding: 15px 20px; font-weight: 700; color: #059669;">₺{{ order.sales_amount }}</td>
+                    <td style="padding: 15px 20px; font-weight: 700; color: #059669;">₺{{ order.sales_amount | format_price }}</td>
                     <td style="padding: 15px 20px;">
                         <span class="status-badge status-{{ order.order_status }}">
                             {% if order.order_status == 'pending' %}Onay Bekliyor

@@ -49,16 +49,21 @@ def view_restaurant(restaurant_id):
                         
                 restaurant['is_open'] = is_open
 
+            # 🚀 YENİ MİMARİ: Müşteri tarafında restoranın özel kategorilerini ve sıralamasını çekiyoruz
             cursor.execute("""
-                SELECT m.*, f.item_name AS food_name, f.category AS category 
+                SELECT m.*, f.item_name AS food_name, f.category AS global_category,
+                       rc.category_name, rc.sort_order
                 FROM menus m
                 JOIN foods f ON m.food_id = f.food_id
+                LEFT JOIN restaurant_categories rc ON m.category_id = rc.category_id
                 WHERE m.restaurant_id = %s AND m.stock_quantity > 0
+                ORDER BY rc.sort_order ASC, COALESCE(m.custom_name, f.item_name) ASC
             """, (restaurant_id,))
             menu_items = cursor.fetchall()
             
+            # 🚀 YENİ GRUPLAMA: Artık global kategori değil, özel kategori kullanıyoruz
             for item in menu_items:
-                cat = item.get('category') or 'Diğer' 
+                cat = item.get('category_name') or 'Diğer Lezzetler' 
                 if cat not in grouped_menus:
                     grouped_menus[cat] = []
                 grouped_menus[cat].append(item)

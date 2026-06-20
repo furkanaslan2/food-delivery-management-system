@@ -134,7 +134,6 @@
         <thead>
             <tr>
                 <th>Restoran Adı</th>
-                <th>Konum / Adres</th>
                 <th>Mutfak</th>
                 <th>Masa Kapasitesi</th>
                 <th>Puan</th>
@@ -147,13 +146,7 @@
             <tr>
                 <td style="font-weight: 600; font-size: 15px; color: #111827;">
                     {{ restaurant['restaurant_name'] }}
-                </td>
-                <td>
-                    <div style="font-weight: 600;">{{ restaurant['city'] }}</div>
-                    <div style="font-size: 12px; color: #6b7280; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                        {{ restaurant['restaurant_address'] }}
-                    </div>
-                </td>
+                </td>            
                 <td>
                     <span style="background-color: #f3f4f6; color: #4b5563; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600;">
                         {{ restaurant['cuisine'] or 'Belirtilmedi' }}
@@ -169,7 +162,7 @@
                 </td>
                 <td>
                     <div style="font-size: 13px; font-weight: 700; color: #4b5563;">
-                        {{ restaurant['rating_count'] }} <span style="font-size: 11px; font-weight: 500; color: #9ca3af;">Değerlendirme</span>
+                        {{ restaurant['rating_count'] }}
                     </div>
                 </td>
                 <td style="text-align: center; vertical-align: middle;">
@@ -241,7 +234,90 @@
             <div style="display: flex; gap: 15px; margin-bottom: 15px;">
                 <div style="flex: 1;">
                     <label style="font-size: 13px; font-weight: 600; color: #374151;">Şehir</label>
-                    <input type="text" id="restaurant-city" name="city" class="form-input">
+                    <select id="restaurant-city" name="city" class="form-input" style="background-color: white; cursor: pointer;">
+                        <option value="" hidden>Şehir Seçiniz...</option>
+                        <option value="Adana">Adana</option>
+                        <option value="Adıyaman">Adıyaman</option>
+                        <option value="Afyonkarahisar">Afyonkarahisar</option>
+                        <option value="Ağrı">Ağrı</option>
+                        <option value="Amasya">Amasya</option>
+                        <option value="Ankara">Ankara</option>
+                        <option value="Antalya">Antalya</option>
+                        <option value="Artvin">Artvin</option>
+                        <option value="Aydın">Aydın</option>
+                        <option value="Balıkesir">Balıkesir</option>
+                        <option value="Bilecik">Bilecik</option>
+                        <option value="Bingöl">Bingöl</option>
+                        <option value="Bitlis">Bitlis</option>
+                        <option value="Bolu">Bolu</option>
+                        <option value="Burdur">Burdur</option>
+                        <option value="Bursa">Bursa</option>
+                        <option value="Çanakkale">Çanakkale</option>
+                        <option value="Çankırı">Çankırı</option>
+                        <option value="Çorum">Çorum</option>
+                        <option value="Denizli">Denizli</option>
+                        <option value="Diyarbakır">Diyarbakır</option>
+                        <option value="Edirne">Edirne</option>
+                        <option value="Elazığ">Elazığ</option>
+                        <option value="Erzincan">Erzincan</option>
+                        <option value="Erzurum">Erzurum</option>
+                        <option value="Eskişehir">Eskişehir</option>
+                        <option value="Gaziantep">Gaziantep</option>
+                        <option value="Giresun">Giresun</option>
+                        <option value="Gümüşhane">Gümüşhane</option>
+                        <option value="Hakkari">Hakkari</option>
+                        <option value="Hatay">Hatay</option>
+                        <option value="Isparta">Isparta</option>
+                        <option value="Mersin">Mersin</option>
+                        <option value="İstanbul">İstanbul</option>
+                        <option value="İzmir">İzmir</option>
+                        <option value="Kars">Kars</option>
+                        <option value="Kastamonu">Kastamonu</option>
+                        <option value="Kayseri">Kayseri</option>
+                        <option value="Kırklareli">Kırklareli</option>
+                        <option value="Kırşehir">Kırşehir</option>
+                        <option value="Kocaeli">Kocaeli</option>
+                        <option value="Konya">Konya</option>
+                        <option value="Kütahya">Kütahya</option>
+                        <option value="Malatya">Malatya</option>
+                        <option value="Manisa">Manisa</option>
+                        <option value="Kahramanmaraş">Kahramanmaraş</option>
+                        <option value="Mardin">Mardin</option>
+                        <option value="Muğla">Muğla</option>
+                        <option value="Muş">Muş</option>
+                        <option value="Nevşehir">Nevşehir</option>
+                        <option value="Niğde">Niğde</option>
+                        <option value="Ordu">Ordu</option>
+                        <option value="Rize">Rize</option>
+                        <option value="Sakarya">Sakarya</option>
+                        <option value="Samsun">Samsun</option>
+                        <option value="Siirt">Siirt</option>
+                        <option value="Sinop">Sinop</option>
+                        <option value="Sivas">Sivas</option>
+                        <option value="Tekirdağ">Tekirdağ</option>
+                        <option value="Tokat">Tokat</option>
+                        <option value="Trabzon">Trabzon</option>
+                        <option value="Tunceli">Tunceli</option>
+                        <option value="Şanlıurfa">Şanlıurfa</option>
+                        <option value="Uşak">Uşak</option>
+                        <option value="Van">Van</option>
+                        <option value="Yozgat">Yozgat</option>
+                        <option value="Zonguldak">Zonguldak</option>
+                        <option value="Aksaray">Aksaray</option>
+                        <option value="Bayburt">Bayburt</option>
+                        <option value="Karaman">Karaman</option>
+                        <option value="Kırıkkale">Kırıkkale</option>
+                        <option value="Batman">Batman</option>
+                        <option value="Şırnak">Şırnak</option>
+                        <option value="Bartın">Bartın</option>
+                        <option value="Ardahan">Ardahan</option>
+                        <option value="Iğdır">Iğdır</option>
+                        <option value="Yalova">Yalova</option>
+                        <option value="Karabük">Karabük</option>
+                        <option value="Kilis">Kilis</option>
+                        <option value="Osmaniye">Osmaniye</option>
+                        <option value="Düzce">Düzce</option>
+                    </select>
                 </div>
                 <div style="flex: 1;">
                     <label style="font-size: 13px; font-weight: 600; color: #374151;">Mutfak Türü</label>
@@ -280,11 +356,6 @@
             <div style="margin-bottom: 15px;">
                 <label style="font-size: 13px; font-weight: 600; color: #374151;">Masa Kapasitesi</label>
                 <input type="number" id="restaurant-table-count" name="table_count" class="form-input" min="1">
-            </div>
-
-            <div style="margin-bottom: 20px;">
-                <label style="font-size: 13px; font-weight: 600; color: #374151;">Tam Adres</label>
-                <input type="text" id="restaurant-address" name="restaurant_address" class="form-input">
             </div>
 
             <div style="display: flex; gap: 10px; justify-content: flex-end; border-top: 1px solid #e5e7eb; padding-top: 15px;">

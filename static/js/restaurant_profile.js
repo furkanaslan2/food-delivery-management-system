@@ -100,14 +100,15 @@ document.addEventListener("DOMContentLoaded", function() {
             let hasError = false;
             let errorMessage = "";
 
-            // Formdaki değerleri isimleriyle (name) yakalıyoruz
             const name = document.querySelector('[name="restaurant_name"]').value.trim();
             const cuisine = document.querySelector('[name="cuisine"]').value;
+            const city = document.querySelector('[name="city"]').value.trim(); 
+            const tableCount = document.querySelector('[name="table_count"]').value.trim(); 
             const openTime = document.querySelector('[name="opening_time"]').value.trim();
             const closeTime = document.querySelector('[name="closing_time"]').value.trim();
             const minOrder = document.querySelector('[name="min_order_amount"]').value.trim();
+            const address = document.querySelector('[name="restaurant_address"]').value.trim();
             
-            // Harita koordinatlarını ID ile yakalıyoruz
             const lat = document.getElementById('latitude').value.trim();
             const lon = document.getElementById('longitude').value.trim();
 
@@ -117,6 +118,12 @@ document.addEventListener("DOMContentLoaded", function() {
             } else if (!cuisine) {
                 hasError = true;
                 errorMessage = "Lütfen mutfak türünü (Kategori) seçin.";
+            } else if (!city) {
+                hasError = true;
+                errorMessage = "Lütfen bulunduğunuz şehri girin.";
+            } else if (!tableCount || parseInt(tableCount) < 1) {
+                hasError = true;
+                errorMessage = "Lütfen geçerli bir masa kapasitesi (en az 1) girin.";
             } else if (!openTime) {
                 hasError = true;
                 errorMessage = "Lütfen restoranınızın açılış saatini belirleyin.";
@@ -126,13 +133,14 @@ document.addEventListener("DOMContentLoaded", function() {
             } else if (!minOrder || parseFloat(minOrder) < 0) {
                 hasError = true;
                 errorMessage = "Lütfen geçerli bir minimum sipariş tutarı girin (0 veya daha büyük olmalıdır).";
-            } else if (!lat || !lon) {
-                // 🚀 HARİTA KONTROLÜ: Eğer koordinatlar yoksa durdur!
+            } else if (!address) { 
                 hasError = true;
-                errorMessage = "Lütfen harita üzerinden restoranınızın tam konumunu işaretleyin. Bu, kurye sistemi için zorunludur.";
+                errorMessage = "Lütfen açık adresinizi girin.";
+            } else if (!lat || !lon) {
+                hasError = true;
+                errorMessage = "Lütfen harita üzerinden restoranınızın tam konumunu işaretleyin.";
             }
 
-            // ❌ HATA VARSA: Formu durdur ve şık bildirim (Toast) göster
             if (hasError) {
                 e.preventDefault();
                 if (typeof window.showToast === 'function') {

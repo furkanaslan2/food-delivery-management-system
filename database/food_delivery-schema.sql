@@ -17,6 +17,44 @@ CREATE TABLE users (
     PRIMARY KEY (user_id)
 );
 
+CREATE TABLE customers (
+    customer_id INT AUTO_INCREMENT,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL, 
+    phone VARCHAR(20) NULL,
+    latitude DECIMAL(10, 8) NULL,  
+    longitude DECIMAL(11, 8) NULL,  
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
+    PRIMARY KEY (customer_id)
+);
+
+CREATE TABLE foods (
+    food_id INT AUTO_INCREMENT,
+    item_name VARCHAR(255) NOT NULL,
+    category VARCHAR(50) DEFAULT 'ANA YEMEK',
+    PRIMARY KEY (food_id)
+);
+
+CREATE TABLE restaurant_applications (
+    application_id INT AUTO_INCREMENT PRIMARY KEY,
+    restaurant_name VARCHAR(255) NOT NULL,
+    contact_name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    phone VARCHAR(20) NOT NULL,
+    status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
+    applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE restaurant_categories (
+    category_id INT AUTO_INCREMENT PRIMARY KEY,
+    restaurant_id INT NOT NULL,
+    category_name VARCHAR(100) NOT NULL,
+    sort_order INT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (restaurant_id) REFERENCES restaurants(restaurant_id) ON DELETE CASCADE
+);
+
 CREATE TABLE restaurants (
     restaurant_id INT AUTO_INCREMENT,
     user_id INT,
@@ -24,7 +62,7 @@ CREATE TABLE restaurants (
     city VARCHAR(50) NOT NULL,
     rating DECIMAL(2,1),
     rating_count VARCHAR(50) DEFAULT 'Yeni',
-    cuisine ENUM('Hamburger', 'Döner', 'Pizza', 'Pide & Lahmacun', 'Çiğ Köfte', 'Tatlı', 'Sokak Lezzetleri', 'Köfte', 'Tavuk', 'Salata & Sağlık', 'Mantı & Makarna', 'Kebap', 'Tantuni', 'Ev Yemekleri', 'Tost & Sandviç', 'Kahve & İçecek', 'Pastane & Fırın', 'Çorba', 'Dünya Mutfağı & Cafe', 'Uzak Doğu', 'Balık & Deniz Ürünleri', 'Meze', 'Dondurma', 'Steak', 'Kahvaltı', 'Börek') NOT NULL,
+    cuisine ENUM('Hamburger', 'Döner', 'Pizza', 'Pide & Lahmacun', 'Çiğ Köfte', 'Tatlı', 'Sokak Lezzetleri', 'Köfte', 'Tavuk', 'Salata & Sağlık', 'Mantı & Makarna', 'Kebap', 'Tantuni', 'Ev Yemekleri', 'Tost & Sandviç', 'Kahve & İçecek', 'Pastane & Fırın', 'Çorba', 'Dünya Mutfağı & Cafe', 'Uzak Doğu', 'Balık & Deniz Ürünleri', 'Meze', 'Dondurma', 'Steak', 'Kahvaltı', 'Börek', 'Belirtilmedi') NOT NULL DEFAULT 'Belirtilmedi',
     restaurant_address TEXT NOT NULL,
     latitude DECIMAL(10, 8) NULL,   
     longitude DECIMAL(11, 8) NULL,
@@ -41,11 +79,25 @@ CREATE TABLE restaurants (
     ON UPDATE CASCADE
 );
 
-CREATE TABLE foods (
-    food_id INT AUTO_INCREMENT,
-    item_name VARCHAR(255) NOT NULL,
-    category VARCHAR(50) DEFAULT 'ANA YEMEK',
-    PRIMARY KEY (food_id)
+CREATE TABLE customer_addresses (
+    address_id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_id INT NOT NULL,
+    title VARCHAR(50) NOT NULL,            
+    city VARCHAR(50) NOT NULL,             
+    district VARCHAR(50) NOT NULL,        
+    neighborhood VARCHAR(100) NOT NULL,    
+    street VARCHAR(100) NOT NULL,         
+    building_no VARCHAR(20) NOT NULL,      
+    floor_no VARCHAR(10),                  
+    apt_no VARCHAR(20),                    
+    directions TEXT,                      
+    latitude DECIMAL(10, 8),               
+    longitude DECIMAL(11, 8),              
+    contact_name VARCHAR(100),             
+    contact_phone VARCHAR(20),             
+    is_active BOOLEAN DEFAULT FALSE,       
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (customer_id) REFERENCES customers(customer_id) ON DELETE CASCADE
 );
 
 CREATE TABLE couriers (
@@ -65,10 +117,45 @@ CREATE TABLE couriers (
     ON UPDATE CASCADE
 );
 
+CREATE TABLE waiters (
+    waiter_id INT AUTO_INCREMENT,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(150) UNIQUE NOT NULL CHECK (LENGTH(email) >= 5 AND email LIKE '%@%'),
+    password VARCHAR(255) NOT NULL,
+    restaurant_id INT NOT NULL,
+    PRIMARY KEY (waiter_id),
+    FOREIGN KEY (restaurant_id) REFERENCES restaurants(restaurant_id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+);
+
+CREATE TABLE promo_codes (
+    promo_id INT AUTO_INCREMENT PRIMARY KEY,
+    restaurant_id INT NOT NULL,
+    code_name VARCHAR(50) NOT NULL, 
+    discount_type ENUM('percentage', 'fixed') NOT NULL, 
+    discount_value DECIMAL(10, 2) NOT NULL, 
+    min_cart_amount DECIMAL(10, 2) DEFAULT 0.00, 
+    is_active BOOLEAN DEFAULT TRUE, 
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (restaurant_id) REFERENCES restaurants(restaurant_id) ON DELETE CASCADE
+);
+
+CREATE TABLE favorite_restaurants (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_id INT NOT NULL,
+    restaurant_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(customer_id, restaurant_id),
+    FOREIGN KEY (customer_id) REFERENCES customers(customer_id) ON DELETE CASCADE,
+    FOREIGN KEY (restaurant_id) REFERENCES restaurants(restaurant_id) ON DELETE CASCADE
+);
+
 CREATE TABLE menus (
     menu_id INT AUTO_INCREMENT,
     restaurant_id INT NOT NULL,
     food_id INT,
+    category_id INT NULL, 
     custom_name VARCHAR(255) NULL,
     price DECIMAL(10, 2) NOT NULL CHECK (price > 0),
     stock_quantity INT DEFAULT 0 CHECK (stock_quantity >= 0),
@@ -79,7 +166,19 @@ CREATE TABLE menus (
     ON UPDATE CASCADE,
     FOREIGN KEY (food_id) REFERENCES foods(food_id)
     ON DELETE SET NULL
+    ON UPDATE CASCADE,
+    FOREIGN KEY (category_id) REFERENCES restaurant_categories(category_id)
+    ON DELETE SET NULL
     ON UPDATE CASCADE
+);
+
+CREATE TABLE menu_options (
+    option_id INT AUTO_INCREMENT PRIMARY KEY,
+    menu_id INT NOT NULL,
+    option_name VARCHAR(255) NOT NULL,
+    is_required BOOLEAN DEFAULT FALSE, 
+    is_multiple BOOLEAN DEFAULT FALSE, 
+    FOREIGN KEY (menu_id) REFERENCES menus(menu_id) ON DELETE CASCADE
 );
 
 CREATE TABLE orders (
@@ -113,28 +212,12 @@ CREATE TABLE orders (
 	ON UPDATE CASCADE
 );
 
-CREATE TABLE waiters (
-    waiter_id INT AUTO_INCREMENT,
-    name VARCHAR(100) NOT NULL,
-    email VARCHAR(150) UNIQUE NOT NULL CHECK (LENGTH(email) >= 5 AND email LIKE '%@%'),
-    password VARCHAR(255) NOT NULL,
-    restaurant_id INT NOT NULL,
-    PRIMARY KEY (waiter_id),
-    FOREIGN KEY (restaurant_id) REFERENCES restaurants(restaurant_id)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE
-);
-
-CREATE TABLE customers (
-    customer_id INT AUTO_INCREMENT,
-    name VARCHAR(100) NOT NULL,
-    email VARCHAR(100) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL, 
-    phone VARCHAR(20) NULL,
-    latitude DECIMAL(10, 8) NULL,  
-    longitude DECIMAL(11, 8) NULL,  
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
-    PRIMARY KEY (customer_id)
+CREATE TABLE menu_option_choices (
+    choice_id INT AUTO_INCREMENT PRIMARY KEY,
+    option_id INT NOT NULL,
+    choice_name VARCHAR(255) NOT NULL,
+    additional_price DECIMAL(10, 2) DEFAULT 0.00, 
+    FOREIGN KEY (option_id) REFERENCES menu_options(option_id) ON DELETE CASCADE
 );
 
 CREATE TABLE order_items (
@@ -167,54 +250,6 @@ CREATE TABLE reviews (
     FOREIGN KEY (customer_id) REFERENCES customers(customer_id) ON DELETE CASCADE 
 );
 
-CREATE TABLE favorite_restaurants (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    customer_id INT NOT NULL,
-    restaurant_id INT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(customer_id, restaurant_id),
-    FOREIGN KEY (customer_id) REFERENCES customers(customer_id) ON DELETE CASCADE,
-    FOREIGN KEY (restaurant_id) REFERENCES restaurants(restaurant_id) ON DELETE CASCADE
-);
-
-CREATE TABLE customer_addresses (
-    address_id INT AUTO_INCREMENT PRIMARY KEY,
-    customer_id INT NOT NULL,
-    title VARCHAR(50) NOT NULL,            
-    city VARCHAR(50) NOT NULL,             
-    district VARCHAR(50) NOT NULL,        
-    neighborhood VARCHAR(100) NOT NULL,    
-    street VARCHAR(100) NOT NULL,         
-    building_no VARCHAR(20) NOT NULL,      
-    floor_no VARCHAR(10),                  
-    apt_no VARCHAR(20),                    
-    directions TEXT,                      
-    latitude DECIMAL(10, 8),               
-    longitude DECIMAL(11, 8),              
-    contact_name VARCHAR(100),             
-    contact_phone VARCHAR(20),             
-    is_active BOOLEAN DEFAULT FALSE,       
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (customer_id) REFERENCES customers(customer_id) ON DELETE CASCADE
-);
-
-CREATE TABLE menu_options (
-    option_id INT AUTO_INCREMENT PRIMARY KEY,
-    menu_id INT NOT NULL,
-    option_name VARCHAR(255) NOT NULL,
-    is_required BOOLEAN DEFAULT FALSE, 
-    is_multiple BOOLEAN DEFAULT FALSE, 
-    FOREIGN KEY (menu_id) REFERENCES menus(menu_id) ON DELETE CASCADE
-);
-
-CREATE TABLE menu_option_choices (
-    choice_id INT AUTO_INCREMENT PRIMARY KEY,
-    option_id INT NOT NULL,
-    choice_name VARCHAR(255) NOT NULL,
-    additional_price DECIMAL(10, 2) DEFAULT 0.00, 
-    FOREIGN KEY (option_id) REFERENCES menu_options(option_id) ON DELETE CASCADE
-);
-
 CREATE TABLE order_item_choices (
     id INT AUTO_INCREMENT PRIMARY KEY,
     order_id INT NOT NULL,
@@ -226,26 +261,4 @@ CREATE TABLE order_item_choices (
     FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE,
     FOREIGN KEY (food_id) REFERENCES foods(food_id) ON DELETE SET NULL,
     FOREIGN KEY (choice_id) REFERENCES menu_option_choices(choice_id) ON DELETE SET NULL 
-);
-
-CREATE TABLE promo_codes (
-    promo_id INT AUTO_INCREMENT PRIMARY KEY,
-    restaurant_id INT NOT NULL,
-    code_name VARCHAR(50) NOT NULL, 
-    discount_type ENUM('percentage', 'fixed') NOT NULL, 
-    discount_value DECIMAL(10, 2) NOT NULL, 
-    min_cart_amount DECIMAL(10, 2) DEFAULT 0.00, 
-    is_active BOOLEAN DEFAULT TRUE, 
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (restaurant_id) REFERENCES restaurants(restaurant_id) ON DELETE CASCADE
-);
-
-CREATE TABLE restaurant_applications (
-    application_id INT AUTO_INCREMENT PRIMARY KEY,
-    restaurant_name VARCHAR(255) NOT NULL,
-    contact_name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    phone VARCHAR(20) NOT NULL,
-    status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
-    applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

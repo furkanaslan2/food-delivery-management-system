@@ -54,6 +54,7 @@ function openMenuModalFromBtn(btn) {
 
     const menuId = btn.getAttribute('data-id');
     const foodId = btn.getAttribute('data-food-id');
+    const categoryId = btn.getAttribute('data-category-id'); 
     const customName = btn.getAttribute('data-custom-name');
     const price = btn.getAttribute('data-price');
     const stock = btn.getAttribute('data-stock');
@@ -62,6 +63,12 @@ function openMenuModalFromBtn(btn) {
     document.getElementById('update-menu-id').value = menuId;
     document.getElementById('menu-id').value = menuId;  
     document.getElementById('food-name').value = foodId;
+    
+    const categorySelect = document.getElementById('category-id');
+    if (categorySelect) {
+        categorySelect.value = (categoryId !== 'None' && categoryId) ? categoryId : '';
+    }
+
     document.getElementById('menu-custom-name').value = customName !== 'None' ? customName : '';
     document.getElementById('menu-price').value = price;
     document.getElementById('menu-stock').value = stock;
@@ -295,13 +302,19 @@ document.addEventListener("DOMContentLoaded", function() {
             let errorMessage = "";
 
             const foodId = document.getElementById('food-name').value;
+            const categorySelect = document.getElementById('category-id');
+            const categoryId = categorySelect ? categorySelect.value : 'valid'; 
+            
             const customName = document.getElementById('menu-custom-name').value.trim();
             const price = document.getElementById('menu-price').value.trim();
             const stock = document.getElementById('menu-stock').value.trim();
 
             if (!foodId || foodId === "None") {
                 hasError = true;
-                errorMessage = "Lütfen Ana Ürün Tipi (Kategori) seçin.";
+                errorMessage = "Lütfen Sistem Altyapısı (Arka Plan) için yemek tipi seçin.";
+            } else if (!categoryId || categoryId === "None" || categoryId === "") {
+                hasError = true;
+                errorMessage = "Lütfen Restoran Kategoriniz (Ön Yüz) için bir kategori seçin.";
             } else if (!customName) {
                 hasError = true;
                 errorMessage = "Lütfen menüdeki özel adı girin.";
@@ -358,3 +371,51 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 });
+
+//HIZLI KATEGORİ YÖNETİMİ (MODAL)
+function openQuickCategoryModal() {
+    document.getElementById('quickCategoryModal').style.display = 'flex';
+    document.getElementById('quick-cat-name').value = '';
+    setTimeout(() => document.getElementById('quick-cat-name').focus(), 100);
+}
+
+function closeQuickCategoryModal() {
+    document.getElementById('quickCategoryModal').style.display = 'none';
+}
+
+function submitQuickCategory() {
+    const catName = document.getElementById('quick-cat-name').value.trim();
+    
+    if (!catName) {
+        if (typeof window.showToast === 'function') window.showToast("Lütfen bir kategori adı girin.", "error");
+        else alert("Lütfen bir kategori adı girin.");
+        return;
+    }
+
+    fetch('/api/manage_restaurant_categories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'add', category_name: catName }) 
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            if (typeof window.showToast === 'function') window.showToast("Kategori başarıyla eklendi!", "success");
+            
+            const select = document.getElementById('category-id');
+            if (select) {
+                const option = document.createElement('option');
+                option.value = data.category_id;
+                option.text = data.category_name;
+                select.appendChild(option);
+                select.value = data.category_id; 
+            }
+            
+            closeQuickCategoryModal();
+        } else {
+            if (typeof window.showToast === 'function') window.showToast(data.message, "error");
+            else alert(data.message);
+        }
+    })
+    .catch(err => console.error("Kategori ekleme hatası:", err));
+}

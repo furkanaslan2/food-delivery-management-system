@@ -2,12 +2,12 @@ import os
 from flask import Flask
 from flask_session import Session
 from dotenv import load_dotenv
-from index import index, api_global_notifications
+from index import index, api_global_notifications, format_price
 from auth import login, logout, register, customer_login, customer_register, verify_email_page, verify_email_code, resend_verification_code, forgot_password, reset_password, process_reset, resend_reset_code, delete_customer_account, forgot_password_admin, reset_password_admin, process_reset_admin, resend_reset_code_admin, check_email_availability
 from users import users, user_action
 from restaurants import restaurants, restaurant_action, restaurant_analytics, restaurant_profile, restaurant_reviews, reply_review, delete_restaurant_account, toggle_store_status
 from couriers import couriers, courier_action, api_check_courier_orders
-from menus import menus, menus_action, manage_menu_options, upload_menu_image, manage_promos
+from menus import menus, menus_action, manage_menu_options, upload_menu_image, manage_promos, manage_restaurant_categories, restaurant_categories_page, restaurant_categories_action
 from orders import orders, order_action, get_order_details, get_restaurant_details, api_check_new_orders, kitchen_display, kitchen_order_action, api_get_couriers
 from foods import foods, food_action
 from waiters import waiter_dashboard, waiter_create_order, waiters, waiter_action, waiter_close_bill, waiter_receipt
@@ -112,6 +112,10 @@ app.add_url_rule('/api/notifications', view_func=api_global_notifications)
 app.add_url_rule('/api/check_email', view_func=check_email_availability, methods=['POST'])
 app.add_url_rule('/api/toggle_courier_status', view_func=api_toggle_courier_status, methods=['POST'])
 app.add_url_rule('/api/get_couriers', view_func=api_get_couriers, methods=['GET'])
+app.add_url_rule('/api/manage_restaurant_categories', view_func=manage_restaurant_categories, methods=['POST'])
+app.add_url_rule('/restaurant_categories_page', view_func=restaurant_categories_page)
+app.add_url_rule('/restaurant_categories_action', view_func=restaurant_categories_action, methods=['POST'])
+app.jinja_env.filters['format_price'] = format_price
 
 
 if __name__ == '__main__':

@@ -191,10 +191,17 @@
                 {% endif %}
                 <td>
                     <span style="background-color: #f3f4f6; color: #4b5563; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; text-transform: capitalize;">
-                        {{ menu['food_name'] }}
+                        {% if menu['category_name'] %}
+                            {{ menu['category_name'] }}
+                        {% else %}
+                            <i class="ph-bold ph-warning-circle" style="color:#d97706"></i> Kategori Yok
+                        {% endif %}
                     </span>
+                    <div style="font-size: 11px; color: #9ca3af; margin-top: 5px; display: flex; align-items: center; gap: 4px; font-weight: 500;" title="Arama Motoru Kategorisi">
+                        <i class="ph-bold ph-magnifying-glass"></i> {{ menu['global_category'] }}
+                    </div>
                 </td>
-                <td class="price-tag">₺{{ menu['price'] }}</td>
+                <td class="price-tag">₺{{ menu['price'] | format_price }}</td>
                 <td>
                     {% if menu['stock_quantity'] > 10 %}
                         <span class="stock-badge stock-in">Stokta ({{ menu['stock_quantity'] }})</span>
@@ -209,6 +216,7 @@
                         <button type="button" class="action-btn" title="Düzenle" 
                             data-id="{{ menu['menu_id'] }}" 
                             data-food-id="{{ menu['food_id'] }}" 
+                            data-category-id="{{ menu['category_id'] or '' }}" 
                             data-custom-name="{% if menu['custom_name'] %}{{ menu['custom_name'] }}{% endif %}" 
                             data-price="{{ menu['price'] }}" 
                             data-stock="{{ menu['stock_quantity'] }}" 
@@ -264,27 +272,44 @@
                 </div>
             </div>
 
-            <div style="margin-bottom: 15px;">
-                <label style="font-size: 13px; font-weight: 600; color: #374151;">Ana Ürün Tipi (Kategori)</label>
-                <select id="food-name" name="food_id" class="form-input" style="background-color: white; cursor: pointer;">
-                    <option value="" hidden>Kategori ve Yemek Seçiniz...</option>
-                    {% set current_cat = [] %}
-                    {% for food in foods %}
-                        {% if food.category not in current_cat %}
-                            {% if current_cat.append(food.category) %}{% endif %}
-                            <optgroup label="• {{ food.category }}">
-                        {% endif %}
-                        <option value="{{ food.food_id }}">{{ food.item_name }}</option>
-                        {% if loop.last or foods[loop.index].category != food.category %}
-                            </optgroup>
-                        {% endif %}
-                    {% endfor %}
-                </select>
+            <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+                <div style="flex: 1;">
+                    <label style="font-size: 13px; font-weight: 600; color: #374151;">Genel Yemek Türü <span style="color:#9ca3af; font-weight:400; font-size:11px;">(Aramalar için)</span></label>
+                    <select id="food-name" name="food_id" class="form-input" style="background-color: white; cursor: pointer; margin-top: 5px; height: 42px;" required>
+                        <option value="" hidden>Yemek Tipi Seçiniz...</option>
+                        {% set current_cat = [] %}
+                        {% for food in foods %}
+                            {% if food.category not in current_cat %}
+                                {% if current_cat.append(food.category) %}{% endif %}
+                                <optgroup label="• {{ food.category }}">
+                            {% endif %}
+                            <option value="{{ food.food_id }}">{{ food.item_name }}</option>
+                            {% if loop.last or foods[loop.index].category != food.category %}
+                                </optgroup>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+                <div style="flex: 1;">
+                    <label style="font-size: 13px; font-weight: 600; color: #374151;">Menü Başlığınız <span style="color:#9ca3af; font-weight:400; font-size:11px;">(Müşterinin göreceği)</span></label>
+                    <div style="display: flex; gap: 8px; margin-top: 5px; height: 42px;">
+                        <select id="category-id" name="category_id" class="form-input" style="background-color: white; cursor: pointer; margin: 0; height: 100%; flex: 1;" required>
+                            <option value="" hidden>Kategori Seçiniz...</option>
+                            {% for cat in restaurant_categories %}
+                                <option value="{{ cat.category_id }}">{{ cat.category_name }}</option>
+                            {% endfor %}
+                        </select>
+                        
+                        <button type="button" onclick="openQuickCategoryModal()" style="background: #eef2ff; color: #4f46e5; border: 1px solid #c7d2fe; border-radius: 6px; width: 42px; height: 100%; margin: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; box-sizing: border-box; flex-shrink: 0;" onmouseover="this.style.background='#e0e7ff'; this.style.borderColor='#a5b4fc';" onmouseout="this.style.background='#eef2ff'; this.style.borderColor='#c7d2fe';" title="Hızlı Kategori Ekle">
+                            <i class="ph-bold ph-plus" style="font-size: 20px;"></i>
+                        </button>
+                    </div>
+                </div>
             </div>
             
             <div style="margin-bottom: 15px;">
-                <label style="font-size: 13px; font-weight: 600; color: #374151;">Menüdeki Özel Adı (Havalı İsim)</label>
-                <input type="text" id="menu-custom-name" name="custom_name" class="form-input" placeholder="Örn: Texas Smokehouse BBQ Burger">
+                <label style="font-size: 13px; font-weight: 600; color: #374151;">Yemek Adı <span style="color:#9ca3af; font-weight:400; font-size:11px;">(Menüde görünecek tam isim)</span></label>
+                <input type="text" id="menu-custom-name" name="custom_name" class="form-input" placeholder="Örn: Mercimek Çorbası">
             </div>
 
             <div style="display: flex; gap: 15px; margin-bottom: 25px;">
@@ -365,6 +390,28 @@
                 <tr><td colspan="5" style="text-align:center;">Yükleniyor...</td></tr>
             </tbody>
         </table>
+    </div>
+</div>
+
+<div id="quickCategoryModal" style="display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(17, 24, 39, 0.85); justify-content: center; align-items: center;">
+    <div style="background-color: #fff; padding: 25px; border-radius: 12px; width: 90%; max-width: 350px; box-shadow: 0 15px 30px rgba(0,0,0,0.3); animation: slideDown 0.3s ease-out;">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f3f4f6; margin-bottom: 20px; padding-bottom: 10px;">
+            <h3 style="margin: 0; color: #111827; font-size: 16px; display: flex; align-items: center; gap: 8px;">
+                <i class="ph-bold ph-folder-plus" style="color: #4f46e5; font-size: 20px;"></i> Kategori Ekle
+            </h3>
+            <span style="font-size: 22px; cursor: pointer; color: #9ca3af;" onclick="closeQuickCategoryModal()">&times;</span>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <label style="font-size: 13px; font-weight: 600; color: #374151;">Müşterinin Göreceği Kategori Adı</label>
+            <input type="text" id="quick-cat-name" class="form-input" placeholder="Örn: Tatlılar, İçecekler" onkeypress="if(event.key === 'Enter') submitQuickCategory()">
+        </div>
+
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+            <button type="button" onclick="closeQuickCategoryModal()" style="background: #f3f4f6; color: #4b5563; padding: 8px 14px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px;">İptal</button>
+            <button type="button" onclick="submitQuickCategory()" style="background: #4f46e5; color: white; padding: 8px 14px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; box-shadow: 0 4px 6px rgba(79, 70, 229, 0.2);">Hemen Ekle</button>
+        </div>
     </div>
 </div>
 {% endblock %}

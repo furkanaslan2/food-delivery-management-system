@@ -4,6 +4,18 @@ import datetime
 from db import get_db_connection
 from mysql.connector import Error
 
+def format_price(value):
+    if value is None:
+        return "0"
+    try:
+        val = float(value)
+        if val.is_integer():
+            return f"{int(val)}" 
+        else:
+            return f"{val:.2f}" 
+    except:
+        return str(value)
+
 def calculate_distance(lat1, lon1, lat2, lon2):
     R = 6371.0 
     dlat = math.radians(lat2 - lat1)
@@ -46,27 +58,27 @@ def api_global_notifications():
                 cursor.execute("SELECT COUNT(*) as count FROM menus WHERE restaurant_id = %s AND stock_quantity <= 0", (restaurant_id,))
                 notifications['out_of_stock'] = cursor.fetchone()['count']
                 
-                # 4. Değerlendirmeler (Örn: Bugün gelen yorumlar veya durumu okunmadı olanlar. Tablo yapına göre uyarlayabilirsin)
-                # Örnek sorgu:
-                # cursor.execute("SELECT COUNT(*) as count FROM reviews WHERE restaurant_id = %s AND created_at >= CURDATE()", (restaurant_id,))
-                # res = cursor.fetchone()
-                # notifications['new_reviews'] = res['count'] if res else 0
+                # 4. Değerlendirmeler (Henüz yanıtlanmamış müşteri yorumları)
+                cursor.execute("SELECT COUNT(*) as count FROM reviews WHERE restaurant_id = %s AND (restaurant_reply IS NULL OR TRIM(restaurant_reply) = '')", (restaurant_id,))
+                res = cursor.fetchone()
+                notifications['new_reviews'] = res['count'] if res else 0
 
             elif role == 'admin':
                 # 1. Tüm Bekleyen Siparişler
                 cursor.execute("SELECT COUNT(*) as count FROM orders WHERE order_status = 'pending'")
                 notifications['pending_orders'] = cursor.fetchone()['count']
                 
-                # 2. İş Ortağı Başvuruları (Bekleyenler)
-                cursor.execute("SELECT COUNT(*) as count FROM partner_applications WHERE status = 'pending'") # Tablo adını kontrol et
+                # 2. İş Ortağı Başvuruları (Bekleyenler) 
+                cursor.execute("SELECT COUNT(*) as count FROM restaurant_applications WHERE status = 'pending'") 
                 res = cursor.fetchone()
                 notifications['pending_partners'] = res['count'] if res else 0
                 
         except Exception as e:
             print("Bildirim Hatası:", e)
         finally:
-            cursor.close()
-            connection.close()
+            if connection.is_connected():
+                cursor.close()
+                connection.close()
             
     return jsonify({'success': True, 'notifications': notifications})
 

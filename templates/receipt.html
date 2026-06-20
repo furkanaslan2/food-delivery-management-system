@@ -80,21 +80,21 @@
 
                 <tr>
                     <td>
-                        <div style="font-weight: bold;">{{ item.item_name }} (₺{{ "%.2f"|format(base_price) }})</div>
+                        <div style="font-weight: bold;">{{ item.item_name }} (₺{{ base_price | format_price }})</div>
                         
                         {% if item.choices %}
                         <div style="font-size: 11px; color: #4b5563; margin-top: 3px; padding-left: 5px;">
                             {% for choice in item.choices %}
                             &bull; {{ choice.choice_name }} 
                             {% if choice.additional_price and choice.additional_price > 0 %}
-                                (+₺{{ "%.2f"|format(choice.additional_price) }})
+                                (+₺{{ choice.additional_price | format_price }})
                             {% endif %}<br>
                             {% endfor %}
                         </div>
                         {% endif %}
                     </td>
                     <td style="text-align: center; font-weight: bold;">{{ item.quantity }}</td>
-                    <td style="text-align: right; font-weight: bold;">₺{{ "%.2f"|format(item.unit_price * item.quantity) }}</td>
+                    <td style="text-align: right; font-weight: bold;">₺{{ (item.unit_price * item.quantity) | format_price }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -104,7 +104,7 @@
         
         <div class="total-line">
             <span>TOPLAM TUTAR:</span>
-            <span>₺{{ "%.2f"|format(order.sales_amount) }}</span>
+            <span>₺{{ order.sales_amount | format_price }}</span>
         </div>
         
         <div class="divider" style="border-top-style: dotted;"></div>

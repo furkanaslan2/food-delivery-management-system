@@ -10,6 +10,9 @@ def restaurants():
         return redirect(url_for('login'))
 
     role = session.get('role')
+    if role == 'user':
+        return redirect(url_for('restaurant_profile'))
+    
     user_id = session.get('user_id')
 
     connection = get_db_connection()
@@ -312,24 +315,30 @@ def restaurant_profile():
                 # Formdan gelen verileri al
                 name = request.form.get('restaurant_name')
                 cuisine = request.form.get('cuisine')
+                city = request.form.get('city') 
+                table_count = request.form.get('table_count') 
                 opening_time = request.form.get('opening_time')
                 closing_time = request.form.get('closing_time')
                 min_order_amount = request.form.get('min_order_amount')
                 latitude = request.form.get('latitude')
                 longitude = request.form.get('longitude')
+                restaurant_address = request.form.get('restaurant_address')
                 image_file = request.files.get('restaurant_image')
                 
                 update_query = """
                     UPDATE restaurants 
                     SET restaurant_name = %s, 
                         cuisine = %s,
+                        city = %s, 
+                        table_count = %s, 
                         opening_time = %s,
                         closing_time = %s,
                         min_order_amount = %s,
                         latitude = %s,
-                        longitude = %s
+                        longitude = %s,
+                        restaurant_address = %s 
                 """
-                params = [name, cuisine, opening_time, closing_time, min_order_amount, latitude, longitude]
+                params = [name, cuisine, city, table_count, opening_time, closing_time, min_order_amount, latitude, longitude, restaurant_address] 
                 
                 # Resim yüklenmişse sorguya ekle
                 if image_file and image_file.filename != '':
@@ -375,18 +384,18 @@ def restaurant_profile():
     return render_template('restaurant_profile.html', restaurant=restaurant)
 
 def restaurant_reviews():
-    # Sadece restoran sahipleri (user) görebilir
     if session.get('role') != 'user': 
         return redirect(url_for('login'))
         
     restaurant_id = session.get('restaurant_id')
     connection = get_db_connection()
     reviews = []
+    avg_rating = "0.0" 
     
     if connection:
         try:
             cursor = connection.cursor(dictionary=True)
-            # Yorumları, müşteri adını ve sipariş bilgilerini birleştirerek çekiyoruz
+            
             cursor.execute("""
                 SELECT r.*, c.name as customer_name, o.order_date, o.sales_amount 
                 FROM reviews r
@@ -396,11 +405,17 @@ def restaurant_reviews():
                 ORDER BY r.created_at DESC
             """, (restaurant_id,))
             reviews = cursor.fetchall()
+            
+            cursor.execute("SELECT rating FROM restaurants WHERE restaurant_id = %s", (restaurant_id,))
+            res = cursor.fetchone()
+            if res and res['rating']:
+                avg_rating = str(res['rating'])
+                
         finally:
             cursor.close()
             connection.close()
             
-    return render_template('restaurant_reviews.html', reviews=reviews)
+    return render_template('restaurant_reviews.html', reviews=reviews, avg_rating=avg_rating)
 
 def reply_review():
     if session.get('role') != 'user':

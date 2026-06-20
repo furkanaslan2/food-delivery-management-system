@@ -146,10 +146,8 @@
                     errorMessage = "Lütfen şifrenizi girin.";
                 }
 
-                // ❌ HATA VARSA: Formu durdur ve şık bildirim (Toast) göster
                 if (hasError) {
                     e.preventDefault();
-                    // Eğer sayfanın altında Toast fonksiyonu tanımlıysa onu çağır
                     if (typeof window.showToast === 'function') {
                         window.showToast(errorMessage, "error");
                     } else {
@@ -158,7 +156,6 @@
                     return false;
                 }
                 
-                // ✅ HATA YOKSA: Form sorunsuzca Python'a (Login'e) gider
             });
         }
     });

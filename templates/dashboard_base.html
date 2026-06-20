@@ -274,14 +274,22 @@
                     Menü Yönetimi
                 </a>
             </li>
-            <li><a href="{{ url_for('foods') }}"><img src="{{ url_for('static', filename='images/icons/food-categories.svg') }}" class="sidebar-icon"> Kategoriler</a></li>
+            {% if session.get('role') == 'admin' %}
+            <li><a href="{{ url_for('foods') }}"><img src="{{ url_for('static', filename='images/icons/food-categories.svg') }}" class="sidebar-icon"> Ana Kategoriler</a></li>
+            {% endif %}
+
+            {% if session.get('role') == 'user' %}
+            <li><a href="{{ url_for('restaurant_categories_page') }}"><img src="{{ url_for('static', filename='images/icons/food-categories.svg') }}" class="sidebar-icon"> Menü Kategorilerim</a></li>
+            {% endif %}
             <li><a href="{{ url_for('couriers') }}"><img src="{{ url_for('static', filename='images/icons/delivery-bike.svg') }}" class="sidebar-icon"> Kuryeler</a></li>
             <li><a href="{{ url_for('waiters') }}"><img src="{{ url_for('static', filename='images/icons/holding-hand-dinner.svg') }}" class="sidebar-icon"> Garsonlar</a></li>
             
             <li style="margin-top: 25px; padding-left: 14px; margin-bottom: 5px; font-size: 11px; color: #6b7280; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Yönetim & Ayarlar</li>
             
             <li><a href="{{ url_for('users') }}"><img src="{{ url_for('static', filename='images/icons/circle-user.svg') }}" class="sidebar-icon"> {{ 'Profilim' if session.get('role') == 'user' else 'Kullanıcı Yönetimi' }}</a></li>
-            <li><a href="{{ url_for('restaurants') }}"><img src="{{ url_for('static', filename='images/icons/restaurant-sign.svg') }}" class="sidebar-icon"> {{ 'Restoranım' if session.get('role') == 'user' else 'Restoran Yönetimi' }}</a></li>
+            {% if session.get('role') == 'admin' %}
+            <li><a href="{{ url_for('restaurants') }}"><img src="{{ url_for('static', filename='images/icons/restaurant-sign.svg') }}" class="sidebar-icon"> Restoran Yönetimi</a></li>
+            {% endif %}
             
             {% if session.get('role') == 'admin' %}
             <li>

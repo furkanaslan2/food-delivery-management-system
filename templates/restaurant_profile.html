@@ -131,6 +131,97 @@
                     <option value="Börek" {% if restaurant['cuisine'] == 'Börek' %}selected{% endif %}>Börek</option>
                 </select>
             </div>
+            <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                <label>Şehir</label>
+                <select name="city" class="form-input" style="cursor: pointer; background-color: white;">
+                    <option value="" hidden>Şehir Seçiniz...</option>
+                    <option value="Adana" {% if restaurant['city'] == 'Adana' %}selected{% endif %}>Adana</option>
+                    <option value="Adıyaman" {% if restaurant['city'] == 'Adıyaman' %}selected{% endif %}>Adıyaman</option>
+                    <option value="Afyonkarahisar" {% if restaurant['city'] == 'Afyonkarahisar' %}selected{% endif %}>Afyonkarahisar</option>
+                    <option value="Ağrı" {% if restaurant['city'] == 'Ağrı' %}selected{% endif %}>Ağrı</option>
+                    <option value="Amasya" {% if restaurant['city'] == 'Amasya' %}selected{% endif %}>Amasya</option>
+                    <option value="Ankara" {% if restaurant['city'] == 'Ankara' %}selected{% endif %}>Ankara</option>
+                    <option value="Antalya" {% if restaurant['city'] == 'Antalya' %}selected{% endif %}>Antalya</option>
+                    <option value="Artvin" {% if restaurant['city'] == 'Artvin' %}selected{% endif %}>Artvin</option>
+                    <option value="Aydın" {% if restaurant['city'] == 'Aydın' %}selected{% endif %}>Aydın</option>
+                    <option value="Balıkesir" {% if restaurant['city'] == 'Balıkesir' %}selected{% endif %}>Balıkesir</option>
+                    <option value="Bilecik" {% if restaurant['city'] == 'Bilecik' %}selected{% endif %}>Bilecik</option>
+                    <option value="Bingöl" {% if restaurant['city'] == 'Bingöl' %}selected{% endif %}>Bingöl</option>
+                    <option value="Bitlis" {% if restaurant['city'] == 'Bitlis' %}selected{% endif %}>Bitlis</option>
+                    <option value="Bolu" {% if restaurant['city'] == 'Bolu' %}selected{% endif %}>Bolu</option>
+                    <option value="Burdur" {% if restaurant['city'] == 'Burdur' %}selected{% endif %}>Burdur</option>
+                    <option value="Bursa" {% if restaurant['city'] == 'Bursa' %}selected{% endif %}>Bursa</option>
+                    <option value="Çanakkale" {% if restaurant['city'] == 'Çanakkale' %}selected{% endif %}>Çanakkale</option>
+                    <option value="Çankırı" {% if restaurant['city'] == 'Çankırı' %}selected{% endif %}>Çankırı</option>
+                    <option value="Çorum" {% if restaurant['city'] == 'Çorum' %}selected{% endif %}>Çorum</option>
+                    <option value="Denizli" {% if restaurant['city'] == 'Denizli' %}selected{% endif %}>Denizli</option>
+                    <option value="Diyarbakır" {% if restaurant['city'] == 'Diyarbakır' %}selected{% endif %}>Diyarbakır</option>
+                    <option value="Edirne" {% if restaurant['city'] == 'Edirne' %}selected{% endif %}>Edirne</option>
+                    <option value="Elazığ" {% if restaurant['city'] == 'Elazığ' %}selected{% endif %}>Elazığ</option>
+                    <option value="Erzincan" {% if restaurant['city'] == 'Erzincan' %}selected{% endif %}>Erzincan</option>
+                    <option value="Erzurum" {% if restaurant['city'] == 'Erzurum' %}selected{% endif %}>Erzurum</option>
+                    <option value="Eskişehir" {% if restaurant['city'] == 'Eskişehir' %}selected{% endif %}>Eskişehir</option>
+                    <option value="Gaziantep" {% if restaurant['city'] == 'Gaziantep' %}selected{% endif %}>Gaziantep</option>
+                    <option value="Giresun" {% if restaurant['city'] == 'Giresun' %}selected{% endif %}>Giresun</option>
+                    <option value="Gümüşhane" {% if restaurant['city'] == 'Gümüşhane' %}selected{% endif %}>Gümüşhane</option>
+                    <option value="Hakkari" {% if restaurant['city'] == 'Hakkari' %}selected{% endif %}>Hakkari</option>
+                    <option value="Hatay" {% if restaurant['city'] == 'Hatay' %}selected{% endif %}>Hatay</option>
+                    <option value="Isparta" {% if restaurant['city'] == 'Isparta' %}selected{% endif %}>Isparta</option>
+                    <option value="Mersin" {% if restaurant['city'] == 'Mersin' %}selected{% endif %}>Mersin</option>
+                    <option value="İstanbul" {% if restaurant['city'] == 'İstanbul' %}selected{% endif %}>İstanbul</option>
+                    <option value="İzmir" {% if restaurant['city'] == 'İzmir' %}selected{% endif %}>İzmir</option>
+                    <option value="Kars" {% if restaurant['city'] == 'Kars' %}selected{% endif %}>Kars</option>
+                    <option value="Kastamonu" {% if restaurant['city'] == 'Kastamonu' %}selected{% endif %}>Kastamonu</option>
+                    <option value="Kayseri" {% if restaurant['city'] == 'Kayseri' %}selected{% endif %}>Kayseri</option>
+                    <option value="Kırklareli" {% if restaurant['city'] == 'Kırklareli' %}selected{% endif %}>Kırklareli</option>
+                    <option value="Kırşehir" {% if restaurant['city'] == 'Kırşehir' %}selected{% endif %}>Kırşehir</option>
+                    <option value="Kocaeli" {% if restaurant['city'] == 'Kocaeli' %}selected{% endif %}>Kocaeli</option>
+                    <option value="Konya" {% if restaurant['city'] == 'Konya' %}selected{% endif %}>Konya</option>
+                    <option value="Kütahya" {% if restaurant['city'] == 'Kütahya' %}selected{% endif %}>Kütahya</option>
+                    <option value="Malatya" {% if restaurant['city'] == 'Malatya' %}selected{% endif %}>Malatya</option>
+                    <option value="Manisa" {% if restaurant['city'] == 'Manisa' %}selected{% endif %}>Manisa</option>
+                    <option value="Kahramanmaraş" {% if restaurant['city'] == 'Kahramanmaraş' %}selected{% endif %}>Kahramanmaraş</option>
+                    <option value="Mardin" {% if restaurant['city'] == 'Mardin' %}selected{% endif %}>Mardin</option>
+                    <option value="Muğla" {% if restaurant['city'] == 'Muğla' %}selected{% endif %}>Muğla</option>
+                    <option value="Muş" {% if restaurant['city'] == 'Muş' %}selected{% endif %}>Muş</option>
+                    <option value="Nevşehir" {% if restaurant['city'] == 'Nevşehir' %}selected{% endif %}>Nevşehir</option>
+                    <option value="Niğde" {% if restaurant['city'] == 'Niğde' %}selected{% endif %}>Niğde</option>
+                    <option value="Ordu" {% if restaurant['city'] == 'Ordu' %}selected{% endif %}>Ordu</option>
+                    <option value="Rize" {% if restaurant['city'] == 'Rize' %}selected{% endif %}>Rize</option>
+                    <option value="Sakarya" {% if restaurant['city'] == 'Sakarya' %}selected{% endif %}>Sakarya</option>
+                    <option value="Samsun" {% if restaurant['city'] == 'Samsun' %}selected{% endif %}>Samsun</option>
+                    <option value="Siirt" {% if restaurant['city'] == 'Siirt' %}selected{% endif %}>Siirt</option>
+                    <option value="Sinop" {% if restaurant['city'] == 'Sinop' %}selected{% endif %}>Sinop</option>
+                    <option value="Sivas" {% if restaurant['city'] == 'Sivas' %}selected{% endif %}>Sivas</option>
+                    <option value="Tekirdağ" {% if restaurant['city'] == 'Tekirdağ' %}selected{% endif %}>Tekirdağ</option>
+                    <option value="Tokat" {% if restaurant['city'] == 'Tokat' %}selected{% endif %}>Tokat</option>
+                    <option value="Trabzon" {% if restaurant['city'] == 'Trabzon' %}selected{% endif %}>Trabzon</option>
+                    <option value="Tunceli" {% if restaurant['city'] == 'Tunceli' %}selected{% endif %}>Tunceli</option>
+                    <option value="Şanlıurfa" {% if restaurant['city'] == 'Şanlıurfa' %}selected{% endif %}>Şanlıurfa</option>
+                    <option value="Uşak" {% if restaurant['city'] == 'Uşak' %}selected{% endif %}>Uşak</option>
+                    <option value="Van" {% if restaurant['city'] == 'Van' %}selected{% endif %}>Van</option>
+                    <option value="Yozgat" {% if restaurant['city'] == 'Yozgat' %}selected{% endif %}>Yozgat</option>
+                    <option value="Zonguldak" {% if restaurant['city'] == 'Zonguldak' %}selected{% endif %}>Zonguldak</option>
+                    <option value="Aksaray" {% if restaurant['city'] == 'Aksaray' %}selected{% endif %}>Aksaray</option>
+                    <option value="Bayburt" {% if restaurant['city'] == 'Bayburt' %}selected{% endif %}>Bayburt</option>
+                    <option value="Karaman" {% if restaurant['city'] == 'Karaman' %}selected{% endif %}>Karaman</option>
+                    <option value="Kırıkkale" {% if restaurant['city'] == 'Kırıkkale' %}selected{% endif %}>Kırıkkale</option>
+                    <option value="Batman" {% if restaurant['city'] == 'Batman' %}selected{% endif %}>Batman</option>
+                    <option value="Şırnak" {% if restaurant['city'] == 'Şırnak' %}selected{% endif %}>Şırnak</option>
+                    <option value="Bartın" {% if restaurant['city'] == 'Bartın' %}selected{% endif %}>Bartın</option>
+                    <option value="Ardahan" {% if restaurant['city'] == 'Ardahan' %}selected{% endif %}>Ardahan</option>
+                    <option value="Iğdır" {% if restaurant['city'] == 'Iğdır' %}selected{% endif %}>Iğdır</option>
+                    <option value="Yalova" {% if restaurant['city'] == 'Yalova' %}selected{% endif %}>Yalova</option>
+                    <option value="Karabük" {% if restaurant['city'] == 'Karabük' %}selected{% endif %}>Karabük</option>
+                    <option value="Kilis" {% if restaurant['city'] == 'Kilis' %}selected{% endif %}>Kilis</option>
+                    <option value="Osmaniye" {% if restaurant['city'] == 'Osmaniye' %}selected{% endif %}>Osmaniye</option>
+                    <option value="Düzce" {% if restaurant['city'] == 'Düzce' %}selected{% endif %}>Düzce</option>
+                </select>
+            </div>
+            <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                <label>Masa Kapasitesi (Adet)</label>
+                <input type="number" name="table_count" class="form-input" value="{{ restaurant['table_count'] or '10' }}" min="1">
+            </div>
         </div>
 
         <h3 class="section-title"><img src="{{ url_for('static', filename='images/icons/clock.png') }}" style="width: 24px; height: 24px; margin-right: 5px;"> Operasyon ve Sipariş Ayarları</h3>
@@ -157,6 +248,11 @@
         
         <input type="hidden" id="latitude" name="latitude" value="{{ restaurant['latitude'] or '' }}">
         <input type="hidden" id="longitude" name="longitude" value="{{ restaurant['longitude'] or '' }}">
+
+        <div class="form-group" style="margin-top: 15px;">
+            <label>Açık Adres (Tam Adres)</label>
+            <textarea name="restaurant_address" class="form-input" rows="2" placeholder="Açık adresinizi yazın">{{ restaurant['restaurant_address'] }}</textarea>
+        </div>
 
         <button type="submit" class="btn-submit">Değişiklikleri Kaydet</button>
     </form>

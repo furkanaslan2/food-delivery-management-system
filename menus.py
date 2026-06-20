@@ -18,21 +18,30 @@ def menus():
 
     try:
         cursor = connection.cursor(dictionary=True)
+        restaurant_categories = [] # 🚀 YENİ: Hata almamak için boş tanımlıyoruz
+        
         if role == 'admin':
             cursor.execute('''
-                SELECT m.menu_id, m.restaurant_id, m.food_id, m.custom_name, m.price, m.stock_quantity, m.image_url,
-                       f.item_name as food_name, f.category, r.restaurant_name
+                SELECT m.menu_id, m.restaurant_id, m.food_id, m.category_id, m.custom_name, m.price, m.stock_quantity, m.image_url,
+                       f.item_name as food_name, f.category as global_category, r.restaurant_name, rc.category_name
                 FROM menus m 
                 LEFT JOIN foods f ON m.food_id = f.food_id
                 LEFT JOIN restaurants r ON m.restaurant_id = r.restaurant_id
+                LEFT JOIN restaurant_categories rc ON m.category_id = rc.category_id
             ''')
             menus = cursor.fetchall()
         elif role == 'user' and restaurant_id:
+            # 🚀 YENİ: Restoranın kendi özel kategorilerini çekiyoruz
+            cursor.execute("SELECT * FROM restaurant_categories WHERE restaurant_id = %s ORDER BY sort_order ASC", (restaurant_id,))
+            restaurant_categories = cursor.fetchall()
+
+            # 🚀 YENİ: Menüleri çekerken özel kategorisiyle (rc.category_name) birlikte çekiyoruz
             cursor.execute('''
-                SELECT m.menu_id, m.restaurant_id, m.food_id, m.custom_name, m.price, m.stock_quantity, m.image_url,
-                       f.item_name as food_name, f.category
+                SELECT m.menu_id, m.restaurant_id, m.food_id, m.category_id, m.custom_name, m.price, m.stock_quantity, m.image_url,
+                       f.item_name as food_name, f.category as global_category, rc.category_name
                 FROM menus m 
-                LEFT JOIN foods f ON m.food_id = f.food_id 
+                LEFT JOIN foods f ON m.food_id = f.food_id
+                LEFT JOIN restaurant_categories rc ON m.category_id = rc.category_id
                 WHERE m.restaurant_id = %s
             ''', (restaurant_id,))
             menus = cursor.fetchall()
@@ -47,13 +56,14 @@ def menus():
         flash(f"Sorgu hatası: {e}", "danger")
         menus = []
         foods = []
+        restaurant_categories = []
     finally:
         if connection.is_connected():
             cursor.close()
             connection.close()
 
-    # 🟢 DİKKAT: En son satırda HTML'e 'foods=foods' listesini de gönderiyoruz
-    return render_template('menus.html', menus=menus, foods=foods)
+    # 🚀 YENİ: HTML'e 'restaurant_categories' listesini de gönderiyoruz
+    return render_template('menus.html', menus=menus, foods=foods, restaurant_categories=restaurant_categories)
 
 def menus_action():
     if 'logged_in' not in session:
@@ -74,12 +84,13 @@ def menus_action():
         if action == 'add':
             food_id = request.form.get('food_id')
             custom_name = request.form.get('custom_name')
+            category_id = request.form.get('category_id') or None 
             price = request.form.get('price')
             stock_quantity = request.form.get('stock_quantity')
             restaurant_id = request.form.get('restaurant_id')
             menu_id = request.form.get('menu_id')
             
-            image_file = request.files.get('menu_image') # YENİ GÖRSEL DEĞİŞKENİ
+            image_file = request.files.get('menu_image') 
             image_url = None
 
             if not stock_quantity:
@@ -117,18 +128,18 @@ def menus_action():
                         return redirect(url_for('menus'))
                     
                     query = """
-                        INSERT INTO menus (menu_id, restaurant_id, food_id, custom_name, price, stock_quantity, image_url) 
-                        VALUES (%s, %s, %s, %s, %s, %s, %s)
+                        INSERT INTO menus (menu_id, restaurant_id, food_id, category_id, custom_name, price, stock_quantity, image_url) 
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                     """
-                    cursor.execute(query, (menu_id, restaurant_id, food_id, custom_name, price, stock_quantity, image_url))
-                    inserted_menu_id = menu_id # Yeni eklenen menünün ID'si
+                    cursor.execute(query, (menu_id, restaurant_id, food_id, category_id, custom_name, price, stock_quantity, image_url))
+                    inserted_menu_id = menu_id
                 else:
                     query = """
-                        INSERT INTO menus (restaurant_id, food_id, custom_name, price, stock_quantity, image_url) 
-                        VALUES (%s, %s, %s, %s, %s, %s)
+                        INSERT INTO menus (restaurant_id, food_id, category_id, custom_name, price, stock_quantity, image_url) 
+                        VALUES (%s, %s, %s, %s, %s, %s, %s)
                     """
-                    cursor.execute(query, (restaurant_id, food_id, custom_name, price, stock_quantity, image_url))
-                    inserted_menu_id = cursor.lastrowid # Otomatik atanan menünün ID'sini al
+                    cursor.execute(query, (restaurant_id, food_id, category_id, custom_name, price, stock_quantity, image_url))
+                    inserted_menu_id = cursor.lastrowid
 
                 # 🛠️ YENİ EKLENEN: DİNAMİK OPSİYONLARI YAKALA VE VERİTABANINA KAYDET
                 option_names = request.form.getlist('option_names[]')
@@ -218,6 +229,7 @@ def menus_action():
             price = request.form.get('price')
             restaurant_id = request.form.get('restaurant_id')
             stock_quantity = request.form.get('stock_quantity')
+            category_id = request.form.get('category_id')
             
             image_file = request.files.get('menu_image') # YENİ GÖRSEL DEĞİŞKENİ
 
@@ -245,11 +257,10 @@ def menus_action():
             try:
                 update_query = """
                     UPDATE menus 
-                    SET food_id = %s, custom_name = %s, price = %s, restaurant_id = %s, stock_quantity = %s 
+                    SET food_id = %s, category_id = %s, custom_name = %s, price = %s, restaurant_id = %s, stock_quantity = %s 
                 """
-                params = [food_id, custom_name, price, restaurant_id, stock_quantity]
+                params = [food_id, category_id, custom_name, price, restaurant_id, stock_quantity]
 
-                # EĞER YENİ GÖRSEL YÜKLENDİYSE SORGUNUN SONUNA EKLE
                 if image_file and image_file.filename != '':
                     filename = secure_filename(image_file.filename)
                     upload_folder = os.path.join('static', 'images', 'menus')
@@ -318,11 +329,12 @@ def menus_action():
                 restaurant_id = request.form.get('restaurant_id')
 
                 query = """
-                    SELECT m.menu_id, m.restaurant_id, m.food_id, m.custom_name, m.price, m.stock_quantity, m.image_url,
-                           f.item_name as food_name, f.category, r.restaurant_name
+                    SELECT m.menu_id, m.restaurant_id, m.food_id, m.category_id, m.custom_name, m.price, m.stock_quantity, m.image_url,
+                           f.item_name as food_name, f.category as global_category, r.restaurant_name, rc.category_name
                     FROM menus m 
                     LEFT JOIN foods f ON m.food_id = f.food_id 
                     LEFT JOIN restaurants r ON m.restaurant_id = r.restaurant_id
+                    LEFT JOIN restaurant_categories rc ON m.category_id = rc.category_id
                     WHERE 1=1
                 """
                 params = []
@@ -353,11 +365,15 @@ def menus_action():
                 else:
                     flash("Kriterlerinize uygun yemek bulunamadı.", "info")
 
-                # Form renderlanırken foods listesi de gerekli
-                cursor.execute("SELECT food_id, item_name FROM foods ORDER BY item_name ASC")
+                cursor.execute("SELECT food_id, item_name, category FROM foods ORDER BY category ASC, item_name ASC")
                 foods = cursor.fetchall()
+                
+                restaurant_categories = []
+                if role == 'user' and restaurant_id_session:
+                    cursor.execute("SELECT * FROM restaurant_categories WHERE restaurant_id = %s ORDER BY sort_order ASC", (restaurant_id_session,))
+                    restaurant_categories = cursor.fetchall()
                     
-                return render_template('menus.html', menus=menus, foods=foods)
+                return render_template('menus.html', menus=menus, foods=foods, restaurant_categories=restaurant_categories)
 
             except Error as e:
                 flash(f"Filtreleme hatası: {str(e)}", "danger")
@@ -378,11 +394,12 @@ def menus_action():
                 order_clause = f"m.{sort_by} {sort_order}"
 
             query = """
-                    SELECT m.menu_id, m.restaurant_id, m.food_id, m.custom_name, m.price, m.stock_quantity, m.image_url,
-                           f.item_name as food_name, f.category, r.restaurant_name
+                    SELECT m.menu_id, m.restaurant_id, m.food_id, m.category_id, m.custom_name, m.price, m.stock_quantity, m.image_url,
+                           f.item_name as food_name, f.category as global_category, r.restaurant_name, rc.category_name
                     FROM menus m 
                     LEFT JOIN foods f ON m.food_id = f.food_id 
                     LEFT JOIN restaurants r ON m.restaurant_id = r.restaurant_id
+                    LEFT JOIN restaurant_categories rc ON m.category_id = rc.category_id
                     WHERE 1=1
                 """
             params = []
@@ -396,18 +413,24 @@ def menus_action():
 
             flash("Menüler başarıyla sıralandı!", "success")
 
-            cursor.execute("SELECT food_id, item_name FROM foods ORDER BY item_name ASC")
+            cursor.execute("SELECT food_id, item_name, category FROM foods ORDER BY category ASC, item_name ASC")
             foods = cursor.fetchall()
+            
+            restaurant_categories = []
+            if role == 'user' and restaurant_id_session:
+                cursor.execute("SELECT * FROM restaurant_categories WHERE restaurant_id = %s ORDER BY sort_order ASC", (restaurant_id_session,))
+                restaurant_categories = cursor.fetchall()
 
-            return render_template('menus.html', menus=menus, foods=foods)
+            return render_template('menus.html', menus=menus, foods=foods, restaurant_categories=restaurant_categories)
 
         elif action == 'clear':
             query = """
-                    SELECT m.menu_id, m.restaurant_id, m.food_id, m.custom_name, m.price, m.stock_quantity, m.image_url,
-                           f.item_name as food_name, f.category, r.restaurant_name
+                    SELECT m.menu_id, m.restaurant_id, m.food_id, m.category_id, m.custom_name, m.price, m.stock_quantity, m.image_url,
+                           f.item_name as food_name, f.category as global_category, r.restaurant_name, rc.category_name
                     FROM menus m 
                     LEFT JOIN foods f ON m.food_id = f.food_id 
                     LEFT JOIN restaurants r ON m.restaurant_id = r.restaurant_id
+                    LEFT JOIN restaurant_categories rc ON m.category_id = rc.category_id
                     WHERE 1=1
                 """
             params = []
@@ -420,10 +443,15 @@ def menus_action():
 
             flash("Tüm filtreler temizlendi.", "success")
 
-            cursor.execute("SELECT food_id, item_name FROM foods ORDER BY item_name ASC")
+            cursor.execute("SELECT food_id, item_name, category FROM foods ORDER BY category ASC, item_name ASC")
             foods = cursor.fetchall()
+            
+            restaurant_categories = []
+            if role == 'user' and restaurant_id_session:
+                cursor.execute("SELECT * FROM restaurant_categories WHERE restaurant_id = %s ORDER BY sort_order ASC", (restaurant_id_session,))
+                restaurant_categories = cursor.fetchall()
 
-            return render_template('menus.html', menus=menus, foods=foods)
+            return render_template('menus.html', menus=menus, foods=foods, restaurant_categories=restaurant_categories)
 
     except Error as e:
         flash(f"Bir hata oluştu: {e}", "danger")
@@ -593,3 +621,181 @@ def manage_promos():
         if connection.is_connected():
             cursor.close()
             connection.close()
+
+def manage_restaurant_categories():
+    if 'logged_in' not in session or session.get('role') != 'user':
+        return jsonify({'success': False, 'message': 'Yetkisiz erişim'}), 401
+
+    restaurant_id = session.get('restaurant_id')
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'success': False, 'message': 'Veritabanı hatası'}), 500
+
+    try:
+        cursor = connection.cursor(dictionary=True)
+        
+        if request.method == 'GET':
+            cursor.execute("SELECT * FROM restaurant_categories WHERE restaurant_id = %s ORDER BY sort_order ASC", (restaurant_id,))
+            categories = cursor.fetchall()
+            return jsonify({'success': True, 'categories': categories})
+            
+        elif request.method == 'POST':
+            data = request.get_json()
+            action = data.get('action')
+            
+            if action == 'add':
+                category_name = data.get('category_name').strip()
+                
+                if not category_name:
+                    return jsonify({'success': False, 'message': 'Kategori adı boş olamaz!'})
+                
+                cursor.execute("SELECT COALESCE(MAX(sort_order), 0) + 1 as next_order FROM restaurant_categories WHERE restaurant_id = %s", (restaurant_id,))
+                next_order = cursor.fetchone()['next_order']
+                
+                cursor.execute("""
+                    INSERT INTO restaurant_categories (restaurant_id, category_name, sort_order)
+                    VALUES (%s, %s, %s)
+                """, (restaurant_id, category_name, next_order))
+                
+                new_category_id = cursor.lastrowid 
+                connection.commit()
+                
+                return jsonify({'success': True, 'category_id': new_category_id, 'category_name': category_name})
+                
+            elif action == 'delete':
+                category_id = data.get('category_id')
+                cursor.execute("DELETE FROM restaurant_categories WHERE category_id = %s AND restaurant_id = %s", (category_id, restaurant_id))
+                connection.commit()
+                return jsonify({'success': True})
+            
+    except Exception as e:
+        connection.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+def restaurant_categories_page():
+    if 'logged_in' not in session or session.get('role') != 'user':
+        flash("Bu sayfayı görüntüleme yetkiniz yok.", "danger")
+        return redirect(url_for('index'))
+
+    restaurant_id = session.get('restaurant_id')
+    connection = get_db_connection()
+    if not connection:
+        flash("Veritabanına bağlanılamadı!", "danger")
+        return redirect(url_for('index'))
+
+    categories = []
+    try:
+        cursor = connection.cursor(dictionary=True)
+        # Kategorileri ve içindeki yemek sayısını (Kullanım Sıklığı) birlikte çekiyoruz
+        cursor.execute("""
+            SELECT rc.*, COUNT(m.menu_id) as usage_count 
+            FROM restaurant_categories rc
+            LEFT JOIN menus m ON rc.category_id = m.category_id
+            WHERE rc.restaurant_id = %s
+            GROUP BY rc.category_id
+            ORDER BY rc.sort_order ASC, rc.category_name ASC
+        """, (restaurant_id,))
+        categories = cursor.fetchall()
+    except Exception as e:
+        flash(f"Kategoriler yüklenirken hata: {e}", "danger")
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+    return render_template('restaurant_categories.html', categories=categories)
+
+def restaurant_categories_action():
+    if 'logged_in' not in session or session.get('role') != 'user':
+        if request.is_json: return jsonify({'success': False})
+        return redirect(url_for('index'))
+
+    restaurant_id = session.get('restaurant_id')
+    connection = get_db_connection()
+    
+    if not connection:
+        if request.is_json: return jsonify({'success': False})
+        return redirect(url_for('restaurant_categories_page'))
+
+    try:
+        cursor = connection.cursor(dictionary=True)
+        
+        # 🚀 YENİ MİMARİ: Sürükle-Bırak Sıralamasını Yakala (Sessiz JSON İsteği)
+        if request.is_json:
+            data = request.get_json()
+            if data.get('action') == 'reorder':
+                ordered_ids = data.get('ordered_ids', [])
+                for index, cat_id in enumerate(ordered_ids):
+                    cursor.execute("UPDATE restaurant_categories SET sort_order = %s WHERE category_id = %s AND restaurant_id = %s", (index + 1, cat_id, restaurant_id))
+                connection.commit()
+                return jsonify({'success': True})
+
+        # KLASİK FORM İŞLEMLERİ (Arama, Ekleme, Silme)
+        action = request.form.get('action')
+        
+        if action == 'add':
+            category_name = request.form.get('category_name').strip()
+            if category_name:
+                # Yeni kategori eklendiğinde otomatik olarak en son sıraya (MAX + 1) yerleşsin
+                cursor.execute("SELECT COALESCE(MAX(sort_order), 0) + 1 as next_order FROM restaurant_categories WHERE restaurant_id = %s", (restaurant_id,))
+                next_order = cursor.fetchone()['next_order']
+                
+                cursor.execute("INSERT INTO restaurant_categories (restaurant_id, category_name, sort_order) VALUES (%s, %s, %s)", (restaurant_id, category_name, next_order))
+                flash("Kategori başarıyla eklendi!", "success")
+            
+        elif action == 'update':
+            category_id = request.form.get('category_id')
+            category_name = request.form.get('category_name').strip()
+            if category_name:
+                cursor.execute("UPDATE restaurant_categories SET category_name = %s WHERE category_id = %s AND restaurant_id = %s", (category_name, category_id, restaurant_id))
+                flash("Kategori adı güncellendi!", "success")
+            
+        elif action == 'delete':
+            category_id = request.form.get('category_id')
+            cursor.execute("DELETE FROM restaurant_categories WHERE category_id = %s AND restaurant_id = %s", (category_id, restaurant_id))
+            flash("Kategori sistemden tamamen silindi.", "success")
+            
+        elif action == 'filter':
+            search_query = request.form.get('name', '').strip()
+            sql = """
+                SELECT rc.*, COUNT(m.menu_id) as usage_count 
+                FROM restaurant_categories rc
+                LEFT JOIN menus m ON rc.category_id = m.category_id
+                WHERE rc.restaurant_id = %s
+            """
+            params = [restaurant_id]
+            
+            if search_query:
+                sql += " AND rc.category_name LIKE %s"
+                params.append(f"%{search_query}%")
+                
+            sql += " GROUP BY rc.category_id ORDER BY rc.sort_order ASC, rc.category_name ASC"
+            
+            cursor.execute(sql, tuple(params))
+            categories = cursor.fetchall()
+            
+            if categories:
+                flash(f"Arama sonucunda {len(categories)} kategori bulundu.", "success")
+            else:
+                flash("Aradığınız kriterlere uygun kategori bulunamadı.", "info")
+                
+            return render_template('restaurant_categories.html', categories=categories)
+
+        elif action == 'clear':
+            flash("Tüm filtreler temizlendi.", "success")
+            return redirect(url_for('restaurant_categories_page'))
+            
+        connection.commit()
+    except Exception as e:
+        connection.rollback()
+        flash(f"İşlem sırasında hata oluştu: {e}", "danger")
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+    return redirect(url_for('restaurant_categories_page'))

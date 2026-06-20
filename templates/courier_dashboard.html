@@ -158,12 +158,12 @@
                     </div>
                 {% endfor %}
             {% endif %}
-        {% endwith %}
+        {% endwith %}                 
 
         <div class="stats-container">
             <div class="stat-card full-width">
                 <span class="stat-title"><i class="ph-bold ph-money"></i> Nakit Kasa</span>
-                <span class="stat-value">₺{{ "%.2f"|format(daily_stats.cash_total) }}</span>
+                <span class="stat-value">₺{{ daily_stats.cash_total | format_price }}</span>
             </div>
             <div class="stat-card">
                 <span class="stat-title"><i class="ph-bold ph-package"></i> Teslimat</span>
@@ -171,7 +171,7 @@
             </div>
             <div class="stat-card">
                 <span class="stat-title"><i class="ph-bold ph-credit-card"></i> Online / Kart</span>
-                <span class="stat-value">₺{{ "%.2f"|format(daily_stats.online_total) }}</span>
+                <span class="stat-value">₺{{ daily_stats.online_total | format_price }}</span>
             </div>
         </div>
         
@@ -187,7 +187,7 @@
                     <span class="status-badge status-{{ order.order_status }}">
                         {{ 'TESLİM ALINACAK' if order.order_status == 'ready' else 'YOLDA (SENDE)' }}
                     </span>
-                    <span class="price-tag">₺{{ order.sales_amount }}</span>
+                    <span class="price-tag">₺{{ order.sales_amount | format_price }}</span>
                 </div>
 
                 <div class="route-container">
