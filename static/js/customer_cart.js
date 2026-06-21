@@ -43,7 +43,7 @@ function applyPromoCode() {
             if (discountRow) discountRow.style.display = "flex";
 
             const discountAmountEl = document.getElementById('ui_discount_amount');
-            if (discountAmountEl) discountAmountEl.innerText = '-₺' + data.discount_amount.toFixed(2);
+            if (discountAmountEl) discountAmountEl.innerText = data.discount_amount.toFixed(2);
 
             const totalElements = document.querySelectorAll('.summary-total span:last-child');
             totalElements.forEach(el => {

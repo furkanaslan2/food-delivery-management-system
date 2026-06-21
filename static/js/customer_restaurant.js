@@ -362,3 +362,29 @@ document.addEventListener("DOMContentLoaded", function() {
         .catch(err => console.log('Canlı durum kontrolü hatası:', err));
     }, 10000); 
 });
+
+// 🛡️ STOK LİMİTİ KONTROLÜ (Kaba tarayıcı uyarısı yerine şık Toast mesajı)
+function checkStockLimit(inputEl) {
+    if (inputEl.value === '') return;
+
+    let maxQty = parseInt(inputEl.getAttribute('data-max'));
+    let currentVal = parseInt(inputEl.value);
+    
+    if (currentVal > maxQty) {
+        if (typeof window.showToast === 'function') {
+            window.showToast('Üzgünüz, stokta sadece ' + maxQty + ' adet kaldı!', 'error');
+        } else {
+            alert('Üzgünüz, stokta sadece ' + maxQty + ' adet kaldı!');
+        }
+        inputEl.value = maxQty;
+    } 
+    else if (currentVal < 1) {
+        inputEl.value = 1;
+    }
+}
+
+function enforceMinQuantity(inputEl) {
+    if (inputEl.value === '' || parseInt(inputEl.value) < 1) {
+        inputEl.value = 1;
+    }
+}

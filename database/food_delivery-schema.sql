@@ -22,9 +22,7 @@ CREATE TABLE customers (
     name VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL, 
-    phone VARCHAR(20) NULL,
-    latitude DECIMAL(10, 8) NULL,  
-    longitude DECIMAL(11, 8) NULL,  
+    phone VARCHAR(20) NULL, 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
     PRIMARY KEY (customer_id)
 );
@@ -157,8 +155,9 @@ CREATE TABLE menus (
     food_id INT,
     category_id INT NULL, 
     custom_name VARCHAR(255) NULL,
-    price DECIMAL(10, 2) NOT NULL CHECK (price > 0),
+    price DECIMAL(10, 2) NOT NULL,
     stock_quantity INT DEFAULT 0 CHECK (stock_quantity >= 0),
+    is_visible TINYINT(1) DEFAULT 1,
     image_url VARCHAR(255) DEFAULT NULL,
     PRIMARY KEY (menu_id),
     FOREIGN KEY (restaurant_id) REFERENCES restaurants(restaurant_id)
@@ -215,6 +214,7 @@ CREATE TABLE orders (
 CREATE TABLE menu_option_choices (
     choice_id INT AUTO_INCREMENT PRIMARY KEY,
     option_id INT NOT NULL,
+    linked_menu_id INT NULL DEFAULT NULL,
     choice_name VARCHAR(255) NOT NULL,
     additional_price DECIMAL(10, 2) DEFAULT 0.00, 
     FOREIGN KEY (option_id) REFERENCES menu_options(option_id) ON DELETE CASCADE

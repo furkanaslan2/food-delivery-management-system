@@ -23,7 +23,7 @@ def menus():
         
         if role == 'admin':
             cursor.execute('''
-                SELECT m.menu_id, m.restaurant_id, m.food_id, m.category_id, m.custom_name, m.price, m.stock_quantity, m.image_url,
+                SELECT m.menu_id, m.restaurant_id, m.food_id, m.category_id, m.custom_name, m.price, m.stock_quantity, m.image_url, m.is_visible,
                        f.item_name as food_name, f.category as global_category, r.restaurant_name, rc.category_name
                 FROM menus m 
                 LEFT JOIN foods f ON m.food_id = f.food_id
@@ -38,7 +38,7 @@ def menus():
 
             # 🚀 YENİ: Menüleri çekerken özel kategorisiyle (rc.category_name) birlikte çekiyoruz
             cursor.execute('''
-                SELECT m.menu_id, m.restaurant_id, m.food_id, m.category_id, m.custom_name, m.price, m.stock_quantity, m.image_url,
+                SELECT m.menu_id, m.restaurant_id, m.food_id, m.category_id, m.custom_name, m.price, m.stock_quantity, m.image_url, m.is_visible,
                        f.item_name as food_name, f.category as global_category, rc.category_name
                 FROM menus m 
                 LEFT JOIN foods f ON m.food_id = f.food_id
@@ -132,6 +132,8 @@ def menus_action():
                     flash('Geçersiz Restoran ID!', 'danger')
                     return redirect(url_for('menus'))
 
+                is_visible = 0 if request.form.get('is_phantom') else 1
+
                 if menu_id:
                     cursor.execute("SELECT menu_id FROM menus WHERE menu_id = %s", (menu_id,))
                     if cursor.fetchone():
@@ -139,17 +141,17 @@ def menus_action():
                         return redirect(url_for('menus'))
                     
                     query = """
-                        INSERT INTO menus (menu_id, restaurant_id, food_id, category_id, custom_name, price, stock_quantity, image_url) 
-                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                        INSERT INTO menus (menu_id, restaurant_id, food_id, category_id, custom_name, price, stock_quantity, image_url, is_visible) 
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                     """
-                    cursor.execute(query, (menu_id, restaurant_id, food_id, category_id, custom_name, price, stock_quantity, image_url))
+                    cursor.execute(query, (menu_id, restaurant_id, food_id, category_id, custom_name, price, stock_quantity, image_url, is_visible))
                     inserted_menu_id = menu_id
                 else:
                     query = """
-                        INSERT INTO menus (restaurant_id, food_id, category_id, custom_name, price, stock_quantity, image_url) 
-                        VALUES (%s, %s, %s, %s, %s, %s, %s)
+                        INSERT INTO menus (restaurant_id, food_id, category_id, custom_name, price, stock_quantity, image_url, is_visible) 
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                     """
-                    cursor.execute(query, (restaurant_id, food_id, category_id, custom_name, price, stock_quantity, image_url))
+                    cursor.execute(query, (restaurant_id, food_id, category_id, custom_name, price, stock_quantity, image_url, is_visible))
                     inserted_menu_id = cursor.lastrowid
 
                 # 🛠️ YENİ EKLENEN: DİNAMİK OPSİYONLARI YAKALA VE VERİTABANINA KAYDET
@@ -174,6 +176,7 @@ def menus_action():
                     # 2. Aşama: Bu Gruba Ait Şıkları Ekle (Örn: Kaşar, Cheddar)
                     choice_names = request.form.getlist(f'choice_names_{i}[]')
                     additional_prices = request.form.getlist(f'additional_prices_{i}[]')
+                    linked_menu_ids = request.form.getlist(f'linked_menu_ids_{i}[]') # 🚀 BURANIN EKLENDİĞİNDEN EMİN OL
                     
                     for j, choice_name in enumerate(choice_names):
                         if not choice_name.strip():
@@ -181,10 +184,15 @@ def menus_action():
                         
                         add_price = additional_prices[j] if j < len(additional_prices) and additional_prices[j] else 0
                         
+                        # 🚀 YENİ VE GÜVENLİ: Gelen değeri zorla INT (Tam Sayı) yap, boşsa NULL'a (None) çevir
+                        raw_linked_id = linked_menu_ids[j] if j < len(linked_menu_ids) else None
+                        linked_menu_id = int(raw_linked_id.strip()) if raw_linked_id and raw_linked_id.strip() != '' else None
+                        
+                        # 🚀 EN KRİTİK YER: SQL sorgusunda linked_menu_id'nin yazılı olduğundan emin ol!
                         cursor.execute("""
-                            INSERT INTO menu_option_choices (option_id, choice_name, additional_price) 
-                            VALUES (%s, %s, %s)
-                        """, (option_id, choice_name, add_price))
+                            INSERT INTO menu_option_choices (option_id, choice_name, additional_price, linked_menu_id) 
+                            VALUES (%s, %s, %s, %s)
+                        """, (option_id, choice_name, add_price, linked_menu_id))
 
                 # Tüm işlemler bittikten sonra veritabanına kaydet
                 connection.commit()
@@ -240,9 +248,9 @@ def menus_action():
             price = request.form.get('price')
             restaurant_id = request.form.get('restaurant_id')
             stock_quantity = request.form.get('stock_quantity')
-            category_id = request.form.get('category_id')
+            category_id = request.form.get('category_id') or None
             
-            image_file = request.files.get('menu_image') # YENİ GÖRSEL DEĞİŞKENİ
+            image_file = request.files.get('menu_image') 
 
             if not stock_quantity:
                 stock_quantity = 0
@@ -266,11 +274,13 @@ def menus_action():
                 return redirect(url_for('menus'))
 
             try:
+                is_visible = 0 if request.form.get('is_phantom') else 1
+
                 update_query = """
                     UPDATE menus 
-                    SET food_id = %s, category_id = %s, custom_name = %s, price = %s, restaurant_id = %s, stock_quantity = %s 
+                    SET food_id = %s, category_id = %s, custom_name = %s, price = %s, restaurant_id = %s, stock_quantity = %s, is_visible = %s 
                 """
-                params = [food_id, category_id, custom_name, price, restaurant_id, stock_quantity]
+                params = [food_id, category_id, custom_name, price, restaurant_id, stock_quantity, is_visible]
 
                 if image_file and image_file.filename != '':
                     ext = image_file.filename.rsplit('.', 1)[-1].lower()
@@ -323,6 +333,7 @@ def menus_action():
                     
                     choice_names = request.form.getlist(f'choice_names_{i}[]')
                     additional_prices = request.form.getlist(f'additional_prices_{i}[]')
+                    linked_menu_ids = request.form.getlist(f'linked_menu_ids_{i}[]') # 🚀 BURANIN EKLENDİĞİNDEN EMİN OL
                     
                     for j, choice_name in enumerate(choice_names):
                         if not choice_name.strip():
@@ -330,10 +341,15 @@ def menus_action():
                         
                         add_price = additional_prices[j] if j < len(additional_prices) and additional_prices[j] else 0
                         
+                        # 🚀 YENİ VE GÜVENLİ: Gelen değeri zorla INT (Tam Sayı) yap, boşsa NULL'a (None) çevir
+                        raw_linked_id = linked_menu_ids[j] if j < len(linked_menu_ids) else None
+                        linked_menu_id = int(raw_linked_id.strip()) if raw_linked_id and raw_linked_id.strip() != '' else None
+                        
+                        # 🚀 EN KRİTİK YER: SQL sorgusunda linked_menu_id'nin yazılı olduğundan emin ol!
                         cursor.execute("""
-                            INSERT INTO menu_option_choices (option_id, choice_name, additional_price) 
-                            VALUES (%s, %s, %s)
-                        """, (option_id, choice_name, add_price))
+                            INSERT INTO menu_option_choices (option_id, choice_name, additional_price, linked_menu_id) 
+                            VALUES (%s, %s, %s, %s)
+                        """, (option_id, choice_name, add_price, linked_menu_id))
                 connection.commit()
                 flash("Menü başarıyla güncellendi!", "success")
 
@@ -350,7 +366,7 @@ def menus_action():
                 restaurant_id = request.form.get('restaurant_id')
 
                 query = """
-                    SELECT m.menu_id, m.restaurant_id, m.food_id, m.category_id, m.custom_name, m.price, m.stock_quantity, m.image_url,
+                    SELECT m.menu_id, m.restaurant_id, m.food_id, m.category_id, m.custom_name, m.price, m.stock_quantity, m.image_url, m.is_visible,
                            f.item_name as food_name, f.category as global_category, r.restaurant_name, rc.category_name
                     FROM menus m 
                     LEFT JOIN foods f ON m.food_id = f.food_id 
@@ -415,7 +431,7 @@ def menus_action():
                 order_clause = f"m.{sort_by} {sort_order}"
 
             query = """
-                    SELECT m.menu_id, m.restaurant_id, m.food_id, m.category_id, m.custom_name, m.price, m.stock_quantity, m.image_url,
+                    SELECT m.menu_id, m.restaurant_id, m.food_id, m.category_id, m.custom_name, m.price, m.stock_quantity, m.image_url, m.is_visible,
                            f.item_name as food_name, f.category as global_category, r.restaurant_name, rc.category_name
                     FROM menus m 
                     LEFT JOIN foods f ON m.food_id = f.food_id 
@@ -446,7 +462,7 @@ def menus_action():
 
         elif action == 'clear':
             query = """
-                    SELECT m.menu_id, m.restaurant_id, m.food_id, m.category_id, m.custom_name, m.price, m.stock_quantity, m.image_url,
+                    SELECT m.menu_id, m.restaurant_id, m.food_id, m.category_id, m.custom_name, m.price, m.stock_quantity, m.image_url, m.is_visible,
                            f.item_name as food_name, f.category as global_category, r.restaurant_name, rc.category_name
                     FROM menus m 
                     LEFT JOIN foods f ON m.food_id = f.food_id 

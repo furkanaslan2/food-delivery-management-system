@@ -56,7 +56,7 @@ def view_restaurant(restaurant_id):
                 FROM menus m
                 JOIN foods f ON m.food_id = f.food_id
                 LEFT JOIN restaurant_categories rc ON m.category_id = rc.category_id
-                WHERE m.restaurant_id = %s AND m.stock_quantity > 0
+                WHERE m.restaurant_id = %s AND m.stock_quantity > 0 AND m.is_visible = 1
                 ORDER BY rc.sort_order ASC, COALESCE(m.custom_name, f.item_name) ASC
             """, (restaurant_id,))
             menu_items = cursor.fetchall()
@@ -78,7 +78,7 @@ def view_restaurant(restaurant_id):
                        ), 0) as total_sales
                 FROM menus m
                 JOIN foods f ON m.food_id = f.food_id
-                WHERE m.restaurant_id = %s AND m.stock_quantity > 0
+                WHERE m.restaurant_id = %s AND m.stock_quantity > 0 AND m.is_visible = 1
                 ORDER BY total_sales DESC
                 LIMIT 4
             """, (restaurant_id,))
@@ -490,10 +490,39 @@ def checkout():
                         # Eğer müşterinin seçtiği ekstralar varsa onların da canlı fiyat/isimlerini alıyoruz
                         if item.get('choices'):
                             format_strings = ','.join(['%s'] * len(item['choices']))
-                            cursor.execute(f"SELECT choice_id, choice_name, additional_price FROM menu_option_choices WHERE choice_id IN ({format_strings})", tuple(item['choices']))
+                            
+                            # 🚀 DEĞİŞİKLİK 1: linked_menu_id (Stok Bağlantısı) sütununu da çekiyoruz
+                            cursor.execute(f"SELECT choice_id, choice_name, additional_price, linked_menu_id FROM menu_option_choices WHERE choice_id IN ({format_strings})", tuple(item['choices']))
                             choice_details = cursor.fetchall()
+                            
                             for ch in choice_details:
                                 extra_price += float(ch['additional_price'] or 0.0)
+                                
+                                # 🚀 DEĞİŞİKLİK 2: MASTER SKU STOK KONTROL VE DÜŞÜM MOTORU
+                                if ch.get('linked_menu_id'):
+                                    linked_id = ch['linked_menu_id']
+                                    
+                                    # Ana ürünün (Örn: Kutu Kola) stoğunu kilitle (FOR UPDATE) ve kontrol et
+                                    cursor.execute("""
+                                        SELECT m.stock_quantity, COALESCE(m.custom_name, f.item_name) AS item_name 
+                                        FROM menus m 
+                                        JOIN foods f ON m.food_id = f.food_id 
+                                        WHERE m.menu_id = %s FOR UPDATE
+                                    """, (linked_id,))
+                                    
+                                    linked_data = cursor.fetchone()
+                                    
+                                    if linked_data:
+                                        linked_stock = int(linked_data['stock_quantity'])
+                                        
+                                        # Eğer kolanın stoğu kalmamışsa veya yetersizse, tüm siparişi iptal et
+                                        if linked_stock < requested_qty:
+                                            connection.rollback() 
+                                            flash(f"Üzgünüz, ekstra olarak seçtiğiniz '{ch['choice_name']}' için yeterli stok kalmamış. Lütfen sepetinizi güncelleyin.", "danger")
+                                            return redirect(url_for('view_cart'))
+                                            
+                                        # Yeterli stok varsa, Master SKU'dan (Kola) adet kadar düş
+                                        cursor.execute("UPDATE menus SET stock_quantity = stock_quantity - %s WHERE menu_id = %s", (requested_qty, linked_id))
                                 
                         unit_price = base_price + extra_price
                         
@@ -554,7 +583,6 @@ def customer_orders():
             orders_list = cursor.fetchall()
 
             for order in orders_list:
-                # 🚀 2. DEĞİŞİKLİK: Artık mühürlü tablodan çekiyoruz (JOIN'leri sildik)
                 cursor.execute("""
                     SELECT oi.*, oi.item_name_snapshot AS item_name 
                     FROM order_items oi
@@ -563,31 +591,31 @@ def customer_orders():
                 order_items_list = cursor.fetchall()
                 
                 for oi in order_items_list:
-                    # Ekstraları da mühürlü tablodan çekiyoruz (Yeni sistemde cart_index kullanarak)
                     if oi.get('cart_index'):
                         cursor.execute("""
-                            SELECT choice_name_snapshot AS choice_name 
+                            SELECT choice_name_snapshot AS choice_name, choice_price_snapshot AS additional_price 
                             FROM order_item_choices 
                             WHERE order_id = %s AND cart_index = %s
                         """, (order['order_id'], oi['cart_index']))
                     else:
-                        # Eski siparişlere geriye dönük uyumluluk (cart_index olmayanlar için)
                         cursor.execute("""
-                            SELECT choice_name_snapshot AS choice_name 
+                            SELECT choice_name_snapshot AS choice_name, choice_price_snapshot AS additional_price 
                             FROM order_item_choices 
                             WHERE order_id = %s AND food_id = %s
                         """, (order['order_id'], oi['food_id']))
                         
                     choices_data = cursor.fetchall()
                     
-                    if choices_data:
-                        names = [c['choice_name'] for c in choices_data]
-                        current_name = oi['item_name'] if oi['item_name'] else "İsimsiz Menü"
-                        oi['item_name'] = f"{current_name} ({', '.join(names)})"
+                    oi['choices'] = choices_data
+                    
+                    extras_total = sum(float(c['additional_price'] or 0) for c in choices_data)
+                    oi['base_price'] = float(oi['unit_price']) - extras_total
+                    
+                    if not oi['item_name']:
+                        oi['item_name'] = "İsimsiz Menü"
                 
                 order['items'] = order_items_list
                 
-                # ... (Altındaki review_data = cursor.fetchone() kısmı aynen kalacak) ...
                 cursor.execute("SELECT rating, comment, restaurant_reply FROM reviews WHERE order_id = %s", (order['order_id'],))
                 review_data = cursor.fetchone()
                 order['review'] = review_data if review_data else None 
@@ -1019,7 +1047,6 @@ def cancel_order():
         try:
             cursor = connection.cursor(dictionary=True)
             
-            # 1. Sipariş gerçekten bu müşteriye mi ait ve durumu nedir?
             cursor.execute("SELECT order_status FROM orders WHERE order_id = %s AND customer_id = %s", (order_id, customer_id))
             order = cursor.fetchone()
 
@@ -1031,6 +1058,19 @@ def cancel_order():
                     canceled_items = cursor.fetchall()
                     for c_item in canceled_items:
                         cursor.execute("UPDATE menus SET stock_quantity = stock_quantity + %s WHERE menu_id = %s", (c_item['quantity'], c_item['menu_id']))
+
+                    cursor.execute("""
+                        SELECT oi.quantity, moc.linked_menu_id 
+                        FROM order_items oi
+                        JOIN order_item_choices oic ON oi.order_id = oic.order_id 
+                            AND (oic.cart_index = oi.cart_index OR (oic.cart_index IS NULL AND oic.food_id = oi.food_id))
+                        JOIN menu_option_choices moc ON oic.choice_id = moc.choice_id
+                        WHERE oi.order_id = %s AND moc.linked_menu_id IS NOT NULL
+                    """, (order_id,))
+                    canceled_choices = cursor.fetchall()
+                    
+                    for c_choice in canceled_choices:
+                        cursor.execute("UPDATE menus SET stock_quantity = stock_quantity + %s WHERE menu_id = %s", (c_choice['quantity'], c_choice['linked_menu_id']))
                         
                     connection.commit()
                     return jsonify({'success': True, 'message': 'Siparişiniz başarıyla iptal edildi.'})
@@ -1126,8 +1166,8 @@ def api_reorder():
                    COALESCE(m.custom_name, f.item_name) AS item_name, m.price, m.restaurant_id, m.menu_id
             FROM order_items oi
             JOIN orders o ON oi.order_id = o.order_id
-            JOIN foods f ON oi.food_id = f.food_id
-            JOIN menus m ON f.food_id = m.food_id AND m.restaurant_id = o.restaurant_id
+            JOIN menus m ON oi.menu_id = m.menu_id
+            JOIN foods f ON m.food_id = f.food_id
             WHERE oi.order_id = %s
         """, (order_id,))
         items = cursor.fetchall()
@@ -1324,6 +1364,7 @@ def ask_ai():
                     JOIN restaurants r ON m.restaurant_id = r.restaurant_id 
                     WHERE r.is_manually_closed = 0 
                       AND m.stock_quantity > 0
+                      AND m.is_visible = 1
                       AND (
                           (r.opening_time <= r.closing_time AND CURTIME() BETWEEN r.opening_time AND r.closing_time)
                           OR 
@@ -1341,6 +1382,7 @@ def ask_ai():
                     JOIN restaurants r ON m.restaurant_id = r.restaurant_id 
                     WHERE r.is_manually_closed = 0 
                       AND m.stock_quantity > 0
+                      AND m.is_visible = 1
                       AND (
                           (r.opening_time <= r.closing_time AND CURTIME() BETWEEN r.opening_time AND r.closing_time)
                           OR 

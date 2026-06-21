@@ -588,7 +588,7 @@ function openNewAddressModal() {
     
     document.querySelectorAll('#addressFormModal input[type="text"], #addressFormModal textarea').forEach(el => el.value = '');
     if (window.addrPhoneMask) {
-        window.addrPhoneMask.unmaskedValue = ''; 
+        window.addrPhoneMask.value = ''; 
     } else {
         document.getElementById('addr-cphone').value = '';
     }
@@ -644,7 +644,7 @@ function startEditingAddress(event, id) {
     document.getElementById('addr-cname').value = addr.contact_name || ''; 
     
     if (window.addrPhoneMask) {
-        window.addrPhoneMask.unmaskedValue = addr.contact_phone || '';
+        window.addrPhoneMask.value = addr.contact_phone || '';
     } else {
         document.getElementById('addr-cphone').value = addr.contact_phone || '';
     }

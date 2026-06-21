@@ -1,8 +1,27 @@
 from flask import render_template, request, redirect, url_for, session, flash, jsonify
 from db import get_db_connection
 from mysql.connector import Error
-from datetime import date
+from datetime import date, timedelta, datetime
 import re
+
+# 🚀 YENİ: MASTER SKU MOTORU - Opsiyon Stoklarını Toplu Yöneten Zeki Fonksiyon
+def sync_linked_stocks_for_order(cursor, order_id, action="refund"):
+    """ Siparişe bağlı gizli Master SKU (Opsiyon) stoklarını iade eder veya düşer """
+    cursor.execute("""
+        SELECT oi.quantity, moc.linked_menu_id 
+        FROM order_items oi
+        JOIN order_item_choices oic ON oi.order_id = oic.order_id 
+            AND (oic.cart_index = oi.cart_index OR (oic.cart_index IS NULL AND oic.food_id = oi.food_id))
+        JOIN menu_option_choices moc ON oic.choice_id = moc.choice_id
+        WHERE oi.order_id = %s AND moc.linked_menu_id IS NOT NULL
+    """, (order_id,))
+    linked_items = cursor.fetchall()
+    
+    for c_choice in linked_items:
+        if action == "refund":
+            cursor.execute("UPDATE menus SET stock_quantity = stock_quantity + %s WHERE menu_id = %s", (c_choice['quantity'], c_choice['linked_menu_id']))
+        elif action == "reduce":
+            cursor.execute("UPDATE menus SET stock_quantity = stock_quantity - %s WHERE menu_id = %s", (c_choice['quantity'], c_choice['linked_menu_id']))
 
 def orders():
     if not session.get('logged_in'):
@@ -40,7 +59,7 @@ def orders():
                 SELECT m.menu_id, f.food_id, COALESCE(m.custom_name, f.item_name) AS item_name, m.price 
                 FROM menus m 
                 JOIN foods f ON m.food_id = f.food_id 
-                WHERE m.restaurant_id = %s
+                WHERE m.restaurant_id = %s AND m.stock_quantity > 0
             """
             cursor.execute(query_foods, (restaurant_id,))
             foods = cursor.fetchall()
@@ -134,14 +153,14 @@ def order_action():
                                        COALESCE(m.custom_name, f.item_name) AS item_name
                                 FROM menus m
                                 JOIN foods f ON m.food_id = f.food_id
-                                WHERE m.menu_id = %s
+                                WHERE m.menu_id = %s FOR UPDATE
                             """, (menu_id,))
                             menu_item = cursor.fetchone()
                             
                             if menu_item:
                                 current_stock = menu_item['stock_quantity']
                                 if current_stock < qty:
-                                    flash(f"HATA: Stok yetersiz!", "danger")
+                                    flash(f"HATA: '{menu_item['item_name']}' için stok yetersiz!", "danger")
                                     return redirect(url_for('orders'))
                                 
                                 base_price = float(menu_item['price'])
@@ -150,12 +169,22 @@ def order_action():
                                 
                                 if selected_choices:
                                     format_strings = ','.join(['%s'] * len(selected_choices))
-                                    cursor.execute(f"SELECT choice_id, choice_name, additional_price FROM menu_option_choices WHERE choice_id IN ({format_strings})", selected_choices)
+                                    # 🚀 YENİ: linked_menu_id'yi de çekiyoruz
+                                    cursor.execute(f"SELECT choice_id, choice_name, additional_price, linked_menu_id FROM menu_option_choices WHERE choice_id IN ({format_strings})", selected_choices)
                                     choice_details = cursor.fetchall()
                                     
                                     for row in choice_details:
                                         if row['additional_price']:
                                             extras_price += float(row['additional_price'])
+                                        
+                                        # 🚀 YENİ: Opsiyonun arkasındaki Master SKU stoğunu kontrol et
+                                        if row.get('linked_menu_id'):
+                                            linked_id = row['linked_menu_id']
+                                            cursor.execute("SELECT stock_quantity FROM menus WHERE menu_id = %s FOR UPDATE", (linked_id,))
+                                            linked_data = cursor.fetchone()
+                                            if linked_data and linked_data['stock_quantity'] < qty:
+                                                flash(f"HATA: Ekstra '{row['choice_name']}' için stok yetersiz!", "danger")
+                                                return redirect(url_for('orders'))
                                 
                                 unit_price = base_price + extras_price
                                 total_amount += (unit_price * qty)
@@ -163,11 +192,11 @@ def order_action():
                                 
                                 valid_items.append({
                                     'food_id': menu_item['food_id'],
-                                    'menu_id': menu_id, # Tekrar sipariş için lazım olacak
-                                    'item_name': menu_item['item_name'], # Mühürlenecek İsim!
+                                    'menu_id': menu_id,
+                                    'item_name': menu_item['item_name'], 
                                     'quantity': qty,
                                     'unit_price': unit_price,
-                                    'choice_details': choice_details, # Mühürlenecek Ekstra Listesi!
+                                    'choice_details': choice_details,
                                     'cart_index': idx,
                                     'note': note
                                 })
@@ -211,11 +240,14 @@ def order_action():
                         """, (final_order_id, item['food_id'], choice['choice_id'], item['cart_index'], choice['choice_name'], choice['additional_price'] or 0.00))
 
             for item in valid_items:
-                cursor.execute("""
-                    UPDATE menus 
-                    SET stock_quantity = stock_quantity - %s 
-                    WHERE menu_id = %s
-                """, (item['quantity'], item['menu_id']))
+                # Ana yemek stoğunu düşür
+                cursor.execute("UPDATE menus SET stock_quantity = stock_quantity - %s WHERE menu_id = %s", (item['quantity'], item['menu_id']))
+                
+                # 🚀 YENİ: Eklenen Master SKU opsiyon stoklarını düşür
+                if item.get('choice_details'):
+                    for choice in item['choice_details']:
+                        if choice.get('linked_menu_id'):
+                            cursor.execute("UPDATE menus SET stock_quantity = stock_quantity - %s WHERE menu_id = %s", (item['quantity'], choice['linked_menu_id']))
 
             connection.commit()
             flash(f"Sipariş başarıyla eklendi! Toplam: ₺{total_amount:.2f} (ID: {final_order_id})", "success")
@@ -235,11 +267,10 @@ def order_action():
                     cursor.execute("SELECT menu_id, quantity FROM order_items WHERE order_id = %s", (o_id,))
                     items_to_return = cursor.fetchall()
                     for item in items_to_return:
-                        cursor.execute("""
-                            UPDATE menus 
-                            SET stock_quantity = stock_quantity + %s 
-                            WHERE menu_id = %s
-                        """, (item['quantity'], item['menu_id']))
+                        cursor.execute("UPDATE menus SET stock_quantity = stock_quantity + %s WHERE menu_id = %s", (item['quantity'], item['menu_id']))
+                    
+                    # 🚀 YENİ: Silinen siparişin gizli opsiyonlarını da iade et
+                    sync_linked_stocks_for_order(cursor, o_id, "refund")
 
             format_strings = ','.join(['%s'] * len(ids_list))
             if role == 'user':
@@ -289,9 +320,13 @@ def order_action():
                 flash("Güncellenecek sipariş seçilmedi.", "warning")
                 return redirect(url_for('orders'))
 
+            # 🚀 YENİ EKLENEN KISIM 1: Siparişin "eski" durumunu en baştan çekiyoruz
+            cursor.execute("SELECT order_status FROM orders WHERE order_id = %s", (update_order_id,))
+            old_order_row = cursor.fetchone()
+            old_status = old_order_row['order_status'] if old_order_row else 'pending'
+
             cart_indices = request.form.getlist('cart_index')
             
-            # Eğer JS tarafı ürünleri göndermişse (Yani Online Ödeme değilse ve ürün listesi açıksa)
             if cart_indices:
                 valid_items = []
                 total_qty = 0
@@ -312,7 +347,7 @@ def order_action():
                                            COALESCE(m.custom_name, f.item_name) AS item_name
                                     FROM menus m
                                     JOIN foods f ON m.food_id = f.food_id
-                                    WHERE m.menu_id = %s
+                                    WHERE m.menu_id = %s FOR UPDATE
                                 """, (menu_id,))
                                 menu_item = cursor.fetchone()
                                 
@@ -323,11 +358,19 @@ def order_action():
                                     
                                     if selected_choices:
                                         format_strings = ','.join(['%s'] * len(selected_choices))
-                                        cursor.execute(f"SELECT choice_id, choice_name, additional_price FROM menu_option_choices WHERE choice_id IN ({format_strings})", selected_choices)
+                                        cursor.execute(f"SELECT choice_id, choice_name, additional_price, linked_menu_id FROM menu_option_choices WHERE choice_id IN ({format_strings})", selected_choices)
                                         choice_details = cursor.fetchall()
                                         for row in choice_details:
                                             if row['additional_price']:
                                                 extras_price += float(row['additional_price'])
+                                            
+                                            # Sadece yeni sipariş durumuna geçiyorsak stoğu kontrol et
+                                            if order_status != 'canceled' and row.get('linked_menu_id'):
+                                                cursor.execute("SELECT stock_quantity FROM menus WHERE menu_id = %s FOR UPDATE", (row['linked_menu_id'],))
+                                                linked_stock = cursor.fetchone()
+                                                if linked_stock and linked_stock['stock_quantity'] < qty:
+                                                    flash(f"HATA: Ekstra '{row['choice_name']}' için stok yetersiz!", "danger")
+                                                    return redirect(url_for('orders'))
                                     
                                     unit_price = base_price + extras_price
                                     total_amount += (unit_price * qty)
@@ -350,17 +393,19 @@ def order_action():
                     flash("Lütfen siparişe en az bir ürün ekleyin!", "warning")
                     return redirect(url_for('orders'))
                 
-                # 1. Eski siparişin stoklarını iade et
-                cursor.execute("SELECT menu_id, quantity FROM order_items WHERE order_id = %s", (update_order_id,))
-                old_items = cursor.fetchall()
-                for old_item in old_items:
-                    cursor.execute("UPDATE menus SET stock_quantity = stock_quantity + %s WHERE menu_id = %s", (old_item['quantity'], old_item['menu_id']))
+                # 🚀 YENİ EKLENEN KISIM 2: Eski siparişin stoklarını iade et (SADECE eski durum zaten iptal DEĞİLSE)
+                if old_status != 'canceled':
+                    cursor.execute("SELECT menu_id, quantity FROM order_items WHERE order_id = %s", (update_order_id,))
+                    old_items = cursor.fetchall()
+                    for old_item in old_items:
+                        cursor.execute("UPDATE menus SET stock_quantity = stock_quantity + %s WHERE menu_id = %s", (old_item['quantity'], old_item['menu_id']))
+                    sync_linked_stocks_for_order(cursor, update_order_id, "refund")
                 
-                # 2. Eski kalemleri ve ekstraları tamamen sil
+                # Eski kalemleri ve ekstraları tamamen sil
                 cursor.execute("DELETE FROM order_item_choices WHERE order_id = %s", (update_order_id,))
                 cursor.execute("DELETE FROM order_items WHERE order_id = %s", (update_order_id,))
                 
-                # 3. Yeni kalemleri Snapshot (Mühür) ile kaydet
+                # Yeni kalemleri Snapshot (Mühür) ile kaydet
                 for item in valid_items:
                     item_query = """
                         INSERT INTO order_items 
@@ -377,27 +422,31 @@ def order_action():
                                 VALUES (%s, %s, %s, %s, %s, %s)
                             """, (update_order_id, item['food_id'], choice['choice_id'], item['cart_index'], choice['choice_name'], float(choice['additional_price'] or 0.00)))
                             
-                    # Yeni stokları düşür
-                    cursor.execute("UPDATE menus SET stock_quantity = stock_quantity - %s WHERE menu_id = %s", (item['quantity'], item['menu_id']))
+                    # 🚀 YENİ EKLENEN KISIM 3: Yeni stokları düşür (SADECE yeni durum iptal DEĞİLSE)
+                    if order_status != 'canceled':
+                        cursor.execute("UPDATE menus SET stock_quantity = stock_quantity - %s WHERE menu_id = %s", (item['quantity'], item['menu_id']))
+                        
+                        if item.get('choice_details'):
+                            for choice in item['choice_details']:
+                                if choice.get('linked_menu_id'):
+                                    cursor.execute("UPDATE menus SET stock_quantity = stock_quantity - %s WHERE menu_id = %s", (item['quantity'], choice['linked_menu_id']))
 
-                # 4. Faturanın ana verilerini güncelle (Yeni Fiyat ve Yeni Adet)
-                cursor.execute("""
-                    UPDATE orders 
-                    SET sales_qty = %s, sales_amount = %s
-                    WHERE order_id = %s
-                """, (total_qty, total_amount, update_order_id))
+                # Faturanın ana verilerini güncelle
+                cursor.execute("UPDATE orders SET sales_qty = %s, sales_amount = %s WHERE order_id = %s", (total_qty, total_amount, update_order_id))
 
-            if not cart_indices:
-                cursor.execute("SELECT order_status FROM orders WHERE order_id = %s", (update_order_id,))
-                old_order = cursor.fetchone()
-                if old_order and old_order['order_status'] != 'canceled' and order_status == 'canceled':
+            else:
+                # Sepet gönderilmediyse sadece durum değişiyordur
+                if old_status != 'canceled' and order_status == 'canceled':
                     cursor.execute("SELECT menu_id, quantity FROM order_items WHERE order_id = %s", (update_order_id,))
                     for item in cursor.fetchall():
                         cursor.execute("UPDATE menus SET stock_quantity = stock_quantity + %s WHERE menu_id = %s", (item['quantity'], item['menu_id']))
-                elif old_order and old_order['order_status'] == 'canceled' and order_status != 'canceled':
+                    sync_linked_stocks_for_order(cursor, update_order_id, "refund")
+                    
+                elif old_status == 'canceled' and order_status != 'canceled':
                     cursor.execute("SELECT menu_id, quantity FROM order_items WHERE order_id = %s", (update_order_id,))
                     for item in cursor.fetchall():
                         cursor.execute("UPDATE menus SET stock_quantity = stock_quantity - %s WHERE menu_id = %s", (item['quantity'], item['menu_id']))
+                    sync_linked_stocks_for_order(cursor, update_order_id, "reduce")
 
             query = """
                 UPDATE orders 
@@ -442,9 +491,9 @@ def order_action():
             couriers = cursor.fetchall()
             
             if role == 'user':
-                cursor.execute("SELECT m.menu_id, f.food_id, COALESCE(m.custom_name, f.item_name) AS item_name, m.price FROM menus m JOIN foods f ON m.food_id = f.food_id WHERE m.restaurant_id = %s", (restaurant_id_session,))
+                cursor.execute("SELECT m.menu_id, f.food_id, COALESCE(m.custom_name, f.item_name) AS item_name, m.price FROM menus m JOIN foods f ON m.food_id = f.food_id WHERE m.restaurant_id = %s AND m.stock_quantity > 0", (restaurant_id_session,))
             else:
-                cursor.execute("SELECT m.menu_id, f.food_id, COALESCE(m.custom_name, f.item_name) AS item_name, m.price FROM menus m JOIN foods f ON m.food_id = f.food_id")
+                cursor.execute("SELECT m.menu_id, f.food_id, COALESCE(m.custom_name, f.item_name) AS item_name, m.price FROM menus m JOIN foods f ON m.food_id = f.food_id WHERE m.stock_quantity > 0")
             foods = cursor.fetchall()
                 
             return render_template('orders.html', orders=orders_data, foods=foods, couriers=couriers)
@@ -636,7 +685,6 @@ def kitchen_display():
                     
                     if choices:
                         names = [c['choice_name'] for c in choices]
-                        # İsimsiz kalma ihtimaline karşı güvenlik bariyeri
                         current_name = item['item_name'] if item['item_name'] else "İsimsiz Menü"
                         item['item_name'] = f"{current_name} ({', '.join(names)})"
                 
@@ -671,10 +719,15 @@ def kitchen_order_action():
                     cursor.execute("SELECT menu_id, quantity FROM order_items WHERE order_id = %s", (order_id,))
                     for item in cursor.fetchall():
                         cursor.execute("UPDATE menus SET stock_quantity = stock_quantity + %s WHERE menu_id = %s", (item['quantity'], item['menu_id']))
+                    
+                    sync_linked_stocks_for_order(cursor, order_id, "refund")
+                    
                 elif old_status == 'canceled' and new_status != 'canceled':
                     cursor.execute("SELECT menu_id, quantity FROM order_items WHERE order_id = %s", (order_id,))
                     for item in cursor.fetchall():
                         cursor.execute("UPDATE menus SET stock_quantity = stock_quantity - %s WHERE menu_id = %s", (item['quantity'], item['menu_id']))
+                    
+                    sync_linked_stocks_for_order(cursor, order_id, "reduce")
 
             cursor.execute("""
                 UPDATE orders 

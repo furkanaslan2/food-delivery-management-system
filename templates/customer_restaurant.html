@@ -329,7 +329,7 @@
                         <input type="hidden" name="price" value="{{ item['price'] }}">
                         
                         <div style="display: flex; gap: 8px;">
-                            <input type="number" name="quantity" class="qty-input" value="1" min="1" max="{{ item['stock_quantity'] }}" {% if restaurant.get('is_open') == False %}disabled{% endif %}>
+                            <input type="number" name="quantity" class="qty-input" value="1" min="1" required data-max="{{ item['stock_quantity'] }}" oninput="checkStockLimit(this)" onblur="enforceMinQuantity(this)" {% if restaurant.get('is_open') == False %}disabled{% endif %}>
                             <button type="submit" class="add-btn" {% if restaurant.get('is_open') == False %}disabled{% endif %}><i class="ph-bold ph-plus"></i> Ekle</button>
                         </div>
                     </form>
@@ -361,7 +361,7 @@
                         <input type="hidden" name="price" value="{{ item['price'] }}">
                         
                         <div style="display: flex; gap: 8px;">
-                            <input type="number" name="quantity" class="qty-input" value="1" min="1" max="{{ item['stock_quantity'] }}" {% if restaurant.get('is_open') == False %}disabled{% endif %}>
+                            <input type="number" name="quantity" class="qty-input" value="1" min="1" required data-max="{{ item['stock_quantity'] }}" oninput="checkStockLimit(this)" onblur="enforceMinQuantity(this)" {% if restaurant.get('is_open') == False %}disabled{% endif %}>
                             <button type="submit" class="add-btn" {% if restaurant.get('is_open') == False %}disabled{% endif %}><i class="ph-bold ph-plus"></i> Ekle</button>
                         </div>
                     </form>

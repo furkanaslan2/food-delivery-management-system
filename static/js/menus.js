@@ -48,6 +48,11 @@ function openMenuModal() {
     // Formu temizle
     document.getElementById('menu-form').reset();
     
+    const menuIdInput = document.getElementById('menu-id');
+    const updateMenuIdInput = document.getElementById('update-menu-id');
+    if (menuIdInput) menuIdInput.value = '';
+    if (updateMenuIdInput) updateMenuIdInput.value = '';
+
     // Görsel önizlemeyi sıfırla
     const previewBox = document.getElementById('menu-image-preview');
     if(previewBox) {
@@ -134,13 +139,26 @@ function openMenuModalFromBtn(btn) {
                             </div>
 
                             <div class="choices-container" id="choices-${groupId}" style="display: flex; flex-direction: column; gap: 8px;">
-                                ${opt.choices.map(ch => `
+                                ${opt.choices.map(ch => {
+                                    let optionsHTML = document.getElementById('hidden-stock-options') ? document.getElementById('hidden-stock-options').innerHTML : '';
+                                    
+                                    if (ch.linked_menu_id) {
+                                        optionsHTML = optionsHTML.replace(`value="${ch.linked_menu_id}"`, `value="${ch.linked_menu_id}" selected`);
+                                    }
+
+                                    return `
                                     <div style="display: flex; gap: 10px; align-items: center;">
                                         <input type="text" name="choice_names_${groupId}[]" value="${ch.choice_name}" class="form-input" style="margin: 0; padding: 8px 12px; font-size: 13px;">
-                                        <input type="number" step="0.01" name="additional_prices_${groupId}[]" value="${ch.additional_price}" class="form-input" style="margin: 0; padding: 8px 12px; font-size: 13px; width: 120px;">
+                                        <input type="number" step="0.01" name="additional_prices_${groupId}[]" value="${ch.additional_price}" class="form-input" style="margin: 0; padding: 8px 12px; font-size: 13px; width: 140px;">
+                                        
+                                        <select name="linked_menu_ids_${groupId}[]" class="form-input" style="margin: 0; padding: 8px 12px; font-size: 13px; width: 180px; cursor: pointer;">
+                                            ${optionsHTML}
+                                        </select>
+
                                         <button type="button" onclick="this.parentElement.remove()" style="background: none; border: none; color: #9ca3af; cursor: pointer; font-size: 18px; transition: 0.2s;" onmouseover="this.style.color='#dc2626'" onmouseout="this.style.color='#9ca3af'">&times;</button>
                                     </div>
-                                `).join('')}
+                                    `;
+                                }).join('')}
                             </div>
                             
                             <button type="button" onclick="addChoice(${groupId})" style="background: none; border: 1px dashed #d1d5db; color: #4b5563; padding: 8px 10px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 10px; transition: 0.2s;" onmouseover="this.style.borderColor='#4f46e5'; this.style.color='#4f46e5'" onmouseout="this.style.borderColor='#d1d5db'; this.style.color='#4b5563'">
@@ -168,6 +186,8 @@ function addOptionGroup() {
     const container = document.getElementById('options-container');
     const groupId = optionGroupIndex++;
     
+    const stockOptionsHTML = document.getElementById('hidden-stock-options') ? document.getElementById('hidden-stock-options').innerHTML : '<option value="">-- Stok Bağlantısı Yok --</option>';
+
     const groupHTML = `
         <div class="option-group" id="group-${groupId}" style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 15px; position: relative; animation: fadeIn 0.3s ease-out;">
             <button type="button" onclick="document.getElementById('group-${groupId}').remove()" style="position: absolute; top: 12px; right: 12px; background: #fee2e2; color: #dc2626; border: none; width: 26px; height: 26px; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; display: flex; align-items: center; justify-content: center; transition: 0.2s;" onmouseover="this.style.background='#fca5a5'" onmouseout="this.style.background='#fee2e2'" title="Grubu Sil">&times;</button>
@@ -184,13 +204,20 @@ function addOptionGroup() {
                     </label>
                 </div>
             </div>
+            
             <div class="choices-container" id="choices-${groupId}" style="display: flex; flex-direction: column; gap: 8px;">
                 <div style="display: flex; gap: 10px; align-items: center;">
                     <input type="text" name="choice_names_${groupId}[]" placeholder="Seçenek Adı (Örn: Kaşar Peyniri)" class="form-input" style="margin: 0; padding: 8px 12px; font-size: 13px;">
-                    <input type="number" step="0.01" name="additional_prices_${groupId}[]" placeholder="+ Ücret (Ücretsizse boş bırakın)" class="form-input" style="margin: 0; padding: 8px 12px; font-size: 13px; width: 220px;">
+                    <input type="number" step="0.01" name="additional_prices_${groupId}[]" placeholder="+ Ücret (Yoksa boş bırak)" class="form-input" style="margin: 0; padding: 8px 12px; font-size: 13px; width: 140px;">
+                    
+                    <select name="linked_menu_ids_${groupId}[]" class="form-input" style="margin: 0; padding: 8px 12px; font-size: 13px; width: 180px; cursor: pointer;">
+                        ${stockOptionsHTML}
+                    </select>
+
                     <button type="button" onclick="this.parentElement.remove()" style="background: none; border: none; color: #9ca3af; cursor: pointer; font-size: 18px; transition: 0.2s;" onmouseover="this.style.color='#dc2626'" onmouseout="this.style.color='#9ca3af'">&times;</button>
                 </div>
             </div>
+            
             <button type="button" onclick="addChoice(${groupId})" style="background: none; border: 1px dashed #d1d5db; color: #4b5563; padding: 8px 10px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 10px; transition: 0.2s;" onmouseover="this.style.borderColor='#4f46e5'; this.style.color='#4f46e5'" onmouseout="this.style.borderColor='#d1d5db'; this.style.color='#4b5563'">
                 + Yeni Seçenek Ekle
             </button>
@@ -201,10 +228,17 @@ function addOptionGroup() {
 
 function addChoice(groupId) {
     const container = document.getElementById(`choices-${groupId}`);
+    const stockOptionsHTML = document.getElementById('hidden-stock-options') ? document.getElementById('hidden-stock-options').innerHTML : '<option value="">-- Stok Bağlantısı Yok --</option>';
+
     const choiceHTML = `
         <div style="display: flex; gap: 10px; align-items: center;">
             <input type="text" name="choice_names_${groupId}[]" placeholder="Seçenek Adı (Örn: Sucuk)" class="form-input" style="margin: 0; padding: 8px 12px; font-size: 13px;">
-            <input type="number" step="0.01" name="additional_prices_${groupId}[]" placeholder="+ Ücret (Ücretsizse boş bırakın)" class="form-input" style="margin: 0; padding: 8px 12px; font-size: 13px; width: 220px;">
+            <input type="number" step="0.01" name="additional_prices_${groupId}[]" placeholder="+ Ücret (Yoksa boş bırak)" class="form-input" style="margin: 0; padding: 8px 12px; font-size: 13px; width: 140px;">
+            
+            <select name="linked_menu_ids_${groupId}[]" class="form-input" style="margin: 0; padding: 8px 12px; font-size: 13px; width: 180px; cursor: pointer;">
+                ${stockOptionsHTML}
+            </select>
+
             <button type="button" onclick="this.parentElement.remove()" style="background: none; border: none; color: #9ca3af; cursor: pointer; font-size: 18px; transition: 0.2s;" onmouseover="this.style.color='#dc2626'" onmouseout="this.style.color='#9ca3af'">&times;</button>
         </div>
     `;
@@ -436,3 +470,87 @@ function submitQuickCategory() {
     })
     .catch(err => console.error("Kategori ekleme hatası:", err));
 }
+
+// 🚀 SEKME (TAB) DEĞİŞTİRME MOTORU
+function switchMenuTab(tab) {
+    if(tab === 'active') {
+        document.getElementById('active-menus-wrapper').style.display = 'block';
+        document.getElementById('phantom-menus-wrapper').style.display = 'none';
+        document.getElementById('tab-active').style.background = '#111827';
+        document.getElementById('tab-active').style.color = 'white';
+        document.getElementById('tab-phantom').style.background = '#f3f4f6';
+        document.getElementById('tab-phantom').style.color = '#4b5563';
+    } else {
+        document.getElementById('active-menus-wrapper').style.display = 'none';
+        document.getElementById('phantom-menus-wrapper').style.display = 'block';
+        document.getElementById('tab-phantom').style.background = '#111827';
+        document.getElementById('tab-phantom').style.color = 'white';
+        document.getElementById('tab-active').style.background = '#f3f4f6';
+        document.getElementById('tab-active').style.color = '#4b5563';
+    }
+}
+
+// 🚀 HIZLI DEPO MODALI YÖNETİMİ (HEM EKLE HEM DÜZENLE)
+function openPhantomModal(btn = null) {
+    document.getElementById('phantomModal').style.display = 'flex';
+    
+    if (btn) {
+        // Düzenleme Modu (Edit)
+        document.getElementById('phantomModalTitle').innerHTML = '<i class="ph-bold ph-ghost" style="color: #64748b; font-size: 22px;"></i> Depo Ürününü Düzenle';
+        document.getElementById('phantom-action').value = 'update';
+        document.getElementById('phantom-update-id').value = btn.getAttribute('data-id');
+        document.getElementById('phantom-menu-id').value = btn.getAttribute('data-id');
+        document.getElementById('phantom-food-id').value = btn.getAttribute('data-food-id');
+        document.getElementById('phantom-custom-name').value = btn.getAttribute('data-custom-name');
+        document.getElementById('phantom-price').value = btn.getAttribute('data-price');
+        document.getElementById('phantom-stock').value = btn.getAttribute('data-stock');
+        
+        document.getElementById('phantom-add-btn').style.display = 'none';
+        document.getElementById('phantom-update-btn').style.display = 'block';
+    } else {
+        // Yeni Ekleme Modu (Add)
+        document.getElementById('phantomModalTitle').innerHTML = '<i class="ph-bold ph-ghost" style="color: #64748b; font-size: 22px;"></i> Hızlı Depo Ürünü Ekle';
+        document.getElementById('phantom-action').value = 'add';
+        document.getElementById('phantom-update-id').value = '';
+        document.getElementById('phantom-menu-id').value = ''; 
+        document.getElementById('phantom-custom-name').value = '';
+        document.getElementById('phantom-price').value = '0';
+        document.getElementById('phantom-stock').value = '';
+        
+        document.getElementById('phantom-add-btn').style.display = 'block';
+        document.getElementById('phantom-update-btn').style.display = 'none';
+    }
+}
+
+function closePhantomModal() {
+    document.getElementById('phantomModal').style.display = 'none';
+}
+
+// 🛡️ HIZLI DEPO FORMU KONTROL MOTORU (Şık Bildirimler İçin)
+function validatePhantomForm(event) {
+    const nameInput = document.getElementById('phantom-custom-name').value.trim();
+    const stockInput = document.getElementById('phantom-stock').value.trim();
+    
+    if (!nameInput) {
+        if (typeof window.showToast === 'function') {
+            window.showToast('Lütfen depo ürününün adını girin.', 'error');
+        } else {
+            alert('Lütfen depo ürününün adını girin.');
+        }
+        event.preventDefault();
+        return false;
+    }
+    
+    if (!stockInput || parseInt(stockInput) < 0) {
+        if (typeof window.showToast === 'function') {
+            window.showToast('Lütfen geçerli bir stok adedi girin.', 'error');
+        } else {
+            alert('Lütfen geçerli bir stok adedi girin.');
+        }
+        event.preventDefault();
+        return false;
+    }
+    
+    return true; 
+}
+

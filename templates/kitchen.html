@@ -48,7 +48,7 @@
                 <img src="{{ url_for('static', filename='images/icons/chef.png') }}" style="width: 36px; height: 36px; object-fit: contain;">
                 Mutfak Ekranı
             </h1>
-                        <span style="background: #374151; padding: 5px 12px; border-radius: 20px; font-weight: 600;">{{ orders|length }} Bekleyen</span>
+            <span style="background: #374151; padding: 5px 12px; border-radius: 20px; font-weight: 600;">{{ orders|length }} Bekleyen</span>
         </div>
         <a href="{{ url_for('orders') }}" class="exit-btn" style="display: flex; align-items: center; gap: 8px;">
             <img src="{{ url_for('static', filename='images/icons/back.png') }}" style="width: 18px; height: 18px;"> Panele Dön
@@ -93,27 +93,35 @@
                 {% endif %}
             </div>
             
-            <div class="card-footer">
-                <form action="{{ url_for('kitchen_order_action') }}" method="POST" style="width: 100%;">
+            <div class="card-footer" style="display: flex; gap: 10px;">
+                <form action="{{ url_for('kitchen_order_action') }}" method="POST" style="flex: 1;">
+                    <input type="hidden" name="order_id" value="{{ order.order_id }}">
+                    <input type="hidden" name="order_status" value="canceled">
+                    <button type="button" class="btn" style="background: #ef4444; width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 14px;" onclick="openKitchenCancelModal(this);">
+                        <img src="{{ url_for('static', filename='images/icons/delete.png') }}" style="width: 18px; height: 18px;"> İptal
+                    </button>
+                </form>
+
+                <form action="{{ url_for('kitchen_order_action') }}" method="POST" style="flex: 2;">
                     <input type="hidden" name="order_id" value="{{ order.order_id }}">
                     
                     {% if order.order_status == 'pending' %}
                         <input type="hidden" name="order_status" value="preparing">
-                        <button type="submit" class="btn btn-start" style="display: flex; align-items: center; justify-content: center; gap: 8px;">
-                            <img src="{{ url_for('static', filename='images/icons/cook.png') }}" style="width: 22px; height: 22px;"> Hazırlamaya Başla
+                        <button type="submit" class="btn btn-start" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 14px;">
+                            <img src="{{ url_for('static', filename='images/icons/cook.png') }}" style="width: 18px; height: 18px;"> Hazırla
                         </button>
                     
                     {% elif order.order_status == 'preparing' %}
                         
                         {% if order.order_type == 'Dine-in' %}
                             <input type="hidden" name="order_status" value="delivered">
-                            <button type="submit" class="btn btn-ready" style="background: #8b5cf6; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                                <img src="{{ url_for('static', filename='images/icons/dine-in.png') }}" style="width: 22px; height: 22px;"> Masaya Servis Et
+                            <button type="submit" class="btn btn-ready" style="width: 100%; background: #8b5cf6; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 14px;">
+                                <img src="{{ url_for('static', filename='images/icons/dine-in.png') }}" style="width: 18px; height: 18px;"> Masaya Servis
                             </button>
                         {% else %}
                             <input type="hidden" name="order_status" value="ready">
-                            <button type="submit" class="btn btn-ready" style="display: flex; align-items: center; justify-content: center; gap: 8px;">
-                                <img src="{{ url_for('static', filename='images/icons/package.png') }}" style="width: 22px; height: 22px;"> Paket Hazır
+                            <button type="submit" class="btn btn-ready" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 14px;">
+                                <img src="{{ url_for('static', filename='images/icons/package.png') }}" style="width: 18px; height: 18px;"> Paket Hazır
                             </button>
                         {% endif %}
                         
@@ -132,8 +140,44 @@
         {% endfor %}
     </div>
 
+    <div id="kitchenCancelModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(17,24,39,0.85); z-index:10000; justify-content:center; align-items:center;">
+        <div style="background:white; width:90%; max-width:420px; border-radius:16px; padding:30px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); text-align:center;">
+            <div style="margin-bottom:15px; display:flex; justify-content:center;">
+                <div style="width: 60px; height: 60px; background: #fef2f2; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                    <img src="{{ url_for('static', filename='images/icons/delete.png') }}" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(239, 68, 68, 0.4));">
+                </div>
+            </div>
+            <h3 style="margin:0 0 10px 0; color:#111827; font-size:22px; font-weight:800;">Siparişi İptal Et</h3>
+            <p style="margin:0 0 30px 0; color:#4b5563; font-size:15px; font-weight:500; line-height: 1.5;">Bu siparişi mutfaktan iptal etmek istediğinize emin misiniz?<br><span style="color:#ef4444; font-weight:700;">Stoklar otomatik olarak rafa iade edilecektir.</span></p>
+            <div style="display:flex; justify-content:center; gap:12px;">
+                <button type="button" onclick="closeKitchenCancelModal()" style="flex:1; background:#f3f4f6; color:#374151; border:none; padding:14px; border-radius:12px; font-weight:700; cursor:pointer; font-family:inherit; font-size: 15px; transition: background 0.2s;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">Vazgeç</button>
+                <button type="button" id="confirmCancelBtn" style="flex:1; background:#ef4444; color:white; border:none; padding:14px; border-radius:12px; font-weight:700; cursor:pointer; font-family:inherit; font-size: 15px; transition: background 0.2s;" onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='#ef4444'">Evet, İptal Et</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        setTimeout(function() { window.location.reload(); }, 15000); // Her 15 saniyede bir sayfayı yeniler
+        let pendingCancelForm = null;
+
+        function openKitchenCancelModal(btnElement) {
+            pendingCancelForm = btnElement.closest('form');
+            document.getElementById('kitchenCancelModal').style.display = 'flex';
+        }
+
+        function closeKitchenCancelModal() {
+            pendingCancelForm = null;
+            document.getElementById('kitchenCancelModal').style.display = 'none';
+        }
+
+        document.getElementById('confirmCancelBtn').addEventListener('click', function() {
+            if (pendingCancelForm) {
+                pendingCancelForm.submit();
+            }
+        });
+    </script>
+
+    <script>
+        setTimeout(function() { window.location.reload(); }, 15000); 
     </script>
 </body>
 </html>
