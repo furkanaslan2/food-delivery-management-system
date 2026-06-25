@@ -221,7 +221,7 @@ def restaurant_analytics():
             AND o.order_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
             GROUP BY c.courier_id
             ORDER BY total_deliveries DESC
-            LIMIT 5
+            LIMIT 7
         """, (restaurant_id,))
         courier_stats = cursor.fetchall()
         courier_labels = [row['courier_name'] for row in courier_stats]

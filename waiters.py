@@ -255,22 +255,51 @@ def waiter_create_order():
             if qty > 0:
                 cursor.execute('''
                     SELECT m.price, m.food_id, m.stock_quantity, COALESCE(m.custom_name, f.item_name) AS item_name 
-                    FROM menus m JOIN foods f ON m.food_id = f.food_id WHERE m.menu_id = %s
+                    FROM menus m JOIN foods f ON m.food_id = f.food_id WHERE m.menu_id = %s FOR UPDATE
                 ''', (menu_id,))
                 result = cursor.fetchone()
                 
                 if result:
+                    current_stock = int(result['stock_quantity'])
+                    if current_stock < qty:
+                        connection.rollback()
+                        flash(f"Üzgünüz, masaya eklemek istediğiniz '{result['item_name']}' için yeterli stok kalmamış. (Kalan: {current_stock})", "danger")
+                        return redirect(url_for('waiter_dashboard'))
+                        
+                    cursor.execute("UPDATE menus SET stock_quantity = stock_quantity - %s WHERE menu_id = %s", (qty, menu_id))
+                    
                     base_price = float(result['price'])
                     extras_price = 0
                     choice_details = [] 
                     
                     if selected_choices:
                         format_strings = ','.join(['%s'] * len(selected_choices))
-                        cursor.execute(f"SELECT choice_id, choice_name, additional_price FROM menu_option_choices WHERE choice_id IN ({format_strings})", tuple(selected_choices))
+                        cursor.execute(f"SELECT choice_id, choice_name, additional_price, linked_menu_id FROM menu_option_choices WHERE choice_id IN ({format_strings})", tuple(selected_choices))
                         choice_details = cursor.fetchall()
+                        
                         for row in choice_details:
                             if row['additional_price']:
                                 extras_price += float(row['additional_price'])
+                                
+                            # 🚀 DEĞİŞİKLİK 3: MASTER SKU (GÖLGE ÜRÜN) STOK KONTROLÜ
+                            if row.get('linked_menu_id'):
+                                linked_id = row['linked_menu_id']
+                                cursor.execute("""
+                                    SELECT m.stock_quantity, COALESCE(m.custom_name, f.item_name) AS item_name 
+                                    FROM menus m 
+                                    JOIN foods f ON m.food_id = f.food_id 
+                                    WHERE m.menu_id = %s FOR UPDATE
+                                """, (linked_id,))
+                                linked_data = cursor.fetchone()
+                                
+                                if linked_data:
+                                    linked_stock = int(linked_data['stock_quantity'])
+                                    if linked_stock < qty:
+                                        connection.rollback()
+                                        flash(f"Üzgünüz, ekstra olarak seçilen '{row['choice_name']}' için yeterli stok kalmamış.", "danger")
+                                        return redirect(url_for('waiter_dashboard'))
+                                        
+                                    cursor.execute("UPDATE menus SET stock_quantity = stock_quantity - %s WHERE menu_id = %s", (qty, linked_id))
                     
                     unit_price = base_price + extras_price
                     total_amount += (unit_price * qty)

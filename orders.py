@@ -255,7 +255,7 @@ def order_action():
         elif action == 'delete':
             selected_ids = request.form.get('selected_orders')
             if not selected_ids:
-                flash("Silinecek sipariş seçilmedi.", "warning")
+                flash("Silinecek/İptal edilecek sipariş seçilmedi.", "warning")
                 return redirect(url_for('orders'))
 
             ids_list = selected_ids.split(',')
@@ -269,19 +269,18 @@ def order_action():
                     for item in items_to_return:
                         cursor.execute("UPDATE menus SET stock_quantity = stock_quantity + %s WHERE menu_id = %s", (item['quantity'], item['menu_id']))
                     
-                    # 🚀 YENİ: Silinen siparişin gizli opsiyonlarını da iade et
                     sync_linked_stocks_for_order(cursor, o_id, "refund")
 
             format_strings = ','.join(['%s'] * len(ids_list))
             if role == 'user':
-                query = f"DELETE FROM orders WHERE order_id IN ({format_strings}) AND restaurant_id = %s"
+                query = f"UPDATE orders SET order_status = 'canceled' WHERE order_id IN ({format_strings}) AND restaurant_id = %s"
                 cursor.execute(query, ids_list + [restaurant_id_session])
             else:
-                query = f"DELETE FROM orders WHERE order_id IN ({format_strings})"
+                query = f"UPDATE orders SET order_status = 'canceled' WHERE order_id IN ({format_strings})"
                 cursor.execute(query, ids_list)
 
             connection.commit()
-            flash(f"{cursor.rowcount} sipariş başarıyla silindi ve stoklar iade edildi.", "success")
+            flash(f"{cursor.rowcount} sipariş başarıyla iptal edildi ve stoklar rafa iade edildi.", "success")
 
         elif action == 'update':
             update_order_id = request.form.get('update_order_id')

@@ -148,8 +148,7 @@
                     {% set is_sold_out = menu.stock_quantity <= 0 %}
                     {% set safe_name = (menu.custom_name or menu.item_name)|replace("'", "\\'") %}
                     
-                    <div class="menu-card {{ 'sold-out' if is_sold_out else '' }}" onclick="openPosModal('{{ menu.menu_id }}', '{{ safe_name }}', '{{ menu.price }}')">
-                        {% if is_sold_out %}<div class="sold-out-badge">Tükendi</div>{% endif %}
+                    <div class="menu-card {{ 'sold-out' if is_sold_out else '' }}" onclick="openPosModal('{{ menu.menu_id }}', '{{ safe_name }}', '{{ menu.price }}', '{{ menu.stock_quantity }}')">
                         <h3 class="menu-name">{{ menu.custom_name or menu.item_name }}</h3>
                         <p class="menu-price">₺{{ menu.price | format_price }}</p>
                         <div class="menu-add-icon"><i class="ph-bold ph-plus"></i></div>
@@ -276,10 +275,12 @@
         }
 
         let currentMenuId = null;
+        let currentMenuStock = 0;
         let cartTotal = 0;
 
-        async function openPosModal(menuId, name, price) {
+        async function openPosModal(menuId, name, price, stock) { 
             currentMenuId = menuId;
+            currentMenuStock = parseInt(stock); 
             document.getElementById('modal-item-name').innerText = name;
             document.getElementById('modal-item-price').innerText = "₺" + parseFloat(price).toFixed(2);
             document.getElementById('modal-qty').innerText = "1";
@@ -326,6 +327,13 @@
             let qty = parseInt(document.getElementById('modal-qty').innerText);
             qty += change;
             if(qty < 1) qty = 1;
+            
+            if(qty > currentMenuStock) {
+                if(typeof window.showToast === 'function') window.showToast("Stokta sadece " + currentMenuStock + " adet var!", "warning");
+                else alert("Stokta sadece " + currentMenuStock + " adet var!");
+                qty = currentMenuStock;
+            }
+            
             document.getElementById('modal-qty').innerText = qty;
         }
 
