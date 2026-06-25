@@ -188,11 +188,11 @@ def restaurant_analytics():
             SELECT COALESCE(m.custom_name, f.item_name) as item_name, SUM(oi.quantity) as total_sold
             FROM order_items oi
             JOIN orders o ON oi.order_id = o.order_id
-            JOIN foods f ON oi.food_id = f.food_id
-            LEFT JOIN menus m ON oi.food_id = m.food_id AND m.restaurant_id = o.restaurant_id
+            JOIN menus m ON oi.menu_id = m.menu_id
+            JOIN foods f ON m.food_id = f.food_id
             WHERE o.restaurant_id = %s AND o.order_status IN ('completed', 'delivered')
             AND o.order_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
-            GROUP BY oi.food_id, m.custom_name, f.item_name
+            GROUP BY oi.menu_id, m.custom_name, f.item_name
             ORDER BY total_sold DESC
             LIMIT 5
         """, (restaurant_id,))

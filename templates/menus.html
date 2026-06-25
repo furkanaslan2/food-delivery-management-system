@@ -480,6 +480,23 @@
         </form>
     </div>
 </div>
+
+<div id="promoDeleteConfirmModal" style="display: none; position: fixed; z-index: 10005; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(17, 24, 39, 0.85); justify-content: center; align-items: center;">
+    <div style="background-color: #fff; padding: 30px; border-radius: 16px; width: 90%; max-width: 380px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); text-align: center;">
+        <div style="margin-bottom: 15px; display: flex; justify-content: center;">
+            <div style="width: 60px; height: 60px; background: #fef2f2; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; color: #ef4444;">
+                <i class="ph-fill ph-trash"></i>
+            </div>
+        </div>
+        <h3 style="margin: 0 0 10px 0; color: #111827; font-size: 20px; font-weight: 800;">Kuponu Sil</h3>
+        <p style="margin: 0 0 25px 0; color: #4b5563; font-size: 15px; line-height: 1.5;">Bu kuponu tamamen silmek istediğinize emin misiniz? <br><span style="font-size: 13px; color: #9ca3af;">(Bu işlem geri alınamaz)</span></p>
+        
+        <div style="display: flex; justify-content: center; gap: 12px;">
+            <button type="button" onclick="closePromoDeleteModal()" style="flex: 1; background: #f3f4f6; color: #374151; border: none; padding: 12px; border-radius: 10px; font-weight: 700; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">Vazgeç</button>
+            <button type="button" id="confirmPromoDeleteBtn" onclick="executePromoDelete()" style="flex: 1; background: #ef4444; color: white; border: none; padding: 12px; border-radius: 10px; font-weight: 700; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2);" onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='#ef4444'">Evet, Sil</button>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}

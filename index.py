@@ -182,7 +182,6 @@ def index():
                             
                     r['is_open'] = is_open
 
-                # 🔥 YENİ: Genişletilmiş Akıllı Sıralama Mantığı
                 if sort_by == 'rating':
                     all_restaurants.sort(key=lambda x: (not x.get('is_open', True), -float(x.get('rating') or 0)))
                 elif sort_by == 'distance' or sort_by == 'delivery_time':
@@ -191,7 +190,7 @@ def index():
                     all_restaurants.sort(key=lambda x: (not x.get('is_open', True), -int(x.get('rating_count') or 0)))
                 elif sort_by == 'alphabetical':
                     all_restaurants.sort(key=lambda x: (not x.get('is_open', True), x.get('restaurant_name', '').lower()))
-                else: # Default (Akıllı Sıralama)
+                else:
                     if customer_lat and customer_lon:
                         all_restaurants.sort(key=lambda x: (not x.get('is_open', True), x.get('distance', 999)))
                     else:
@@ -203,6 +202,19 @@ def index():
                 if session.get('customer_id'):
                     cursor.execute("SELECT restaurant_id FROM favorite_restaurants WHERE customer_id = %s", (session.get('customer_id'),))
                     favorited_restaurant_ids = [row['restaurant_id'] for row in cursor.fetchall()]
+
+                if restaurants:
+                    rest_ids = [r['restaurant_id'] for r in restaurants]
+                    format_strings = ','.join(['%s'] * len(rest_ids))
+                    cursor.execute(f"""
+                        SELECT restaurant_id, code_name, discount_type, discount_value 
+                        FROM promo_codes 
+                        WHERE is_active = 1 AND restaurant_id IN ({format_strings})
+                    """, tuple(rest_ids))
+                    all_active_promos = cursor.fetchall()
+                    
+                    for r in restaurants:
+                        r['promos'] = [p for p in all_active_promos if p['restaurant_id'] == r['restaurant_id']]
 
             except Exception as e:
                 print(f"Restoranlar yüklenirken hata: {e}")

@@ -625,6 +625,17 @@
                     </div>
                     {% endif %}
 
+                    {% if restaurant.get('promos') %}
+                    <div style="position: absolute; top: 12px; left: 12px; z-index: 20; display: flex; flex-direction: column; gap: 5px; align-items: flex-start; max-width: 85%;">
+                        {% for promo in restaurant['promos'] %}
+                        <div style="background: #e21837; color: white; font-size: 11px; font-weight: 700; padding: 5px 8px; border-radius: 4px; display: flex; align-items: center; gap: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.25); line-height: 1.2;">
+                            <i class="ph-bold ph-ticket" style="font-size: 14px;"></i>
+                            {{ promo['code_name'] }} Koduyla {% if promo['discount_type'] == 'percentage' %}%{{ promo['discount_value'] | int }}{% else %}{{ promo['discount_value'] | int }} TL{% endif %} İndirim!
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
                     {% if restaurant['image_url'] and restaurant['image_url'] != 'default_restaurant.jpg' %}
                         {% set card_img_path = url_for('static', filename='images/restaurants/' ~ restaurant['image_url']) %}
                         <div class="restaurant-img" style="background-image: url('{{ card_img_path }}');"></div>

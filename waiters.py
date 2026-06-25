@@ -204,7 +204,7 @@ def waiter_dashboard():
             SELECT m.menu_id, m.price, m.stock_quantity, f.item_name, m.custom_name 
             FROM menus m 
             JOIN foods f ON m.food_id = f.food_id 
-            WHERE m.restaurant_id = %s
+            WHERE m.restaurant_id = %s AND m.is_visible = 1
         ''', (restaurant_id,))
         menus = cursor.fetchall()
 

@@ -61,7 +61,6 @@ def view_restaurant(restaurant_id):
             """, (restaurant_id,))
             menu_items = cursor.fetchall()
             
-            # 🚀 YENİ GRUPLAMA: Artık global kategori değil, özel kategori kullanıyoruz
             for item in menu_items:
                 cat = item.get('category_name') or 'Diğer Lezzetler' 
                 if cat not in grouped_menus:
@@ -74,7 +73,7 @@ def view_restaurant(restaurant_id):
                            SELECT SUM(oi.quantity) 
                            FROM order_items oi 
                            JOIN orders o ON oi.order_id = o.order_id 
-                           WHERE oi.food_id = m.food_id AND o.order_status = 'delivered'
+                           WHERE oi.menu_id = m.menu_id AND o.order_status = 'delivered'
                        ), 0) as total_sales
                 FROM menus m
                 JOIN foods f ON m.food_id = f.food_id

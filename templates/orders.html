@@ -226,8 +226,11 @@
                     <div style="display: flex; justify-content: center; gap: 8px; align-items: center;">
                         
                         {% if order['order_status'] == 'ready' %}
-                            <button type="button" class="action-btn" title="Kurye Ata" onclick="openCourierModal('{{ order.order_id }}')" style="background: transparent; border: none; padding: 4px; animation: pulse 2s infinite;">
-                                <img src="{{ url_for('static', filename='images/icons/courier.png') }}" style="width: 24px; height: 24px; object-fit: contain;">
+                            <button type="button" class="action-btn" title="Kurye Ata" onclick="openCourierModal('{{ order.order_id }}')" 
+                                style="background-color: #d1fae5; border: none; padding: 4px; border-radius: 6px; box-shadow: 0 2px 5px rgba(16, 185, 129, 0.25); animation: pulse 2s infinite; transition: background-color 0.2s ease;" 
+                                onmouseover="this.style.backgroundColor='#a7f3d0';" 
+                                onmouseout="this.style.backgroundColor='#d1fae5';">
+                                <img src="{{ url_for('static', filename='images/icons/delivery.png') }}" style="width: 24px; height: 24px; object-fit: contain;">
                             </button>
                         {% endif %}
 

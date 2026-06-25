@@ -316,16 +316,46 @@ function addPromo() {
     });
 }
 
+let pendingPromoDeleteId = null;
+
 function deletePromo(id) {
-    if(!confirm("Kuponu silmek istediğinize emin misiniz?")) return;
+    pendingPromoDeleteId = id;
+    const modal = document.getElementById('promoDeleteConfirmModal');
+    if (modal) modal.style.display = 'flex';
+}
+
+function closePromoDeleteModal() {
+    pendingPromoDeleteId = null;
+    const modal = document.getElementById('promoDeleteConfirmModal');
+    if (modal) modal.style.display = 'none';
+}
+
+function executePromoDelete() {
+    if (pendingPromoDeleteId === null) return;
+    
+    const id = pendingPromoDeleteId;
+    const btn = document.getElementById('confirmPromoDeleteBtn');
+    const originalText = btn.innerHTML;
+    
+    btn.innerHTML = '<i class="ph-bold ph-spinner ph-spin"></i> Siliniyor...';
+    btn.style.pointerEvents = 'none';
+
     fetch('/api/manage_promos', {
         method: 'POST', headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({action: 'delete', promo_id: id})
     }).then(res => res.json()).then(data => { 
         if(data.success) {
-            if(typeof window.showToast === 'function') window.showToast("Kupon silindi.", "success");
+            if(typeof window.showToast === 'function') window.showToast("Kupon başarıyla silindi.", "success");
             loadPromos(); 
         }
+        closePromoDeleteModal();
+        btn.innerHTML = originalText;
+        btn.style.pointerEvents = 'auto';
+    }).catch(err => {
+        console.error('Kupon silme hatası:', err);
+        closePromoDeleteModal();
+        btn.innerHTML = originalText;
+        btn.style.pointerEvents = 'auto';
     });
 }
 

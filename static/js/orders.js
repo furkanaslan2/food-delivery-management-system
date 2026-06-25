@@ -119,7 +119,7 @@ function openOrderModal(isUpdate = false, btn = null) {
 
         const rawPhone = btn.getAttribute('data-customer-phone') || '';
         if (window.orderPhoneMask) {
-            window.orderPhoneMask.unmaskedValue = rawPhone; 
+            window.orderPhoneMask.value = rawPhone; 
         } else {
             const phoneInput = document.getElementById('customer-phone');
             if(phoneInput) phoneInput.value = rawPhone;
@@ -148,7 +148,7 @@ function openOrderModal(isUpdate = false, btn = null) {
         document.querySelectorAll('#order-form input[type="text"], #order-form textarea').forEach(el => el.value = '');
         document.querySelectorAll('#order-form select').forEach(el => el.selectedIndex = 0);
         
-        if (window.orderPhoneMask) window.orderPhoneMask.unmaskedValue = ''; 
+        if (window.orderPhoneMask) window.orderPhoneMask.value = ''; 
         document.getElementById('update-order-id').value = '';
         document.getElementById('dine-in-fields').style.display = 'none';
         document.getElementById('delivery-fields').style.display = 'none';
