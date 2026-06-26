@@ -23,6 +23,10 @@ app = Flask(__name__)
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config['SESSION_PERMANENT'] = False
 app.secret_key = os.getenv('FLASK_SECRET_KEY')
+
+app.config['SESSION_COOKIE_SAMESITE'] = 'None'
+app.config['SESSION_COOKIE_SECURE'] = True 
+
 Session(app)
 
 app.add_url_rule('/', 'index', index)

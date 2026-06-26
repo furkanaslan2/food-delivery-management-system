@@ -262,8 +262,21 @@
             ŞU AN KAPALI - SİPARİŞ ALINMIYOR
         </div>
 
-        <div class="rating" onclick="document.getElementById('reviewsModal').style.display='flex'" style="cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.3);" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-            {{ restaurant['rating'] }} <i class="ph-fill ph-star" style="color: #f59e0b;"></i> ({{ restaurant['rating_count'] }}) - Yorumları Gör
+        <div style="display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 20px; flex-wrap: wrap;">
+            
+            <div style="background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); color: white; padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; border: 1px solid rgba(255,255,255,0.3); box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+                <i class="ph-bold ph-clock"></i>
+                {% if restaurant['opening_time'] and restaurant['closing_time'] %}
+                    {{ restaurant['opening_time'] | string | replace(':00', '', 1) }} - {{ restaurant['closing_time'] | string | replace(':00', '', 1) }}
+                {% else %}
+                    Saatler Belirtilmemiş
+                {% endif %}
+            </div>
+
+            <div class="rating" onclick="document.getElementById('reviewsModal').style.display='flex'" style="margin-top: 0; cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.3);" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                {{ restaurant['rating'] }} <i class="ph-fill ph-star" style="color: #f59e0b;"></i> ({{ restaurant['rating_count'] }}) - Yorumları Gör
+            </div>
+            
         </div>
     </div>
 

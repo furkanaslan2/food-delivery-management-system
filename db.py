@@ -3,7 +3,6 @@ import mysql.connector
 from mysql.connector import Error
 from dotenv import load_dotenv
 
-# .env dosyasındaki gizli verileri yükle
 load_dotenv()
 
 def get_db_connection():
